@@ -106,8 +106,9 @@ receipt <- list(
   core_installed_tree_sha256 = .scwb_profile_tree_sha256(
     find.package("scworkbench", lib.loc = library_path)),
   pybench_source_commit = lock$pybench_source_commit,
+  latent_python_entry = latent_python,
   packs = installed)
-.scwb_profile_preflight(lock, receipt, lib.loc = library_path)
+invisible(.scwb_profile_preflight(lock, receipt, lib.loc = library_path))
 if (nrow(scworkbench::wb_operation_packs())) stop(
   "Installation unexpectedly activated a pack.", call. = FALSE)
 temporary <- paste0(receipt_path, ".tmp.", Sys.getpid())

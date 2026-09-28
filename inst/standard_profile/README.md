@@ -26,7 +26,8 @@ commits, clean source worktrees, and source manifest checksums before installing
 anything. It installs core plus packs without activating them, validates each
 installed pack, and atomically writes a receipt outside the R library.
 `SCWB_LATENT_PYTHON` is set to the supplied interpreter for scwbLatent's CPU
-dependency probe. The interpreter must provide scvi-tools, anndata, scipy and
+dependency probe and its venv entry is bound into the installation receipt.
+The interpreter must provide scvi-tools, anndata, scipy and
 CPU torch. This step does not run any scientific operation.
 
 In every R process that needs the full profile, opt in explicitly:

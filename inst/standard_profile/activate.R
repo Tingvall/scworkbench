@@ -83,9 +83,18 @@
       !is.character(receipt$core_source_commit) ||
       length(receipt$core_source_commit) != 1L ||
       !grepl("^[0-9a-f]{40}$", receipt$core_source_commit) ||
+      !is.character(receipt$latent_python_entry) ||
+      length(receipt$latent_python_entry) != 1L ||
+      !nzchar(receipt$latent_python_entry) ||
       !is.list(receipt$packs) || length(receipt$packs) != 7L) {
     .scwb_profile_fail("RECEIPT_MISMATCH", "installation receipt does not bind this profile and PyBench pin")
   }
+  configured_python <- Sys.getenv("SCWB_LATENT_PYTHON", unset = "")
+  if (!nzchar(configured_python) || !file.exists(configured_python) ||
+      !identical(file.path(normalizePath(dirname(configured_python),
+        winslash = "/", mustWork = TRUE), basename(configured_python)),
+        receipt$latent_python_entry)) .scwb_profile_fail(
+    "RECEIPT_MISMATCH", "latent Python entry differs from the verified installation")
   core_path <- find.package("scworkbench")
   if (!identical(receipt$core_installed_tree_sha256,
       .scwb_profile_tree_sha256(core_path)) ||
