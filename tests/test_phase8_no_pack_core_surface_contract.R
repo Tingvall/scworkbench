@@ -13,6 +13,15 @@ test_phase8_no_pack_core_surface_contract <- function() {
   # The generic selector still serves authenticated pack grants.
   stopifnot(exists(".wb_resolve_group_cells", envir = namespace,
     inherits = FALSE))
+  dependencies <- utils::read.csv("inst/phase8/dependency_audit.csv",
+    stringsAsFactors = FALSE)
+  suggested <- trimws(strsplit(read.dcf("DESCRIPTION")[[1L, "Suggests"]],
+    ",", fixed = TRUE)[[1L]])
+  stopifnot(!anyDuplicated(dependencies$package),
+    setequal(dependencies$package[dependencies$disposition == "retained"],
+      suggested),
+    !any(dependencies$package[dependencies$disposition == "removed"] %in%
+      suggested))
   TRUE
 }
 

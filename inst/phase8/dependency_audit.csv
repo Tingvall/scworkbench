@@ -18,3 +18,13 @@ TFBSTools,Suggests,yes,yes,yes,retained,Core motif-registry import and retrieval
 uwot,Suggests,yes,yes,yes,retained,Core model getter and replay-equivalence validation need it.
 irlba,Suggests,runtime_attestation,no,pack_and_composite,retained,Core provenance records optional runtime version and composites use it.
 slingshot,Suggests,yes,yes,yes,retained,Core retains source-state adoption and read-only model inspection.
+ggplot2,Suggests,yes,yes,yes,retained,Core wrangler plotting uses ggplot2 geometry and scales.
+methods,Suggests,yes,yes,yes,retained,Core S4 ingestion and typed matrix conversion use methods.
+monocle3,Suggests,yes,yes,yes,retained,Core read-only trajectory-model inspection uses monocle3 accessors.
+SeuratObject,Suggests,yes,yes,yes,retained,Core Seurat publication adapter reads assay layers.
+SingleCellExperiment,Suggests,yes,yes,yes,retained,Core SCE ingestion reads reduced dimensions and alternative experiments.
+SummarizedExperiment,Suggests,yes,yes,yes,retained,Core SCE ingestion reads assay and row or column metadata.
+S4Vectors,Suggests,ingestion_dependency,yes,yes,retained,Retained for supported Bioconductor ingestion object conversion and optional tests.
+zellkonverter,Suggests,yes,yes,yes,retained,Core H5AD ingestion invokes readH5AD.
+Seurat,Suggests,yes,yes,yes,retained,Core publication adapter supports legacy GetAssayData fallback.
+viridisLite,Suggests,yes,yes,yes,retained,Core plotting supports optional continuous palette selection.

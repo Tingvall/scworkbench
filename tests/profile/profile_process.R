@@ -54,14 +54,16 @@ if (identical(mode, "core_only")) {
 } else if (identical(mode, "profile")) {
   lock <- .scwb_profile_read_lock()
   receipt <- .scwb_profile_read_receipt(receipt_path)
+  change_digest <- function(value) paste0(
+    if (startsWith(value, "0")) "1" else "0", substring(value, 2L))
   wrong <- lock
-  wrong$packs[[1L]]$manifest_sha256 <- paste0("0", substring(
-    wrong$packs[[1L]]$manifest_sha256, 2L))
+  wrong$packs[[1L]]$manifest_sha256 <- change_digest(
+    wrong$packs[[1L]]$manifest_sha256)
   expect_error_code(.scwb_standard_profile_activate_locked(wrong, receipt,
     lib.loc = library), "RECEIPT_MISMATCH")
   wrong_receipt <- receipt
-  wrong_receipt$packs[[1L]]$pack_sha256 <- paste0("0", substring(
-    wrong_receipt$packs[[1L]]$pack_sha256, 2L))
+  wrong_receipt$packs[[1L]]$pack_sha256 <- change_digest(
+    wrong_receipt$packs[[1L]]$pack_sha256)
   expect_error_code(.scwb_standard_profile_activate_locked(lock,
     wrong_receipt, lib.loc = library), "WRONG_PIN")
   stopifnot(nrow(wb_operation_packs()) == 0L)
