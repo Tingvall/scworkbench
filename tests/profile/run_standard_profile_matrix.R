@@ -1,7 +1,8 @@
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 5L) stop(paste(
+if (!length(args) %in% c(5L, 6L)) stop(paste(
   "usage: Rscript tests/profile/run_standard_profile_matrix.R",
-  "CORE_SOURCE PYBENCH_SOURCE PACK_ROOT LATENT_PYTHON EVIDENCE_DIR"), call. = FALSE)
+  "CORE_SOURCE PYBENCH_SOURCE PACK_ROOT LATENT_PYTHON EVIDENCE_DIR",
+  "[REPRESENTATION_SOURCE]"), call. = FALSE)
 core_source <- normalizePath(args[[1L]], winslash = "/", mustWork = TRUE)
 pybench_source <- normalizePath(args[[2L]], winslash = "/", mustWork = TRUE)
 pack_root <- normalizePath(args[[3L]], winslash = "/", mustWork = TRUE)
@@ -12,12 +13,28 @@ latent_python <- file.path(normalizePath(dirname(args[[4L]]), winslash = "/",
 evidence <- normalizePath(args[[5L]], winslash = "/", mustWork = FALSE)
 dir.create(evidence, recursive = TRUE, showWarnings = FALSE)
 evidence <- normalizePath(evidence, winslash = "/", mustWork = TRUE)
+if (length(args) == 6L) {
+  representation_source <- normalizePath(args[[6L]], winslash = "/",
+    mustWork = TRUE)
+  source_links <- file.path(evidence, "pinned_pack_sources")
+  dir.create(source_links, recursive = TRUE, showWarnings = FALSE)
+  for (package in c("scwbStatistics", "scwbGenePrograms", "scwbRNA",
+                    "scwbRepresentation", "scwbTrajectory", "scwbLatent",
+                    "scwbATAC")) {
+    target <- if (identical(package, "scwbRepresentation"))
+      representation_source else file.path(pack_root, package)
+    link <- file.path(source_links, package)
+    if (!file.exists(link) && !file.symlink(target, link)) stop(
+      "Could not create pinned source link for ", package)
+  }
+  pack_root <- source_links
+}
 
 expected <- c(
   scwbStatistics = "00d1ba6a63d853b146916243bb8035d32528d575",
   scwbGenePrograms = "1bc3ad43c920622ab1e45df4bd8bd968335e912b",
   scwbRNA = "5ceb7a3fd45ed56154131498a067eb1f5982c668",
-  scwbRepresentation = "e3bb38760bcdda426a83bfbd7350b6fb16890e94",
+  scwbRepresentation = "d0a25aacef000f52b211ee0e138d4c964c68cc77",
   scwbTrajectory = "2bb8494bc89b02cc29418bb114ac70cb1b791eae",
   scwbLatent = "fe83554d4904861e76b7dd616e34c84fd23d3a16",
   scwbATAC = "0d0b2c0728e0db543442c1783fdc9398ee309eb5")
