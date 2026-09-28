@@ -7,7 +7,7 @@ PyBenchRepository: git@gitlab.liu.se:hende58/pybench.git
 ProtocolVersion: 2
 ProtocolSHA256: d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b
 StandardProfileSchemaVersion: scworkbench.standard_profile.v1
-StandardProfileSHA256: b49fc5b2cbde1aff6bffd1a58474214c647ad58eba75d6f4d6ed444d651cade2
+StandardProfileSHA256: 580ada91f4192006d4286e9ce50daf081f911b5919db79f2e4cbd9e104adce6c
 StandardProfilePackCount: 7
 StandardProfilePackedOperationCount: 56
 StandardProfileTotalOperationCount: 61

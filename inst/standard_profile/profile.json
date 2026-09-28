@@ -33,7 +33,7 @@
       "package": "scwbRNA",
       "namespace": "scwbrna",
       "version": "0.1.0",
-      "source_commit": "5ceb7a3fd45ed56154131498a067eb1f5982c668",
+      "source_commit": "4c5199b371d8d94376c93e9cdcaa314f350c88f3",
       "manifest_source_sha256": "067db0625181775721a91f2188bb9f2ca72443fc8aa06d0b453669035ebad410",
       "manifest_sha256": "067db0625181775721a91f2188bb9f2ca72443fc8aa06d0b453669035ebad410",
       "operation_count": 4

@@ -33,7 +33,7 @@ if (length(args) == 6L) {
 expected <- c(
   scwbStatistics = "00d1ba6a63d853b146916243bb8035d32528d575",
   scwbGenePrograms = "1bc3ad43c920622ab1e45df4bd8bd968335e912b",
-  scwbRNA = "5ceb7a3fd45ed56154131498a067eb1f5982c668",
+  scwbRNA = "4c5199b371d8d94376c93e9cdcaa314f350c88f3",
   scwbRepresentation = "d0a25aacef000f52b211ee0e138d4c964c68cc77",
   scwbTrajectory = "2bb8494bc89b02cc29418bb114ac70cb1b791eae",
   scwbLatent = "fe83554d4904861e76b7dd616e34c84fd23d3a16",
