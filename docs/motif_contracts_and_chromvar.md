@@ -14,6 +14,11 @@ the selected sparse matrix before chromVAR computation; typed chunk reads do
 not make it a streaming algorithm. A recipient can inspect promoted artifacts
 and provenance without activating the pack.
 
+The dynamic provider resolution records the selected matrix identity, package
+name and version, artifact identity, and namespace-export probe identity.
+Core rechecks this evidence before dispatch and promotion; changed evidence
+rejects rather than publishing a result against a stale provider observation.
+
 Historical bundles keep their original operation identities. Newly executed
 pack runs use `scwbatac::chromvar` and do not claim byte-identical payloads or
 deterministic reruns across dependency versions.

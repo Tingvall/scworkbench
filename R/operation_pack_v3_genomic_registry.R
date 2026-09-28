@@ -210,18 +210,34 @@
       .wb_operation_pack_v3_registry_scalar(row$genome_provider) else NULL
     observed <- .wb_operation_pack_v3_matrix_consumed_identity(bundle,
       matrix_id, "dispatch")
-    if (!identical(provider, resolution$provider_name) ||
-        !identical(list(scheme = observed$content_identity_scheme,
+    if (!identical(list(scheme = observed$content_identity_scheme,
           sha256 = observed$content_sha256), resolution$input_identity) ||
-        !requireNamespace(provider, quietly = TRUE) ||
-        !identical(as.character(utils::packageVersion(provider)),
-          resolution$resolved_package$version))
+        !.wb_operation_pack_v3_genomic_provider_resolution_current(
+          provider, resolution))
       .wb_operation_pack_v3_error(
         "OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED",
         "Matrix provider or stage-visible source bytes changed after preflight.",
         "dispatch")
   }
   invisible(TRUE)
+}
+
+.wb_operation_pack_v3_genomic_provider_resolution_current <- function(
+    provider, resolution) {
+  if (!identical(provider, resolution$provider_name) ||
+      !identical(resolution$probe, "r_namespace_exports_v1") ||
+      !requireNamespace(provider, quietly = TRUE)) return(FALSE)
+  version <- as.character(utils::packageVersion(provider))
+  identical(resolution$resolved_package$name, provider) &&
+    identical(resolution$resolved_package$version, version) &&
+    identical(resolution$resolved_package$artifact_identity,
+      .wb_operation_pack_v2_identity_plain(
+        "scworkbench.r_package.artifact.v1",
+        list(name = provider, version = version))) &&
+    identical(resolution$resolved_package$probe_evidence_identity,
+      .wb_operation_pack_v2_identity_plain(
+        "scworkbench.r_namespace_exports.v1",
+        getNamespaceExports(provider)))
 }
 
 # A staged transition may outlive its original bundle source. Reopen verifies
@@ -310,10 +326,8 @@
     row <- rows[as.character(rows$matrix_id) == matrix_id, , drop = FALSE]
     provider <- if (nrow(row) == 1L)
       .wb_operation_pack_v3_registry_scalar(row$genome_provider) else NULL
-    if (!identical(provider, resolution$provider_name) ||
-        !requireNamespace(provider, quietly = TRUE) ||
-        !identical(as.character(utils::packageVersion(provider)),
-          resolution$resolved_package$version))
+    if (!.wb_operation_pack_v3_genomic_provider_resolution_current(
+        provider, resolution))
       .wb_operation_pack_v3_error("OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED",
         "Dynamic provider changed before promotion.", "promotion")
   }

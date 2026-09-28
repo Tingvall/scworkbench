@@ -58,6 +58,49 @@ test_operation_pack_v3_genomic_registry_contract <- function() {
       bundle, match_decl, input, records,
       list(motif_match_set = NULL), cells)$selection))
 
+  # The namespace-export probe is part of the authenticated runtime evidence,
+  # not merely a preflight observation. A same-name/version resolution with a
+  # different probe must fail both dispatch and promotion currentness checks.
+  operation <- list(dependencies = list(list(
+    kind = "dynamic_matrix_registry_package", requirement_id = "provider",
+    matrix_input = "matrix")))
+  preflight <- scworkbench:::.wb_operation_pack_v3_genomic_provider_preflight(
+    bundle, operation, input, list(declared = list(), selected = list(),
+      dispositions = list(), dynamic = list()))
+  check_dispatch <- scworkbench:::.wb_operation_pack_v3_genomic_provider_assert_current
+  stopifnot(isTRUE(check_dispatch(bundle, operation, input, preflight)))
+  changed_preflight <- preflight
+  changed_preflight$dispositions$provider$resolved_package$
+    probe_evidence_identity$sha256 <- paste(rep("0", 64L), collapse = "")
+  dispatch_error <- tryCatch(check_dispatch(bundle, operation, input,
+    changed_preflight), error = base::identity)
+  stopifnot(inherits(dispatch_error, "wb_operation_pack_error"),
+    identical(dispatch_error$code, "OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED"))
+
+  stage_root <- tempfile("scwb-genomic-provider-stage-")
+  dir.create(file.path(stage_root, "registry_reads", "genomic"),
+    recursive = TRUE)
+  on.exit(unlink(stage_root, recursive = TRUE, force = TRUE), add = TRUE)
+  jsonlite::write_json(first_genomic, file.path(stage_root,
+    "registry_reads", "genomic", "payload.json"), auto_unbox = TRUE,
+    null = "null")
+  genomic_identity <- scworkbench:::.wb_operation_pack_v3_registry_snapshot_identities(
+    first_genomic, "genomic_matrix_source")
+  request <- list(registry_reads = list(list(name = "genomic",
+    descriptor = list(kind = "genomic_matrix_source", matrix_input = "matrix",
+      matrix_id = "ATAC", content_identity = genomic_identity$content,
+      source_identity = genomic_identity$source))),
+    inputs = list(list(name = "matrix", descriptor = records$matrix)),
+    params = list(), dependency_resolution = list(dynamic = preflight$dynamic))
+  check_promotion <- scworkbench:::.wb_operation_pack_v3_genomic_retained_assert_current
+  stopifnot(isTRUE(check_promotion(bundle, request, stage_root)))
+  request$dependency_resolution$dynamic[[1L]]$resolved_package$
+    probe_evidence_identity$sha256 <- paste(rep("0", 64L), collapse = "")
+  promotion_error <- tryCatch(check_promotion(bundle, request, stage_root),
+    error = base::identity)
+  stopifnot(inherits(promotion_error, "wb_operation_pack_error"),
+    identical(promotion_error$code, "OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED"))
+
   wb_matrix_set_genome(bundle, "ATAC", organism = "human",
     genome_build = "hg19", genome_provider = "BSgenome.Hsapiens.UCSC.hg38")
   stopifnot(!identical(fingerprint(first_genomic, "genomic_matrix_source"),
