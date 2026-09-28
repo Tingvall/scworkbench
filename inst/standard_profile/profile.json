@@ -1,0 +1,78 @@
+{
+  "schema_version": "scworkbench.standard_profile.v1",
+  "core_operations": [
+    "feature_set_import",
+    "feature_set_namespace_transfer",
+    "cell_set_derive",
+    "metadata_cell_vector",
+    "slingshot_adopt"
+  ],
+  "packed_operation_count": 56,
+  "pybench_source_commit": "9746792a552a875530ec9466bfa2c1afcfb22c6a",
+  "core_start_commit": "0aaa68893e595993c2664e104f7e0dc20702f960",
+  "packs": [
+    {
+      "package": "scwbStatistics",
+      "namespace": "scwbstatistics",
+      "version": "0.1.0",
+      "source_commit": "00d1ba6a63d853b146916243bb8035d32528d575",
+      "manifest_source_sha256": "14b4610595e255f199c58748e387981b294825a145a3ffffa2e0c5e309c175ad",
+      "manifest_sha256": "96f4fbe8f12d1842e7d57da142fb4942dd5b023cce02b7f1f5f9bbc90e26d0cb",
+      "operation_count": 6
+    },
+    {
+      "package": "scwbGenePrograms",
+      "namespace": "scwbgeneprograms",
+      "version": "0.1.0",
+      "source_commit": "1bc3ad43c920622ab1e45df4bd8bd968335e912b",
+      "manifest_source_sha256": "29e071596984f0e4930e072db58c76386a058fb40be55a70ffb8a541921feaee",
+      "manifest_sha256": "092887663122e595eee85a4ee98941ac059d313f9c39cee557b8e344d84b52f2",
+      "operation_count": 10
+    },
+    {
+      "package": "scwbRNA",
+      "namespace": "scwbrna",
+      "version": "0.1.0",
+      "source_commit": "5ceb7a3fd45ed56154131498a067eb1f5982c668",
+      "manifest_source_sha256": "067db0625181775721a91f2188bb9f2ca72443fc8aa06d0b453669035ebad410",
+      "manifest_sha256": "067db0625181775721a91f2188bb9f2ca72443fc8aa06d0b453669035ebad410",
+      "operation_count": 4
+    },
+    {
+      "package": "scwbRepresentation",
+      "namespace": "scwbrepresentation",
+      "version": "0.1.0",
+      "source_commit": "e3bb38760bcdda426a83bfbd7350b6fb16890e94",
+      "manifest_source_sha256": "e0a35cf2f2dc2f4321c412d0c170f7cdfefe4e28ac7e52f480dc946ed754f1ba",
+      "manifest_sha256": "dfa5772ae8addd96468ce530a4d69eb1b2105d99f6ab1b0ebc28f430f1a1314a",
+      "operation_count": 6
+    },
+    {
+      "package": "scwbTrajectory",
+      "namespace": "scwbtrajectory",
+      "version": "0.1.1",
+      "source_commit": "2bb8494bc89b02cc29418bb114ac70cb1b791eae",
+      "manifest_source_sha256": "d425247347146998e5c987ba9bc09f8789c650af0f433dfbdd0864f51305c092",
+      "manifest_sha256": "b8fef84f0f5c90d53b4f34fd312811b10d89917bbbb553e8aefcb473c7f1c2b8",
+      "operation_count": 25
+    },
+    {
+      "package": "scwbLatent",
+      "namespace": "scwblatent",
+      "version": "0.1.0",
+      "source_commit": "fe83554d4904861e76b7dd616e34c84fd23d3a16",
+      "manifest_source_sha256": "f8c1b2f3293f06d4c72d0126a074b2dc1a862bb812651977e5026e71e030e393",
+      "manifest_sha256": "90d7409d59a73880638e1b8c3f06061ef775286bb9637a2899aea0948093ef2c",
+      "operation_count": 4
+    },
+    {
+      "package": "scwbATAC",
+      "namespace": "scwbatac",
+      "version": "0.1.0",
+      "source_commit": "0d0b2c0728e0db543442c1783fdc9398ee309eb5",
+      "manifest_source_sha256": "7674ccd7fc2c51e6cb9c5d650b327ef67b1025e3726ca77c999e1ba64120aa46",
+      "manifest_sha256": "474824b54fa802dd58f74c4b73ad3383316ab9d4263dc52921f03c4675fb6433",
+      "operation_count": 1
+    }
+  ]
+}
