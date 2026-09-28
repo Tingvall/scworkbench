@@ -11,8 +11,7 @@
 
 test_public_typed_run_branch_inputs_contract <- function() {
   contract_test_activate_phase5_conformance_pack()
-  on.exit(try(wb_operation_pack_unload("scwbv3phase5"), silent = TRUE),
-    add = TRUE)
+  on.exit(contract_test_deactivate_phase5_conformance_pack(), add = TRUE)
   required <- c("BPCells", "Matrix")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))

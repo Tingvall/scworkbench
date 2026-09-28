@@ -1,7 +1,6 @@
 test_durable_session_source_payload_corruption_contract <- function() {
   contract_test_activate_phase5_conformance_pack()
-  on.exit(try(wb_operation_pack_unload("scwbv3phase5"), silent = TRUE),
-    add = TRUE)
+  on.exit(contract_test_deactivate_phase5_conformance_pack(), add = TRUE)
   bundle_dir <- tempfile("scwb_durable_corruption_bundle_")
   workspace_root <- tempfile("scwb_durable_corruption_sessions_")
   b <- wb_init_bundle(bundle_dir, overwrite = TRUE)

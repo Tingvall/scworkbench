@@ -294,6 +294,21 @@ contract_test_activate_core_conformance_pack <- function() {
 
 .contract_test_phase5_conformance_state <- new.env(parent = emptyenv())
 
+contract_test_deactivate_phase5_conformance_pack <- function() {
+  try(wb_operation_pack_unload("scwbv3phase5"), silent = TRUE)
+  if ("scwbV3Phase5" %in% loadedNamespaces())
+    unloadNamespace("scwbV3Phase5")
+  if (!is.null(.contract_test_phase5_conformance_state$prior_libpaths)) {
+    .libPaths(.contract_test_phase5_conformance_state$prior_libpaths)
+    previous <- .contract_test_phase5_conformance_state$prior_r_libs
+    if (is.na(previous)) Sys.unsetenv("R_LIBS") else Sys.setenv(R_LIBS = previous)
+    .contract_test_phase5_conformance_state$prior_libpaths <- NULL
+    .contract_test_phase5_conformance_state$prior_r_libs <- NULL
+  }
+  stopifnot(!"scwbV3Phase5" %in% loadedNamespaces())
+  invisible(TRUE)
+}
+
 contract_test_activate_phase5_conformance_pack <- function() {
   if (is.null(.contract_test_phase5_conformance_state$library)) {
     source <- file.path(normalizePath(".", winslash = "/", mustWork = TRUE),
@@ -307,14 +322,23 @@ contract_test_activate_phase5_conformance_pack <- function() {
     if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE),
       collapse = "\n"), call. = FALSE)
     .contract_test_phase5_conformance_state$library <- library
-    .libPaths(c(library, .libPaths()))
-    existing <- Sys.getenv("R_LIBS", unset = "")
-    Sys.setenv(R_LIBS = paste(c(library,
-      if (nzchar(existing)) existing else character()),
-      collapse = .Platform$path.sep))
   }
+  if (!is.null(.contract_test_phase5_conformance_state$prior_libpaths))
+    stop("Phase 5 conformance-pack fixture is already active.", call. = FALSE)
+  .contract_test_phase5_conformance_state$prior_libpaths <- .libPaths()
+  .contract_test_phase5_conformance_state$prior_r_libs <- Sys.getenv("R_LIBS", unset = NA_character_)
+  library <- .contract_test_phase5_conformance_state$library
+  .libPaths(c(library, .libPaths()))
+  existing <- Sys.getenv("R_LIBS", unset = "")
+  Sys.setenv(R_LIBS = paste(c(library,
+    if (nzchar(existing)) existing else character()),
+    collapse = .Platform$path.sep))
+  activated <- FALSE
+  on.exit(if (!activated) contract_test_deactivate_phase5_conformance_pack(),
+    add = TRUE)
   wb_operation_pack_load("scwbV3Phase5",
     lib.loc = .contract_test_phase5_conformance_state$library)
+  activated <- TRUE
   invisible(TRUE)
 }
 
