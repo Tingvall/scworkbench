@@ -34,7 +34,37 @@ test_phase8_primitive_exchange_inventory_contract <- function() {
       "deliberately_core_only", "r_only_python_fail_closed", "actual_gap")),
     !any(inventory$classification == "actual_gap"),
     all(nzchar(inventory$qualification_evidence)),
+    all(nzchar(inventory$python_qualification_evidence)),
     all(nzchar(inventory$recipient_validation))
+  )
+  TRUE
+}
+
+test_phase8_test_ownership_inventory_contract <- function() {
+  ownership <- utils::read.csv("inst/phase8/core_test_ownership_inventory.csv",
+    stringsAsFactors = FALSE)
+  references <- utils::read.csv("inst/phase8/migrated_operation_test_references.csv",
+    stringsAsFactors = FALSE)
+  operations <- utils::read.csv("inst/phase8/packed_operation_names.csv",
+    stringsAsFactors = FALSE)
+  stopifnot(
+    nrow(ownership) == 242L,
+    !anyDuplicated(ownership$test_identity),
+    all(nzchar(ownership$key_assertions)),
+    all(ownership$owner %in% c("core_engine", "pack_method",
+      "pinned_composite", "migration_evidence")),
+    all(nzchar(ownership$destination)),
+    nrow(operations) == 56L,
+    !anyDuplicated(operations$qualified_name),
+    all(references$test_identity %in% ownership$test_identity),
+    all(references$migrated_operation %in% c(
+      operations$operation_name, operations$qualified_name)),
+    all(grepl("^[0-9a-f]{40}$", references$old_owner_commit)),
+    all(grepl("^[0-9a-f]{40}$", references$new_owner_commit)),
+    any(references$test_identity == "test_navigation_contract" &
+      references$migrated_operation == "trajectory_de"),
+    any(references$test_identity == "test_trajectory_family_helpers_contract" &
+      references$migrated_operation == "palantir_project")
   )
   TRUE
 }

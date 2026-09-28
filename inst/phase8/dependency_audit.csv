@@ -1,0 +1,20 @@
+package,prior_class,core_runtime_use,root_test_use,composite_or_pack_use,disposition,rationale
+BiocParallel,Suggests,no,no,pack_only,removed,No core namespace or executable root-test use.
+BSgenome.Hsapiens.UCSC.hg19,Suggests,no,provider_identifier_string_only,pack_only,removed,Core registry validates provider identifiers without loading this genome package.
+BSgenome.Mmusculus.UCSC.mm10,Suggests,no,provider_identifier_string_only,pack_only,removed,Core registry validates provider identifiers without loading this genome package.
+chromVAR,Suggests,no,no,pack_only,removed,The method is owned and loaded by scwbATAC.
+GenomeInfoDb,Suggests,no,no,pack_only,removed,No core namespace or executable root-test use.
+GenomicRanges,Suggests,no,no,pack_only,removed,No core namespace or executable root-test use.
+IRanges,Suggests,no,no,pack_only,removed,No core namespace or executable root-test use.
+motifmatchr,Suggests,label_only,label_only,pack_only,removed,Core retains motif-match metadata but not the matching method dependency.
+RANN,Suggests,no,no,Representation_composite,removed,Retired core kNN method was sole core runtime use; pinned composite resolves pack dependency explicitly.
+UCell,Suggests,label_only,no,pack_only,removed,UCell scientific execution is owned by scwbGenePrograms.
+rnndescent,Suggests,no,no,pack_only,removed,No core namespace or executable root-test use.
+FNN,Suggests,no,no,pack_only,removed,No core namespace or executable root-test use.
+BPCells,Suggests,yes,yes,yes,retained,Core matrix ingestion and payload validation need it.
+igraph,Suggests,yes,yes,yes,retained,Core trajectory-model read-only inspection/reporting needs it.
+JASPAR2020,Suggests,yes,yes,yes,retained,Core optional motif-registry import and root-test fixture load need it.
+TFBSTools,Suggests,yes,yes,yes,retained,Core motif-registry import and retrieval need it.
+uwot,Suggests,yes,yes,yes,retained,Core model getter and replay-equivalence validation need it.
+irlba,Suggests,runtime_attestation,no,pack_and_composite,retained,Core provenance records optional runtime version and composites use it.
+slingshot,Suggests,yes,yes,yes,retained,Core retains source-state adoption and read-only model inspection.
