@@ -9,6 +9,9 @@ metadata <- read.dcf(metadata_path)
 required <- c(
   "SchemaVersion", "ReleaseVersion", "ScworkbenchVersion", "PyBenchVersion",
   "PyBenchCommit", "PyBenchRepository", "ProtocolVersion", "ProtocolSHA256",
+  "StandardProfileSchemaVersion", "StandardProfileSHA256",
+  "StandardProfilePackCount", "StandardProfilePackedOperationCount",
+  "StandardProfileTotalOperationCount",
   "BaseImage", "BaseImageDigestAMD64", "RVersion", "RVersionLockSHA256",
   "PythonVersion", "PythonVersionLockSHA256", "GPUValidation", "LargeDataValidation"
 )
@@ -17,13 +20,37 @@ if (length(missing)) stop("Composite release metadata missing: ", paste(missing,
 value <- function(field) as.character(metadata[1L, field])
 
 description <- read.dcf(file.path(root, "DESCRIPTION"))
+profile <- jsonlite::read_json(file.path(root, "inst", "standard_profile",
+  "profile.json"), simplifyVector = FALSE)
+profile_packs <- profile$packs
+profile_pack_counts <- vapply(profile_packs, function(pack) {
+  stopifnot(is.list(pack), is.character(pack$source_commit),
+    grepl("^[0-9a-f]{40}$", pack$source_commit),
+    is.character(pack$manifest_source_sha256),
+    grepl("^[0-9a-f]{64}$", pack$manifest_source_sha256),
+    is.character(pack$manifest_sha256),
+    grepl("^[0-9a-f]{64}$", pack$manifest_sha256))
+  as.integer(pack$operation_count)
+}, integer(1))
 stopifnot(
-  identical(value("SchemaVersion"), "scworkbench.composite-release.v1"),
+  identical(value("SchemaVersion"), "scworkbench.composite-release.v2"),
   identical(value("ReleaseVersion"), value("ScworkbenchVersion")),
   identical(value("ScworkbenchVersion"), as.character(description[1L, "Version"])),
   identical(value("PyBenchVersion"), as.character(description[1L, "Config/scworkbench/PyBench-Version"])),
   identical(value("ProtocolVersion"), as.character(description[1L, "Config/scworkbench/PyBench-Protocol"])),
   identical(value("ProtocolSHA256"), as.character(description[1L, "Config/scworkbench/PyBench-Protocol-SHA256"])),
+  identical(value("StandardProfileSchemaVersion"), profile$schema_version),
+  identical(profile$schema_version, "scworkbench.standard_profile.v1"),
+  identical(value("PyBenchCommit"), profile$pybench_source_commit),
+  identical(as.integer(value("StandardProfilePackCount")), length(profile_packs)),
+  identical(as.integer(value("StandardProfilePackedOperationCount")),
+    as.integer(profile$packed_operation_count)),
+  identical(as.integer(value("StandardProfilePackedOperationCount")),
+    as.integer(sum(profile_pack_counts))),
+  identical(as.integer(value("StandardProfileTotalOperationCount")),
+    as.integer(length(profile$core_operations) + sum(profile_pack_counts))),
+  !anyDuplicated(vapply(profile_packs, function(pack) pack$namespace,
+    character(1))),
   grepl("^sha256:[0-9a-f]{64}$", value("BaseImageDigestAMD64")),
   grepl("^[0-9a-f]{40}$", value("PyBenchCommit"))
 )
@@ -36,6 +63,8 @@ sha256_external <- function(path) {
 }
 checks <- c(
   ProtocolSHA256 = sha256_external(file.path(root, "inst", "protocol", "pybench-op-v2.schema.json")),
+  StandardProfileSHA256 = sha256_external(file.path(root, "inst",
+    "standard_profile", "profile.json")),
   RVersionLockSHA256 = sha256_external(file.path(root, "containers", "apptainer", "fullstack_r_versions.lock.csv")),
   PythonVersionLockSHA256 = sha256_external(file.path(root, "containers", "apptainer", "fullstack_python_requirements.lock"))
 )

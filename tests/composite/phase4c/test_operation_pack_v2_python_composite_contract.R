@@ -170,7 +170,8 @@ test_operation_pack_v2_composite_protocol_contract <- function() {
       readBin(python_sidecar, "raw", file.info(python_sidecar)$size)),
     identical(revision, .wb_phase2c_pybench_commit),
     identical(read.dcf("inst/release/composite_release.dcf")[[1,
-      "PyBenchCommit"]], "11232d000ee42aa1344c9d6fb25a73acb1d88fe2"))
+      "PyBenchCommit"]], jsonlite::read_json(
+        "inst/standard_profile/profile.json")$pybench_source_commit))
   TRUE
 }
 
