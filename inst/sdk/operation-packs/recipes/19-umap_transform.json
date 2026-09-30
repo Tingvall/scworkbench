@@ -1,0 +1,249 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbrepresentation",
+  "package": {
+    "name": "scwbRepresentation",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbRepresentation::register_operation_pack",
+  "operations": [
+    {
+      "name": "umap_transform",
+      "qualified_name": "scwbrepresentation::umap_transform",
+      "title": "UMAP transform",
+      "description": "Project selected cells through an authenticated contained UMAP model and request a core-owned 2D merge or replacement.",
+      "runner": ".run_umap_transform",
+      "inputs": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true,
+          "alignment": "model_linked"
+        },
+        {
+          "name": "in_space",
+          "kind": "space",
+          "required": false,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "dims": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "default": null,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "space_id_out": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null,
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "parameter_bindings": [
+        {
+          "parameter": "space_id_out",
+          "policy": "model_space_id_v1",
+          "input": "model"
+        }
+      ],
+      "contained_model_reads": [
+        {
+          "name": "fitted_model",
+          "input": "model",
+          "reader": "read_contained_model_payload",
+          "engine": "uwot",
+          "model_type": "uwot_umap",
+          "source_space_input": "in_space",
+          "dimensions_parameter": "dims",
+          "access": "verified_private_copy_read_only_v1",
+          "call_discipline": "exactly_once"
+        }
+      ],
+      "publication_policies": [
+        {
+          "output": "space_2d",
+          "policy": "authenticated_space_2d_publication_v1",
+          "target_kind": "space_2d",
+          "target_id_parameter": "space_id_out",
+          "mode": {
+            "policy": "selected_merge_or_full_replace_v1",
+            "overwrite_parameter": "overwrite"
+          },
+          "cell_axis_input": "in_space",
+          "model_binding": {
+            "source": "input",
+            "name": "model"
+          },
+          "transaction_scope": "promotion_group_v1"
+        }
+      ],
+      "dimension_policies": [
+        {
+          "output": "projection_membership",
+          "policy": "authenticated_output_axes_v1",
+          "shape": "one_per_cell",
+          "cell_axis": {
+            "source": "effective_cells_v1",
+            "input": "in_space"
+          },
+          "row_order": "input_cell_order_v1",
+          "missing_values": "forbidden"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "space_2d",
+          "category": "materialization",
+          "kind": "space_2d",
+          "storage_profile": "space_2d_dense_v1",
+          "allocated_id_key": "space_id",
+          "required": true,
+          "promotion_group": "projection",
+          "materialized_by_terminals": [
+            "projection_membership"
+          ]
+        },
+        {
+          "name": "projection_membership",
+          "category": "terminal_artifact",
+          "kind": "cell_vector",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "projection_membership_id",
+          "required": true,
+          "promotion_group": "projection",
+          "value_kind": "categorical"
+        }
+      ],
+      "dependencies": [
+        {
+          "requirement_id": "scworkbench_runtime",
+          "kind": "r_package",
+          "name": "scworkbench",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<0.2.0"
+          },
+          "disposition": "required",
+          "import_probe": "wb_prim_model_ref"
+        },
+        {
+          "requirement_id": "uwot_runtime",
+          "kind": "r_package",
+          "name": "uwot",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.2.0,<1.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "umap"
+        }
+      ],
+      "promotion_closure": {
+        "projection_membership": [
+          "projection_membership",
+          "space_2d"
+        ]
+      },
+      "replay_equivalence": {
+        "space_2d": "cell_aligned_embedding",
+        "projection_membership": "exact_canonical_value"
+      },
+      "retained_parameters": [
+        {
+          "name": "dims",
+          "source": "effective_parameter_value",
+          "parameter": "dims",
+          "required": true
+        },
+        {
+          "name": "space_id_out",
+          "source": "effective_parameter_value",
+          "parameter": "space_id_out",
+          "required": true
+        },
+        {
+          "name": "overwrite",
+          "source": "effective_parameter_value",
+          "parameter": "overwrite",
+          "required": true
+        }
+      ],
+      "public_interface": {
+        "intent": [
+          "projection",
+          "umap"
+        ],
+        "inputs": [
+          {
+            "name": "model",
+            "label": "model",
+            "help": "Contained UMAP model."
+          },
+          {
+            "name": "in_space",
+            "label": "in_space",
+            "help": "Optional query space; defaults to fitted source space."
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dims",
+            "type": "list",
+            "help": "Selected dimensions."
+          },
+          {
+            "name": "space_id_out",
+            "type": "string",
+            "help": "Output UMAP space identifier."
+          },
+          {
+            "name": "overwrite",
+            "type": "bool",
+            "help": "Permit overlap replacement during selected-cell merge."
+          }
+        ],
+        "outputs": [
+          {
+            "name": "space_2d",
+            "description": "Model-bound projected UMAP coordinates."
+          },
+          {
+            "name": "projection_membership",
+            "description": "Cells projected through the bound UMAP model."
+          }
+        ]
+      }
+    }
+  ]
+}

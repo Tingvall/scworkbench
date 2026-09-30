@@ -1,0 +1,606 @@
+[
+  {
+    "source": "accepted pack declaration: scwbRepresentation",
+    "source_sha256": "e0a35cf2f2dc2f4321c412d0c170f7cdfefe4e28ac7e52f480dc946ed754f1ba",
+    "policies": [
+      "parameter_bindings",
+      "cell_selector_axes",
+      "typed_space_reads",
+      "typed_slice_reads",
+      "dimension_policies",
+      "retained_parameters",
+      "public_interface",
+      "authenticated_pseudobulk_v1",
+      "authenticated_sparse_membership_v1",
+      "feature_table",
+      "terminal_primitive_v1",
+      "cell_vector_family"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbrepresentation",
+      "package": {
+        "name": "scwbRepresentation",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbRepresentation::register_operation_pack",
+      "operations": [
+        {
+          "name": "knn_pseudobulk",
+          "qualified_name": "scwbrepresentation::knn_pseudobulk",
+          "title": "kNN pseudobulk around query cells",
+          "description": "Aggregate bounded matrix slices over authenticated nearest-neighbor memberships.",
+          "runner": ".run_knn_pseudobulk",
+          "inputs": [
+            {
+              "name": "matrix",
+              "kind": "matrix",
+              "required": true,
+              "alignment": "cell_and_feature_ordered"
+            },
+            {
+              "name": "space",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "required": [
+              "query_cells"
+            ],
+            "properties": {
+              "query_cells": {
+                "type": [
+                  "array",
+                  "string"
+                ],
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "candidate_cells": {
+                "type": [
+                  "array",
+                  "string",
+                  "null"
+                ],
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "k": {
+                "type": "integer",
+                "default": 100,
+                "minimum": 1
+              },
+              "include_query": {
+                "type": "boolean",
+                "default": false
+              },
+              "space_chunk_size": {
+                "type": "integer",
+                "default": 1024,
+                "minimum": 1,
+                "maximum": 1000000
+              },
+              "features": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "default": null,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "aggregate": {
+                "type": "string",
+                "default": "sum",
+                "enum": [
+                  "sum",
+                  "mean"
+                ]
+              },
+              "matrix_chunk_size": {
+                "type": "integer",
+                "default": 256,
+                "minimum": 1,
+                "maximum": 1000000
+              }
+            },
+            "additionalProperties": false
+          },
+          "parameter_bindings": [
+            {
+              "parameter": "features",
+              "policy": "feature_ids_or_all_v1",
+              "input": "matrix"
+            }
+          ],
+          "cell_selector_axes": [
+            {
+              "parameter": "query_cells",
+              "role": "query",
+              "default_all_cells": false,
+              "include_query_parameter": "include_query"
+            },
+            {
+              "parameter": "candidate_cells",
+              "role": "candidate",
+              "default_all_cells": true,
+              "include_query_parameter": "include_query"
+            }
+          ],
+          "typed_space_reads": [
+            {
+              "name": "query_space",
+              "input": "space",
+              "reader": "read_typed_space",
+              "kind": "space",
+              "role": "query",
+              "selection": {
+                "policy": "parameter_cell_selector_v1",
+                "parameter": "query_cells"
+              },
+              "chunk_size_parameter": "space_chunk_size",
+              "call_discipline": "ordered_partition_exactly_once"
+            },
+            {
+              "name": "candidate_space",
+              "input": "space",
+              "reader": "read_typed_space",
+              "kind": "space",
+              "role": "candidate",
+              "selection": {
+                "policy": "parameter_cell_selector_v1",
+                "parameter": "candidate_cells"
+              },
+              "chunk_size_parameter": "space_chunk_size",
+              "call_discipline": "ordered_partition_exactly_once"
+            }
+          ],
+          "typed_slice_reads": [
+            {
+              "name": "matrix_chunks",
+              "input": "matrix",
+              "reader": "read_typed_slices",
+              "kind": "matrix",
+              "supported_axes": [
+                "features"
+              ],
+              "chunk_axis": "features",
+              "chunk_size_parameter": "matrix_chunk_size",
+              "call_discipline": "ordered_partition_exactly_once",
+              "empty_selection_policy": "reject",
+              "duplicate_policy": "reject",
+              "selection": {
+                "cells": {
+                  "policy": "parameter_ordered_subset_v1",
+                  "parameter": "candidate_cells",
+                  "unknown": "error",
+                  "duplicates": "reject",
+                  "order": "parameter_order"
+                },
+                "features": {
+                  "policy": "parameter_ordered_subset_v1",
+                  "parameter": "features",
+                  "unknown": "error",
+                  "duplicates": "reject",
+                  "order": "parameter_order"
+                }
+              }
+            }
+          ],
+          "dimension_policies": [
+            {
+              "output": "pseudobulk_table",
+              "policy": "authenticated_pseudobulk_v1",
+              "membership_output": "neighbor_distance",
+              "query_space_read": "query_space",
+              "matrix_slice_read": "matrix_chunks",
+              "aggregate_parameter": "aggregate",
+              "zero_neighbor_policy": "zero_rows_forbidden_v1"
+            },
+            {
+              "output": "neighbor_distance",
+              "policy": "authenticated_sparse_membership_v1",
+              "representation": "cell_vector_family",
+              "partner_output": "neighbor_distance",
+              "query_space_read": "query_space",
+              "candidate_space_read": "candidate_space",
+              "k_parameter": "k"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "pseudobulk_table",
+              "category": "terminal_artifact",
+              "kind": "feature_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "pseudobulk_table_id",
+              "required": true,
+              "promotion_group": "knn_pseudobulk",
+              "table_type": "knn_pseudobulk"
+            },
+            {
+              "name": "neighbor_distance",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "neighbor_distance_id",
+              "required": true,
+              "promotion_group": "knn_pseudobulk",
+              "value_kind": "continuous"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_feature_table"
+            },
+            {
+              "requirement_id": "matrix_runtime",
+              "kind": "r_package",
+              "name": "Matrix",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=1.6.0,<2.0.0"
+              },
+              "disposition": "required",
+              "import_probe": "rowSums"
+            }
+          ],
+          "promotion_closure": {
+            "pseudobulk_table": [
+              "neighbor_distance",
+              "pseudobulk_table"
+            ],
+            "neighbor_distance": [
+              "neighbor_distance",
+              "pseudobulk_table"
+            ]
+          },
+          "replay_equivalence": {
+            "pseudobulk_table": "exact_canonical_value",
+            "neighbor_distance": "exact_canonical_value"
+          },
+          "retained_parameters": [
+            {
+              "name": "matrix_id",
+              "source": "output_meta",
+              "output": "pseudobulk_table",
+              "field": "matrix_id"
+            },
+            {
+              "name": "space_id",
+              "source": "output_meta",
+              "output": "pseudobulk_table",
+              "field": "space_id"
+            },
+            {
+              "name": "n_query",
+              "source": "parameter_count",
+              "parameter": "query_cells"
+            },
+            {
+              "name": "n_candidates",
+              "source": "parameter_count",
+              "parameter": "candidate_cells"
+            },
+            {
+              "name": "n_features",
+              "source": "parameter_count",
+              "parameter": "features"
+            },
+            {
+              "name": "k",
+              "source": "effective_parameter_value",
+              "parameter": "k"
+            },
+            {
+              "name": "aggregate",
+              "source": "effective_parameter_value",
+              "parameter": "aggregate"
+            },
+            {
+              "name": "include_query",
+              "source": "effective_parameter_value",
+              "parameter": "include_query"
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "pseudobulk",
+              "neighbors",
+              "projection"
+            ],
+            "inputs": [
+              {
+                "name": "matrix",
+                "label": "matrix",
+                "help": "Feature-by-cell aggregation matrix."
+              },
+              {
+                "name": "space",
+                "label": "space",
+                "help": "Cell-aligned embedding space."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "query_cells",
+                "type": "cell_ids_or_set",
+                "help": "kNN pseudobulk query_cells parameter."
+              },
+              {
+                "name": "candidate_cells",
+                "type": "cell_ids_or_set",
+                "help": "kNN pseudobulk candidate_cells parameter."
+              },
+              {
+                "name": "k",
+                "type": "int",
+                "help": "kNN pseudobulk k parameter."
+              },
+              {
+                "name": "include_query",
+                "type": "bool",
+                "help": "kNN pseudobulk include_query parameter."
+              },
+              {
+                "name": "space_chunk_size",
+                "type": "int",
+                "help": "kNN pseudobulk space_chunk_size parameter."
+              },
+              {
+                "name": "features",
+                "type": "string_vec",
+                "help": "kNN pseudobulk features parameter."
+              },
+              {
+                "name": "aggregate",
+                "type": "choice",
+                "help": "kNN pseudobulk aggregate parameter."
+              },
+              {
+                "name": "matrix_chunk_size",
+                "type": "int",
+                "help": "kNN pseudobulk matrix_chunk_size parameter."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "pseudobulk_table",
+                "description": "Query-major feature aggregation table."
+              },
+              {
+                "name": "neighbor_distance",
+                "description": "Sparse query-keyed candidate distance family."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "source": "accepted pack declaration: scwbTrajectory",
+    "source_sha256": "d425247347146998e5c987ba9bc09f8789c650af0f433dfbdd0864f51305c092",
+    "policies": [
+      "dimension_policies",
+      "retained_parameters",
+      "public_interface",
+      "data_dependent_family_v1",
+      "path_2d_family",
+      "path_2d_family_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbtrajectory",
+      "package": {
+        "name": "scwbTrajectory",
+        "version": "0.1.1"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbTrajectory::register_operation_pack",
+      "operations": [
+        {
+          "name": "space_path_project_2d",
+          "qualified_name": "scwbtrajectory::space_path_project_2d",
+          "title": "Project analytical path into 2D",
+          "description": "Project an analytical path from its authenticated source space into an authenticated 2D display space.",
+          "runner": ".run_space_path_project_2d",
+          "inputs": [
+            {
+              "name": "path",
+              "kind": "space_path_family",
+              "required": true,
+              "alignment": "associated_space"
+            },
+            {
+              "name": "source_space",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            },
+            {
+              "name": "plot_space",
+              "kind": "space_2d",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "project_mode": {
+                "type": "string",
+                "default": "local_interpolation",
+                "enum": [
+                  "local_interpolation"
+                ]
+              },
+              "approx_points": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 2,
+                "maximum": 50000
+              }
+            },
+            "additionalProperties": false
+          },
+          "dimension_policies": [
+            {
+              "output": "curves",
+              "policy": "data_dependent_family_v1"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "curves",
+              "category": "terminal_artifact",
+              "kind": "path_2d_family",
+              "storage_profile": "path_2d_family_v1",
+              "allocated_id_key": "curves_id",
+              "required": true,
+              "promotion_group": "projection"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_path_2d_family"
+            },
+            {
+              "requirement_id": "rann_runtime",
+              "kind": "r_package",
+              "name": "RANN",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=2.6.0,<3.0.0"
+              },
+              "disposition": "required",
+              "import_probe": "nn2"
+            }
+          ],
+          "promotion_closure": {
+            "curves": [
+              "curves"
+            ]
+          },
+          "replay_equivalence": {
+            "curves": "exact_canonical_value"
+          },
+          "retained_parameters": [
+            {
+              "name": "project_mode",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "project_mode"
+            },
+            {
+              "name": "approx_points",
+              "source": "effective_parameter_value",
+              "required": false,
+              "parameter": "approx_points"
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "trajectory",
+              "geometry",
+              "path",
+              "display"
+            ],
+            "inputs": [
+              {
+                "name": "path",
+                "label": "path",
+                "help": "Typed path input."
+              },
+              {
+                "name": "source_space",
+                "label": "source_space",
+                "help": "Typed source_space input."
+              },
+              {
+                "name": "plot_space",
+                "label": "plot_space",
+                "help": "Typed plot_space input."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "project_mode",
+                "type": "choice",
+                "help": "Local-interpolation projection mode."
+              },
+              {
+                "name": "approx_points",
+                "type": "int",
+                "help": "Optional display point count."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "curves",
+                "description": "Declared curves terminal."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

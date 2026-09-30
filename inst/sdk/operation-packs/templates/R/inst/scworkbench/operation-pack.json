@@ -1,0 +1,25 @@
+{
+  "schema_version":"scworkbench.operation_pack.v3",
+  "pack_abi_version":"3",
+  "identity_scheme":"scworkbench.operation_pack.canonical_json.v1",
+  "namespace":"@NAMESPACE@",
+  "package":{"name":"@PACKAGE@","version":"0.1.0"},
+  "backend":"R",
+  "compatibility":{"scworkbench":{"minimum":"0.1.0","maximum_exclusive":"0.2.0"},"pack_abi":{"minimum":"3","maximum":"3"}},
+  "entry_point":"@PACKAGE@::register_operation_pack",
+  "operations":[{
+    "name":"matrix_cell_sum","qualified_name":"@NAMESPACE@::matrix_cell_sum",
+    "title":"Finite matrix sums by cell",
+    "description":"Computes finite per-cell sums using authenticated ordered cell partitions and emits a summary in one closure.",
+    "runner":".matrix_cell_sum",
+    "inputs":[{"name":"matrix","kind":"matrix","required":true,"alignment":"cell_and_feature_ordered"}],
+    "params_schema":{"type":"object","properties":{"chunk_size":{"type":"integer","minimum":1,"default":2}},"additionalProperties":false},
+    "typed_slice_reads":[{"name":"matrix_chunks","input":"matrix","reader":"read_typed_slices","kind":"matrix","supported_axes":["cells"],"chunk_axis":"cells","chunk_size_parameter":"chunk_size","call_discipline":"ordered_partition_exactly_once","empty_selection_policy":"reject","duplicate_policy":"reject","selection":{"cells":{"policy":"effective_input_axis_v1"},"features":{"policy":"effective_input_axis_v1"}}}],
+    "dimension_policies":[{"output":"sums","policy":"authenticated_output_axes_v1","shape":"one_per_cell","cell_axis":{"source":"effective_cells_v1","input":"matrix"},"row_order":"input_cell_order_v1","missing_values":"forbidden"},{"output":"summary","policy":"data_dependent_table_v1"}],
+    "outputs":[{"name":"sums","category":"terminal_artifact","kind":"cell_vector","storage_profile":"terminal_primitive_v1","allocated_id_key":"sums_id","required":true,"promotion_group":"result","value_kind":"continuous"},{"name":"summary","category":"terminal_artifact","kind":"obs_table","storage_profile":"terminal_primitive_v1","allocated_id_key":"summary_id","required":true,"promotion_group":"result","table_type":"sdk_matrix_cell_sum_summary"}],
+    "retained_parameters":[{"name":"chunk_size","source":"effective_parameter_value","parameter":"chunk_size","required":true},{"name":"finite_policy","source":"output_meta","output":"sums","field":"finite_policy","required":true}],
+    "dependencies":[],
+    "promotion_closure":{"sums":["summary","sums"],"summary":["summary","sums"]},
+    "replay_equivalence":{"sums":"exact_canonical_value","summary":"exact_canonical_value"}
+  }]
+}

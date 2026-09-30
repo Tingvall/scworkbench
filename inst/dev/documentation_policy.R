@@ -30,6 +30,7 @@ scwb_documentation_policy <- function(root = ".") {
     "docs/typed_cell_set_consumption.md",
     "docs/recipient_audit.md", "docs/python_bridge.md",
     "docs/extension_engineering.md", "docs/operation_packs.md",
+    "docs/operation_pack_sdk.md",
     "docs/operation_pack_v2_protocol.md", "docs/operation_pack_v3_protocol.md",
     "docs/phase6_matrix_trained_model_boundary.md",
     "docs/source_ownership.md",
@@ -46,6 +47,10 @@ scwb_documentation_policy <- function(root = ".") {
     "inst/protocol/pybench-op-v3-python-runtime.schema.json",
     "inst/protocol/pybench-op-v2.schema.json"
   )
+  sdk_files <- sort(list.files(file.path(root, "inst", "sdk", "operation-packs"),
+    recursive = TRUE, full.names = FALSE))
+  sdk_generated <- sdk_files[grepl("^(capabilities[.]json$|CAPABILITIES[.]md$|RECIPES[.]md$|recipes/)", sdk_files)]
+  canonical <- c(canonical, file.path("inst/sdk/operation-packs", setdiff(sdk_files, sdk_generated)))
   operation_pack_fixtures <- sort(list.files(
     file.path(root, "inst", "protocol", "fixtures", "operation-pack-v1"),
     pattern = "[.]json$", recursive = TRUE, full.names = FALSE
@@ -82,6 +87,7 @@ scwb_documentation_policy <- function(root = ".") {
     list.files(file.path(root, "docs", "semantic_graphs"), recursive = TRUE, full.names = FALSE)
   ))
   generated_docs <- unique(c(
+    file.path("inst/sdk/operation-packs", sdk_generated),
     file.path("docs", generated_docs[!grepl("^semantic_graphs/", generated_docs)]),
     file.path("docs/semantic_graphs", list.files(file.path(root, "docs", "semantic_graphs"), recursive = TRUE, full.names = FALSE)),
     "docs/public_documentation_manifest.json",
@@ -104,9 +110,9 @@ scwb_documentation_policy <- function(root = ".") {
       "generated_public_reference",
       "public",
       "generated",
-      if (grepl("^man/", path)) "R/ roxygen comments" else if (identical(path, "docs/schema_catalog_reference.md")) "R/ schema declarations" else "R/ catalog writers",
-      generator = if (grepl("^man/", path)) "devtools::document()" else if (identical(path, "docs/schema_catalog_reference.md")) "inst/dev/generate_schema_catalog.R" else "inst/dev/regenerate_public_docs.R",
-      installed_package = identical(path, "inst/documentation_manifest.json")
+      if (grepl("^inst/sdk/", path)) "SDK frozen interface, recipes and accepted ABI" else if (grepl("^man/", path)) "R/ roxygen comments" else if (identical(path, "docs/schema_catalog_reference.md")) "R/ schema declarations" else "R/ catalog writers",
+      generator = if (grepl("^inst/sdk/", path)) "inst/dev/generate_operation_pack_sdk_catalog.R" else if (grepl("^man/", path)) "devtools::document()" else if (identical(path, "docs/schema_catalog_reference.md")) "inst/dev/generate_schema_catalog.R" else "inst/dev/regenerate_public_docs.R",
+      installed_package = identical(path, "inst/documentation_manifest.json") || grepl("^inst/sdk/", path)
     ))
   )
   paths <- vapply(entries, `[[`, character(1), "path")

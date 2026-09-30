@@ -19,6 +19,10 @@ with the package; this statement does not imply CRAN or Bioconductor acceptance.
 
 License: MIT. See [LICENSE.md](LICENSE.md).
 
+Operation-pack authors: start with the [installed Operation Pack SDK](docs/operation_pack_sdk.md).
+Declare typed inputs/outputs, request readers, compute and emit primitives;
+core owns authentication, alignment and atomic publication.
+
 ## Core Ideas
 
 - **Bundle**: portable analysis unit containing SQLite metadata, matrix/space

@@ -1,0 +1,393 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbatac",
+  "package": {
+    "name": "scwbATAC",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbATAC::register_operation_pack",
+  "operations": [
+    {
+      "name": "chromvar",
+      "qualified_name": "scwbatac::chromvar",
+      "title": "Genome-backed chromVAR motif deviations",
+      "description": "Compute chromVAR deviations from one authenticated peak matrix, genomic-source snapshot, and bounded motif registry reads.",
+      "runner": ".atac_chromvar",
+      "inputs": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true,
+          "alignment": "cell_and_feature_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "motif_library": {
+            "type": "string",
+            "minLength": 1
+          },
+          "motifs": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "default": null
+          },
+          "motif_match_set": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "default": null
+          },
+          "min_motif_peaks": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 10
+          },
+          "max_motif_peaks": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "motif_p_cutoff": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "exclusiveMaximum": 1,
+            "default": 5e-05
+          },
+          "motif_w": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 7
+          },
+          "seqlevels_mode": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "all"
+            ],
+            "default": "standard"
+          },
+          "seqlevels_include": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "default": null
+          },
+          "seqlevels_exclude": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "default": null
+          },
+          "background_iterations": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 50
+          },
+          "background_w": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "default": 0.1
+          },
+          "background_bs": {
+            "type": "integer",
+            "minimum": 2,
+            "default": 50
+          },
+          "chunk_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096,
+            "default": 256
+          }
+        },
+        "required": [
+          "motif_library"
+        ]
+      },
+      "registry_reads": [
+        {
+          "name": "genomic_source",
+          "category": "authenticated_core_registry_snapshot",
+          "kind": "genomic_matrix_source",
+          "reader": "read_genomic_matrix_source",
+          "matrix_input": "matrix",
+          "row_order": "matrix_feature_order_v1",
+          "call_discipline": "single_use"
+        },
+        {
+          "name": "motif_library",
+          "category": "authenticated_core_registry_snapshot",
+          "kind": "motif_library",
+          "reader": "read_motif_library",
+          "library_parameter": "motif_library",
+          "call_discipline": "single_use"
+        },
+        {
+          "name": "motif_match_set",
+          "category": "authenticated_core_registry_snapshot",
+          "kind": "motif_match_set",
+          "reader": "read_motif_match_set",
+          "match_set_parameter": "motif_match_set",
+          "call_discipline": "single_use"
+        }
+      ],
+      "typed_slice_reads": [
+        {
+          "name": "chunks",
+          "input": "matrix",
+          "reader": "read_typed_slices",
+          "kind": "matrix",
+          "supported_axes": [
+            "cells"
+          ],
+          "chunk_axis": "cells",
+          "chunk_size_parameter": "chunk_size",
+          "call_discipline": "ordered_partition_exactly_once",
+          "empty_selection_policy": "reject",
+          "duplicate_policy": "reject",
+          "value_policy": "nonnegative_integer_v1",
+          "selection": {
+            "cells": {
+              "policy": "effective_input_axis_v1"
+            },
+            "features": {
+              "policy": "effective_input_axis_v1"
+            }
+          }
+        }
+      ],
+      "dimension_policies": [
+        {
+          "output": "deviation_z",
+          "policy": "runtime_ordered_cell_family_v1",
+          "group": "motif_keys",
+          "source_read": "genomic_source",
+          "row_order": "cell_major_then_declared_key_v1",
+          "missing_values": "allowed",
+          "maximum_keys": 10000,
+          "maximum_rows": 10000000
+        },
+        {
+          "output": "deviation_raw",
+          "policy": "runtime_ordered_cell_family_v1",
+          "group": "motif_keys",
+          "source_read": "genomic_source",
+          "row_order": "cell_major_then_declared_key_v1",
+          "missing_values": "allowed",
+          "maximum_keys": 10000,
+          "maximum_rows": 10000000
+        },
+        {
+          "output": "motif_summary",
+          "policy": "data_dependent_table_v1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "deviation_z",
+          "category": "terminal_artifact",
+          "kind": "cell_vector_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "deviation_z_id",
+          "required": true,
+          "promotion_group": "analysis",
+          "value_kind": "continuous"
+        },
+        {
+          "name": "deviation_raw",
+          "category": "terminal_artifact",
+          "kind": "cell_vector_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "deviation_raw_id",
+          "required": true,
+          "promotion_group": "analysis",
+          "value_kind": "continuous"
+        },
+        {
+          "name": "motif_summary",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "motif_summary_id",
+          "required": true,
+          "promotion_group": "analysis",
+          "table_type": "chromvar_summary"
+        }
+      ],
+      "dependencies": [
+        {
+          "requirement_id": "chromvar",
+          "kind": "r_package",
+          "name": "chromVAR",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "chromVAR"
+        },
+        {
+          "requirement_id": "motifmatchr",
+          "kind": "r_package",
+          "name": "motifmatchr",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "motifmatchr"
+        },
+        {
+          "requirement_id": "tfbstools",
+          "kind": "r_package",
+          "name": "TFBSTools",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "TFBSTools"
+        },
+        {
+          "requirement_id": "matrix",
+          "kind": "r_package",
+          "name": "Matrix",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "Matrix"
+        },
+        {
+          "requirement_id": "summarized_experiment",
+          "kind": "r_package",
+          "name": "SummarizedExperiment",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "SummarizedExperiment"
+        },
+        {
+          "requirement_id": "genomic_ranges",
+          "kind": "r_package",
+          "name": "GenomicRanges",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "GenomicRanges"
+        },
+        {
+          "requirement_id": "genome_info_db",
+          "kind": "r_package",
+          "name": "GenomeInfoDb",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "GenomeInfoDb"
+        },
+        {
+          "requirement_id": "s4vectors",
+          "kind": "r_package",
+          "name": "S4Vectors",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "S4Vectors"
+        },
+        {
+          "requirement_id": "biocparallel",
+          "kind": "r_package",
+          "name": "BiocParallel",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<999.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "BiocParallel"
+        },
+        {
+          "requirement_id": "provider",
+          "kind": "dynamic_matrix_registry_package",
+          "matrix_input": "matrix",
+          "registry_read": "genomic_source",
+          "metadata_field": "genome_provider",
+          "ecosystem": "R",
+          "package_name_scheme": "r_package_name_v1",
+          "probe": "r_namespace_exports_v1",
+          "disposition": "required",
+          "version_policy": "record_resolved_installed_version_v1"
+        }
+      ],
+      "promotion_closure": {
+        "deviation_z": [
+          "deviation_raw",
+          "deviation_z",
+          "motif_summary"
+        ],
+        "deviation_raw": [
+          "deviation_raw",
+          "deviation_z",
+          "motif_summary"
+        ],
+        "motif_summary": [
+          "deviation_raw",
+          "deviation_z",
+          "motif_summary"
+        ]
+      },
+      "replay_equivalence": {
+        "deviation_z": "exact_canonical_value",
+        "deviation_raw": "exact_canonical_value",
+        "motif_summary": "exact_canonical_value"
+      }
+    }
+  ]
+}

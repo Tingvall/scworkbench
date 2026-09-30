@@ -1,0 +1,31 @@
+{
+ "lifetime":"All capabilities and private entries are invocation-scoped. Save neither closures nor paths nor context for reuse. Root readers and writers enforce different retirement guards; returned model closures and ordinary readers do not universally check retirement. Prohibited reuse is an author contract, not a claim of host sandboxing.",
+ "runner":{"signature":"function(readers, writers, params, context)","params":"copied effective admitted parameter object; defaults and bindings already resolved; caller modifications create no authority","normal_return":"invisible(list(status='ok')); arbitrary result fields do not retain parameters","special_return_channels":["derived_cell_output_axis_declarations","pack_source_association_attestation","pack_no_refit_attestation"],"retention":"retained_parameters names allowed sources explicitly; engine independently retains observed chunking"},
+ "context":[
+  {"name":"transition_id","shape":"scalar string","optional":false,"meaning":"audit identity, not authority"},
+  {"name":"session_id","shape":"scalar string","optional":false,"meaning":"session binding"},
+  {"name":"run_id","shape":"scalar string","optional":false,"meaning":"preallocated run binding"},
+  {"name":"checkpoint_generation","shape":"scalar string","optional":false,"meaning":"ephemeral or durable generation binding"},
+  {"name":"network_policy","shape":"deny string","optional":false,"meaning":"declared engine policy; trusted code is not a network sandbox"},
+  {"name":"typed_slice_reads","shape":"named list of name,input_name,chunk_axis,requested_chunk_size,call_discipline,cells,features","optional":false,"meaning":"empty if undeclared; read schedule evidence"},
+  {"name":"typed_space_reads","shape":"named list of name,input_name,role,requested_chunk_size,call_discipline,cells,dimension_count","optional":false,"meaning":"empty if undeclared; scoped ordered space read schedule"},
+  {"name":"optional_display_axis_groups","shape":"list of name,group_key,scope,display_cells,endpoint_roles","optional":false,"meaning":"only admitted present groups"},
+  {"name":"input_ids","shape":"input-name list; matrix/space IDs or null","optional":false,"meaning":"symbolic identities, never bundle paths"},
+  {"name":"effective_cells","shape":"ordered string vector","optional":false,"meaning":"resolved session axis"},
+  {"name":"derived_cell_output_axis_grants","shape":"list of authenticated grant descriptors","optional":false,"meaning":"copied evidence; no grant fabrication or mutation"},
+  {"name":"standalone_sparse_cell_family_grants","shape":"list of authenticated grant descriptors","optional":false,"meaning":"declare admitted keys/rows before linked family write"},
+  {"name":"sealed_relation_family_grants","shape":"list of authenticated grant descriptors","optional":false,"meaning":"declare admitted relation layout before write"}
+ ],
+ "context_mutability":"All fields are read-only evidence by contract. Modifying a copied field cannot change authenticated core grant state.",
+ "name_resolution":{"ordinary_inputs":"readers[[input declaration name]]","typed_registry_provenance_model":"readers[[capability declaration name]]","G4_G5_G6":"named global callbacks with collection/group/ordinal arguments","writers":"fixed writer method plus output declaration name"},
+ "writer_acknowledgment":"Opaque name/allocated_id/grant_identity acknowledgment; never construct a receipt from it.",
+ "model_handles":{"reader":"read_bytes(relative), path(relative) for ordinary contained models or runtime_private_path(relative) for self-linked models; admitted fitted_source_space/fitted_cells/fitted_features/latent_dimension_count/model_source_linkage/source_space_id may be present","writer":"open_model_tree(output) once; path(relative), write_bytes(relative,bytes), finish(value,semantic_metadata=list()) once","containment":"Declared relative entries only, no traversal/symlinks; private staging paths are lawful scoped capabilities, never durable bundle paths","trust":"A verified checksum does not make RDS or pickle safe; deserialize only trusted models"},
+ "declaration_callbacks":[
+  {"signature":"writers$declare_runtime_cell_family_keys(ordered_keys)","timing":"exactly once before any linked family writer","binding":"runtime_cell_family_keys output declaration"},
+  {"signature":"writers$declare_derived_fitted_axis(cells)","timing":"exactly once before linked model/space/family writes","binding":"derived_fitted_axis output declaration"},
+  {"signature":"writers$declare_sparse_cell_family_layout(output,ordered_keys,per_key_cells)","timing":"exactly once before linked sparse-family write","binding":"standalone_sparse_cell_family grant"},
+  {"signature":"writers$declare_relation_family_rows(output,ordered_keys,row_chunks,numeric_fields)","timing":"exactly once before linked relation-family write","binding":"sealed_relation_family grant"}
+ ],
+ "declarations":"Runtime family, derived fitted axis, sparse family and sealed relation writers declare before linked writes; G7 uses a returned derived_cell_output_axis_declarations channel. G3 returns two independent attestations and must finish its bound G2 model tree without changing admitted bytes.",
+ "errors":"Core rejects undeclared callbacks, wrong writer/profile, stale sources, missing/repeated reads, bad axes, open handles, missing terminals and incomplete closures. Pack errors abort publication; SDK fault helpers restore all hooks on exit. Scientific meaning, finite-value policy and algorithm memory remain author responsibilities."
+}

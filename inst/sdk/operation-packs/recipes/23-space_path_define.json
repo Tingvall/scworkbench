@@ -1,0 +1,274 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbtrajectory",
+  "package": {
+    "name": "scwbTrajectory",
+    "version": "0.1.1"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbTrajectory::register_operation_pack",
+  "operations": [
+    {
+      "name": "space_path_define",
+      "qualified_name": "scwbtrajectory::space_path_define",
+      "title": "Define analytical space path",
+      "description": "Construct a checkpoint-anchored analytical path from an authenticated space and ordered named cell axes.",
+      "runner": ".run_space_path_define",
+      "inputs": [
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "checkpoint_sets": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "fit_mode": {
+            "type": "string",
+            "default": "linear",
+            "enum": [
+              "linear",
+              "manifold_smooth"
+            ]
+          },
+          "checkpoint_summary": {
+            "type": "string",
+            "default": "centroid",
+            "enum": [
+              "centroid"
+            ]
+          },
+          "n_path_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 2,
+            "maximum": 50000
+          },
+          "smooth_k": {
+            "type": "integer",
+            "default": 30,
+            "minimum": 2,
+            "maximum": 5000
+          },
+          "smooth_n_iter": {
+            "type": "integer",
+            "default": 2,
+            "minimum": 1,
+            "maximum": 50
+          },
+          "smooth_weight": {
+            "type": "string",
+            "default": "inverse_distance",
+            "enum": [
+              "inverse_distance",
+              "gaussian"
+            ]
+          },
+          "path_id_out": {
+            "type": "string",
+            "default": "space_path"
+          }
+        },
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "path",
+          "policy": "data_dependent_family_v1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "category": "terminal_artifact",
+          "kind": "space_path_family",
+          "storage_profile": "space_path_family_v1",
+          "allocated_id_key": "path_id",
+          "required": true,
+          "promotion_group": "path"
+        }
+      ],
+      "dependencies": [
+        {
+          "requirement_id": "scworkbench_runtime",
+          "kind": "r_package",
+          "name": "scworkbench",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<0.2.0"
+          },
+          "disposition": "required",
+          "import_probe": "wb_prim_space_path_family"
+        }
+      ],
+      "promotion_closure": {
+        "path": [
+          "path"
+        ]
+      },
+      "replay_equivalence": {
+        "path": "exact_canonical_value"
+      },
+      "named_cell_axis_collections": [
+        {
+          "name": "checkpoints",
+          "parameter": "checkpoint_sets",
+          "space_input": "space",
+          "reader": "read_named_cell_axis",
+          "minimum_axes": 2,
+          "maximum_axes": 64,
+          "minimum_cells_per_axis": 1,
+          "maximum_cells_per_axis": 10000000,
+          "maximum_total_memberships": 20000000,
+          "projection_policy": "bundle_membership_intersect_space_axis_v1",
+          "call_discipline": "axis_ordinal_exactly_once"
+        }
+      ],
+      "retained_parameters": [
+        {
+          "name": "space_id",
+          "source": "output_meta",
+          "output": "path",
+          "field": "space_id"
+        },
+        {
+          "name": "checkpoint_sets",
+          "source": "parameter_value",
+          "required": true,
+          "parameter": "checkpoint_sets"
+        },
+        {
+          "name": "fit_mode",
+          "source": "effective_parameter_value",
+          "required": true,
+          "parameter": "fit_mode"
+        },
+        {
+          "name": "checkpoint_summary",
+          "source": "effective_parameter_value",
+          "required": true,
+          "parameter": "checkpoint_summary"
+        },
+        {
+          "name": "n_path_points",
+          "source": "output_meta",
+          "output": "path",
+          "field": "n_points"
+        },
+        {
+          "name": "smooth_k",
+          "source": "effective_parameter_value",
+          "required": true,
+          "parameter": "smooth_k"
+        },
+        {
+          "name": "smooth_n_iter",
+          "source": "effective_parameter_value",
+          "required": true,
+          "parameter": "smooth_n_iter"
+        },
+        {
+          "name": "smooth_weight",
+          "source": "effective_parameter_value",
+          "required": true,
+          "parameter": "smooth_weight"
+        },
+        {
+          "name": "path_id_out",
+          "source": "effective_parameter_value",
+          "required": true,
+          "parameter": "path_id_out"
+        }
+      ],
+      "public_interface": {
+        "intent": [
+          "trajectory",
+          "geometry",
+          "path"
+        ],
+        "inputs": [
+          {
+            "name": "space",
+            "label": "space",
+            "help": "Typed space input."
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkpoint_sets",
+            "type": "string_vec",
+            "help": "Ordered named checkpoints."
+          },
+          {
+            "name": "fit_mode",
+            "type": "choice",
+            "help": "Linear or manifold-smoothed fitting."
+          },
+          {
+            "name": "checkpoint_summary",
+            "type": "choice",
+            "help": "Checkpoint summary rule."
+          },
+          {
+            "name": "n_path_points",
+            "type": "int",
+            "help": "Optional path point count."
+          },
+          {
+            "name": "smooth_k",
+            "type": "int",
+            "help": "Smoothing neighbourhood size."
+          },
+          {
+            "name": "smooth_n_iter",
+            "type": "int",
+            "help": "Smoothing iterations."
+          },
+          {
+            "name": "smooth_weight",
+            "type": "choice",
+            "help": "Smoothing weight rule."
+          },
+          {
+            "name": "path_id_out",
+            "type": "string",
+            "help": "Output path key."
+          }
+        ],
+        "outputs": [
+          {
+            "name": "path",
+            "description": "Declared path terminal."
+          }
+        ]
+      }
+    }
+  ]
+}

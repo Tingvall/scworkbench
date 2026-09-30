@@ -1,0 +1,199 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbgeneprograms",
+  "package": {
+    "name": "scwbGenePrograms",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbGenePrograms::register_operation_pack",
+  "operations": [
+    {
+      "name": "winner_cell_sets",
+      "qualified_name": "scwbgeneprograms::winner_cell_sets",
+      "title": "Winner Cell-Set Registration",
+      "description": "Request atomic core-owned admission of the complete winner-derived cell-set family.",
+      "runner": ".run_winner_cell_sets",
+      "inputs": [
+        {
+          "name": "winners",
+          "kind": "obs_table",
+          "required": true,
+          "alignment": "none"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "source_winner_artifact_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cell_set_prefix": {
+            "type": "string",
+            "default": "winner_",
+            "minLength": 1
+          },
+          "winner_col": {
+            "type": "string",
+            "default": "winner",
+            "minLength": 1
+          },
+          "passes_col": {
+            "type": "string",
+            "default": "passes_pruning",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "default": "cell_vector_winners",
+            "minLength": 1
+          },
+          "created_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "replace": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "manifest",
+          "policy": "data_dependent_table_v1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "manifest",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "manifest_id",
+          "required": true,
+          "promotion_group": "winner_family",
+          "table_type": "winner_cell_set_manifest"
+        },
+        {
+          "name": "cell_set_family",
+          "category": "core_registry_request",
+          "kind": "cell_set_family_admission",
+          "storage_profile": "cell_set_family_admission_v1",
+          "allocated_id_key": "cell_set_family_id",
+          "required": true,
+          "promotion_group": "winner_family"
+        }
+      ],
+      "dependencies": [
+        {
+          "requirement_id": "scworkbench_runtime",
+          "kind": "r_package",
+          "name": "scworkbench",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<0.2.0"
+          },
+          "disposition": "required",
+          "import_probe": "wb_prim_obs_table"
+        }
+      ],
+      "promotion_closure": {
+        "manifest": [
+          "cell_set_family",
+          "manifest"
+        ]
+      },
+      "replay_equivalence": {
+        "manifest": "exact_canonical_value",
+        "cell_set_family": "exact_family_membership_and_order"
+      },
+      "retained_parameters": [
+        {
+          "name": "n_cell_sets",
+          "source": "output_row_count",
+          "output": "manifest"
+        }
+      ],
+      "public_interface": {
+        "intent": [
+          "signal",
+          "labeling",
+          "cell_sets"
+        ],
+        "inputs": [
+          {
+            "name": "winners",
+            "label": "winners",
+            "help": "Typed winners input."
+          }
+        ],
+        "parameters": [
+          {
+            "name": "source_winner_artifact_id",
+            "type": "string",
+            "help": "Optional source winner obs_table artifact ID copied into manifest metadata."
+          },
+          {
+            "name": "cell_set_prefix",
+            "type": "string",
+            "help": "Prefix used after set: when creating winner cell-set names."
+          },
+          {
+            "name": "winner_col",
+            "type": "string",
+            "help": "Winner-label column in the winner table."
+          },
+          {
+            "name": "passes_col",
+            "type": "string",
+            "help": "Logical pruning-pass column in the winner table."
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "help": "Source label stored on cell-set membership rows."
+          },
+          {
+            "name": "created_by",
+            "type": "string",
+            "help": "Optional actor stored on cell-set membership rows."
+          },
+          {
+            "name": "replace",
+            "type": "bool",
+            "help": "If TRUE, replace existing winner cell-set memberships."
+          }
+        ],
+        "outputs": [
+          {
+            "name": "manifest",
+            "description": "One row per registered winner cell set."
+          },
+          {
+            "name": "cell_set_family",
+            "description": "Atomic core-owned admission request for the complete winner-derived cell-set family."
+          }
+        ]
+      }
+    }
+  ]
+}

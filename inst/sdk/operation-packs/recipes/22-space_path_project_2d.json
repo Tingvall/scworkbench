@@ -1,0 +1,178 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbtrajectory",
+  "package": {
+    "name": "scwbTrajectory",
+    "version": "0.1.1"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbTrajectory::register_operation_pack",
+  "operations": [
+    {
+      "name": "space_path_project_2d",
+      "qualified_name": "scwbtrajectory::space_path_project_2d",
+      "title": "Project analytical path into 2D",
+      "description": "Project an analytical path from its authenticated source space into an authenticated 2D display space.",
+      "runner": ".run_space_path_project_2d",
+      "inputs": [
+        {
+          "name": "path",
+          "kind": "space_path_family",
+          "required": true,
+          "alignment": "associated_space"
+        },
+        {
+          "name": "source_space",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        },
+        {
+          "name": "plot_space",
+          "kind": "space_2d",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "project_mode": {
+            "type": "string",
+            "default": "local_interpolation",
+            "enum": [
+              "local_interpolation"
+            ]
+          },
+          "approx_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 2,
+            "maximum": 50000
+          }
+        },
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "curves",
+          "policy": "data_dependent_family_v1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "curves",
+          "category": "terminal_artifact",
+          "kind": "path_2d_family",
+          "storage_profile": "path_2d_family_v1",
+          "allocated_id_key": "curves_id",
+          "required": true,
+          "promotion_group": "projection"
+        }
+      ],
+      "dependencies": [
+        {
+          "requirement_id": "scworkbench_runtime",
+          "kind": "r_package",
+          "name": "scworkbench",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<0.2.0"
+          },
+          "disposition": "required",
+          "import_probe": "wb_prim_path_2d_family"
+        },
+        {
+          "requirement_id": "rann_runtime",
+          "kind": "r_package",
+          "name": "RANN",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=2.6.0,<3.0.0"
+          },
+          "disposition": "required",
+          "import_probe": "nn2"
+        }
+      ],
+      "promotion_closure": {
+        "curves": [
+          "curves"
+        ]
+      },
+      "replay_equivalence": {
+        "curves": "exact_canonical_value"
+      },
+      "retained_parameters": [
+        {
+          "name": "project_mode",
+          "source": "effective_parameter_value",
+          "required": true,
+          "parameter": "project_mode"
+        },
+        {
+          "name": "approx_points",
+          "source": "effective_parameter_value",
+          "required": false,
+          "parameter": "approx_points"
+        }
+      ],
+      "public_interface": {
+        "intent": [
+          "trajectory",
+          "geometry",
+          "path",
+          "display"
+        ],
+        "inputs": [
+          {
+            "name": "path",
+            "label": "path",
+            "help": "Typed path input."
+          },
+          {
+            "name": "source_space",
+            "label": "source_space",
+            "help": "Typed source_space input."
+          },
+          {
+            "name": "plot_space",
+            "label": "plot_space",
+            "help": "Typed plot_space input."
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_mode",
+            "type": "choice",
+            "help": "Local-interpolation projection mode."
+          },
+          {
+            "name": "approx_points",
+            "type": "int",
+            "help": "Optional display point count."
+          }
+        ],
+        "outputs": [
+          {
+            "name": "curves",
+            "description": "Declared curves terminal."
+          }
+        ]
+      }
+    }
+  ]
+}

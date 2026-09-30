@@ -1,0 +1,156 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbv3phase5",
+  "package": {
+    "name": "scwbV3Phase5",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbV3Phase5::register_operation_pack",
+  "operations": [
+    {
+      "name": "derived_subset",
+      "qualified_name": "scwbv3phase5::derived_subset",
+      "title": "Generic G7 subset fixture",
+      "description": "Declares a source-relative derived cell axis.",
+      "runner": ".derived_subset",
+      "inputs": [
+        {
+          "name": "source",
+          "kind": "cell_vector",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "selected_cells",
+          "key_prefix"
+        ],
+        "properties": {
+          "selected_cells": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "key_prefix": {
+            "type": "string"
+          },
+          "fault_after_first_output": {
+            "type": "boolean"
+          },
+          "omit_declaration": {
+            "type": "boolean"
+          },
+          "repeat_declaration": {
+            "type": "boolean"
+          }
+        }
+      },
+      "outputs": [
+        {
+          "name": "vector",
+          "category": "terminal_artifact",
+          "kind": "cell_vector",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "vector_id",
+          "required": true,
+          "promotion_group": "derived",
+          "value_kind": "continuous"
+        },
+        {
+          "name": "family",
+          "category": "terminal_artifact",
+          "kind": "cell_vector_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "family_id",
+          "required": true,
+          "promotion_group": "derived",
+          "value_kind": "continuous"
+        }
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "vector": [
+          "family",
+          "vector"
+        ],
+        "family": [
+          "family",
+          "vector"
+        ]
+      },
+      "replay_equivalence": {
+        "vector": "exact_canonical_value",
+        "family": "exact_canonical_value"
+      },
+      "derived_cell_output_axes": [
+        {
+          "schema": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+          "name": "derived",
+          "derivation_mode": "ordered_unique_subset_v1",
+          "source": {
+            "mode": "static_input_axis",
+            "input": "source",
+            "projection": "cell_vector_axis_v1",
+            "family_key_selector": null
+          },
+          "linked_outputs": [
+            {
+              "name": "vector",
+              "shape": "one_per_cell",
+              "row_order": "sealed_cell_axis_order_v1",
+              "missing_values": "forbidden"
+            },
+            {
+              "name": "family",
+              "shape": "cell_key_cartesian",
+              "row_order": "key_major_then_sealed_cell_v1",
+              "missing_values": "forbidden",
+              "key_axis": {
+                "source": "declared_keys_with_optional_prefix_v1",
+                "keys": [
+                  "score",
+                  "confidence"
+                ],
+                "prefix_parameter": "key_prefix"
+              }
+            }
+          ],
+          "limits": {
+            "minimum_cells": 1,
+            "maximum_cells": 1000,
+            "maximum_source_axes": 1,
+            "maximum_source_memberships": 10000,
+            "maximum_linked_outputs": 2
+          },
+          "call_discipline": "declare_once_seal_before_linked_output_v1",
+          "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+            "scope": "derived cell output axis declaration excluding declaration_identity",
+            "sha256": "c5c149f9d2160cc7a0c71880cbc0987367485ea7a47700fb84b7c4b1c55e37ed"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "sdk_version": "1.0.0",
+  "pack_abi_version": "3",
+  "status": "frozen_authoring_contract",
+  "apis": [
+    {"name":"wb_operation_pack_scaffold","signature":"(path, package, namespace, author, email, license = 'MIT', backend = 'R')","returns":"scaffold descriptor","authority":"filesystem generation only"},
+    {"name":"wb_operation_pack_capabilities","signature":"(backend = NULL, kind = NULL)","returns":"versioned capability catalog","authority":"inspection only"},
+    {"name":"wb_operation_pack_check","signature":"(path, level = c('static', 'installed', 'contract'), trusted = FALSE, lib.loc = NULL)","returns":"accounted check report","authority":"explicit trusted local installation and public dispatch in contract mode"},
+    {"name":"wb_operation_pack_map_partitions","signature":"(reader, grant, FUN)","returns":"ordered callback results","authority":"calls already-issued reader only"},
+    {"name":"wb_operation_pack_sdk_fixture","signature":"(path)","returns":"open assembly bundle and expected fixture values","authority":"test-only source assembly"},
+    {"name":"wb_operation_pack_sdk_state","signature":"(bundle)","returns":"durable scientific-state and payload snapshot","authority":"test-only read-only observation"},
+    {"name":"wb_operation_pack_sdk_run","signature":"(bundle, operation, inputs, fault = NULL)","returns":"public session result or captured error plus state comparison","authority":"test-only public dispatch with scoped failure injection"},
+    {"name":"wb_operation_pack_sdk_assert","signature":"(result, outputs = list(), params = list(), error = NULL, unchanged = FALSE, tolerance = 0)","returns":"TRUE or assertion error","authority":"test-only assertion"},
+    {"name":"wb_operation_pack_sdk_cases","signature":"(cases)","returns":"discovered/executed/passed/skipped/failed report","authority":"test-only author case accounting"},
+    {"name":"wb_operation_pack_sdk_skip","signature":"(reason)","returns":"explicit skip condition","authority":"test-only; marks tier unqualified"},
+    {"name":"wb_operation_pack_sdk_recipient","signature":"(bundle, destination, operation)","returns":"relocated recipient inspection and fresh-process absence result","authority":"test-only finalization/copy/public inspection"}
+  ],
+  "runner": "function(readers, writers, params, context)",
+  "reference": {"operation":"matrix_cell_sum","input":"matrix","reader":"matrix_chunks","params":{"chunk_size":2},"outputs":["sums","summary"],"finite_policy":"error","summary_columns":["chunk_index","cell_count","feature_count","first_cell","last_cell","sum_total"]},
+  "restrictions": ["No second executor or grant authority", "No runner bundle/SQL/committed-path access", "No receipt construction or custom grant hashing", "Invocation capabilities must not be saved or reused", "Installation is inert; activation is explicit", "Python support is established per runtime policy, not schema acceptance"]
+}

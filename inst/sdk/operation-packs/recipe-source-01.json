@@ -1,0 +1,283 @@
+[
+  {
+    "source": "tests/fixtures/operation-pack-v3-matrix-model/inst/scworkbench/operation-pack.json",
+    "source_sha256": "0b21d9361629bf6ad54e0d2c3345f987c5741b98dc35dfff772107aba471c529",
+    "policies": [
+      "typed_slice_reads",
+      "dimension_policies",
+      "data_dependent_table_v1",
+      "space",
+      "space_dense_v1",
+      "model_ref",
+      "model_ref_contained_tree_v1",
+      "obs_table",
+      "terminal_primitive_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbv3matrixmodel",
+      "package": {
+        "name": "scwbV3MatrixModel",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbV3MatrixModel::register_operation_pack",
+      "operations": [
+        {
+          "name": "fit_matrix_model",
+          "qualified_name": "scwbv3matrixmodel::fit_matrix_model",
+          "title": "Synthetic matrix-trained model",
+          "description": "Proves generic matrix-source latent-space and model closure.",
+          "runner": ".fit_matrix_model",
+          "inputs": [
+            {
+              "name": "matrix",
+              "kind": "matrix",
+              "required": true,
+              "alignment": "cell_and_feature_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "n_latent": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 16
+              },
+              "chunk_size": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 16
+              },
+              "attack": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "wrong_axis",
+                  "omit_space",
+                  "incomplete_tree"
+                ],
+                "default": "none"
+              }
+            },
+            "required": [
+              "n_latent",
+              "chunk_size"
+            ],
+            "additionalProperties": false
+          },
+          "typed_slice_reads": [
+            {
+              "name": "chunks",
+              "input": "matrix",
+              "reader": "read_typed_slices",
+              "kind": "matrix",
+              "supported_axes": [
+                "cells"
+              ],
+              "chunk_axis": "cells",
+              "chunk_size_parameter": "chunk_size",
+              "call_discipline": "ordered_partition_exactly_once",
+              "empty_selection_policy": "reject",
+              "duplicate_policy": "reject",
+              "selection": {
+                "cells": {
+                  "policy": "effective_input_axis_v1"
+                },
+                "features": {
+                  "policy": "effective_input_axis_v1"
+                }
+              }
+            }
+          ],
+          "dimension_policies": [
+            {
+              "output": "summary",
+              "policy": "data_dependent_table_v1"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "space",
+              "category": "materialization",
+              "kind": "space",
+              "storage_profile": "space_dense_v1",
+              "allocated_id_key": "space_id",
+              "required": true,
+              "promotion_group": "fit",
+              "materialized_by_terminals": [
+                "model",
+                "summary"
+              ]
+            },
+            {
+              "name": "model",
+              "category": "terminal_artifact",
+              "kind": "model_ref",
+              "storage_profile": "model_ref_contained_tree_v1",
+              "allocated_id_key": "model_id",
+              "required": true,
+              "promotion_group": "fit",
+              "matrix_trained_contained_model_closure_policy": {
+                "policy": "matrix_trained_contained_model_closure.v1",
+                "engine": "fixture",
+                "model_type": "matrix_model",
+                "primary_path": "model.bin",
+                "source_matrix_input": "matrix",
+                "paired_space_output": "space",
+                "latent_dimensions_parameter": "n_latent",
+                "required_sibling_terminals": [
+                  "space",
+                  "summary"
+                ],
+                "file_order": "utf8_path_lexicographic_v1",
+                "maximum_file_count": 32,
+                "maximum_total_bytes": 1073741824
+              }
+            },
+            {
+              "name": "summary",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "summary_id",
+              "required": true,
+              "promotion_group": "fit",
+              "table_type": "matrix_model_summary"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "model": [
+              "model",
+              "space",
+              "summary"
+            ],
+            "summary": [
+              "model",
+              "space",
+              "summary"
+            ]
+          },
+          "replay_equivalence": {
+            "space": "exact_canonical_value",
+            "model": "loadable_reference",
+            "summary": "exact_canonical_value"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "source": "tests/fixtures/operation-pack-v3-matrix-model/inst/scworkbench/operation-pack.json",
+    "source_sha256": "0b21d9361629bf6ad54e0d2c3345f987c5741b98dc35dfff772107aba471c529",
+    "policies": [
+      "self_linked_contained_model_reads",
+      "dimension_policies",
+      "data_dependent_table_v1",
+      "obs_table",
+      "terminal_primitive_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbv3matrixmodel",
+      "package": {
+        "name": "scwbV3MatrixModel",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbV3MatrixModel::register_operation_pack",
+      "operations": [
+        {
+          "name": "read_matrix_model",
+          "qualified_name": "scwbv3matrixmodel::read_matrix_model",
+          "title": "Read synthetic matrix model",
+          "description": "Reopens matrix-trained contained-model bytes through G1.",
+          "runner": ".read_matrix_model",
+          "inputs": [
+            {
+              "name": "model",
+              "kind": "model_ref",
+              "required": true,
+              "alignment": "model_linked"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "self_linked_contained_model_reads": [
+            {
+              "name": "model_tree",
+              "input": "model",
+              "reader": "read_self_linked_contained_model_payload",
+              "allowed_models": [
+                {
+                  "engine": "fixture",
+                  "model_type": "matrix_model"
+                }
+              ],
+              "linkage_policy": "authenticated_existing_source_and_cell_linkage_v1",
+              "maximum_file_count": 32,
+              "maximum_total_bytes": 1073741824,
+              "call_discipline": "exactly_once"
+            }
+          ],
+          "dimension_policies": [
+            {
+              "output": "summary",
+              "policy": "data_dependent_table_v1"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "summary",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "summary_id",
+              "required": true,
+              "promotion_group": "summary",
+              "table_type": "matrix_model_read_summary"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "summary": [
+              "summary"
+            ]
+          },
+          "replay_equivalence": {
+            "summary": "exact_canonical_value"
+          }
+        }
+      ]
+    }
+  }
+]

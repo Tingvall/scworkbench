@@ -1,0 +1,313 @@
+[
+  {
+    "source": "tests/fixtures/operation-pack-v3-phase5/inst/scworkbench/operation-pack.json",
+    "source_sha256": "d6f9631df173daa895e4e782c7fd3d3500523c2c5eb7cf731ca6c69aa3bf6a17",
+    "policies": [
+      "artifact_collection_reads",
+      "derived_cell_output_axes",
+      "cell_vector",
+      "terminal_primitive_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbv3phase5",
+      "package": {
+        "name": "scwbV3Phase5",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbV3Phase5::register_operation_pack",
+      "operations": [
+        {
+          "name": "derived_union",
+          "qualified_name": "scwbv3phase5::derived_union",
+          "title": "Generic G7 union fixture",
+          "description": "Declares an exact ordered union from authenticated members.",
+          "runner": ".derived_union",
+          "inputs": [],
+          "params_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "items",
+              "member_selections",
+              "final_cells"
+            ],
+            "properties": {
+              "items": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "object"
+                }
+              },
+              "member_selections": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "final_cells": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "outputs": [
+            {
+              "name": "vector",
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "vector_id",
+              "required": true,
+              "promotion_group": "derived",
+              "value_kind": "continuous"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "vector": [
+              "vector"
+            ]
+          },
+          "replay_equivalence": {
+            "vector": "exact_canonical_value"
+          },
+          "artifact_collection_reads": [
+            {
+              "name": "sources",
+              "parameter": "items",
+              "reader": "read_retained_artifact_collection_item",
+              "minimum_items": 1,
+              "maximum_items": 8,
+              "item_key_field": "name",
+              "order_field": "order",
+              "reference_slots": [
+                {
+                  "slot": "axis",
+                  "field": "axis_ref",
+                  "required": true,
+                  "allowed_kinds": [
+                    "cell_vector"
+                  ],
+                  "activation": "always",
+                  "lifecycle_policy": "require_current",
+                  "ancestry_policy": "require_content_verified_producer"
+                }
+              ],
+              "maximum_references": 8,
+              "maximum_single_payload_bytes": 1048576,
+              "maximum_total_payload_bytes": 8388608,
+              "call_discipline": "resolved_ordinal_slot_exactly_once"
+            }
+          ],
+          "derived_cell_output_axes": [
+            {
+              "schema": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+              "name": "derived",
+              "derivation_mode": "declared_ordered_unique_union_v1",
+              "source": {
+                "mode": "g4_collection_member_axis",
+                "collection": "sources",
+                "slot": "axis",
+                "projection": "cell_vector_axis_v1",
+                "family_key_selector": null
+              },
+              "linked_outputs": [
+                {
+                  "name": "vector",
+                  "shape": "one_per_cell",
+                  "row_order": "sealed_cell_axis_order_v1",
+                  "missing_values": "forbidden"
+                }
+              ],
+              "limits": {
+                "minimum_cells": 1,
+                "maximum_cells": 1000,
+                "maximum_source_axes": 8,
+                "maximum_source_memberships": 10000,
+                "maximum_linked_outputs": 1
+              },
+              "call_discipline": "declare_once_seal_before_linked_output_v1",
+              "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+                "scope": "derived cell output axis declaration excluding declaration_identity",
+                "sha256": "147a1fb58b89c761cc28641073f62710e689a0f1a520e6678d31445d1f74fc16"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "source": "tests/fixtures/operation-pack-v3-phase5/inst/scworkbench/operation-pack.json",
+    "source_sha256": "d6f9631df173daa895e4e782c7fd3d3500523c2c5eb7cf731ca6c69aa3bf6a17",
+    "policies": [
+      "dimension_policies",
+      "standalone_sparse_cell_family_v1",
+      "cell_vector_family",
+      "terminal_primitive_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbv3phase5",
+      "package": {
+        "name": "scwbV3Phase5",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbV3Phase5::register_operation_pack",
+      "operations": [
+        {
+          "name": "standalone_sparse_family",
+          "qualified_name": "scwbv3phase5::standalone_sparse_family",
+          "title": "Standalone sparse cell-family fixture",
+          "description": "Publishes one independent sparse cell-vector family.",
+          "runner": ".standalone_sparse_family",
+          "inputs": [
+            {
+              "name": "source",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              },
+              "per_key_cells": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                },
+                "minItems": 1
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "omit",
+                  "repeat",
+                  "write_before_declare",
+                  "late",
+                  "swap_rows",
+                  "invalid_then_valid",
+                  "caught_seal_fault",
+                  "non_numeric",
+                  "non_finite",
+                  "wrong_value_type"
+                ],
+                "default": "normal"
+              }
+            },
+            "required": [
+              "keys",
+              "per_key_cells"
+            ],
+            "additionalProperties": false
+          },
+          "dimension_policies": [
+            {
+              "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+              "output": "family",
+              "policy": "standalone_sparse_cell_family_v1",
+              "axis_source": {
+                "source": "typed_space_input_v1",
+                "input": "source"
+              },
+              "key_order": "declared_verbatim_v1",
+              "row_order": "key_major_then_source_relative_cell_v1",
+              "per_key_coverage": "per_key_source_relative_subset_v1",
+              "missing_values": "forbidden",
+              "declaration_discipline": "exactly_once_before_write",
+              "maximum_axis_cells": 1000000,
+              "maximum_keys": 64,
+              "maximum_rows": 1000000,
+              "maximum_id_bytes": 1024,
+              "maximum_control_bytes": 67108864,
+              "policy_identity": {
+                "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+                "scope": "policy excluding policy_identity",
+                "sha256": "d5682e88e3da80fe085f6ed9615711badbeb29c34698a083b8114d6b94dd881a"
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "name": "family",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "family_id",
+              "required": true,
+              "promotion_group": "sparse",
+              "value_kind": "continuous"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "family": [
+              "family"
+            ]
+          },
+          "replay_equivalence": {
+            "family": "exact_canonical_value"
+          }
+        }
+      ]
+    }
+  }
+]

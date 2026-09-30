@@ -1,0 +1,819 @@
+[
+  {
+    "source": "accepted pack declaration: scwbRepresentation",
+    "source_sha256": "e0a35cf2f2dc2f4321c412d0c170f7cdfefe4e28ac7e52f480dc946ed754f1ba",
+    "policies": [
+      "parameter_bindings",
+      "typed_slice_reads",
+      "parameter_axes",
+      "publication_policies",
+      "dimension_policies",
+      "retained_parameters",
+      "public_interface",
+      "cell_by_parameter_axis_v1",
+      "feature_parameter_axis_cartesian_v1",
+      "one_per_parameter_axis_v1",
+      "singleton_parameter_echo_v1",
+      "space",
+      "space_file_backed_hdf5_v1",
+      "feature_table",
+      "terminal_primitive_v1",
+      "obs_table"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbrepresentation",
+      "package": {
+        "name": "scwbRepresentation",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbRepresentation::register_operation_pack",
+      "operations": [
+        {
+          "name": "pca_fit",
+          "qualified_name": "scwbrepresentation::pca_fit",
+          "title": "PCA Fit",
+          "description": "Fit PCA from authenticated matrix slices and publish a parameter-bound dense space.",
+          "runner": ".run_pca_fit",
+          "inputs": [
+            {
+              "name": "matrix",
+              "kind": "matrix",
+              "required": true,
+              "alignment": "cell_and_feature_ordered"
+            },
+            {
+              "name": "features",
+              "kind": "feature_table",
+              "required": false,
+              "alignment": "feature_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "feature_ids": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "default": null,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "n_components": {
+                "type": "integer",
+                "default": 50,
+                "minimum": 2,
+                "maximum": 10000
+              },
+              "center": {
+                "type": "boolean",
+                "default": true
+              },
+              "scale": {
+                "type": "boolean",
+                "default": true
+              },
+              "backend": {
+                "type": "string",
+                "default": "irlba",
+                "enum": [
+                  "irlba",
+                  "prcomp"
+                ]
+              },
+              "seed": {
+                "type": "integer",
+                "default": 1
+              },
+              "space_id_out": {
+                "type": "string",
+                "default": "rna.pca",
+                "minLength": 1
+              },
+              "overwrite": {
+                "type": "boolean",
+                "default": false
+              },
+              "max_dense_gb": {
+                "type": "number",
+                "default": 8,
+                "minimum": 0.1
+              },
+              "chunk_size": {
+                "type": "integer",
+                "default": 256,
+                "minimum": 1,
+                "maximum": 100000
+              }
+            },
+            "additionalProperties": false
+          },
+          "parameter_bindings": [
+            {
+              "parameter": "feature_ids",
+              "policy": "feature_ids_from_table_or_matrix_v1",
+              "input": "matrix",
+              "table_input": "features",
+              "field": "feature_id",
+              "selected_field": "selected"
+            }
+          ],
+          "typed_slice_reads": [
+            {
+              "name": "matrix_chunks",
+              "input": "matrix",
+              "reader": "read_typed_slices",
+              "kind": "matrix",
+              "supported_axes": [
+                "features"
+              ],
+              "chunk_axis": "features",
+              "chunk_size_parameter": "chunk_size",
+              "call_discipline": "ordered_partition_exactly_once",
+              "empty_selection_policy": "reject",
+              "duplicate_policy": "reject",
+              "selection": {
+                "cells": {
+                  "policy": "effective_input_axis_v1"
+                },
+                "features": {
+                  "policy": "parameter_ordered_subset_v1",
+                  "parameter": "feature_ids",
+                  "unknown": "error",
+                  "duplicates": "reject",
+                  "order": "parameter_order"
+                }
+              }
+            }
+          ],
+          "parameter_axes": [
+            {
+              "name": "principal_components",
+              "policy": "integer_parameter_axis_v1",
+              "parameter": "n_components",
+              "minimum": 2,
+              "maximum": {
+                "source": "typed_slice_rank_upper_bound_v1",
+                "typed_slice_read": "matrix_chunks",
+                "cell_offset": -1,
+                "feature_offset": -1
+              },
+              "labels": {
+                "policy": "prefix_one_based_v1",
+                "prefix": "PC"
+              }
+            }
+          ],
+          "publication_policies": [
+            {
+              "output": "space",
+              "policy": "authenticated_add_or_replace_v1",
+              "target_kind": "space",
+              "target_id_parameter": "space_id_out",
+              "overwrite_parameter": "overwrite",
+              "transaction_scope": "promotion_group_v1"
+            }
+          ],
+          "dimension_policies": [
+            {
+              "output": "space",
+              "policy": "cell_by_parameter_axis_v1",
+              "cell_axis": {
+                "source": "typed_slice_read_v1",
+                "typed_slice_read": "matrix_chunks"
+              },
+              "dimension_axis": "principal_components",
+              "row_order": "typed_slice_cell_order_v1",
+              "column_order": "parameter_axis_order_v1"
+            },
+            {
+              "output": "loadings",
+              "policy": "feature_parameter_axis_cartesian_v1",
+              "feature_axis": {
+                "source": "typed_slice_read_v1",
+                "typed_slice_read": "matrix_chunks"
+              },
+              "parameter_axis": "principal_components",
+              "row_order": "parameter_axis_then_feature_v1",
+              "feature_field": "feature_id",
+              "axis_label_field": "PC",
+              "axis_index_field": "component"
+            },
+            {
+              "output": "variance",
+              "policy": "one_per_parameter_axis_v1",
+              "parameter_axis": "principal_components",
+              "row_order": "parameter_axis_order_v1",
+              "axis_label_field": "PC",
+              "axis_index_field": "component"
+            },
+            {
+              "output": "fit_summary",
+              "policy": "singleton_parameter_echo_v1",
+              "parameter_axis": "principal_components",
+              "count_field": "n_components"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "space",
+              "category": "materialization",
+              "kind": "space",
+              "storage_profile": "space_file_backed_hdf5_v1",
+              "allocated_id_key": "space_id",
+              "required": true,
+              "promotion_group": "pca",
+              "materialized_by_terminals": [
+                "fit_summary",
+                "loadings",
+                "variance"
+              ]
+            },
+            {
+              "name": "loadings",
+              "category": "terminal_artifact",
+              "kind": "feature_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "loadings_id",
+              "required": true,
+              "promotion_group": "pca",
+              "table_type": "pca_loadings"
+            },
+            {
+              "name": "variance",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "variance_id",
+              "required": true,
+              "promotion_group": "pca",
+              "table_type": "pca_variance_explained"
+            },
+            {
+              "name": "fit_summary",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "fit_summary_id",
+              "required": true,
+              "promotion_group": "pca",
+              "table_type": "pca_fit_summary"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_feature_table"
+            },
+            {
+              "requirement_id": "irlba_runtime",
+              "kind": "r_package",
+              "name": "irlba",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=2.3.0,<3.0.0"
+              },
+              "disposition": "required",
+              "import_probe": "prcomp_irlba"
+            }
+          ],
+          "promotion_closure": {
+            "loadings": [
+              "fit_summary",
+              "loadings",
+              "space",
+              "variance"
+            ],
+            "variance": [
+              "fit_summary",
+              "loadings",
+              "space",
+              "variance"
+            ],
+            "fit_summary": [
+              "fit_summary",
+              "loadings",
+              "space",
+              "variance"
+            ]
+          },
+          "replay_equivalence": {
+            "space": "exact_canonical_value",
+            "loadings": "exact_canonical_value",
+            "variance": "exact_canonical_value",
+            "fit_summary": "exact_canonical_value"
+          },
+          "retained_parameters": [
+            {
+              "name": "feature_ids",
+              "source": "effective_parameter_value",
+              "parameter": "feature_ids",
+              "required": true
+            },
+            {
+              "name": "n_components",
+              "source": "effective_parameter_value",
+              "parameter": "n_components",
+              "required": true
+            },
+            {
+              "name": "center",
+              "source": "effective_parameter_value",
+              "parameter": "center",
+              "required": true
+            },
+            {
+              "name": "scale",
+              "source": "effective_parameter_value",
+              "parameter": "scale",
+              "required": true
+            },
+            {
+              "name": "backend",
+              "source": "effective_parameter_value",
+              "parameter": "backend",
+              "required": true
+            },
+            {
+              "name": "seed",
+              "source": "effective_parameter_value",
+              "parameter": "seed",
+              "required": true
+            },
+            {
+              "name": "space_id_out",
+              "source": "effective_parameter_value",
+              "parameter": "space_id_out",
+              "required": true
+            },
+            {
+              "name": "overwrite",
+              "source": "effective_parameter_value",
+              "parameter": "overwrite",
+              "required": true
+            },
+            {
+              "name": "max_dense_gb",
+              "source": "effective_parameter_value",
+              "parameter": "max_dense_gb",
+              "required": true
+            },
+            {
+              "name": "chunk_size",
+              "source": "effective_parameter_value",
+              "parameter": "chunk_size",
+              "required": true
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "matrix",
+              "pca",
+              "space"
+            ],
+            "inputs": [
+              {
+                "name": "matrix",
+                "label": "matrix",
+                "help": "Feature-by-cell input matrix."
+              },
+              {
+                "name": "features",
+                "label": "features",
+                "help": "Optional selected feature table."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "feature_ids",
+                "type": "string_vec",
+                "help": "PCA feature_ids parameter."
+              },
+              {
+                "name": "n_components",
+                "type": "int",
+                "help": "PCA n_components parameter."
+              },
+              {
+                "name": "center",
+                "type": "bool",
+                "help": "PCA center parameter."
+              },
+              {
+                "name": "scale",
+                "type": "bool",
+                "help": "PCA scale parameter."
+              },
+              {
+                "name": "backend",
+                "type": "choice",
+                "help": "PCA backend parameter."
+              },
+              {
+                "name": "seed",
+                "type": "int",
+                "help": "PCA seed parameter."
+              },
+              {
+                "name": "space_id_out",
+                "type": "string",
+                "help": "PCA space_id_out parameter."
+              },
+              {
+                "name": "overwrite",
+                "type": "bool",
+                "help": "PCA overwrite parameter."
+              },
+              {
+                "name": "max_dense_gb",
+                "type": "dbl",
+                "help": "PCA max_dense_gb parameter."
+              },
+              {
+                "name": "chunk_size",
+                "type": "int",
+                "help": "PCA chunk_size parameter."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "space",
+                "description": "PCA space output."
+              },
+              {
+                "name": "loadings",
+                "description": "PCA loadings output."
+              },
+              {
+                "name": "variance",
+                "description": "PCA variance output."
+              },
+              {
+                "name": "fit_summary",
+                "description": "PCA fit_summary output."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "source": "accepted pack declaration: scwbRepresentation",
+    "source_sha256": "e0a35cf2f2dc2f4321c412d0c170f7cdfefe4e28ac7e52f480dc946ed754f1ba",
+    "policies": [
+      "parameter_bindings",
+      "publication_policies",
+      "retained_parameters",
+      "public_interface",
+      "model_ref",
+      "model_ref_contained_tree_v1",
+      "policy",
+      "engine",
+      "model_type",
+      "primary_path",
+      "source_space_input",
+      "paired_space_output",
+      "dimensions_parameter",
+      "file_order",
+      "maximum_file_count",
+      "maximum_total_bytes",
+      "space_2d",
+      "space_2d_dense_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbrepresentation",
+      "package": {
+        "name": "scwbRepresentation",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbRepresentation::register_operation_pack",
+      "operations": [
+        {
+          "name": "umap_fit",
+          "qualified_name": "scwbrepresentation::umap_fit",
+          "title": "UMAP fit",
+          "description": "Fit UMAP from an authenticated space and publish a paired embedding and contained loadable model.",
+          "runner": ".run_umap_fit",
+          "inputs": [
+            {
+              "name": "space",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "dims": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "default": null,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "space_id_out": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null,
+                "minLength": 1
+              },
+              "n_neighbors": {
+                "type": "integer",
+                "default": 30,
+                "minimum": 2,
+                "maximum": 100000
+              },
+              "min_dist": {
+                "type": "number",
+                "default": 0.3,
+                "minimum": 0,
+                "maximum": 1
+              },
+              "metric": {
+                "type": "string",
+                "default": "euclidean",
+                "minLength": 1
+              },
+              "nn_method": {
+                "type": "string",
+                "default": "nndescent",
+                "enum": [
+                  "nndescent",
+                  "annoy",
+                  "fnn"
+                ]
+              },
+              "spread": {
+                "type": "number",
+                "default": 1,
+                "minimum": 0
+              },
+              "seed": {
+                "type": "integer",
+                "default": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "parameter_bindings": [
+            {
+              "parameter": "space_id_out",
+              "policy": "input_id_with_literal_affix_v1",
+              "input": "space",
+              "affix": "umap."
+            }
+          ],
+          "publication_policies": [
+            {
+              "output": "space_2d",
+              "policy": "authenticated_space_2d_publication_v1",
+              "target_kind": "space_2d",
+              "target_id_parameter": "space_id_out",
+              "mode": {
+                "policy": "add_only_v1"
+              },
+              "cell_axis_input": "space",
+              "model_binding": {
+                "source": "sibling_output",
+                "name": "model"
+              },
+              "transaction_scope": "promotion_group_v1"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "model",
+              "category": "terminal_artifact",
+              "kind": "model_ref",
+              "storage_profile": "model_ref_contained_tree_v1",
+              "allocated_id_key": "model_id",
+              "required": true,
+              "promotion_group": "umap",
+              "contained_model_policy": {
+                "policy": "staged_contained_model_tree_v1",
+                "engine": "uwot",
+                "model_type": "uwot_umap",
+                "primary_path": "model.uwot",
+                "source_space_input": "space",
+                "paired_space_output": "space_2d",
+                "dimensions_parameter": "dims",
+                "file_order": "utf8_path_lexicographic_v1",
+                "maximum_file_count": 32,
+                "maximum_total_bytes": 1073741824
+              }
+            },
+            {
+              "name": "space_2d",
+              "category": "materialization",
+              "kind": "space_2d",
+              "storage_profile": "space_2d_dense_v1",
+              "allocated_id_key": "space_id",
+              "required": true,
+              "promotion_group": "umap",
+              "materialized_by_terminals": [
+                "model"
+              ]
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_model_ref"
+            },
+            {
+              "requirement_id": "uwot_runtime",
+              "kind": "r_package",
+              "name": "uwot",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.2.0,<1.0.0"
+              },
+              "disposition": "required",
+              "import_probe": "umap"
+            }
+          ],
+          "promotion_closure": {
+            "model": [
+              "model",
+              "space_2d"
+            ]
+          },
+          "replay_equivalence": {
+            "model": "loadable_reference",
+            "space_2d": "cell_aligned_embedding"
+          },
+          "retained_parameters": [
+            {
+              "name": "dims",
+              "source": "effective_parameter_value",
+              "parameter": "dims",
+              "required": true
+            },
+            {
+              "name": "space_id_out",
+              "source": "effective_parameter_value",
+              "parameter": "space_id_out",
+              "required": true
+            },
+            {
+              "name": "n_neighbors",
+              "source": "effective_parameter_value",
+              "parameter": "n_neighbors",
+              "required": true
+            },
+            {
+              "name": "min_dist",
+              "source": "effective_parameter_value",
+              "parameter": "min_dist",
+              "required": true
+            },
+            {
+              "name": "metric",
+              "source": "effective_parameter_value",
+              "parameter": "metric",
+              "required": true
+            },
+            {
+              "name": "nn_method",
+              "source": "effective_parameter_value",
+              "parameter": "nn_method",
+              "required": true
+            },
+            {
+              "name": "spread",
+              "source": "effective_parameter_value",
+              "parameter": "spread",
+              "required": true
+            },
+            {
+              "name": "seed",
+              "source": "effective_parameter_value",
+              "parameter": "seed",
+              "required": true
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "umap",
+              "fit"
+            ],
+            "inputs": [
+              {
+                "name": "space",
+                "label": "space",
+                "help": "Cell-aligned source space."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "dims",
+                "type": "list",
+                "help": "UMAP fit dims parameter."
+              },
+              {
+                "name": "space_id_out",
+                "type": "string",
+                "help": "UMAP fit space_id_out parameter."
+              },
+              {
+                "name": "n_neighbors",
+                "type": "int",
+                "help": "UMAP fit n_neighbors parameter."
+              },
+              {
+                "name": "min_dist",
+                "type": "dbl",
+                "help": "UMAP fit min_dist parameter."
+              },
+              {
+                "name": "metric",
+                "type": "string",
+                "help": "UMAP fit metric parameter."
+              },
+              {
+                "name": "nn_method",
+                "type": "choice",
+                "help": "UMAP fit nn_method parameter."
+              },
+              {
+                "name": "spread",
+                "type": "dbl",
+                "help": "UMAP fit spread parameter."
+              },
+              {
+                "name": "seed",
+                "type": "int",
+                "help": "UMAP fit seed parameter."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "model",
+                "description": "Contained loadable uwot model reference."
+              },
+              {
+                "name": "space_2d",
+                "description": "Fitted UMAP coordinates."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

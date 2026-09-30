@@ -1,0 +1,367 @@
+[
+  {
+    "source": "tests/fixtures/operation-pack-v3-phase5/inst/scworkbench/operation-pack.json",
+    "source_sha256": "d6f9631df173daa895e4e782c7fd3d3500523c2c5eb7cf731ca6c69aa3bf6a17",
+    "policies": [
+      "dimension_policies",
+      "supported_external_state_adoptions",
+      "authenticated_output_axes_v1",
+      "one_per_cell",
+      "model_ref",
+      "model_ref_contained_tree_v1",
+      "cell_vector",
+      "terminal_primitive_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbv3phase5",
+      "package": {
+        "name": "scwbV3Phase5",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbV3Phase5::register_operation_pack",
+      "operations": [
+        {
+          "name": "adopt_external_state",
+          "qualified_name": "scwbv3phase5::adopt_external_state",
+          "title": "Generic external-state adoption fixture",
+          "description": "Adopts an authenticated external model tree through the path-free generic G3 capability.",
+          "runner": ".adopt_external_state",
+          "inputs": [
+            {
+              "name": "source",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            },
+            {
+              "name": "candidate",
+              "kind": "external_state_candidate",
+              "required": true,
+              "alignment": "none"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "dims": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "external_source_ref": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "source_id",
+                  "snapshot_id",
+                  "run_id"
+                ],
+                "properties": {
+                  "source_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "snapshot_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "run_id": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "required": [
+              "dims",
+              "external_source_ref"
+            ],
+            "additionalProperties": false
+          },
+          "dimension_policies": [
+            {
+              "output": "summary",
+              "policy": "authenticated_output_axes_v1",
+              "shape": "one_per_cell",
+              "cell_axis": {
+                "source": "effective_cells_v1",
+                "input": "source"
+              },
+              "row_order": "input_cell_order_v1",
+              "missing_values": "forbidden"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "model",
+              "category": "terminal_artifact",
+              "kind": "model_ref",
+              "storage_profile": "model_ref_contained_tree_v1",
+              "allocated_id_key": "model_id",
+              "required": true,
+              "promotion_group": "adoption",
+              "contained_model_sibling_closure_policy": {
+                "policy": "staged_contained_model_sibling_closure_v1",
+                "engine": "fixture",
+                "model_type": "external_state",
+                "primary_path": "model.bin",
+                "source_space_input": "source",
+                "dimensions_parameter": "dims",
+                "required_sibling_terminals": [
+                  "summary"
+                ],
+                "file_order": "utf8_path_lexicographic_v1",
+                "maximum_file_count": 8,
+                "maximum_total_bytes": 1048576
+              }
+            },
+            {
+              "name": "summary",
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "summary_id",
+              "required": true,
+              "promotion_group": "adoption",
+              "value_kind": "categorical"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "model": [
+              "model",
+              "summary"
+            ],
+            "summary": [
+              "model",
+              "summary"
+            ]
+          },
+          "replay_equivalence": {
+            "model": "loadable_reference",
+            "summary": "exact_canonical_value"
+          },
+          "supported_external_state_adoptions": [
+            {
+              "schema": "scworkbench.operation_pack.supported_external_state_adoption.v1",
+              "name": "adoption",
+              "state_input": "candidate",
+              "source_parameter": "external_source_ref",
+              "allowed_state_types": [
+                {
+                  "engine": "fixture",
+                  "model_type": "external_state"
+                }
+              ],
+              "allowed_source_byte_states": [
+                "bytes_verified",
+                "bytes_not_inspected",
+                "bytes_unavailable"
+              ],
+              "model_output": "model",
+              "required_closure_outputs": [
+                "summary"
+              ],
+              "primary_path": "model.bin",
+              "maximum_file_count": 8,
+              "maximum_total_bytes": 1048576,
+              "maximum_cell_count": 1000,
+              "call_discipline": "adoption_state_exactly_once",
+              "output_tree_policy": "exact_admitted_tree_identity",
+              "execution_semantics": "supported_external_state_adoption_without_refit_v1",
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.supported_external_state_adoption.v1",
+                "scope": "supported external state adoption declaration excluding declaration_identity",
+                "sha256": "4c8debf3ab5452ec2a56701173aae9606cc71b3f68419960158f629938781910"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "source": "tests/fixtures/operation-pack-v3-phase5/inst/scworkbench/operation-pack.json",
+    "source_sha256": "d6f9631df173daa895e4e782c7fd3d3500523c2c5eb7cf731ca6c69aa3bf6a17",
+    "policies": [
+      "derived_cell_output_axes",
+      "cell_vector",
+      "terminal_primitive_v1",
+      "cell_vector_family"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbv3phase5",
+      "package": {
+        "name": "scwbV3Phase5",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbV3Phase5::register_operation_pack",
+      "operations": [
+        {
+          "name": "derived_subset",
+          "qualified_name": "scwbv3phase5::derived_subset",
+          "title": "Generic G7 subset fixture",
+          "description": "Declares a source-relative derived cell axis.",
+          "runner": ".derived_subset",
+          "inputs": [
+            {
+              "name": "source",
+              "kind": "cell_vector",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "selected_cells",
+              "key_prefix"
+            ],
+            "properties": {
+              "selected_cells": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "key_prefix": {
+                "type": "string"
+              },
+              "fault_after_first_output": {
+                "type": "boolean"
+              },
+              "omit_declaration": {
+                "type": "boolean"
+              },
+              "repeat_declaration": {
+                "type": "boolean"
+              }
+            }
+          },
+          "outputs": [
+            {
+              "name": "vector",
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "vector_id",
+              "required": true,
+              "promotion_group": "derived",
+              "value_kind": "continuous"
+            },
+            {
+              "name": "family",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "family_id",
+              "required": true,
+              "promotion_group": "derived",
+              "value_kind": "continuous"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "vector": [
+              "family",
+              "vector"
+            ],
+            "family": [
+              "family",
+              "vector"
+            ]
+          },
+          "replay_equivalence": {
+            "vector": "exact_canonical_value",
+            "family": "exact_canonical_value"
+          },
+          "derived_cell_output_axes": [
+            {
+              "schema": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+              "name": "derived",
+              "derivation_mode": "ordered_unique_subset_v1",
+              "source": {
+                "mode": "static_input_axis",
+                "input": "source",
+                "projection": "cell_vector_axis_v1",
+                "family_key_selector": null
+              },
+              "linked_outputs": [
+                {
+                  "name": "vector",
+                  "shape": "one_per_cell",
+                  "row_order": "sealed_cell_axis_order_v1",
+                  "missing_values": "forbidden"
+                },
+                {
+                  "name": "family",
+                  "shape": "cell_key_cartesian",
+                  "row_order": "key_major_then_sealed_cell_v1",
+                  "missing_values": "forbidden",
+                  "key_axis": {
+                    "source": "declared_keys_with_optional_prefix_v1",
+                    "keys": [
+                      "score",
+                      "confidence"
+                    ],
+                    "prefix_parameter": "key_prefix"
+                  }
+                }
+              ],
+              "limits": {
+                "minimum_cells": 1,
+                "maximum_cells": 1000,
+                "maximum_source_axes": 1,
+                "maximum_source_memberships": 10000,
+                "maximum_linked_outputs": 2
+              },
+              "call_discipline": "declare_once_seal_before_linked_output_v1",
+              "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+                "scope": "derived cell output axis declaration excluding declaration_identity",
+                "sha256": "c5c149f9d2160cc7a0c71880cbc0987367485ea7a47700fb84b7c4b1c55e37ed"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

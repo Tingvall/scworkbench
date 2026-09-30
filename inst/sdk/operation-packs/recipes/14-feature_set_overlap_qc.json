@@ -1,0 +1,257 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbgeneprograms",
+  "package": {
+    "name": "scwbGenePrograms",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbGenePrograms::register_operation_pack",
+  "operations": [
+    {
+      "name": "feature_set_overlap_qc",
+      "qualified_name": "scwbgeneprograms::feature_set_overlap_qc",
+      "title": "Feature-Set Matrix Overlap QC",
+      "description": "Screen authenticated feature-set-registry entries against a matrix universe.",
+      "runner": ".run_feature_set_overlap_qc",
+      "inputs": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true,
+          "alignment": "cell_and_feature_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "namespaces": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "feature_sets": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "min_set_size": {
+            "type": "integer",
+            "default": 1,
+            "minimum": 0
+          },
+          "max_set_size": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "min_detected_fraction": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 1
+          },
+          "deduplicate_sets": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "overlap_qc",
+          "policy": "data_dependent_table_v1"
+        },
+        {
+          "output": "namespace_summary",
+          "policy": "data_dependent_table_v1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "overlap_qc",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "overlap_qc_id",
+          "required": true,
+          "promotion_group": "overlap",
+          "table_type": "feature_set_overlap_qc"
+        },
+        {
+          "name": "namespace_summary",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "namespace_summary_id",
+          "required": true,
+          "promotion_group": "overlap",
+          "table_type": "feature_set_overlap_qc_summary"
+        }
+      ],
+      "dependencies": [
+        {
+          "requirement_id": "scworkbench_runtime",
+          "kind": "r_package",
+          "name": "scworkbench",
+          "version": {
+            "scheme": "r_package_version_constraint_v1",
+            "specifier": ">=0.1.0,<0.2.0"
+          },
+          "disposition": "required",
+          "import_probe": "wb_prim_obs_table"
+        }
+      ],
+      "promotion_closure": {
+        "overlap_qc": [
+          "namespace_summary",
+          "overlap_qc"
+        ],
+        "namespace_summary": [
+          "namespace_summary",
+          "overlap_qc"
+        ]
+      },
+      "replay_equivalence": {
+        "overlap_qc": "exact_canonical_value",
+        "namespace_summary": "exact_canonical_value"
+      },
+      "registry_reads": [
+        {
+          "name": "feature_sets",
+          "category": "authenticated_core_registry_snapshot",
+          "kind": "feature_set_registry",
+          "reader": "read_feature_set_registry",
+          "matrix_input": "matrix",
+          "namespace_parameter": "namespace",
+          "namespaces_parameter": "namespaces",
+          "feature_sets_parameter": "feature_sets",
+          "no_selector_policy": "all_namespaces",
+          "empty_match_policy": "error"
+        }
+      ],
+      "retained_parameters": [
+        {
+          "name": "matrix_id",
+          "source": "output_meta",
+          "output": "overlap_qc",
+          "field": "matrix_id"
+        },
+        {
+          "name": "effective_namespaces",
+          "source": "output_meta",
+          "output": "overlap_qc",
+          "field": "namespaces"
+        },
+        {
+          "name": "operation_marker",
+          "source": "output_meta",
+          "output": "overlap_qc",
+          "field": "op"
+        },
+        {
+          "name": "effective_max_set_size",
+          "source": "output_meta",
+          "output": "overlap_qc",
+          "field": "max_set_size"
+        }
+      ],
+      "public_interface": {
+        "intent": [
+          "feature_set",
+          "qc",
+          "gene_set",
+          "screening",
+          "trajectory"
+        ],
+        "inputs": [
+          {
+            "name": "matrix",
+            "label": "matrix",
+            "help": "Typed matrix input."
+          }
+        ],
+        "parameters": [
+          {
+            "name": "namespace",
+            "type": "string",
+            "help": "Single feature-set namespace to QC."
+          },
+          {
+            "name": "namespaces",
+            "type": "string_vec",
+            "help": "Optional multiple feature-set namespaces to QC."
+          },
+          {
+            "name": "feature_sets",
+            "type": "string_vec",
+            "help": "Optional feature-set subset within selected namespaces."
+          },
+          {
+            "name": "min_set_size",
+            "type": "int",
+            "help": "Minimum mapped/detected genes required to include a set."
+          },
+          {
+            "name": "max_set_size",
+            "type": "dbl",
+            "help": "Maximum mapped/detected genes allowed to include a set."
+          },
+          {
+            "name": "min_detected_fraction",
+            "type": "dbl",
+            "help": "Minimum fraction of source genes detected in the matrix."
+          },
+          {
+            "name": "deduplicate_sets",
+            "type": "bool",
+            "help": "If TRUE, duplicate mapped-gene signatures after the first are excluded."
+          }
+        ],
+        "outputs": [
+          {
+            "name": "overlap_qc",
+            "description": "One row per feature set with raw, mapped, detected counts and include/exclude status."
+          },
+          {
+            "name": "namespace_summary",
+            "description": "Namespace-level count and overlap summaries."
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbv3reference",
+  "package": {
+    "name": "scwbV3Reference",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbV3Reference::register_operation_pack",
+  "operations": [
+    {
+      "name": "ancestry_family",
+      "qualified_name": "scwbv3reference::ancestry_family",
+      "title": "Artifact ancestry fixture",
+      "description": "Exercises an input-bound core-attested ancestry read.",
+      "runner": ".ancestry_family",
+      "inputs": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "artifact_id"
+        ],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "smoothed",
+          "policy": "authenticated_output_axes_v1",
+          "shape": "cell_key_cartesian",
+          "cell_axis": {
+            "source": "effective_cells_v1",
+            "input": "signal"
+          },
+          "key_axis": {
+            "source": "input_keys_with_optional_selector_v1",
+            "input": "signal",
+            "no_selector_order": "first_occurrence_v1",
+            "selector_order": "normalized_parameter_order_v1",
+            "unknown_key_policy": "error",
+            "zero_key_policy": "error"
+          },
+          "row_order": "key_major_then_cell_v1",
+          "missing_values": "forbidden"
+        }
+      ],
+      "provenance_reads": [
+        {
+          "name": "source_ancestry",
+          "category": "authenticated_core_provenance_snapshot",
+          "kind": "artifact_ancestry",
+          "reader": "read_artifact_ancestry",
+          "input": "signal",
+          "activation": "when_resolved_from_artifact",
+          "lifecycle_policy": "require_current",
+          "parameter_assertions": {
+            "artifact_id": "artifact_id"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "smoothed",
+          "category": "terminal_artifact",
+          "kind": "cell_vector_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "smoothed_id",
+          "required": true,
+          "promotion_group": "smoothed",
+          "value_kind": "continuous"
+        }
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "smoothed": [
+          "smoothed"
+        ]
+      },
+      "replay_equivalence": {
+        "smoothed": "exact_canonical_value"
+      }
+    }
+  ]
+}

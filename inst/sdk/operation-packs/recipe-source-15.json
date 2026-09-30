@@ -1,0 +1,552 @@
+[
+  {
+    "source": "accepted pack declaration: scwbRNA",
+    "source_sha256": "067db0625181775721a91f2188bb9f2ca72443fc8aa06d0b453669035ebad410",
+    "policies": [
+      "dimension_policies",
+      "retained_parameters",
+      "typed_slice_reads",
+      "authenticated_output_axes_v1",
+      "bounded_grouped_cell_key_cartesian",
+      "data_dependent_table_v1",
+      "cell_vector_family",
+      "terminal_primitive_v1",
+      "feature_table",
+      "obs_table"
+    ],
+    "manifest": {
+      "backend": "R",
+      "compatibility": {
+        "pack_abi": {
+          "maximum": "3",
+          "minimum": "3"
+        },
+        "scworkbench": {
+          "maximum_exclusive": "0.2.0",
+          "minimum": "0.1.0"
+        }
+      },
+      "entry_point": "scwbRNA::register_operation_pack",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbrna",
+      "operations": [
+        {
+          "dependencies": [
+            {
+              "disposition": "required",
+              "import_probe": "wb_prim_cell_vector_family",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "requirement_id": "scworkbench_runtime",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<1.0.0"
+              }
+            },
+            {
+              "disposition": "required",
+              "import_probe": "colSums",
+              "kind": "r_package",
+              "name": "Matrix",
+              "requirement_id": "matrix_runtime",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=1.3.0"
+              }
+            }
+          ],
+          "description": "Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without filtering cells.",
+          "dimension_policies": [
+            {
+              "cell_axis": {
+                "input": "matrix",
+                "source": "effective_cells_v1"
+              },
+              "key_axis": {
+                "group_order": "manifest_order_v1",
+                "optional_groups": [
+                  {
+                    "keys": [
+                      "mitochondrial_counts",
+                      "mitochondrial_percent"
+                    ],
+                    "name": "mitochondrial"
+                  },
+                  {
+                    "keys": [
+                      "ribosomal_counts",
+                      "ribosomal_percent"
+                    ],
+                    "name": "ribosomal"
+                  }
+                ],
+                "required_keys": [
+                  "total_counts",
+                  "detected_features"
+                ],
+                "selection_owner": "operation_pack_v1",
+                "source": "declared_bounded_key_groups_v1"
+              },
+              "missing_values": "forbidden",
+              "output": "metrics",
+              "policy": "authenticated_output_axes_v1",
+              "row_order": "key_major_then_cell_v1",
+              "shape": "bounded_grouped_cell_key_cartesian"
+            },
+            {
+              "output": "qc_features",
+              "policy": "data_dependent_table_v1"
+            },
+            {
+              "output": "summary",
+              "policy": "data_dependent_table_v1"
+            }
+          ],
+          "inputs": [
+            {
+              "alignment": "cell_and_feature_ordered",
+              "kind": "matrix",
+              "name": "matrix",
+              "required": true
+            }
+          ],
+          "name": "rna_qc_metrics",
+          "outputs": [
+            {
+              "allocated_id_key": "metrics_id",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "name": "metrics",
+              "promotion_group": "qc",
+              "required": true,
+              "storage_profile": "terminal_primitive_v1",
+              "value_kind": "continuous"
+            },
+            {
+              "allocated_id_key": "qc_features_id",
+              "category": "terminal_artifact",
+              "kind": "feature_table",
+              "name": "qc_features",
+              "promotion_group": "qc",
+              "required": true,
+              "storage_profile": "terminal_primitive_v1",
+              "table_type": "rna_qc_feature_membership"
+            },
+            {
+              "allocated_id_key": "summary_id",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "name": "summary",
+              "promotion_group": "qc",
+              "required": true,
+              "storage_profile": "terminal_primitive_v1",
+              "table_type": "rna_qc_metrics_summary"
+            }
+          ],
+          "params_schema": {
+            "additionalProperties": false,
+            "properties": {
+              "chunk_size": {
+                "default": 2000,
+                "maximum": 1000000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "integer_tolerance": {
+                "default": 1e-08,
+                "minimum": 0,
+                "type": "number"
+              },
+              "missing_feature_policy": {
+                "default": "error",
+                "enum": [
+                  "error",
+                  "drop"
+                ],
+                "type": "string"
+              },
+              "mitochondrial_features": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "uniqueItems": true
+              },
+              "mitochondrial_pattern": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "pattern_ignore_case": {
+                "default": false,
+                "type": "boolean"
+              },
+              "require_integer_counts": {
+                "default": true,
+                "type": "boolean"
+              },
+              "ribosomal_features": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "uniqueItems": true
+              },
+              "ribosomal_pattern": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "promotion_closure": {
+            "metrics": [
+              "metrics",
+              "qc_features",
+              "summary"
+            ],
+            "qc_features": [
+              "metrics",
+              "qc_features",
+              "summary"
+            ],
+            "summary": [
+              "metrics",
+              "qc_features",
+              "summary"
+            ]
+          },
+          "qualified_name": "scwbrna::rna_qc_metrics",
+          "replay_equivalence": {
+            "metrics": "exact_canonical_value",
+            "qc_features": "exact_canonical_value",
+            "summary": "exact_canonical_value"
+          },
+          "retained_parameters": [
+            {
+              "name": "mitochondrial_features",
+              "parameter": "mitochondrial_features",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "mitochondrial_pattern",
+              "parameter": "mitochondrial_pattern",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "ribosomal_features",
+              "parameter": "ribosomal_features",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "ribosomal_pattern",
+              "parameter": "ribosomal_pattern",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "pattern_ignore_case",
+              "parameter": "pattern_ignore_case",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "missing_feature_policy",
+              "parameter": "missing_feature_policy",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "require_integer_counts",
+              "parameter": "require_integer_counts",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "integer_tolerance",
+              "parameter": "integer_tolerance",
+              "required": false,
+              "source": "parameter_value"
+            },
+            {
+              "name": "chunk_size",
+              "parameter": "chunk_size",
+              "required": false,
+              "source": "parameter_value"
+            }
+          ],
+          "runner": ".run_rna_qc_metrics",
+          "title": "Calculate per-cell RNA QC metrics",
+          "typed_slice_reads": [
+            {
+              "call_discipline": "ordered_partition_exactly_once",
+              "chunk_axis": "cells",
+              "chunk_size_parameter": "chunk_size",
+              "duplicate_policy": "reject",
+              "empty_selection_policy": "reject",
+              "input": "matrix",
+              "kind": "matrix",
+              "name": "matrix_chunks",
+              "reader": "read_typed_slices",
+              "selection": {
+                "cells": {
+                  "policy": "effective_input_axis_v1"
+                },
+                "features": {
+                  "policy": "effective_input_axis_v1"
+                }
+              },
+              "supported_axes": [
+                "cells"
+              ]
+            }
+          ]
+        }
+      ],
+      "pack_abi_version": "3",
+      "package": {
+        "name": "scwbRNA",
+        "version": "0.1.0"
+      },
+      "schema_version": "scworkbench.operation_pack.v3"
+    }
+  },
+  {
+    "source": "accepted pack declaration: scwbRNA",
+    "source_sha256": "067db0625181775721a91f2188bb9f2ca72443fc8aa06d0b453669035ebad410",
+    "policies": [
+      "dimension_policies",
+      "parameter_bindings",
+      "publication_policies",
+      "retained_parameters",
+      "typed_slice_reads",
+      "data_dependent_table_v1",
+      "matrix",
+      "matrix_backed_chunked_v1",
+      "obs_table",
+      "terminal_primitive_v1"
+    ],
+    "manifest": {
+      "backend": "R",
+      "compatibility": {
+        "pack_abi": {
+          "maximum": "3",
+          "minimum": "3"
+        },
+        "scworkbench": {
+          "maximum_exclusive": "0.2.0",
+          "minimum": "0.1.0"
+        }
+      },
+      "entry_point": "scwbRNA::register_operation_pack",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbrna",
+      "operations": [
+        {
+          "dependencies": [
+            {
+              "disposition": "required",
+              "import_probe": "wb_prim_obs_table",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "requirement_id": "scworkbench_runtime",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<1.0.0"
+              }
+            },
+            {
+              "disposition": "required",
+              "import_probe": "colSums",
+              "kind": "r_package",
+              "name": "Matrix",
+              "requirement_id": "matrix_runtime",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=1.3.0"
+              }
+            }
+          ],
+          "description": "Create an authenticated fragment-backed log1p(counts / library_size * scale_factor) matrix.",
+          "dimension_policies": [
+            {
+              "output": "summary",
+              "policy": "data_dependent_table_v1"
+            }
+          ],
+          "inputs": [
+            {
+              "alignment": "cell_and_feature_ordered",
+              "kind": "matrix",
+              "name": "matrix",
+              "required": true
+            }
+          ],
+          "name": "matrix_log_normalize",
+          "outputs": [
+            {
+              "allocated_id_key": "matrix_id",
+              "category": "materialization",
+              "fragment_policy": {
+                "cell_coverage": "exact_source_cell_order_partition_v1",
+                "feature_coverage": "exact_source_feature_order_v1",
+                "fragment_axis": "cells",
+                "fragment_order": "source_fragment_then_part_v1",
+                "minimum_fragment_count": 1,
+                "policy": "staged_matrix_fragments_v1",
+                "source_fragment_binding": "single_parent_no_crossing_v1",
+                "source_input": "matrix",
+                "source_typed_slice_read": "matrix_chunks"
+              },
+              "kind": "matrix",
+              "materialized_by_terminals": [
+                "summary"
+              ],
+              "name": "matrix",
+              "promotion_group": "normalization",
+              "required": true,
+              "storage_profile": "matrix_backed_chunked_v1"
+            },
+            {
+              "allocated_id_key": "summary_id",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "name": "summary",
+              "promotion_group": "normalization",
+              "required": true,
+              "storage_profile": "terminal_primitive_v1",
+              "table_type": "matrix_log_normalize_summary"
+            }
+          ],
+          "parameter_bindings": [
+            {
+              "affix": "_log1p_cp",
+              "input": "matrix",
+              "numeric_parameter": "scale_factor",
+              "parameter": "output_matrix_id",
+              "policy": "input_id_with_numeric_suffix_v1"
+            }
+          ],
+          "params_schema": {
+            "additionalProperties": false,
+            "properties": {
+              "chunk_size": {
+                "default": 2000,
+                "maximum": 1000000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "output_matrix_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "overwrite": {
+                "default": false,
+                "type": "boolean"
+              },
+              "scale_factor": {
+                "default": 10000,
+                "exclusiveMinimum": 0,
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "promotion_closure": {
+            "summary": [
+              "matrix",
+              "summary"
+            ]
+          },
+          "publication_policies": [
+            {
+              "output": "matrix",
+              "overwrite_parameter": "overwrite",
+              "policy": "authenticated_add_or_replace_v1",
+              "target_id_parameter": "output_matrix_id",
+              "target_kind": "matrix",
+              "transaction_scope": "promotion_group_v1"
+            }
+          ],
+          "qualified_name": "scwbrna::matrix_log_normalize",
+          "replay_equivalence": {
+            "matrix": "exact_canonical_value",
+            "summary": "exact_canonical_value"
+          },
+          "retained_parameters": [
+            {
+              "name": "output_matrix_id",
+              "parameter": "output_matrix_id",
+              "required": true,
+              "source": "effective_parameter_value"
+            },
+            {
+              "name": "scale_factor",
+              "parameter": "scale_factor",
+              "required": true,
+              "source": "effective_parameter_value"
+            },
+            {
+              "name": "overwrite",
+              "parameter": "overwrite",
+              "required": true,
+              "source": "effective_parameter_value"
+            },
+            {
+              "name": "chunk_size",
+              "parameter": "chunk_size",
+              "required": true,
+              "source": "effective_parameter_value"
+            }
+          ],
+          "runner": ".run_matrix_log_normalize",
+          "title": "Log-normalize count matrix",
+          "typed_slice_reads": [
+            {
+              "call_discipline": "ordered_partition_exactly_once",
+              "chunk_axis": "cells",
+              "chunk_size_parameter": "chunk_size",
+              "duplicate_policy": "reject",
+              "empty_selection_policy": "reject",
+              "input": "matrix",
+              "kind": "matrix",
+              "name": "matrix_chunks",
+              "reader": "read_typed_slices",
+              "selection": {
+                "cells": {
+                  "policy": "effective_input_axis_v1"
+                },
+                "features": {
+                  "policy": "effective_input_axis_v1"
+                }
+              },
+              "supported_axes": [
+                "cells"
+              ]
+            }
+          ]
+        }
+      ],
+      "pack_abi_version": "3",
+      "package": {
+        "name": "scwbRNA",
+        "version": "0.1.0"
+      },
+      "schema_version": "scworkbench.operation_pack.v3"
+    }
+  }
+]

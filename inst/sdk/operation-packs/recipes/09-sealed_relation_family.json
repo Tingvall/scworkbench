@@ -1,0 +1,137 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbv3phase5",
+  "package": {
+    "name": "scwbV3Phase5",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbV3Phase5::register_operation_pack",
+  "operations": [
+    {
+      "name": "sealed_relation_family",
+      "qualified_name": "scwbv3phase5::sealed_relation_family",
+      "title": "Sealed relation-family fixture",
+      "description": "Publishes one exact ordered variable-row relation family.",
+      "runner": ".sealed_relation_family",
+      "inputs": [
+        {
+          "name": "source",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "key",
+                "cell_id"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "cell_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "minItems": 1
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "omit",
+              "repeat",
+              "write_before_declare",
+              "swap_rows",
+              "non_finite",
+              "caught_seal_fault"
+            ],
+            "default": "normal"
+          }
+        },
+        "required": [
+          "keys",
+          "pairs"
+        ],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "schema": "scworkbench.operation_pack.sealed_relation_family_policy.v1",
+          "output": "relation",
+          "policy": "sealed_relation_family_v1",
+          "axis_source": {
+            "source": "typed_input_v1",
+            "input": "source"
+          },
+          "key_order": "first_occurrence_v1",
+          "row_order": "declared_exact_v1",
+          "pair_multiplicity": "unique_key_cell_v1",
+          "numeric_fields": "declare_presence_finite_v1",
+          "declaration_discipline": "exactly_once_before_write",
+          "maximum_axis_cells": 1000000,
+          "maximum_keys": 1024,
+          "maximum_rows": 1000000,
+          "maximum_id_bytes": 1024,
+          "maximum_control_bytes": 67108864,
+          "maximum_chunk_pairs": 8192,
+          "policy_identity": {
+            "scheme": "scworkbench.operation_pack.sealed_relation_family_policy.v1",
+            "scope": "policy excluding policy_identity",
+            "sha256": "be1f6ec69d6a5eb14f0f90ee4ce6b42831974b87e171181572ebda3a4fa5e8cc"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "relation",
+          "category": "terminal_artifact",
+          "kind": "relation_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "relation_id",
+          "required": true,
+          "promotion_group": "relation"
+        }
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "relation": [
+          "relation"
+        ]
+      },
+      "replay_equivalence": {
+        "relation": "exact_canonical_value"
+      }
+    }
+  ]
+}

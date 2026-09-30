@@ -1,0 +1,11 @@
+Package: @PACKAGE@
+Title: Typed Matrix Cell Sum Operation Pack
+Version: 0.1.0
+Authors@R: person("@AUTHOR@", email = "@EMAIL@", role = c("aut", "cre"))
+Description: An explicitly activated operation pack computing finite per-cell
+    matrix sums through authenticated bounded readers. Includes an executable
+    conformance tutorial; scientific validation remains the author's responsibility.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports: scworkbench (>= 0.1.0)
+Suggests: jsonlite

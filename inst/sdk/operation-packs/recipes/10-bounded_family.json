@@ -1,0 +1,110 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbv3reference",
+  "package": {
+    "name": "scwbV3Reference",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbV3Reference::register_operation_pack",
+  "operations": [
+    {
+      "name": "bounded_family",
+      "qualified_name": "scwbv3reference::bounded_family",
+      "title": "Bounded family fixture",
+      "description": "Exercises authenticated family output axes.",
+      "runner": ".bounded_family",
+      "inputs": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true,
+          "alignment": "cell_and_feature_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "features",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "scores",
+          "policy": "authenticated_output_axes_v1",
+          "shape": "cell_key_cartesian",
+          "cell_axis": {
+            "source": "effective_cells_v1",
+            "input": "matrix"
+          },
+          "key_axis": {
+            "source": "resolved_parameter_feature_groups_v1",
+            "groups_parameter": "features",
+            "matrix_input": "matrix",
+            "name_prefix_parameter": "name",
+            "matching": "exact_feature_id_v1",
+            "normalization": "ordered_unique_features_v1",
+            "generated_names": "legacy_module_group_names_v1",
+            "missing_feature_policy": {
+              "source": "fixed_drop_v1"
+            },
+            "empty_group_policy": "drop",
+            "zero_key_policy": "error"
+          },
+          "row_order": "key_major_then_cell_v1",
+          "missing_values": "forbidden"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "scores",
+          "category": "terminal_artifact",
+          "kind": "cell_vector_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "scores_id",
+          "required": true,
+          "promotion_group": "scores",
+          "value_kind": "continuous"
+        }
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "scores": [
+          "scores"
+        ]
+      },
+      "replay_equivalence": {
+        "scores": "exact_canonical_value"
+      }
+    }
+  ]
+}

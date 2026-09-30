@@ -10,6 +10,8 @@
 # Generated analysis outputs
 reports/
 scripts/
+!inst/sdk/operation-packs/scripts/
+!inst/sdk/operation-packs/scripts/**
 
 # Large built container artifacts; keep container build recipes tracked
 containers/*.sif

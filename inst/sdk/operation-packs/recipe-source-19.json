@@ -1,0 +1,562 @@
+[
+  {
+    "source": "accepted pack declaration: scwbRepresentation",
+    "source_sha256": "e0a35cf2f2dc2f4321c412d0c170f7cdfefe4e28ac7e52f480dc946ed754f1ba",
+    "policies": [
+      "parameter_bindings",
+      "contained_model_reads",
+      "publication_policies",
+      "dimension_policies",
+      "retained_parameters",
+      "public_interface",
+      "authenticated_output_axes_v1",
+      "one_per_cell",
+      "space_2d",
+      "space_2d_dense_v1",
+      "cell_vector",
+      "terminal_primitive_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbrepresentation",
+      "package": {
+        "name": "scwbRepresentation",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbRepresentation::register_operation_pack",
+      "operations": [
+        {
+          "name": "umap_transform",
+          "qualified_name": "scwbrepresentation::umap_transform",
+          "title": "UMAP transform",
+          "description": "Project selected cells through an authenticated contained UMAP model and request a core-owned 2D merge or replacement.",
+          "runner": ".run_umap_transform",
+          "inputs": [
+            {
+              "name": "model",
+              "kind": "model_ref",
+              "required": true,
+              "alignment": "model_linked"
+            },
+            {
+              "name": "in_space",
+              "kind": "space",
+              "required": false,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "dims": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "default": null,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "space_id_out": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null,
+                "minLength": 1
+              },
+              "overwrite": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "parameter_bindings": [
+            {
+              "parameter": "space_id_out",
+              "policy": "model_space_id_v1",
+              "input": "model"
+            }
+          ],
+          "contained_model_reads": [
+            {
+              "name": "fitted_model",
+              "input": "model",
+              "reader": "read_contained_model_payload",
+              "engine": "uwot",
+              "model_type": "uwot_umap",
+              "source_space_input": "in_space",
+              "dimensions_parameter": "dims",
+              "access": "verified_private_copy_read_only_v1",
+              "call_discipline": "exactly_once"
+            }
+          ],
+          "publication_policies": [
+            {
+              "output": "space_2d",
+              "policy": "authenticated_space_2d_publication_v1",
+              "target_kind": "space_2d",
+              "target_id_parameter": "space_id_out",
+              "mode": {
+                "policy": "selected_merge_or_full_replace_v1",
+                "overwrite_parameter": "overwrite"
+              },
+              "cell_axis_input": "in_space",
+              "model_binding": {
+                "source": "input",
+                "name": "model"
+              },
+              "transaction_scope": "promotion_group_v1"
+            }
+          ],
+          "dimension_policies": [
+            {
+              "output": "projection_membership",
+              "policy": "authenticated_output_axes_v1",
+              "shape": "one_per_cell",
+              "cell_axis": {
+                "source": "effective_cells_v1",
+                "input": "in_space"
+              },
+              "row_order": "input_cell_order_v1",
+              "missing_values": "forbidden"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "space_2d",
+              "category": "materialization",
+              "kind": "space_2d",
+              "storage_profile": "space_2d_dense_v1",
+              "allocated_id_key": "space_id",
+              "required": true,
+              "promotion_group": "projection",
+              "materialized_by_terminals": [
+                "projection_membership"
+              ]
+            },
+            {
+              "name": "projection_membership",
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "projection_membership_id",
+              "required": true,
+              "promotion_group": "projection",
+              "value_kind": "categorical"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_model_ref"
+            },
+            {
+              "requirement_id": "uwot_runtime",
+              "kind": "r_package",
+              "name": "uwot",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.2.0,<1.0.0"
+              },
+              "disposition": "required",
+              "import_probe": "umap"
+            }
+          ],
+          "promotion_closure": {
+            "projection_membership": [
+              "projection_membership",
+              "space_2d"
+            ]
+          },
+          "replay_equivalence": {
+            "space_2d": "cell_aligned_embedding",
+            "projection_membership": "exact_canonical_value"
+          },
+          "retained_parameters": [
+            {
+              "name": "dims",
+              "source": "effective_parameter_value",
+              "parameter": "dims",
+              "required": true
+            },
+            {
+              "name": "space_id_out",
+              "source": "effective_parameter_value",
+              "parameter": "space_id_out",
+              "required": true
+            },
+            {
+              "name": "overwrite",
+              "source": "effective_parameter_value",
+              "parameter": "overwrite",
+              "required": true
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "projection",
+              "umap"
+            ],
+            "inputs": [
+              {
+                "name": "model",
+                "label": "model",
+                "help": "Contained UMAP model."
+              },
+              {
+                "name": "in_space",
+                "label": "in_space",
+                "help": "Optional query space; defaults to fitted source space."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "dims",
+                "type": "list",
+                "help": "Selected dimensions."
+              },
+              {
+                "name": "space_id_out",
+                "type": "string",
+                "help": "Output UMAP space identifier."
+              },
+              {
+                "name": "overwrite",
+                "type": "bool",
+                "help": "Permit overlap replacement during selected-cell merge."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "space_2d",
+                "description": "Model-bound projected UMAP coordinates."
+              },
+              {
+                "name": "projection_membership",
+                "description": "Cells projected through the bound UMAP model."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "source": "accepted pack declaration: scwbRepresentation",
+    "source_sha256": "e0a35cf2f2dc2f4321c412d0c170f7cdfefe4e28ac7e52f480dc946ed754f1ba",
+    "policies": [
+      "cell_selector_axes",
+      "typed_space_reads",
+      "dimension_policies",
+      "retained_parameters",
+      "public_interface",
+      "authenticated_sparse_membership_v1",
+      "obs_table",
+      "terminal_primitive_v1",
+      "cell_vector_family"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbrepresentation",
+      "package": {
+        "name": "scwbRepresentation",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbRepresentation::register_operation_pack",
+      "operations": [
+        {
+          "name": "knn_neighbors",
+          "qualified_name": "scwbrepresentation::knn_neighbors",
+          "title": "kNN neighbors around query cells",
+          "description": "Find deterministic nearest neighbors across separately authenticated query and candidate axes.",
+          "runner": ".run_knn_neighbors",
+          "inputs": [
+            {
+              "name": "space",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "required": [
+              "query_cells"
+            ],
+            "properties": {
+              "query_cells": {
+                "type": [
+                  "array",
+                  "string"
+                ],
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "candidate_cells": {
+                "type": [
+                  "array",
+                  "string",
+                  "null"
+                ],
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "k": {
+                "type": "integer",
+                "default": 100,
+                "minimum": 1
+              },
+              "include_query": {
+                "type": "boolean",
+                "default": false
+              },
+              "space_chunk_size": {
+                "type": "integer",
+                "default": 1024,
+                "minimum": 1,
+                "maximum": 1000000
+              }
+            },
+            "additionalProperties": false
+          },
+          "cell_selector_axes": [
+            {
+              "parameter": "query_cells",
+              "role": "query",
+              "default_all_cells": false,
+              "include_query_parameter": "include_query"
+            },
+            {
+              "parameter": "candidate_cells",
+              "role": "candidate",
+              "default_all_cells": true,
+              "include_query_parameter": "include_query"
+            }
+          ],
+          "typed_space_reads": [
+            {
+              "name": "query_space",
+              "input": "space",
+              "reader": "read_typed_space",
+              "kind": "space",
+              "role": "query",
+              "selection": {
+                "policy": "parameter_cell_selector_v1",
+                "parameter": "query_cells"
+              },
+              "chunk_size_parameter": "space_chunk_size",
+              "call_discipline": "ordered_partition_exactly_once"
+            },
+            {
+              "name": "candidate_space",
+              "input": "space",
+              "reader": "read_typed_space",
+              "kind": "space",
+              "role": "candidate",
+              "selection": {
+                "policy": "parameter_cell_selector_v1",
+                "parameter": "candidate_cells"
+              },
+              "chunk_size_parameter": "space_chunk_size",
+              "call_discipline": "ordered_partition_exactly_once"
+            }
+          ],
+          "dimension_policies": [
+            {
+              "output": "neighbors",
+              "policy": "authenticated_sparse_membership_v1",
+              "representation": "obs_table",
+              "partner_output": "neighbor_distance",
+              "query_space_read": "query_space",
+              "candidate_space_read": "candidate_space",
+              "k_parameter": "k"
+            },
+            {
+              "output": "neighbor_distance",
+              "policy": "authenticated_sparse_membership_v1",
+              "representation": "cell_vector_family",
+              "partner_output": "neighbors",
+              "query_space_read": "query_space",
+              "candidate_space_read": "candidate_space",
+              "k_parameter": "k"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "neighbors",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "neighbors_id",
+              "required": true,
+              "promotion_group": "knn",
+              "table_type": "knn_neighbors"
+            },
+            {
+              "name": "neighbor_distance",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "neighbor_distance_id",
+              "required": true,
+              "promotion_group": "knn",
+              "value_kind": "continuous"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_cell_vector_family"
+            }
+          ],
+          "promotion_closure": {
+            "neighbors": [
+              "neighbor_distance",
+              "neighbors"
+            ],
+            "neighbor_distance": [
+              "neighbor_distance",
+              "neighbors"
+            ]
+          },
+          "replay_equivalence": {
+            "neighbors": "exact_canonical_value",
+            "neighbor_distance": "exact_canonical_value"
+          },
+          "retained_parameters": [
+            {
+              "name": "space_id",
+              "source": "output_meta",
+              "output": "neighbors",
+              "field": "space_id"
+            },
+            {
+              "name": "n_query",
+              "source": "parameter_count",
+              "parameter": "query_cells"
+            },
+            {
+              "name": "n_candidates",
+              "source": "parameter_count",
+              "parameter": "candidate_cells"
+            },
+            {
+              "name": "k",
+              "source": "effective_parameter_value",
+              "parameter": "k"
+            },
+            {
+              "name": "include_query",
+              "source": "effective_parameter_value",
+              "parameter": "include_query"
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "neighbors",
+              "geometry",
+              "projection"
+            ],
+            "inputs": [
+              {
+                "name": "space",
+                "label": "space",
+                "help": "Cell-aligned embedding space."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "query_cells",
+                "type": "cell_ids_or_set",
+                "help": "kNN query_cells parameter."
+              },
+              {
+                "name": "candidate_cells",
+                "type": "cell_ids_or_set",
+                "help": "kNN candidate_cells parameter."
+              },
+              {
+                "name": "k",
+                "type": "int",
+                "help": "kNN k parameter."
+              },
+              {
+                "name": "include_query",
+                "type": "bool",
+                "help": "kNN include_query parameter."
+              },
+              {
+                "name": "space_chunk_size",
+                "type": "int",
+                "help": "kNN space_chunk_size parameter."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "neighbors",
+                "description": "Ranked query-to-candidate neighbor table."
+              },
+              {
+                "name": "neighbor_distance",
+                "description": "Sparse query-keyed candidate distance family."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

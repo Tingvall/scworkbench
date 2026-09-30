@@ -233,6 +233,11 @@ provenance-producing route for each meaningful public transformation.
 - No thin-client violations introduced.
 # RNG and administrative identifiers
 
+Operation-pack authoring starts at the installed `sdk/operation-packs/GUIDE.md`
+and `wb_operation_pack_scaffold()`. The executable installed tutorial uses only
+public orchestration and invocation-scoped capabilities. Do not copy core SQL,
+storage paths or receipt hashing into a pack. See `docs/operation_pack_sdk.md`.
+
 Scientific RNG parameters control numerical methods only. Administrative
 identifiers and ownership tokens use operating-system cryptographic entropy,
 do not touch `.Random.seed`, and are collision-checked with bounded retries.

@@ -1,5 +1,16 @@
 # scworkbench 0.1.0
 
+## Operation Pack SDK
+
+- Adds an installed ABI-v3 R scaffold, explicit static/trusted check tiers,
+  reader-only partition mapping, core-owned contract-test helpers and an
+  executable scaffold-to-relocated-recipient tutorial.
+- Freezes the public author interface, callback/context inventory, all accepted
+  declaration branches and validated declaration recipes. Python support is
+  reported per policy rather than inferred from shared schema acceptance.
+- Reuses ABI v2's reserved-namespace guard in ABI v3 admission; no protocol,
+  identity scheme, official pack or standard-profile change is introduced.
+
 ## Bundle substrate
 
 - Introduces portable, disk-backed single-cell bundles with typed matrices,

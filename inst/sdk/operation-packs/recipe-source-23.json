@@ -1,0 +1,873 @@
+[
+  {
+    "source": "accepted pack declaration: scwbTrajectory",
+    "source_sha256": "d425247347146998e5c987ba9bc09f8789c650af0f433dfbdd0864f51305c092",
+    "policies": [
+      "dimension_policies",
+      "named_cell_axis_collections",
+      "retained_parameters",
+      "public_interface",
+      "data_dependent_family_v1",
+      "space_path_family",
+      "space_path_family_v1"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbtrajectory",
+      "package": {
+        "name": "scwbTrajectory",
+        "version": "0.1.1"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbTrajectory::register_operation_pack",
+      "operations": [
+        {
+          "name": "space_path_define",
+          "qualified_name": "scwbtrajectory::space_path_define",
+          "title": "Define analytical space path",
+          "description": "Construct a checkpoint-anchored analytical path from an authenticated space and ordered named cell axes.",
+          "runner": ".run_space_path_define",
+          "inputs": [
+            {
+              "name": "space",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "checkpoint_sets": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "fit_mode": {
+                "type": "string",
+                "default": "linear",
+                "enum": [
+                  "linear",
+                  "manifold_smooth"
+                ]
+              },
+              "checkpoint_summary": {
+                "type": "string",
+                "default": "centroid",
+                "enum": [
+                  "centroid"
+                ]
+              },
+              "n_path_points": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 2,
+                "maximum": 50000
+              },
+              "smooth_k": {
+                "type": "integer",
+                "default": 30,
+                "minimum": 2,
+                "maximum": 5000
+              },
+              "smooth_n_iter": {
+                "type": "integer",
+                "default": 2,
+                "minimum": 1,
+                "maximum": 50
+              },
+              "smooth_weight": {
+                "type": "string",
+                "default": "inverse_distance",
+                "enum": [
+                  "inverse_distance",
+                  "gaussian"
+                ]
+              },
+              "path_id_out": {
+                "type": "string",
+                "default": "space_path"
+              }
+            },
+            "additionalProperties": false
+          },
+          "dimension_policies": [
+            {
+              "output": "path",
+              "policy": "data_dependent_family_v1"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "path",
+              "category": "terminal_artifact",
+              "kind": "space_path_family",
+              "storage_profile": "space_path_family_v1",
+              "allocated_id_key": "path_id",
+              "required": true,
+              "promotion_group": "path"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_space_path_family"
+            }
+          ],
+          "promotion_closure": {
+            "path": [
+              "path"
+            ]
+          },
+          "replay_equivalence": {
+            "path": "exact_canonical_value"
+          },
+          "named_cell_axis_collections": [
+            {
+              "name": "checkpoints",
+              "parameter": "checkpoint_sets",
+              "space_input": "space",
+              "reader": "read_named_cell_axis",
+              "minimum_axes": 2,
+              "maximum_axes": 64,
+              "minimum_cells_per_axis": 1,
+              "maximum_cells_per_axis": 10000000,
+              "maximum_total_memberships": 20000000,
+              "projection_policy": "bundle_membership_intersect_space_axis_v1",
+              "call_discipline": "axis_ordinal_exactly_once"
+            }
+          ],
+          "retained_parameters": [
+            {
+              "name": "space_id",
+              "source": "output_meta",
+              "output": "path",
+              "field": "space_id"
+            },
+            {
+              "name": "checkpoint_sets",
+              "source": "parameter_value",
+              "required": true,
+              "parameter": "checkpoint_sets"
+            },
+            {
+              "name": "fit_mode",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "fit_mode"
+            },
+            {
+              "name": "checkpoint_summary",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "checkpoint_summary"
+            },
+            {
+              "name": "n_path_points",
+              "source": "output_meta",
+              "output": "path",
+              "field": "n_points"
+            },
+            {
+              "name": "smooth_k",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "smooth_k"
+            },
+            {
+              "name": "smooth_n_iter",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "smooth_n_iter"
+            },
+            {
+              "name": "smooth_weight",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "smooth_weight"
+            },
+            {
+              "name": "path_id_out",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "path_id_out"
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "trajectory",
+              "geometry",
+              "path"
+            ],
+            "inputs": [
+              {
+                "name": "space",
+                "label": "space",
+                "help": "Typed space input."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "checkpoint_sets",
+                "type": "string_vec",
+                "help": "Ordered named checkpoints."
+              },
+              {
+                "name": "fit_mode",
+                "type": "choice",
+                "help": "Linear or manifold-smoothed fitting."
+              },
+              {
+                "name": "checkpoint_summary",
+                "type": "choice",
+                "help": "Checkpoint summary rule."
+              },
+              {
+                "name": "n_path_points",
+                "type": "int",
+                "help": "Optional path point count."
+              },
+              {
+                "name": "smooth_k",
+                "type": "int",
+                "help": "Smoothing neighbourhood size."
+              },
+              {
+                "name": "smooth_n_iter",
+                "type": "int",
+                "help": "Smoothing iterations."
+              },
+              {
+                "name": "smooth_weight",
+                "type": "choice",
+                "help": "Smoothing weight rule."
+              },
+              {
+                "name": "path_id_out",
+                "type": "string",
+                "help": "Output path key."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "path",
+                "description": "Declared path terminal."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "source": "accepted pack declaration: scwbTrajectory",
+    "source_sha256": "d425247347146998e5c987ba9bc09f8789c650af0f433dfbdd0864f51305c092",
+    "policies": [
+      "dimension_policies",
+      "derived_cell_output_axes",
+      "optional_display_axis_groups",
+      "retained_parameters",
+      "public_interface",
+      "data_dependent_table_v1",
+      "cell_vector_family",
+      "terminal_primitive_v1",
+      "cell_vector",
+      "obs_table"
+    ],
+    "manifest": {
+      "schema_version": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbtrajectory",
+      "package": {
+        "name": "scwbTrajectory",
+        "version": "0.1.1"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "3",
+          "maximum": "3"
+        }
+      },
+      "entry_point": "scwbTrajectory::register_operation_pack",
+      "operations": [
+        {
+          "name": "trajectory_space_path_segment",
+          "qualified_name": "scwbtrajectory::trajectory_space_path_segment",
+          "title": "Trajectory space-path segment",
+          "description": "Convert analytical path scores into a segment and optionally authenticate display endpoint QC. Output metadata contract canonical_value_semantics_v2.",
+          "runner": ".run_trajectory_space_path_segment",
+          "inputs": [
+            {
+              "name": "path_scores",
+              "kind": "cell_vector_family",
+              "required": true,
+              "alignment": "cell_ordered"
+            },
+            {
+              "name": "path",
+              "kind": "path_2d_family",
+              "required": false,
+              "alignment": "canonical_row_ordered"
+            },
+            {
+              "name": "display_path",
+              "kind": "path_2d_family",
+              "required": false,
+              "alignment": "canonical_row_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "segment_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "segment_order": {
+                "type": "number",
+                "default": 1
+              },
+              "score_prefix": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "candidate_cells": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "distance_threshold": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "distance_quantile": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "start_label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "end_label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "display_lineage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "display_space_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "start_endpoint": {
+                "type": [
+                  "object",
+                  "string",
+                  "null"
+                ]
+              },
+              "end_endpoint": {
+                "type": [
+                  "object",
+                  "string",
+                  "null"
+                ]
+              },
+              "start_cell_set": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "end_cell_set": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "endpoint_summary_method": {
+                "type": "string",
+                "default": "centroid",
+                "enum": [
+                  "centroid",
+                  "medoid"
+                ]
+              },
+              "endpoint_max_distance": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "endpoint_qc_action": {
+                "type": "string",
+                "default": "fail",
+                "enum": [
+                  "fail",
+                  "warn",
+                  "none"
+                ]
+              },
+              "composite_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "pseudotime_key": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "confidence_key": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "dimension_policies": [
+            {
+              "output": "segment_manifest",
+              "policy": "data_dependent_table_v1"
+            },
+            {
+              "output": "display_endpoint_qc",
+              "policy": "data_dependent_table_v1"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "pseudotime",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "pseudotime_id",
+              "required": true,
+              "promotion_group": "segment",
+              "value_kind": "continuous"
+            },
+            {
+              "name": "membership",
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "membership_id",
+              "required": true,
+              "promotion_group": "segment"
+            },
+            {
+              "name": "confidence",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "confidence_id",
+              "required": true,
+              "promotion_group": "segment",
+              "value_kind": "continuous"
+            },
+            {
+              "name": "segment_manifest",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "segment_manifest_id",
+              "required": true,
+              "promotion_group": "segment",
+              "table_type": "trajectory_segment_manifest"
+            },
+            {
+              "name": "display_endpoint_qc",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "display_endpoint_qc_id",
+              "required": true,
+              "promotion_group": "segment",
+              "table_type": "trajectory_segment_display_path_endpoint_qc"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "scworkbench_runtime",
+              "kind": "r_package",
+              "name": "scworkbench",
+              "version": {
+                "scheme": "r_package_version_constraint_v1",
+                "specifier": ">=0.1.0,<0.2.0"
+              },
+              "disposition": "required",
+              "import_probe": "wb_prim_cell_vector_family"
+            }
+          ],
+          "promotion_closure": {
+            "pseudotime": [
+              "confidence",
+              "display_endpoint_qc",
+              "membership",
+              "pseudotime",
+              "segment_manifest"
+            ],
+            "membership": [
+              "confidence",
+              "display_endpoint_qc",
+              "membership",
+              "pseudotime",
+              "segment_manifest"
+            ],
+            "confidence": [
+              "confidence",
+              "display_endpoint_qc",
+              "membership",
+              "pseudotime",
+              "segment_manifest"
+            ],
+            "segment_manifest": [
+              "confidence",
+              "display_endpoint_qc",
+              "membership",
+              "pseudotime",
+              "segment_manifest"
+            ],
+            "display_endpoint_qc": [
+              "confidence",
+              "display_endpoint_qc",
+              "membership",
+              "pseudotime",
+              "segment_manifest"
+            ]
+          },
+          "replay_equivalence": {
+            "pseudotime": "exact_canonical_value",
+            "membership": "exact_canonical_value",
+            "confidence": "exact_canonical_value",
+            "segment_manifest": "exact_canonical_value",
+            "display_endpoint_qc": "exact_canonical_value"
+          },
+          "derived_cell_output_axes": [
+            {
+              "schema": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+              "name": "segment_cells",
+              "derivation_mode": "ordered_unique_subset_v1",
+              "source": {
+                "mode": "static_input_axis",
+                "input": "path_scores",
+                "projection": "family_key_cell_axis_v1",
+                "family_key_selector": {
+                  "mode": "parameter_prefix_plus_literal_suffix",
+                  "prefix_parameter": "score_prefix",
+                  "literal_suffix": "progress"
+                }
+              },
+              "linked_outputs": [
+                {
+                  "name": "pseudotime",
+                  "shape": "cell_key_cartesian",
+                  "row_order": "key_major_then_sealed_cell_v1",
+                  "missing_values": "forbidden",
+                  "key_axis": {
+                    "source": "resolved_effective_parameter_key_v1",
+                    "parameter_candidates": [
+                      "pseudotime_key",
+                      "segment_id"
+                    ],
+                    "null_policy": "first_non_null_v1",
+                    "invalid_value_policy": "error"
+                  }
+                },
+                {
+                  "name": "membership",
+                  "shape": "one_per_cell",
+                  "row_order": "sealed_cell_axis_order_v1",
+                  "missing_values": "forbidden"
+                },
+                {
+                  "name": "confidence",
+                  "shape": "cell_key_cartesian",
+                  "row_order": "key_major_then_sealed_cell_v1",
+                  "missing_values": "forbidden",
+                  "key_axis": {
+                    "source": "resolved_effective_parameter_key_v1",
+                    "parameter_candidates": [
+                      "confidence_key",
+                      "segment_id"
+                    ],
+                    "null_policy": "first_non_null_v1",
+                    "invalid_value_policy": "error"
+                  }
+                }
+              ],
+              "limits": {
+                "minimum_cells": 1,
+                "maximum_cells": 10000000,
+                "maximum_source_axes": 1,
+                "maximum_source_memberships": 20000000,
+                "maximum_linked_outputs": 3
+              },
+              "call_discipline": "declare_once_seal_before_linked_output_v1",
+              "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+                "scope": "derived cell output axis declaration excluding declaration_identity",
+                "sha256": "f7a5d068258588ee2e0a081d725444d6244e98e2097d4c62bf23c1927ad18521"
+              }
+            }
+          ],
+          "optional_display_axis_groups": [
+            {
+              "name": "display_endpoint_qc",
+              "scope": "operation",
+              "collection_read": null,
+              "activation": {
+                "start": {
+                  "endpoint_parameter": "start_endpoint",
+                  "top_level_cell_set_parameter": "start_cell_set"
+                },
+                "end": {
+                  "endpoint_parameter": "end_endpoint",
+                  "top_level_cell_set_parameter": "end_cell_set"
+                }
+              },
+              "display_space_selector": {
+                "operation_parameter": "display_space_id",
+                "item_field": null
+              },
+              "endpoint_roles": [
+                "start",
+                "end"
+              ],
+              "dimension_count": 2,
+              "maximum_groups": 1,
+              "maximum_display_cells": 10000000,
+              "maximum_cells_per_endpoint_axis": 10000000,
+              "maximum_total_endpoint_memberships": 20000000,
+              "call_discipline": "display_partition_then_endpoint_ordinal_exactly_once"
+            }
+          ],
+          "retained_parameters": [
+            {
+              "name": "segment_id",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "segment_id"
+            },
+            {
+              "name": "segment_order",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "segment_order"
+            },
+            {
+              "name": "source_kind",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "source_kind"
+            },
+            {
+              "name": "source_engine",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "source_engine"
+            },
+            {
+              "name": "pseudotime_key",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "lineage_id"
+            },
+            {
+              "name": "confidence_key",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "confidence_key"
+            },
+            {
+              "name": "membership_rule",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "membership_rule"
+            },
+            {
+              "name": "distance_threshold",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "distance_threshold"
+            },
+            {
+              "name": "n_cells",
+              "source": "output_first_row",
+              "output": "segment_manifest",
+              "field": "n_segment_cells"
+            },
+            {
+              "name": "endpoint_qc_action",
+              "source": "effective_parameter_value",
+              "required": true,
+              "parameter": "endpoint_qc_action"
+            }
+          ],
+          "public_interface": {
+            "intent": [
+              "trajectory",
+              "bridge",
+              "composition"
+            ],
+            "inputs": [
+              {
+                "name": "path_scores",
+                "label": "path_scores",
+                "help": "Typed path_scores input."
+              },
+              {
+                "name": "path",
+                "label": "path",
+                "help": "Typed path input."
+              },
+              {
+                "name": "display_path",
+                "label": "display_path",
+                "help": "Typed display_path input."
+              }
+            ],
+            "parameters": [
+              {
+                "name": "segment_id",
+                "type": "string",
+                "help": "Segment identifier."
+              },
+              {
+                "name": "segment_order",
+                "type": "dbl",
+                "help": "Composite order."
+              },
+              {
+                "name": "score_prefix",
+                "type": "string",
+                "help": "Path-score key prefix."
+              },
+              {
+                "name": "candidate_cells",
+                "type": "string_vec",
+                "help": "Candidate cells."
+              },
+              {
+                "name": "distance_threshold",
+                "type": "dbl",
+                "help": "Distance threshold."
+              },
+              {
+                "name": "distance_quantile",
+                "type": "dbl",
+                "help": "Distance quantile."
+              },
+              {
+                "name": "display_space_id",
+                "type": "string",
+                "help": "Authenticated 2D display space."
+              },
+              {
+                "name": "start_endpoint",
+                "type": "string",
+                "help": "Start endpoint selector."
+              },
+              {
+                "name": "end_endpoint",
+                "type": "string",
+                "help": "End endpoint selector."
+              },
+              {
+                "name": "endpoint_qc_action",
+                "type": "choice",
+                "help": "Endpoint QC action."
+              }
+            ],
+            "outputs": [
+              {
+                "name": "pseudotime",
+                "description": "Declared pseudotime terminal."
+              },
+              {
+                "name": "membership",
+                "description": "Declared membership terminal."
+              },
+              {
+                "name": "confidence",
+                "description": "Declared confidence terminal."
+              },
+              {
+                "name": "segment_manifest",
+                "description": "Declared segment_manifest terminal."
+              },
+              {
+                "name": "display_endpoint_qc",
+                "description": "Declared display_endpoint_qc terminal."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,247 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwblatent",
+  "package": {
+    "name": "scwbLatent",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbLatent::register_operation_pack",
+  "operations": [
+    {
+      "name": "model_bound_latent_union",
+      "qualified_name": "scwblatent::model_bound_latent_union",
+      "title": "Model-bound latent-space union",
+      "description": "Combine the complete disjoint fitted and projected spaces from one retained model without changing coordinates.",
+      "runner": ".latent_model_bound_latent_union",
+      "inputs": [
+        {
+          "name": "reference_space",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        },
+        {
+          "name": "query_space",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true,
+          "alignment": "model_linked"
+        },
+        {
+          "name": "projection_summary",
+          "kind": "obs_table",
+          "required": true,
+          "alignment": "none"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "space_id_out": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "default": false
+          },
+          "chunk_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096,
+            "default": 256
+          }
+        },
+        "required": [
+          "space_id_out"
+        ],
+        "additionalProperties": false
+      },
+      "typed_space_reads": [
+        {
+          "name": "reference_chunks",
+          "input": "reference_space",
+          "reader": "read_typed_space",
+          "kind": "space",
+          "role": "candidate",
+          "selection": {
+            "policy": "full_input_axis_v1"
+          },
+          "chunk_size_parameter": "chunk_size",
+          "call_discipline": "ordered_partition_exactly_once"
+        },
+        {
+          "name": "query_chunks",
+          "input": "query_space",
+          "reader": "read_typed_space",
+          "kind": "space",
+          "role": "query",
+          "selection": {
+            "policy": "full_input_axis_v1"
+          },
+          "chunk_size_parameter": "chunk_size",
+          "call_discipline": "ordered_partition_exactly_once"
+        }
+      ],
+      "producer_lineage_reads": [
+        {
+          "name": "projection_lineage",
+          "reader": "read_producer_transition_lineage",
+          "query_space_input": "query_space",
+          "summary_input": "projection_summary",
+          "model_input": "model",
+          "fitted_space_input": "reference_space",
+          "source_policy": "accepted_staged_or_retained_v1",
+          "call_discipline": "exactly_once"
+        }
+      ],
+      "self_linked_contained_model_reads": [
+        {
+          "name": "fitted_model",
+          "input": "model",
+          "reader": "read_self_linked_contained_model_payload",
+          "allowed_models": [
+            {
+              "engine": "peakvi",
+              "model_type": "peakvi"
+            },
+            {
+              "engine": "scvi",
+              "model_type": "scvi"
+            },
+            {
+              "engine": "scvi",
+              "model_type": "scvi_train"
+            }
+          ],
+          "linkage_policy": "authenticated_existing_source_and_cell_linkage_v1",
+          "maximum_file_count": 32,
+          "maximum_total_bytes": 1073741824,
+          "call_discipline": "exactly_once"
+        }
+      ],
+      "derived_cell_output_axes": [
+        {
+          "schema": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+          "name": "union_cells",
+          "derivation_mode": "declared_ordered_unique_union_v1",
+          "source": {
+            "mode": "static_typed_space_union_v1",
+            "typed_space_reads": [
+              "reference_chunks",
+              "query_chunks"
+            ],
+            "projection": "space_cell_axis_v1",
+            "overlap_policy": "reject_any_overlap_v1"
+          },
+          "linked_outputs": [
+            {
+              "name": "space",
+              "shape": "one_per_cell_space_v1",
+              "row_order": "sealed_cell_axis_order_v1",
+              "missing_values": "forbidden",
+              "dimension_source": {
+                "mode": "typed_space_read_v1",
+                "read": "reference_chunks"
+              }
+            }
+          ],
+          "limits": {
+            "minimum_cells": 1,
+            "maximum_cells": 10000000,
+            "maximum_source_axes": 2,
+            "maximum_source_memberships": 20000000,
+            "maximum_linked_outputs": 1
+          },
+          "call_discipline": "declare_once_seal_before_linked_output_v1",
+          "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+            "scope": "derived cell output axis declaration excluding declaration_identity",
+            "sha256": "9e4ed8def0843f7abc64e136d24eea5cc7a7a628731be568232428b519028c63"
+          }
+        }
+      ],
+      "publication_policies": [
+        {
+          "output": "space",
+          "policy": "authenticated_add_or_replace_v1",
+          "target_kind": "space",
+          "target_id_parameter": "space_id_out",
+          "overwrite_parameter": "overwrite",
+          "transaction_scope": "promotion_group_v1"
+        }
+      ],
+      "dimension_policies": [
+        {
+          "output": "union_summary",
+          "policy": "data_dependent_table_v1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "space",
+          "category": "materialization",
+          "kind": "space",
+          "storage_profile": "space_file_backed_hdf5_v1",
+          "allocated_id_key": "model_bound_union_space_id",
+          "required": true,
+          "promotion_group": "union",
+          "materialized_by_terminals": [
+            "union_summary"
+          ]
+        },
+        {
+          "name": "union_summary",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "model_bound_union_summary_id",
+          "required": true,
+          "promotion_group": "union",
+          "table_type": "model_bound_latent_union_summary"
+        }
+      ],
+      "dependencies": [
+        {
+          "requirement_id": "cpu",
+          "kind": "device_runtime",
+          "name": "cpu",
+          "disposition": "required",
+          "probe": "core_device_availability_v1"
+        }
+      ],
+      "promotion_closure": {
+        "union_summary": [
+          "space",
+          "union_summary"
+        ]
+      },
+      "replay_equivalence": {
+        "space": "exact_canonical_value",
+        "union_summary": "exact_canonical_value"
+      }
+    }
+  ]
+}

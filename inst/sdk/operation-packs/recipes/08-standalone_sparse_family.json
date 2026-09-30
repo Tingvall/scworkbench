@@ -1,0 +1,133 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbv3phase5",
+  "package": {
+    "name": "scwbV3Phase5",
+    "version": "0.1.0"
+  },
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
+  },
+  "entry_point": "scwbV3Phase5::register_operation_pack",
+  "operations": [
+    {
+      "name": "standalone_sparse_family",
+      "qualified_name": "scwbv3phase5::standalone_sparse_family",
+      "title": "Standalone sparse cell-family fixture",
+      "description": "Publishes one independent sparse cell-vector family.",
+      "runner": ".standalone_sparse_family",
+      "inputs": [
+        {
+          "name": "source",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "per_key_cells": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "minItems": 1
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "omit",
+              "repeat",
+              "write_before_declare",
+              "late",
+              "swap_rows",
+              "invalid_then_valid",
+              "caught_seal_fault",
+              "non_numeric",
+              "non_finite",
+              "wrong_value_type"
+            ],
+            "default": "normal"
+          }
+        },
+        "required": [
+          "keys",
+          "per_key_cells"
+        ],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "output": "family",
+          "policy": "standalone_sparse_cell_family_v1",
+          "axis_source": {
+            "source": "typed_space_input_v1",
+            "input": "source"
+          },
+          "key_order": "declared_verbatim_v1",
+          "row_order": "key_major_then_source_relative_cell_v1",
+          "per_key_coverage": "per_key_source_relative_subset_v1",
+          "missing_values": "forbidden",
+          "declaration_discipline": "exactly_once_before_write",
+          "maximum_axis_cells": 1000000,
+          "maximum_keys": 64,
+          "maximum_rows": 1000000,
+          "maximum_id_bytes": 1024,
+          "maximum_control_bytes": 67108864,
+          "policy_identity": {
+            "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+            "scope": "policy excluding policy_identity",
+            "sha256": "d5682e88e3da80fe085f6ed9615711badbeb29c34698a083b8114d6b94dd881a"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "family",
+          "category": "terminal_artifact",
+          "kind": "cell_vector_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "family_id",
+          "required": true,
+          "promotion_group": "sparse",
+          "value_kind": "continuous"
+        }
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "family": [
+          "family"
+        ]
+      },
+      "replay_equivalence": {
+        "family": "exact_canonical_value"
+      }
+    }
+  ]
+}

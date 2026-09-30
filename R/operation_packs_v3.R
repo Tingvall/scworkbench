@@ -774,6 +774,11 @@
       result$path, ": ", result$message), "outer_schema",
     instance_path = result$path)
   .wb_operation_pack_v3_semantic_validate(manifest)
+  # The v2 projection applies semantic field rules, not its normalizer's
+  # namespace guard. Apply the same established guard here as ABI v2.
+  if (manifest$namespace %in% .wb_operation_pack_reserved_namespaces())
+    .wb_operation_pack_v3_error("OPERATION_PACK_NAMESPACE_RESERVED",
+      "Operation-pack namespace is reserved.", "semantic_admission")
   for (op in manifest$operations) .wb_operation_pack_v2_param_profile_validate(
     op$params_schema, op$qualified_name)
   if (!identical(as.character(manifest$identity_scheme)[1],
