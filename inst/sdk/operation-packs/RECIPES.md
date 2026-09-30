@@ -15,7 +15,7 @@ Runtime family/derived-fitted/sparse/relation declarations are invocation-scoped
 
 ## ordinary_io
 
-Declare **inputs, outputs**. Invoke `readers[[input]](); matrix reader(features=NULL,cells=NULL); writers$write_{matrix,space,space_2d,model_ref,path_2d_family,space_path_family}(name,value,semantic_metadata=list()); writers$write_terminal_primitive(name,value,semantic_metadata=list())`.
+Declare **inputs, outputs**. Invoke `readers[[input]] (); matrix reader(features=NULL,cells=NULL); writers$write_{matrix,space,space_2d,model_ref,path_2d_family,space_path_family}(name,value,semantic_metadata=list()); writers$write_terminal_primitive(name,value,semantic_metadata=list())`.
 
 Authenticated input descriptor and output allocation; symbolic constructors are not computed output payloads.
 Read copied declared input; each required output exactly once; writer must match kind/profile/category tuple.
@@ -28,7 +28,7 @@ Worked closed manifests: [01-fit_matrix_model.json](recipes/01-fit_matrix_model.
 
 ## typed_slices
 
-Declare **typed_slice_reads**. Invoke `readers[[declaration_name]](features, cells)`.
+Declare **typed_slice_reads**. Invoke `readers[[declaration_name]] (features, cells)`.
 
 Authenticated source matrix, selected features/effective cells and parameter-resolved chunk size.
 ordered_partition_exactly_once or independent_slices; explicit axes; observation mandatory; exact-once schedules may require unselected feature blocks.
@@ -41,7 +41,7 @@ Worked closed manifests: [01-fit_matrix_model.json](recipes/01-fit_matrix_model.
 
 ## typed_spaces
 
-Declare **typed_space_reads**. Invoke `readers[[declaration_name]](cells)`.
+Declare **typed_space_reads**. Invoke `readers[[declaration_name]] (cells)`.
 
 Space ID, payload, selector axis and role bound by core.
 Admitted ordered cell partitions and declared dimension role; full independent axes are separate policy.
@@ -93,7 +93,7 @@ Worked closed manifests: [16-matrix_log_normalize.json](recipes/16-matrix_log_no
 
 ## registry_reads
 
-Declare **registry_reads**. Invoke `readers[[declaration_name]]()`.
+Declare **registry_reads**. Invoke `readers[[declaration_name]] ()`.
 
 Feature-set/genomic/motif/match-set snapshot, currentness and declared metadata-derived provider.
 No-argument exactly-once selected snapshot; registry authority is not a primitive kind.
@@ -119,7 +119,7 @@ Worked closed manifests: [01-fit_matrix_model.json](recipes/01-fit_matrix_model.
 
 ## provenance
 
-Declare **provenance_reads, producer_lineage_reads**. Invoke `readers[[declaration_name]]()`.
+Declare **provenance_reads, producer_lineage_reads**. Invoke `readers[[declaration_name]] ()`.
 
 Artifact ancestry or producer lineage bound to actual source run/snapshot, not self-asserted summary text.
 No-argument exactly once; only admitted provenance fields.
@@ -132,7 +132,7 @@ Worked closed manifests: [11-ancestry_family.json](recipes/11-ancestry_family.js
 
 ## models
 
-Declare **contained_model_reads, self_linked_contained_model_reads, outputs**. Invoke `readers[[name]](); handle$read_bytes(relative); handle$path(relative) or $runtime_private_path(relative); writers$open_model_tree(output); handle$path(relative), $write_bytes(relative,bytes), $finish(value,semantic_metadata=list())`.
+Declare **contained_model_reads, self_linked_contained_model_reads, outputs**. Invoke `readers[[name]] (); handle$read_bytes(relative); handle$path(relative) or $runtime_private_path(relative); writers$open_model_tree(output); handle$path(relative), $write_bytes(relative,bytes), $finish(value,semantic_metadata=list())`.
 
 Exact model tree, source linkage, ordered cells/features/dimensions and sibling output identities.
 Read declared tree only; open/finish writer once; entries contained, no symlinks/traversal; safe deserialization is the author's responsibility.
@@ -184,7 +184,7 @@ Worked closed manifests: [24-trajectory_space_path_segment.json](recipes/24-traj
 
 ## G3
 
-Declare **supported_external_state_adoptions**. Invoke `readers[[adoption_name]](); result$pack_source_association_attestation; result$pack_no_refit_attestation`.
+Declare **supported_external_state_adoptions**. Invoke `readers[[adoption_name]] (); result$pack_source_association_attestation; result$pack_no_refit_attestation`.
 
 external_state_candidate is input authority, not a primitive; exact snapshot/tree/payload/ordered cell identity and G2 linkage.
 Exactly-once path-free candidate admission; separate TRUE attestations; no refit.
