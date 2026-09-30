@@ -67,11 +67,14 @@ test_phase8_test_ownership_inventory_contract <- function() {
       is.call(expr[[3L]]) && identical(expr[[3L]][[1L]], as.name("function")),
       parsed), function(expr) as.character(expr[[2L]]), character(1))
   }), use.names = FALSE)
+  sdk_tests <- paste0("test_operation_pack_sdk_", c("scaffold_safety",
+    "manifest_negatives", "catalog_coverage", "case_accounting",
+    "installed_contract", "installed_tutorial", "activation_negatives"))
   stopifnot(
     nrow(ownership) == 242L,
     !anyDuplicated(ownership$test_identity),
     all(nzchar(ownership$key_assertions)),
-    nrow(current) == 244L,
+    nrow(current) == 251L,
     !anyDuplicated(current$test_identity),
     identical(sort(current$test_identity), sort(discovered)),
     all(nzchar(current$key_assertions)),
@@ -90,7 +93,10 @@ test_phase8_test_ownership_inventory_contract <- function() {
       sort(c("test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract",
         "test_phase8_no_pack_core_surface_contract",
         "test_phase8_primitive_exchange_inventory_contract",
-        "test_phase8_test_ownership_inventory_contract"))),
+        "test_phase8_test_ownership_inventory_contract", sdk_tests))),
+    all(current$owner[current$test_identity %in% sdk_tests] == "core_engine"),
+    all(current$new_owner_commit[current$test_identity %in% sdk_tests] ==
+      "baf5cb40650a6a6a0e5219b03785e5bed0c4d2b3"),
     identical(sort(setdiff(ownership$test_identity, current$test_identity)),
       sort(c("test_immutable_history_state_machine_closure_contract",
         "test_operation_pack_v3_pseudobulk_zero_neighbor_policy_contract"))),

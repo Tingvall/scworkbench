@@ -4,7 +4,11 @@
 # <references.csv> <frozen-operation-names.csv> <current-inventory.csv>
 # Run from the Phase 8 core worktree with SCWB_PHASE8_REPRESENTATION_SOURCE
 # pointing at the clean, pinned Representation test-ownership worktree.
+# Add --current-only with the same four paths to refresh current discovery
+# from the frozen baseline/reference CSVs without re-reading official packs.
 args <- commandArgs(trailingOnly = TRUE)
+current_only <- "--current-only" %in% args
+args <- setdiff(args, "--current-only")
 if (length(args) != 4L) stop("Expected baseline inventory, references, operation names and current inventory CSV paths")
 baseline <- "0aaa68893e595993c2664e104f7e0dc20702f960"
 # This is the committed ownership decision, not the current documentation HEAD.
@@ -16,10 +20,6 @@ git <- function(...) {
     stop(paste(out, collapse = "\n"))
   out
 }
-paths <- git("ls-tree", "-r", "--name-only", baseline, "tests")
-representation_owner_commit <- "d0a25aacef000f52b211ee0e138d4c964c68cc77"
-paths <- sort(paths[grepl("^tests/test_.*\\.R$", paths)])
-stopifnot(length(paths) == 139L)
 walk <- function(x, fun) {
   if (is.call(x)) {
     fun(x)
@@ -30,6 +30,11 @@ walk <- function(x, fun) {
   }
 }
 call_text <- function(x) paste(deparse(x, width.cutoff = 500L), collapse = " ")
+if (!current_only) {
+paths <- git("ls-tree", "-r", "--name-only", baseline, "tests")
+representation_owner_commit <- "d0a25aacef000f52b211ee0e138d4c964c68cc77"
+paths <- sort(paths[grepl("^tests/test_.*\\.R$", paths)])
+stopifnot(length(paths) == 139L)
 profile <- jsonlite::read_json("inst/standard_profile/profile.json",
   simplifyVector = FALSE)
 pack_root <- Sys.getenv("SCWB_PHASE8_PACK_ROOT",
@@ -132,6 +137,12 @@ stopifnot(nrow(inventory) == 242L, !anyDuplicated(inventory$test_identity),
 write.csv(inventory, args[[1L]], row.names = FALSE, na = "")
 references <- do.call(rbind, refs)
 write.csv(references, args[[2L]], row.names = FALSE, na = "")
+} else {
+  # Later core additions must not regenerate frozen historical ownership or
+  # inspect/change current official-pack trees merely to refresh discovery.
+  inventory <- utils::read.csv(args[[1L]], stringsAsFactors = FALSE)
+  references <- utils::read.csv(args[[2L]], stringsAsFactors = FALSE)
+}
 current_paths <- sort(list.files("tests", pattern = "^test_.*\\.R$", full.names = TRUE))
 current_rows <- list()
 introduced <- list(
@@ -144,6 +155,11 @@ introduced <- list(
     "Phase 8 built-in primitive boundary and evidence regression."),
   test_phase8_test_ownership_inventory_contract = c("",
     "Phase 8 test-ownership and discovery accounting regression."))
+sdk_tests <- c("scaffold_safety", "manifest_negatives", "catalog_coverage",
+  "case_accounting", "installed_contract", "installed_tutorial", "activation_negatives")
+sdk_tests <- paste0("test_operation_pack_sdk_", sdk_tests)
+for (name in sdk_tests) introduced[[name]] <- c("",
+  "Core-owned installed SDK authoring, admission, capability or lifecycle conformance; synthetic method assertions ship in the author template.")
 for (path in current_paths) {
   parsed <- parse(path)
   for (expr in parsed) {
@@ -180,11 +196,12 @@ for (path in current_paths) {
       origin_baseline_test_identity = if (nrow(prior)) name else addition[[1L]],
       justification = if (nrow(prior)) prior$justification else addition[[2L]],
       old_owner_commit = if (nrow(prior) || nzchar(addition[[1L]])) baseline else "",
-      new_owner_commit = new_core_commit)
+      new_owner_commit = if (name %in% sdk_tests)
+        "baf5cb40650a6a6a0e5219b03785e5bed0c4d2b3" else new_core_commit)
   }
 }
 current <- do.call(rbind, current_rows)
-stopifnot(nrow(current) == 244L, !anyDuplicated(current$test_identity),
+stopifnot(nrow(current) == 251L, !anyDuplicated(current$test_identity),
   identical(sort(setdiff(current$test_identity, inventory$test_identity)),
     sort(names(introduced))),
   identical(sort(setdiff(inventory$test_identity, current$test_identity)),
