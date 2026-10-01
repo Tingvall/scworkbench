@@ -2,12 +2,12 @@ SchemaVersion: scworkbench.composite-release.v2
 ReleaseVersion: 0.1.0
 ScworkbenchVersion: 0.1.0
 PyBenchVersion: 0.1.0
-PyBenchCommit: 9746792a552a875530ec9466bfa2c1afcfb22c6a
+PyBenchCommit: 0e67612a915caf4168a6824084fe5c5446690567
 PyBenchRepository: git@gitlab.liu.se:hende58/pybench.git
 ProtocolVersion: 2
 ProtocolSHA256: d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b
 StandardProfileSchemaVersion: scworkbench.standard_profile.v1
-StandardProfileSHA256: 580ada91f4192006d4286e9ce50daf081f911b5919db79f2e4cbd9e104adce6c
+StandardProfileSHA256: 0f8bfae47a154484cec81814160ca9757519f9c5e0cad470759eda8f03c198c3
 StandardProfilePackCount: 7
 StandardProfilePackedOperationCount: 56
 StandardProfileTotalOperationCount: 61

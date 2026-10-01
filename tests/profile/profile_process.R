@@ -60,6 +60,14 @@ if (identical(mode, "core_only")) {
   receipt <- .scwb_profile_read_receipt(receipt_path)
   change_digest <- function(value) paste0(
     if (startsWith(value, "0")) "1" else "0", substring(value, 2L))
+  wrong_pybench <- lock
+  wrong_pybench$pybench_source_commit <- strrep("0", 40L)
+  expect_error_code(.scwb_standard_profile_activate_locked(wrong_pybench, receipt,
+    lib.loc = library), "LOCK_INVALID")
+  stale_receipt <- receipt
+  stale_receipt$pybench_source_commit <- strrep("0", 40L)
+  expect_error_code(.scwb_standard_profile_activate_locked(lock, stale_receipt,
+    lib.loc = library), "RECEIPT_MISMATCH")
   wrong <- lock
   wrong$packs[[1L]]$manifest_sha256 <- change_digest(
     wrong$packs[[1L]]$manifest_sha256)

@@ -24,8 +24,9 @@ if (!identical(as.integer(ancestor), 0L)) stop(
 changed <- system2("git", c("-C", shQuote(representation_source),
   "diff", "--name-only", paste0(accepted_representation, "..", args[[4L]])),
   stdout = TRUE, stderr = TRUE)
-if (length(changed) && any(!startsWith(changed, "tests/"))) stop(
-  "Representation descendant changes package runtime outside tests")
+if (length(changed) && any(!startsWith(changed, "tests/") &
+    changed != "README.md")) stop(
+  "Representation descendant changes package runtime outside tests or README")
 setwd(core_source)
 Sys.setenv(SCWBREPRESENTATION_SOURCE = representation_source)
 devtools::load_all(core_source, quiet = TRUE)

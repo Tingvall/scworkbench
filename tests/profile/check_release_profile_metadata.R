@@ -1,5 +1,18 @@
 test_release_metadata_profile_contract <- function() {
   root <- normalizePath(".", winslash = "/", mustWork = TRUE)
+  profile <- jsonlite::read_json(file.path(root, "inst/standard_profile/profile.json"))
+  activation <- paste(readLines(file.path(root, "inst/standard_profile/activate.R")),
+    collapse = "\n")
+  stopifnot(grepl(profile$pybench_source_commit, activation, fixed = TRUE))
+  matrix_script <- parse(file.path(root, "tests/profile/run_standard_profile_matrix.R"))
+  expected_expr <- Filter(function(expr) is.call(expr) &&
+    identical(expr[[1L]], as.name("<-")) &&
+    identical(expr[[2L]], as.name("expected")), as.list(matrix_script))
+  stopifnot(length(expected_expr) == 1L)
+  expected <- eval(expected_expr[[1L]][[3L]], envir = baseenv())
+  pinned <- setNames(vapply(profile$packs, `[[`, character(1), "source_commit"),
+    vapply(profile$packs, `[[`, character(1), "package"))
+  stopifnot(identical(expected, pinned))
   scratch <- tempfile("scwb-release-profile-")
   dir.create(scratch)
   on.exit(unlink(scratch, recursive = TRUE, force = TRUE), add = TRUE)

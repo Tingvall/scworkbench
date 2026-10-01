@@ -11,6 +11,14 @@ scwbGenePrograms, scwbRNA, scwbRepresentation, scwbTrajectory, scwbLatent and
 scwbATAC. Those packs contribute 56 normal scientific operations; core
 contributes five. Protocol/conformance fixtures are not part of the profile.
 
+The SDK release integration advances PyBench and the RNA, Representation and
+Trajectory source pins while retaining all seven operation manifests and
+operation definitions. `profile.json` is authoritative for the full revisions;
+release metadata binds its exact file SHA-256. A newly synchronized checkout
+must match these pins, not an earlier profile's revisions. Rebuild the instance
+receipt through the installer; receipts from the earlier profile are invalid
+for this lock even when operation definitions are unchanged.
+
 From clean source worktrees at the pinned commits, prepare a clean library and
 instance receipt explicitly:
 
