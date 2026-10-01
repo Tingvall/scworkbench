@@ -25,3 +25,7 @@ containers/*.sif
 # R package build and check artifacts
 scworkbench.Rcheck/
 scworkbench_*.tar.gz
+/src/*.o
+/src/*.so
+/src/*.dll
+/src/*.dylib

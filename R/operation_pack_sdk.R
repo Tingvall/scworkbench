@@ -16,6 +16,9 @@
 #' Generate the installed ABI-v3 R reference project without installation,
 #' activation, network access or Git mutation. The destination must not exist
 #' and its parent must exist. Generation is published by one directory rename.
+#' Publication uses Linux `renameat2(RENAME_NOREPLACE)` and atomically refuses
+#' any competing destination. Unsupported platforms, kernels or filesystems
+#' fail closed without a replacing-rename fallback.
 #' See the installed SDK tutorial for the complete author workflow.
 #' @param path New project directory; spaces are supported, traversal is not.
 #' @param package Valid R package name.
@@ -73,8 +76,9 @@ wb_operation_pack_scaffold <- function(path, package, namespace, author, email,
   manifest <- file.path(stage, "inst", "scworkbench", "operation-pack.json")
   wb_operation_pack_manifest_validate(manifest)
   read.dcf(file.path(stage, "DESCRIPTION"))
-  if (file.exists(destination) || !file.rename(stage, destination))
-    stop("Scaffold publication failed or destination appeared.", call. = FALSE)
+  publish_hook <- getOption("scworkbench.sdk_scaffold_publication_test_hook", NULL)
+  if (is.function(publish_hook)) publish_hook(stage, destination)
+  .Call(C_scwb_sdk_publish_noreplace, stage, destination)
   list(sdk_version = "1.0.0", path = destination, package = package,
     namespace = namespace, manifest = file.path(destination, "inst",
       "scworkbench", "operation-pack.json"))

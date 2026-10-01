@@ -23,6 +23,43 @@ test_operation_pack_sdk_scaffold_safety <- function() {
   reject(file.path(root, "failed"), "scwbSdkSafe", "sdksafe", "SDK Author", "sdk@example.org")
   stopifnot(!file.exists(file.path(root, "failed")),
     !any(grepl("scwb-sdk", list.files(root, all.files = TRUE))))
+  options(scworkbench.sdk_scaffold_test_hook = old)
+  old_publication <- getOption("scworkbench.sdk_scaffold_publication_test_hook")
+  on.exit(options(scworkbench.sdk_scaffold_publication_test_hook = old_publication), add = TRUE)
+  destination_identity <- function(path) {
+    info <- fs::file_info(path, follow = FALSE)
+    stopifnot(all(c("device_id", "inode") %in% names(info)))
+    info[, c("type", "size", "permissions", "modification_time",
+      "change_time", "device_id", "inode")]
+  }
+  for (kind in c("empty_directory", "nonempty_directory", "file", "symlink", "dangling_symlink")) {
+    destination <- file.path(root, paste0("Publication race ", kind))
+    observed <- NULL
+    options(scworkbench.sdk_scaffold_publication_test_hook = function(stage, target) {
+      stopifnot(identical(target, destination), file.exists(file.path(stage, "DESCRIPTION")))
+      if (kind %in% c("empty_directory", "nonempty_directory")) {
+        stopifnot(dir.create(target))
+        if (kind == "nonempty_directory") writeLines("COMPETITOR", file.path(target, "owned"))
+      } else if (kind == "file") writeLines("COMPETITOR", target)
+      else stopifnot(file.symlink(if (kind == "symlink") root else
+        file.path(root, "absent target"), target))
+      observed <<- destination_identity(target)
+    })
+    failure <- tryCatch(wb_operation_pack_scaffold(destination, "scwbSdkSafe",
+      "sdksafe", "SDK Author", "sdk@example.org"), error = identity)
+    # The hook creates the competitor only. Production native publication is
+    # actually invoked and must reject EEXIST; no rename is mocked here.
+    stopifnot(inherits(failure, "error"), grepl("renameat2.*File exists", conditionMessage(failure)),
+      identical(observed, destination_identity(destination)),
+      !any(grepl(".scwb-sdk-", list.files(root, all.files = TRUE), fixed = TRUE)))
+    if (kind == "empty_directory") stopifnot(length(list.files(destination, all.files = TRUE, no.. = TRUE)) == 0L)
+    if (kind == "nonempty_directory") stopifnot(identical(readLines(file.path(destination, "owned")), "COMPETITOR"))
+    if (kind == "file") stopifnot(identical(readLines(destination), "COMPETITOR"))
+    if (kind %in% c("symlink", "dangling_symlink")) stopifnot(nzchar(Sys.readlink(destination)))
+    # The same competitors must also reject at initial admission.
+    reject(destination, "scwbSdkSafe", "sdksafe", "SDK Author", "sdk@example.org")
+    stopifnot(identical(observed, destination_identity(destination)))
+  }
   TRUE
 }
 

@@ -36,5 +36,8 @@ Descriptor with SDK version, project, package, namespace and manifest.
 Generate the installed ABI-v3 R reference project without installation,
 activation, network access or Git mutation. The destination must not exist
 and its parent must exist. Generation is published by one directory rename.
+Publication uses Linux \code{renameat2(RENAME_NOREPLACE)} and atomically refuses
+any competing destination. Unsupported platforms, kernels or filesystems
+fail closed without a replacing-rename fallback.
 See the installed SDK tutorial for the complete author workflow.
 }

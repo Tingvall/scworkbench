@@ -5,7 +5,12 @@
 Use `wb_operation_pack_scaffold(path, package, namespace, author, email)` into
 a nonexistent directory with an existing parent. Spaces work; traversal,
 reserved namespaces, overwrite and malformed maintainer metadata reject.
-Generation stages then renames atomically, without installation, network,
+Generation stages then publishes with Linux `renameat2(RENAME_NOREPLACE)`:
+even a destination created at the final boundary is preserved and rejected.
+Unsupported OS/kernel/filesystem combinations fail closed, with no replacing
+rename fallback. The core package now contains a small registered C component
+and requires an R-compatible C toolchain for source installation; the scaffold
+does not depend on Python. Generation performs no installation, network,
 activation or Git changes. The MIT template is a real one-operation R package.
 Its manifest is plain JSON validated by `wb_operation_pack_manifest_validate`.
 There is no parallel SDK validator. Inspect/edit the runner and manifest as a
