@@ -8,7 +8,9 @@ Inspect registered ops, wranglers, and plots first; authoritative or reusable
 state requires a typed operation or adoption boundary. See
 `ANALYSIS_CAPSULES.md` for the five-step law and trust model.
 
-Role: extend and stabilize engine + thin clients.
+Role: extend and stabilize engine + thin clients. For new scientific methods,
+use the [SDK guide](../sdk/operation-packs/GUIDE.md) and its pack-author loop
+instead. Read [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md) for current boundaries.
 
 ## Responsibilities
 
@@ -17,7 +19,7 @@ Role: extend and stabilize engine + thin clients.
 - Keep clients thin and engine-first.
 - Prevent stale/duplicate code paths.
 - Harden provenance/replay/deletion safety.
-- In current phase: prioritize hardening/bugfixing before feature additions (see `docs/next_pass_hardening_notes.md`).
+- Keep new methods pack-owned and extend core only for a missing generic contract.
 
 ## Development Rules
 
@@ -82,6 +84,11 @@ Role: extend and stabilize engine + thin clients.
 
 ## Standard Engineer Loop
 
+This loop changes engine contracts. Pack development has its own installed SDK
+tutorial: scaffold, declare, calculate, emit, check, activate, and audit. Public
+exports do not override transaction restrictions; callback grants are the lawful
+runner interface. Scientific tests follow their pack, not the core suite.
+
 1. Inspect existing contract (`wb_op_interface`, relevant wrangler contracts).
 2. Implement engine change.
 3. Add tests.
@@ -95,17 +102,18 @@ non-executing structural validation. Installed R packages use
 `wb_operation_pack_validate()` and activate by exact installed package name with
 `wb_operation_pack_load()`; these two R-package APIs execute trusted package
 code. Inspect activated state with `wb_operation_packs()` and
-`wb_operation_pack_inspect()`. Protocol v1 admits `R` and `Python`, but runtime
-support is separate. Activate Python explicitly with
+`wb_operation_pack_inspect()`. ABI v1/v2/v3 admit `R` and `Python` declarations,
+but runtime support is separate and policy-specific. Activate Python explicitly with
 `wb_operation_pack_activate(manifest, python=...)`; PyBench discovers the exact
 installed distribution and entry point and scworkbench independently audits its
 identity, runtime sidecar, receipt, and private-transition mutations. A missing
 configured runtime reports `OPERATION_PACK_RUNTIME_UNAVAILABLE`. Python uses
 distribution metadata, PEP 503 name
 normalization, PEP 440 version comparison, and entry-point group
-`scworkbench.operation_packs.v1`; manifest `entry_point` is the entry-point
+`scworkbench.operation_packs.v1` for v1 (the SDK uses the v3 group);
+manifest `entry_point` is the entry-point
 name, not an import target. Conformance is not scientific validation and does
-not provide host-code sandboxing. Operation-pack v1 cannot add primitive kinds,
+not provide host-code sandboxing. Packs cannot add primitive kinds,
 storage, getters, promoters, or validation hooks.
 The backend-neutral activation seam is `wb_operation_pack_activate()`; do not
 bypass it with an import-string runner, direct bundle writer, or alternate
@@ -125,9 +133,10 @@ inspect staged entities with documented session interfaces such as
 `wb_session_view(session)`.
 
 ```r
+wb_operation_pack_load("scwbRNA")
 session <- wb_session_new()
 result <- wb_session_run_op(
-  session, bundle, "hvg_select",
+  session, bundle, "scwbrna::hvg_select",
   inputs = list(matrix = "RNA_counts", n_features = 2000L)
 )
 session <- result$session

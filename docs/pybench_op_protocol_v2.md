@@ -1,7 +1,10 @@
 # PyBench operation protocol v2
 
-`pybench-op-v2` is the only writable R/Python operation protocol. Version 1 is
-retired and a v1 request is rejected before Python receives a bundle path.
+`pybench-op-v2` is the historical engine-bridge protocol, not the current
+operation-pack SDK protocol. ABI-v2 Python packs use `pybench-op-v3`; ABI-v3
+Python packs use `pybench-op-v4`. Retired writable bridge requests are rejected
+before Python receives a bundle path. See [python_bridge.md](python_bridge.md)
+for the current execution routes.
 The machine authority is
 `inst/protocol/pybench-op-v2.schema.json`; the examples below it in
 `fixtures/valid` and `fixtures/invalid` are conformance inputs, not informal
@@ -35,8 +38,10 @@ and bundle-relative payload identities. It derives the actual mutation set,
 rejects schema changes and mutations outside an allowed key scope/path, and
 then compares the actual set with the receipt `write_manifest`. A descriptor
 contains its output binding, mutation class, table/key scope or contained path,
-row count, and content SHA-256. SQLite content uses compact JSON row objects
-with alphabetically ordered columns; payload content hashes file bytes.
+row count, and content SHA-256. SQLite content uses
+`scworkbench-sqlite-rows-v2`: sorted columns, explicit typed values, binary64
+hex for reals, sorted typed rows, and length-framed UTF-8 hashing. It is not a
+plain JSON-row digest. Payload content hashes file bytes.
 
 Only a valid, capability-echoing receipt whose manifest exactly equals the
 R-derived changes is copied into the session stage. Python failure, missing or
@@ -66,8 +71,9 @@ Python tracebacks are not copied into persisted provenance.
 | v2 staging-write | source, recipient, unrelated or stale stage | rejected |
 | v1 writable | any bundle | rejected; no compatibility path |
 
-Core-owned scVI and PeakVI use this production boundary. Palantir fit/project
-are now owned by the explicitly activated scwbTrajectory pack and use its
+scVI and PeakVI are owned by the explicitly activated `scwbLatent` R pack,
+which uses private typed Python computation behind ABI v3, not this old core
+bridge. Palantir fit/project are owned by the activated scwbTrajectory pack and use its
 typed G2 v3/G1 private-computation boundary; historical Palantir outputs
 remain inspectable through the generic bundle contracts. Protocol
 conformance is now exercised by explicitly activated synthetic operation-pack

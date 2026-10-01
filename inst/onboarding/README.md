@@ -29,6 +29,12 @@ file.path(
 
 ## Start Here
 
+Read [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md) first for the current core/pack
+partition, activation, eleven primitives, centralized chunking, and backend
+limitations. For reusable scientific methods, use the installed
+[Operation Pack SDK guide](../sdk/operation-packs/GUIDE.md), not the engine
+extension loop. Run its tutorial before implementing a new method.
+
 1. **Any scientific or computational operator:**
    `AGENT_OPERATOR_GUIDE.md`
 2. **Scientific analysis role:** `AGENT_BIOLOGIST_GUIDE.md`

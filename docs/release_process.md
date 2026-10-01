@@ -5,6 +5,17 @@ revision, a shared protocol schema, and a qualified core Apptainer runtime.
 Optional client repositories are not part of that runtime. The authoritative
 compatibility record is `inst/release/composite_release.dcf`.
 
+The optional standard-profile release additionally binds seven pack source
+commits/manifests and an installed-instance receipt. See the
+[profile installer and activation contract](../inst/standard_profile/README.md).
+Core-plus-PyBench qualification is not automatically seven-pack qualification.
+Host source tests and a container built from older sources are separate evidence;
+merging the SDK does not update an existing SIF.
+
+The checklist below is a release gate, not a requirement to rerun complete
+suites for each documentation amendment. During development use affected
+contracts; qualify one frozen candidate and retain exact coverage and exits.
+
 ## Locked Inputs
 
 - The Bioconductor amd64 base image is pinned by OCI digest in the definition.

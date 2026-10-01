@@ -58,9 +58,11 @@ Rscript inst/acceptance/file_backed_dense_space_benchmark.R \
   --output=inst/acceptance/file_backed_dense_space_benchmark.json
 ```
 
-It uses the historical 120,895-cell raw bundle read-only, builds a fresh 50D +
-30D + 2D fixture, measures writers/getters/promotion/validation and the PyBench
-hello audit, and reports the storage multiplier and bounded-read evidence. The
+This retained benchmark requires its historical fixture and is not a
+self-contained operator quick start. Its original execution used the
+120,895-cell raw bundle read-only, built a fresh 50D +
+30D + 2D fixture, measured writers/getters/promotion/validation and the PyBench
+hello audit, and reported the storage multiplier and bounded-read evidence. The
 HDF5 change removes relational coordinate rows and their indexes. It does not
 claim to remove PyBench's remaining complete-payload hashing and full mutable-
 tree clone/audit overhead; those measurements are reported separately.

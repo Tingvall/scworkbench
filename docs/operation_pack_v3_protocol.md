@@ -86,7 +86,10 @@ evidence fails without transition or analytical residue.
 
 ## Consolidated generic capabilities
 
-G1 grants exactly one private read of an already-promoted contained model.
+G1 grants exactly one private read of a verified contained model resolved from
+an admitted staged predecessor or a promoted artifact. A staged reference must
+carry authenticated transition/linkage evidence; it is not a caller-supplied
+model object or arbitrary path.
 The grant authenticates an exact engine/model-type allowlist, the durable
 model/source linkage, fitted cell and selected-dimension order, the complete
 model-tree manifest, and the payload manifest. Core verifies the source-space
@@ -148,7 +151,8 @@ each active group authenticates a two-dimensional display partition followed
 by ordered endpoint axes. At most 64 groups, 10 million display cells, 10
 million cells per endpoint, and 20 million endpoint memberships are granted.
 Display and endpoint readers are distinct; substitution or reordering is
-rejected.
+rejected. Endpoint reads fail until the display partition is completely
+consumed, and display reads close once endpoint consumption begins.
 
 All six capabilities are opt-in. Their source identities and privately staged
 payloads are revalidated immediately before atomic transition publication.
@@ -297,6 +301,22 @@ shared schema and identity fixtures but rejects this policy at manifest
 admission and request staging.
 
 ## Backends and durable lifecycle
+
+### Additional Current Opt-In Policies
+
+The accepted schema also declares matrix-trained model closure, ordered
+cell-metadata snapshots, nonnegative-integer typed slices, independent space
+input axes, producer-lineage reads, linked-space unions, genomic/motif reads,
+matrix-selected dynamic providers, and runtime-key cell-family seals. These
+are generic policies, not method-name branches. See the
+[matrix-model boundary](phase6_matrix_trained_model_boundary.md),
+[motif boundary](motif_contracts_and_chromvar.md), and installed
+[capability catalog](../inst/sdk/operation-packs/CAPABILITIES.md) for exact
+declarations and backend support. Schema parity is not Python runtime support.
+
+Nullable durable cell-family values are a storage contract, not permission
+for every writer to emit missing values. Each grant retains its own missingness,
+finiteness, axis, order, and closure rules.
 
 R v3 packs retain the opaque `function(readers, writers, params, context)`
 runner interface. Python v3 packs use the

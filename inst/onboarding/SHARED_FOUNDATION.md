@@ -19,8 +19,10 @@ then executes through the same engine-owned session, staging, promotion, and
 provenance path. Installation alone is inert and no installed-package scan is
 performed. Pack code is trusted executable code, not a host sandbox; passing
 conformance establishes engine compatibility, not scientific validity.
-Protocol support does not imply that a backend runtime is installed. Protocol
-v1 admits R and Python. R activation authenticates an installed R package;
+Protocol support does not imply that a backend runtime is installed or that
+every accepted schema branch has runtime callbacks. ABI v1/v2/v3 admit R and
+Python declarations. New authoring starts with the ABI-v3 SDK; consult its
+capability catalog for the actual backend-supported policies. R activation authenticates an installed R package;
 Python activation uses the explicitly configured PyBench interpreter to
 discover the exact distribution and fixed-group entry point. A valid Python
 manifest remains structurally conformant when that interpreter or distribution
@@ -70,6 +72,9 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
 3. Getter Boundary
 - Getters are the only storage-facing API.
 - Downstream compute should not depend on storage internals.
+- Pack runners receive authenticated readers over that boundary, not bundle
+  handles. Declared partitions use core slicing; packs own calculations and
+  reductions. Chunked input is not a total-memory guarantee.
 
 4. Selectors
 - Composable query language over the getter universe.

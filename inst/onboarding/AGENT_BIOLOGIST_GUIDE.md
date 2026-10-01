@@ -1,5 +1,11 @@
 # Agent Biologist Onboarding
 
+Read [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md) before starting: core owns the
+bundle and evidence, while scientific methods normally live in explicitly
+activated packs. Use the current qualified operation interface, not historical
+names from an analysis script. For a new reusable method, start with the
+[SDK guide](../sdk/operation-packs/GUIDE.md).
+
 Role: run analyses and generate biologically useful, reproducible outputs.
 
 ## Responsibilities

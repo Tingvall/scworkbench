@@ -1,7 +1,7 @@
 # RNA Map Ops
 
-The independently installed provisional `scwbRNA` operation pack supplies
-`scwbrna::matrix_log_normalize` and `scwbrna::hvg_select`; the provisional
+The independently installed `scwbRNA` operation pack supplies
+`scwbrna::matrix_log_normalize` and `scwbrna::hvg_select`; the
 `scwbRepresentation` pack supplies `scwbrepresentation::pca_fit`,
 `scwbrepresentation::umap_fit`, and `scwbrepresentation::umap_transform`.
 Core scworkbench supplies the generic authenticated slice, contained-model,
@@ -102,7 +102,7 @@ wb_session_run_op(
   bundle,
   "scwbrepresentation::umap_fit",
   inputs = list(
-    space = "rna.pca",
+    space = wb_ref_run(rr_pca$run$run_id, "space"),
     dims = 1:30,
     space_id_out = "rna.umap",
     seed = 1
@@ -139,7 +139,7 @@ the space, loadings, variance, and summary outputs together. The default backend
 matrices. The selected block size is recorded in `fit_summary` as
 `approx_dense_gb`; dense backends are guarded by `max_dense_gb`.
 
-The implementation removes non-constant features before PCA so scaling does not
+The implementation removes constant features before PCA so scaling does not
 fail on zero-variance columns.
 
 ## Claim Boundary

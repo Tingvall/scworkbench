@@ -25,7 +25,8 @@ The levels are cumulative:
   provenance content identities.
 - `content` additionally runs SQLite `integrity_check`; verifies exact ordered
   matrix feature/cell identities, normalized fragment memberships, fragment
-  coverage, space coordinates, model loadability, artifact payload ownership,
+  coverage, space coordinates, contained model-tree identities and trust
+  metadata, artifact payload ownership,
   source declarations, provenance runs/outputs/bindings/DAG edges, commits,
   materializations, registry mutations, lifecycle/tombstone history, and every
   locally verifiable SHA-256 claim. Persisted run validation parses all six

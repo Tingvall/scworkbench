@@ -1,5 +1,18 @@
 # scworkbench
 
+Portable, provenance-bound analysis with a small core engine and independently
+installed scientific operation packs. Start with the
+[documentation index](docs/getting_started.md) or the installed
+[system overview](inst/onboarding/SYSTEM_OVERVIEW.md).
+
+| Goal | Documentation |
+| --- | --- |
+| Analyse data | [Operator onboarding](inst/onboarding/AGENT_OPERATOR_GUIDE.md) |
+| Install and activate the seven-pack profile | [Standard profile](inst/standard_profile/README.md) |
+| Build a new operation pack | [SDK tutorial](docs/operation_pack_sdk.md) |
+| Change an engine capability | [Extension engineering](docs/extension_engineering.md) |
+| Inspect a transferred bundle | [Recipient audit](docs/recipient_audit.md) |
+
 For externally executed, dataset-specific terminal figures and reports, use
 provenance-bound analysis capsules only after applying the installed op-first
 decision law in `inst/onboarding/ANALYSIS_CAPSULES.md`. Ad hoc analysis is
@@ -31,8 +44,8 @@ core owns authentication, alignment and atomic publication.
   use getters instead of direct SQL/storage access.
 - **Selectors**: composable cell-selection recipes over bundle state.
 - **Primitives**: typed internal currency, including `matrix`, `space`,
-  `space_2d`, `cell_vector`, `cell_vector_family`, `feature_table`,
-  `obs_table`, `model_ref`, and `path_2d_family`.
+  `space_2d`, `cell_vector`, `cell_vector_family`, `relation_family`,
+  `feature_table`, `obs_table`, `model_ref`, `path_2d_family`, and `space_path_family`.
 - **Ops**: explicit analysis operations with declared inputs, parameters,
   outputs, promotable artifacts, and provenance.
 - **Wranglers and plot contracts**: renderer-independent display datasets.
@@ -48,6 +61,9 @@ R/                         R package source
 tests/                     focused contract and smoke tests
 docs/                      contract docs, semantic catalogs, graph exports
 inst/onboarding/           installed operator documentation
+inst/sdk/operation-packs/  author guide, templates, capabilities, and lifecycle tests
+inst/standard_profile/     source lock, installer, and explicit activation
+src/                      native scaffold support; source installation needs a C toolchain
 inst/golden_bundle/        generated tiny cross-repo fixture
 inst/fullstack/            cross-repo contract check script
 containers/                container build recipes
@@ -60,6 +76,11 @@ by git (`reports/`, `scripts/`, container `.sif` files).
 
 ## Quick Start For Developers
 
+This section is for engine source development. Pack authors should instead use
+an installed scworkbench and the SDK tutorial; analysts should follow the
+operator guide and explicitly activate required packs. Source loading is not
+profile activation or a production installation.
+
 Work from the repository root:
 
 ```r
@@ -70,7 +91,7 @@ Open a bundle:
 
 ```r
 b <- wb_open_bundle("/path/to/bundle")
-on.exit(wb_close_bundle(b), add = TRUE)
+# Close with wb_close_bundle(b) when finished. In a function, use on.exit().
 ```
 
 Inspect core state:
@@ -170,7 +191,8 @@ Semantic/KG:
 - `wb_kg_export_neo4j_csv()`
 - `wb_kg_catalog_audit()`
 
-See `docs/exported_functions_overview.md` for a broader function map.
+See `docs/getter_catalog_reference.md` and `docs/mutation_catalog_reference.md`
+for the generated public function maps.
 
 ## Documentation
 
@@ -224,8 +246,8 @@ paths (or basenames relative to `tests/`):
 
 ```bash
 Rscript inst/tests/run_contract_tests.R \
-  --test-file=tests/test_operation_pack_v2_manifest_owned_statistics_contract.R \
-  --test-file=tests/test_op_feature_trend_spearman_chunking_contract.R
+  --test-file=tests/test_documentation_source_package_curation_contract.R \
+  --test-file=tests/test_analysis_capsule_documentation_policy_contract.R
 ```
 
 Run a specific contract test:
@@ -255,6 +277,12 @@ inst/fullstack/check_fullstack_contracts.sh
 
 The fullstack script is a contract tripwire, not a replacement for focused
 package tests.
+
+Scientific method tests belong to their pack; core tests cover generic engine
+authority, and explicitly invoked pinned composites cover real-pack integration.
+Use focused selections for narrow changes. Run complete qualification on the
+frozen integration candidate rather than repeating it after each prose fix.
+Report skips and retained parent evidence separately from current-tree passes.
 
 ## Golden Bundle
 

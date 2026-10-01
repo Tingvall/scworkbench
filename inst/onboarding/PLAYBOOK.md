@@ -124,8 +124,9 @@ Committed writers are serialized by the sibling lock protocol documented in
 inspect ownership with `wb_bundle_writer_lock_info()` and recover a verified
 stale lock only through `wb_recover_bundle_writer_lock()`.
 
-Current phase note:
-- Before adding new features, prioritize hardening/bugfixing. See `docs/next_pass_hardening_notes.md`.
+Extension boundary:
+- New scientific methods belong in operation packs through the SDK. Change core
+  only when an authenticated primitive or generic capability is missing.
 
 ## A. When Running Analysis
 
@@ -164,9 +165,10 @@ extract only stable scalar IDs and use `wb_session_view(session)` to inspect
 staged state.
 
 ```r
+wb_operation_pack_load("scwbRNA") # Explicit trust and process-local activation.
 session <- wb_session_new()
 result <- wb_session_run_op(
-  session, bundle, "hvg_select",
+  session, bundle, "scwbrna::hvg_select",
   inputs = list(matrix = "RNA_counts", n_features = 2000L)
 )
 session <- result$session
@@ -179,21 +181,21 @@ run_details <- wb_prov_run_details(bundle, result$run$run_id)
 
 3. Promote selectively
 - Use `wb_session_promote_current(outputs = ...)` for intended terminal
-  outputs only. Required ancestors become internal committed provenance, not
-  public artifacts.
+  outputs only. Ancestors become committed provenance/materializations; a
+  declared model-and-terminal closure can also require sibling artifacts.
 - `wb_op_interface(op)$produces[[name]]` is machine-readable: only outputs
   with `promotable_directly=TRUE` are valid `outputs=` terminals. Outputs with
   `durability_role="materialization"` are committed transitively by the listed
   `materialized_by_terminals`.
 - When two staged runs share a terminal name, qualify it with the existing
   typed reference: `wb_session_promote_current(bundle, session, outputs =
-  list(wb_ref_run(hvg_run_id, "fit_summary"), wb_ref_run(pca_run_id,
-  "fit_summary"), "model"))`. Plain names remain intentionally ambiguous
+  list(wb_ref_run(first_pca_run_id, "fit_summary"), wb_ref_run(second_pca_run_id,
+  "fit_summary")))`. Plain names remain intentionally ambiguous
   unless the active head produces the requested terminal.
-- If promotion fails, discard the private session workspace with
-  `wb_session_discard(session)` before retrying. Never delete an existing
-  bundle target to clear a collision: use a new output ID unless ownership of
-  the abandoned private workspace is established.
+- If promotion fails, inspect the error and session state before retrying.
+  Atomic rollback can leave a valid session available for a corrected retry.
+  Use `wb_session_discard(session)` when abandoning it. Never delete an
+  existing bundle target to clear a collision; choose a new output ID.
 
 4. Emit provenance artifacts
 - Save report markdown/html.
@@ -207,8 +209,9 @@ run_details <- wb_prov_run_details(bundle, result$run$run_id)
 ## B. When Adding Engine Features
 
 1. Define/confirm primitive contract first.
-2. Add op in one canonical registration path (`op_catalog`).
-3. Ensure runner + interface + promotable outputs are coherent.
+2. For a scientific method, scaffold a pack using the SDK, not `op_catalog`.
+   For a missing generic authority, design the core capability first.
+3. Ensure the manifest, runner, issued capabilities and output closure agree.
 4. Add contract tests.
 5. Validate with real bundle smoke test.
 

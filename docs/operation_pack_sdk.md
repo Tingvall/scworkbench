@@ -5,6 +5,10 @@ compute, emit primitives**. Core owns authentication, alignment, storage,
 provenance and atomic publication. This SDK is an authoring facade over the
 existing ABI, not another executor, schema language or authority.
 
+Start with the [system overview](../inst/onboarding/SYSTEM_OVERVIEW.md) for
+activation, primitive exchange, centralized slicing, and backend/trust limits.
+No official pack or standard-profile modification is needed to author a pack.
+
 The SDK is installed with scworkbench. Read the installed
 `sdk/operation-packs/GUIDE.md`, `CAPABILITIES.md`, `capabilities.json`,
 `callbacks.json` and `interface.json`. They are available through `system.file`
@@ -43,3 +47,47 @@ rollback, retry, relocation and fresh pack-free recipient inspection. Core
 still enforces source identity, dimensions, row order and receipts regardless
 of any pack assertion. The synthetic pack is never ambiently activated or
 added to the standard profile; seven official packs remain unchanged.
+
+## From Reference to Your Method
+
+1. Run the installed tutorial unchanged and inspect its generated package.
+2. Choose supported primitive profiles and grants from the capability catalog.
+3. Update the manifest and runner together: typed input names, parameter schema
+   and defaults, dependencies, output names/profiles, retention, and closure.
+4. Replace the synthetic computation, retaining the issued readers and writers.
+5. Add a scientific oracle and rejection, schedule, publication, and recipient
+   cases. Fake-reader tests do not replace real registered-dispatch tests.
+6. Run static, trusted installed, and contract checks; then run `R CMD check`.
+7. Explicitly activate the installed pack and inspect its qualified interface.
+
+The authoritative installed guide contains manifest, namespace, callback,
+model-tree, family/axis, and publication recipes. Its generated companion
+references enumerate supported policies; do not invent fields from examples
+in an unrelated pack. A new primitive or missing generic authority requires an
+engine capability decision, not a pack-specific core exception.
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| Operation missing after installation | Explicit activation in this process and its qualified catalog name |
+| `OPERATION_PACK_REQUIRED` | Producing pack absent/incompatible; inspection and replay are different tasks |
+| Unsupported grant despite valid JSON | Backend runtime support in the capability catalog |
+| Output dimension/order rejection | Declared axis/cardinality policy and any required seal before writes |
+| Reader coverage rejection | Exact declared partition discipline, including final partial partition |
+| No derived parameters in provenance | Manifest-owned retained parameters, not arbitrary runner return fields |
+| Scaffold publication unsupported | Linux libc/kernel/filesystem support; R source installation needs a C toolchain |
+| Checks pass but no lasting logs | Save diagnostics and logs before the temporary check workspace disappears |
+
+## Release Checklist
+
+- Package metadata, namespace, entry point, version and manifest agree.
+- Source/dependency identities and supported runtime profiles are recorded.
+- Method-specific comparison policies cover all required terminals/parameters.
+- Invalid inputs and faults reject without durable residue; retry is tested.
+- Promoted output closure survives finalize, relocate, reopen and inspection.
+- Static, installed, contract and package-check results retain counts and exits;
+  skips, warnings, notes and reused evidence are explicit.
+- Trust, model serialization, memory, hardware and backend limitations are stated.
+- Independent conformance review precedes distribution; profile inclusion is a
+  separate decision, not an SDK side effect.

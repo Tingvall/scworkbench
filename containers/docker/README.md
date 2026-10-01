@@ -8,6 +8,13 @@ runtime. The Docker build derives a CPU-only Python lock by removing the CUDA
 runtime packages and replacing the pinned CUDA PyTorch wheel with the
 corresponding pinned CPU wheel.
 
+This recipe is not the seven-pack standard-profile SIF build. Locked method
+dependencies do not install or activate operation packs. Inspect the built
+image's installed documentation and explicitly install/activate a compatible
+profile when needed; neither 61-operation coverage nor SDK/container
+qualification follows from the image name. Source updates do not refresh an
+existing image.
+
 `runtime.dcf` records the immutable multi-platform base index, both platform
 manifests, and the source and derived Python-lock identities.
 

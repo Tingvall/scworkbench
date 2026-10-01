@@ -1,5 +1,10 @@
 # scworkbench Agent Operator Guide
 
+Read [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md) for the current core-plus-packs
+architecture, standard-profile activation, SDK, and supported backend boundaries.
+Opening a bundle and installing a pack do not activate scientific operations.
+Use qualified names from the process-local catalog; activate only trusted packs.
+
 ## Op-first durable evidence policy
 
 Ad hoc analysis is permitted; unrecorded durable evidence is not. Follow the
@@ -119,10 +124,13 @@ singularity exec --cleanenv \
   --bind "${HOST_PARENT}:/work/bundles" \
   "${IMAGE}" \
   Rscript --vanilla -e '
-    library(scworkbench)
-    b <- wb_open_bundle(file.path("/work/bundles", Sys.getenv("BUNDLE_NAME")))
-    on.exit(wb_close_bundle(b), add = TRUE)
-    # Run documented mutation/session operations here.
+    local({
+      library(scworkbench)
+      b <- wb_open_bundle(file.path("/work/bundles", Sys.getenv("BUNDLE_NAME")))
+      on.exit(wb_close_bundle(b), add = TRUE)
+      # Explicitly activate trusted packs before scientific operations.
+      # Run documented mutation/session operations here.
+    })
   '
 ```
 
@@ -142,9 +150,11 @@ singularity exec --cleanenv \
   --bind "${HOST_BUNDLE}:/bundle:ro" \
   "${IMAGE}" \
   Rscript --vanilla -e '
-    library(scworkbench)
-    b <- wb_open_bundle("/bundle", read_only = TRUE, validate = TRUE)
-    on.exit(wb_close_bundle(b), add = TRUE)
+    local({
+      library(scworkbench)
+      b <- wb_open_bundle("/bundle", read_only = TRUE, validate = TRUE)
+      on.exit(wb_close_bundle(b), add = TRUE)
+    })
   '
 ```
 
@@ -153,8 +163,7 @@ singularity exec --cleanenv \
 Use the supported client for your environment. In R, the minimal pattern is:
 
 ```r
-b <- wb_open_bundle("/path/to/bundle")
-on.exit(wb_close_bundle(b), add = TRUE)
+b <- wb_open_bundle("/path/to/bundle", read_only = TRUE, validate = TRUE)
 
 wb_manifest(b)
 wb_status(b)
@@ -163,7 +172,13 @@ wb_spaces(b)
 wb_cell_sets(b)
 wb_feature_sets(b)
 wb_art_list(b)
+wb_close_bundle(b)
 ```
+
+Start with immutable inspection for an unfamiliar bundle. For analysis, reopen
+a trusted writable working copy using the parent mount described above. Close
+handles explicitly in interactive code; `on.exit()` cleanup belongs inside a
+function or `local({ ... })`, not at script top level.
 
 In manifest schema 2.3, inspect
 `wb_manifest(b)$counts$feature_counts_by_matrix` for matrix feature universes.
@@ -201,6 +216,11 @@ Discover capabilities from the engine:
 wb_list_ops()
 wb_op_interface("operation_name", bundle = b)
 ```
+
+`operation_name` is a placeholder: choose a name from the active catalog,
+including its namespace for pack operations. Activate the required trusted
+pack explicitly with `wb_operation_pack_load()` before discovery/execution;
+an installed pack or an old SIF does not acquire new operations automatically.
 
 The interface is authoritative for required inputs, accepted reference shapes,
 parameters, outputs, runtime requirements, and promotion behavior. Semantic
@@ -378,12 +398,19 @@ expressed through the supported substrate:
    runtime/environment gap;
 4. avoid implementing analysis logic in a viewer, report script, or agent
    prompt as a hidden substitute;
-5. hand the evidence to an engine maintainer for a contract-first decision.
+5. route an unsupported primitive or generic authority to an engine maintainer;
+   route a new method using supported capabilities to a pack author.
 
 An unsupported generic capability is a stop-and-report condition, never a
 justification for an external unrecorded script.
 
-New capability should normally enter the engine as one of:
+New scientific methods use the Operation Pack SDK: declare typed inputs,
+compute with issued readers, and emit primitives through issued writers.
+See the installed `sdk/operation-packs/GUIDE.md` via
+`system.file("sdk", "operation-packs", "GUIDE.md", package = "scworkbench")`.
+Do not modify core merely because a method is missing from the active catalog.
+
+New generic capability should normally enter the engine as one of:
 
 - a getter for a new supported state-access path;
 - a primitive type or extension of an existing primitive contract;
@@ -426,7 +453,8 @@ consult the generated package reference and these repository documents:
 
 - `docs/ingestion.md` for supported source-container paths;
 - `docs/getter_catalog_reference.md` for stable read surfaces;
-- `docs/op_catalog_reference.md` for operation discovery;
+- `docs/op_catalog_reference.md` for the no-pack core snapshot; use
+  `wb_list_ops()` and `wb_op_interface()` for the currently activated catalog;
 - `docs/primitive_catalog_reference.md` for typed inputs/outputs;
 - `docs/artifact_type_catalog_reference.md` for promoted-result contracts;
 - `docs/wrangler_catalog_reference.md` and `docs/plot_catalog_reference.md`

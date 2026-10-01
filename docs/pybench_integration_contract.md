@@ -1,16 +1,21 @@
 # Pybench Integration Contract (R Bench + Python Runtime)
 
-This document records how `scworkbench` (R engine / bench) and `pybench` (Python runtime) are intended to work together.
+This document records the current authority boundary between `scworkbench`
+(R engine) and `pybench` (Python runtime). For new pack authors, the
+[SDK](operation_pack_sdk.md) and [Python route map](python_bridge.md) are the
+entry points. Historical bridge details below are not new-pack instructions.
 
 It exists for future maintainers (human and agent) so we do not accidentally drift into ad hoc cross-language coupling.
 
 ## Core Principle
 
-`scworkbench` and `pybench` are **peer compute runtimes** sharing one bundle contract.
+The packages share primitive and identity contracts, but they are not equal
+scientific-state authorities.
 
 - `scworkbench` is the canonical engine and contract authority
 - `pybench` is a Python-native runtime for methods best implemented in Python
-- the **bundle** (SQLite + payload files) is the integration boundary
+- a core-owned private transition or typed private computation directory is
+  the execution boundary; the committed bundle is never Python write authority
 
 No large in-memory R<->Python object transfer should be required.
 
@@ -26,14 +31,24 @@ No large in-memory R<->Python object transfer should be required.
 
 ### Pybench (Python runtime) owns
 
-- reading bundle inputs (getters) via the shared bundle contract
+- consuming admitted typed inputs and granted private readers
 - running Python-native compute (for example `scvi-tools`, `palantir`)
-- writing primitive payloads directly into bundle payload tables/files
+- writing only declared private outputs through granted writers
 - returning a compact success/error receipt to bench
 
 ## Handoff Contract
 
-Bench should hand Python:
+For a Python-backed pack, core supplies an identity-bound request, private
+stage, typed descriptors, output grants, and dependency/runtime bindings. The
+handler receives `readers`, `writers`, `params`, and `context`, not a committed
+bundle path or unrestricted database connection. ABI v3 uses `pybench-op-v4`;
+v2 uses `pybench-op-v3`.
+
+An R-backed scientific pack passes only admitted staged data and checked model
+inputs to its private Python helper. Core audits what the R pack submits
+through its writers. This does not establish Python-pack runtime parity.
+
+The historical engine bridge supplied:
 
 - bundle path
 - symbolic refs (sets, artifact refs, space IDs, matrix IDs)
@@ -49,12 +64,12 @@ Pybench should return:
 
 Bench records provenance/run outcome centrally.
 
-## Symbolic References Over Literal Payloads (Required)
+## Symbolic References and Explicit Selections
 
-Before handing off to Python:
-
-- literal `cell_ids` should be materialized as a `cell_set` (ephemeral or named)
-- literal `feature_ids` should be materialized as a `feature_set`
+Prefer typed references and named sets for reusable scientific selections.
+Explicit cell/feature lists remain valid when the live contract admits them.
+Do not manufacture a durable set or mutate a registry just to reduce JSON size.
+Core records literals as literals and named sets with authenticated membership.
 
 Why:
 
@@ -62,7 +77,7 @@ Why:
 - provenance remains readable/replayable
 - avoids giant JSON payloads and brittle handoffs
 
-This is the default policy unless there is a compelling reason not to.
+Durable named-set creation uses a registered operation and promotion.
 
 ## Storage Contract Rule (Non-Negotiable)
 
@@ -70,7 +85,9 @@ Python must write primitive payloads **exactly** as R expects to read them.
 
 Validity criterion:
 
-- a Python-written artifact is valid iff current R `wb_art_load()` can read it without special-case hacks
+- core must validate source, complete grant/receipt closure, payload identities,
+  dimensions, order, and mutation scope before publication; loadability alone
+  does not establish validity
 
 Implications:
 
@@ -138,18 +155,22 @@ Historical core scVI training bridge (retained for reading old runs only):
 When an R function has a Python counterpart:
 
 1. add/maintain inline `pybench-parity` comment on the R function
-2. update `docs/pybench_parity_map.md`
-3. if storage semantics changed, add/update a parity test
+2. update the relevant shared fixtures and SDK backend-support record
+3. if storage or authority semantics changed, add executable parity tests
 
-The parity map is the central index. Inline comments are local tripwires.
+The installed capability catalog and Python support table distinguish
+schema/identity parity from runtime authority. Inline comments are local
+tripwires, not qualification evidence.
 
 ## SQLite / Concurrency Policy
 
-Direct Python writes are allowed, but assume:
+Direct committed-bundle Python writes are prohibited. Granted writes in an
+engine-created private stage are constrained and independently audited.
 
 - **single writer at a time per bundle**
 
-Do not rely on concurrent R+Python writes to the same bundle without explicit locking/orchestration.
+Core owns locking, rollback, and publication. A pack must not add a concurrent
+database writer or authorize writes by opening its own connection.
 
 ## Schema / Migration Policy (Current)
 

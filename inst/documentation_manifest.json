@@ -101,17 +101,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "docs/bdev_external_user_workflows.md",
-      "class": "public_canonical",
-      "audience": "public",
-      "status": "current",
-      "canonical_source": "docs/bdev_external_user_workflows.md",
-      "generator": null,
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "docs/sessions_and_ops.md",
       "class": "public_canonical",
       "audience": "public",
@@ -242,6 +231,83 @@
       "source_tarball": true,
       "installed_package": false,
       "installed_relative_path": null
+    },
+    {
+      "path": "docs/source_ingestion.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/source_ingestion.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/engine_extension_patterns.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/engine_extension_patterns.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/file_backed_dense_space_storage.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/file_backed_dense_space_storage.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/file_backed_dense_space_pybench_interface.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/file_backed_dense_space_pybench_interface.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/motif_contracts_and_chromvar.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/motif_contracts_and_chromvar.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/sparse_knn_operation_pack_boundary.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/sparse_knn_operation_pack_boundary.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "inst/standard_profile/README.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/standard_profile/README.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "standard_profile/README.md"
     },
     {
       "path": "docs/CONTRIBUTING.md",
@@ -1243,6 +1309,17 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "onboarding/SHARED_FOUNDATION.md"
+    },
+    {
+      "path": "inst/onboarding/SYSTEM_OVERVIEW.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/SYSTEM_OVERVIEW.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "onboarding/SYSTEM_OVERVIEW.md"
     },
     {
       "path": "docs/artifact_type_catalog_reference.md",

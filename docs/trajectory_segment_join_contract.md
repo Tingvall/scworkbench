@@ -1,5 +1,11 @@
 # Trajectory Segment Join Contract
 
+Current execution belongs to the explicitly activated `scwbTrajectory` pack.
+Use `scwbtrajectory::trajectory_segment_join` and
+`scwbtrajectory::trajectory_segment_path_join`; short method labels in this
+guide describe semantics, not no-pack core operations. Inspect the qualified
+interface for exact input and optional collection declarations.
+
 ## Purpose
 
 `trajectory_segment_join` creates an auditable composite trajectory from ordered
@@ -258,15 +264,17 @@ segment cell counts is desired.
 Reports should state that the pseudotime is a segmented composite, not a single
 model-derived pseudotime.
 
-`trajectory_geneset_dynamics` and `trajectory_signal_dynamics` support this
-explicit-pseudotime mode. Use `pseudotime` plus `pseudotime_key` instead of
-`model`:
+The pack exposes separate explicit-pseudotime operations:
+`scwbtrajectory::trajectory_geneset_dynamics_explicit` and
+`scwbtrajectory::trajectory_signal_dynamics_explicit`. Their model-backed
+counterparts require `model`; do not pass `pseudotime` to those interfaces.
+For explicit mode, use `pseudotime` plus `pseudotime_key`:
 
 ```r
 wb_session_run_op(
   session = s,
   bundle = b,
-  op_name = "trajectory_geneset_dynamics",
+  op_name = "scwbtrajectory::trajectory_geneset_dynamics_explicit",
   inputs = list(
     matrix = "RNA_log_norm",
     pseudotime = wb_ref_artifact("cell_vector_family_...", "composite_pseudotime_unit_segment"),

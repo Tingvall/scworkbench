@@ -5,6 +5,11 @@ engine/client boundary.
 
 Use it when adding new capabilities.
 
+For a scientific method over existing primitives, first use the installed
+[SDK guide](../inst/sdk/operation-packs/GUIDE.md). This document covers engine
+changes; the standard author route does not require private catalog, storage,
+promotion, or provenance implementation.
+
 ## Core Rule
 
 Put each change in the correct engine surface.
@@ -15,7 +20,7 @@ Do not start from the client and work backward.
 
 If you are adding:
 
-- new analysis compute -> add an op
+- new analysis compute -> add an SDK operation in a pack
 - new normalized display dataset -> add a wrangler / plot mapper
 - new artifact summary text -> add an identity-card issuer
 - new cross-surface handoff -> add a navigation resolver / handoff contract
@@ -23,17 +28,21 @@ If you are adding:
 
 ## 1. Adding an Op
 
-Canonical path:
+Canonical method path:
 
-- `wb_op_*()` implementation
-- runner in `R/op_catalog.R`
-- a core entry in `.wb_op_catalog()`, or an independently distributed operation
-  pack through the public ABI in `docs/operation_packs.md`
-- contract test
+- SDK scaffold with an ABI-v3 manifest and namespace
+- `function(readers, writers, params, context)` pack runner
+- primitive inputs/outputs, dependencies, grants, and publication closure
+- method tests in the pack and separately invoked installed composites
+
+Only an engine-owned registry/ingestion/adoption operation belongs in
+`R/op_catalog.R`. A missing primitive or generic capability requires a core
+contract, not an operation-name exception.
 
 Read:
 
-- `inst/add_op.md`
+- [Operation Pack SDK](operation_pack_sdk.md)
+- [Source ownership](source_ownership.md)
 
 Do:
 
@@ -67,8 +76,8 @@ Do:
 Do not:
 
 - infer scientific inputs in the client
-- let a plot mapper become a hidden analysis op unless that is an intentional
-  transitional state
+- let a plot mapper become a hidden analysis op; record scientific derivations
+  through registered operations or declared provenance-aware contracts
 
 Rule of thumb:
 
@@ -110,7 +119,7 @@ Canonical files:
 - `R/navigation.R`
 - related artifact helpers in `R/artifacts.R`
 
-Current draft contract:
+Public navigation contract:
 
 - `wb_nav_entities()`
 - `wb_nav_targets()`
@@ -190,7 +199,7 @@ Clients are not allowed to:
 
 If a client needs more intelligence, add an engine contract first.
 
-## 7. Tests
+## 8. Tests
 
 Every new extension should have contract tests.
 
@@ -206,17 +215,17 @@ Prefer:
 - one focused contract test for the new surface
 - one real-bundle smoke check for confidence
 
-## 8. Docs To Update
+## 9. Docs To Update
 
 At minimum, consider:
 
 - roxygen on exported functions
-- `inst/foundation_contracts.md`
+- [Shared foundation](../inst/onboarding/SHARED_FOUNDATION.md)
 - onboarding/playbook docs if the extension surface is important
 - dedicated draft contract docs for new surfaces
 - staged assembly docs if the change touches bundle creation / ingest / attach
 
-## 9. Semantic Catalog Updates
+## 10. Semantic Catalog Updates
 
 Semantic catalogs are part of the engine contract. They are used by agents,
 docs, and planning helpers. If you add or change any of the surfaces below,
@@ -224,7 +233,9 @@ update the semantic layer in the same change.
 
 Update these when adding:
 
-- new op -> `R/op_catalog.R`; then refresh `op_catalog_semantic.json`
+- new pack op -> manifest/runner and pack tests; inspect its activated interface
+  (no-pack generated catalogs do not list inactive packs)
+- new engine-owned op -> `R/op_catalog.R`; refresh `op_catalog_semantic.json`
 - new getter or inspection helper -> `R/getter_catalog.R`
 - new plot contract or plot mapper -> `R/wrangler_plots_contracts.R` and, if needed, `R/semantic_contract_catalogs.R`
 - new primitive kind or primitive constructor -> `R/primitives.R`, promotion support, and `wb_primitive_catalog_semantic()`
@@ -253,7 +264,7 @@ The audit currently checks:
 - op IO kinds resolve to known primitive kinds
 - compatibility graph edges point to existing records
 
-## 10. Common Failure Modes
+## 11. Common Failure Modes
 
 - putting compute in the client because it is faster to prototype
 - adding a second registration path
@@ -263,11 +274,11 @@ The audit currently checks:
 - adding an op/wrangler/table type without updating semantic catalogs and
   refreshing generated docs
 
-## 11. Current Important Surfaces
+## 12. Current Important Surfaces
 
 Today the main extensibility surfaces are:
 
-- ops via `op_catalog`
+- methods through the SDK; core-owned operations through `op_catalog`
 - plot contracts / mappers
 - identity-card issuers
 - navigation contract

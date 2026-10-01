@@ -1,5 +1,24 @@
 # Operation packs
 
+## Current Authoring Entry Point
+
+Use the [Operation Pack SDK](operation_pack_sdk.md) for new packs. The minimal
+template is ABI v3: declare primitive IO and supported grants, compute through
+issued readers, and emit primitives through scoped writers. The installed
+[system overview](../inst/onboarding/SYSTEM_OVERVIEW.md) explains profile
+activation, centralized chunking, compatibility, and test ownership.
+
+Core alone exposes five operations; the optional seven-pack profile exposes
+61 after explicit process-local activation. Installation is inert. A primitive
+kind does not automatically authorize every axis, cardinality, registry read,
+or model relationship. Check the SDK catalog's backend-specific policy support.
+
+The sections below preserve version-specific contracts. ABI versions are not
+Python wire-protocol versions: v2 packs use `pybench-op-v3`, v3 Python packs use
+`pybench-op-v4`. Do not reinterpret an old manifest under a successor schema.
+
+## ABI v1 Contract
+
 Operation-pack protocol v1 admits independently installed R packages and Python
 distributions. Protocol support and installed runtime support remain different:
 this checkpoint activates R packs in-process and Python packs through the
@@ -33,10 +52,11 @@ An R v2 package uses the same explicit installation and activation APIs, but
 its entry-point runners have the closed signature:
 
 ```r
-function(readers, writers, params, context)
+function(readers, writers, params, context) { ... }
 ```
 
-`readers` and `writers` are named, opaque, single-use core capabilities. They
+`readers` and `writers` are named, opaque core capabilities with declared call
+disciplines. They
 expose typed copies of declared inputs and sanctioned writers for declared
 outputs only. They never expose a bundle root, SQLite connection, registry,
 provenance writer, or final publication path. Core resolves dependencies
@@ -354,7 +374,7 @@ register_your_pack <- function() {
 Runner formals are exactly:
 
 ```r
-function(bundle, resolved, effective_cells, inputs, ...)
+function(bundle, resolved, effective_cells, inputs, ...) { ... }
 ```
 
 The runner reads engine-resolved primitive inputs from `resolved`, validated

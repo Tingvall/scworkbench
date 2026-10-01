@@ -2,6 +2,11 @@
 
 ## Quick start and trust
 
+The installed [system overview](../../onboarding/SYSTEM_OVERVIEW.md) maps the
+core/pack architecture and analyst workflow. This guide is for pack authors;
+the source-distributed engine-extension loop is not required for a new method
+over supported primitives.
+
 Use `wb_operation_pack_scaffold(path, package, namespace, author, email)` into
 a nonexistent directory with an existing parent. Spaces work; traversal,
 reserved namespaces, overwrite and malformed maintainer metadata reject.
@@ -110,6 +115,12 @@ report for lasting evidence. Its `logs` and isolated library are temporary and
 may disappear when the R process exits. Static mode has no author test counts.
 
 ## Checklist
+
+During development use static checks and focused author tests. Qualify the
+frozen installed candidate once across the required lifecycle; a documentation
+correction does not require unrelated complete scientific suites. Keep method
+tests pack-owned and real-pack composites explicitly invoked. Save check
+diagnostics and any temporary logs before process exit.
 
 - Match package/version/namespace/qualified operation/entry point.
 - Declare closed input/output/schema/profile tuples, defaults and dependencies.

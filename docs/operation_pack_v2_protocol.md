@@ -1,9 +1,9 @@
 # Operation-pack ABI v2 protocol relationship
 
-Operation-pack ABI v2 is the live, closed extension contract described by
+Operation-pack ABI v2 remains a supported closed extension contract described by
 `operation-pack-v2.schema.json`. It reuses the exact byte rules of
 `scworkbench.operation_pack.canonical_json.v1` and is not an upgrade of a v1
-manifest. V1 and v2 have separate validators, identities, activation paths,
+manifest. New SDK authoring starts at ABI v3. V1 and v2 have separate validators, identities, activation paths,
 and capabilities; neither may fall back to the other.
 
 The logical v2 transition envelope uses process protocol `pybench-op-v3`, whose
@@ -13,12 +13,13 @@ installed `pybench-operation-pack-v3` Python CLI implement the same envelope.
 Python execution additionally emits `pybench-op-v3-python-runtime.schema.json`,
 a backend-specific runtime sidecar that is validated separately and never
 changes the language-neutral receipt. Existing `pybench-op-v2` remains the
-protocol for current production Python operations and is unchanged.
+historical engine-bridge protocol and is unchanged; it is not the v3 pack
+transport or the private Python boundary used by current R scientific packs.
 
 Scientific state is independently versioned by the bundle schema. A manifest,
 process-protocol, or pack-content identity can never substitute for a durable
-scientific-state identity. Core allocates durable IDs, grants typed single-use
-readers and writers, audits the closed output set, publishes a complete
+scientific-state identity. Core allocates durable IDs, grants typed readers
+with their declared schedules and one-shot output writers, audits the closed output set, publishes a complete
 transition atomically, and retains request, receipt, runtime, dependency,
 payload, and semantic identities for pack-free recipient inspection.
 

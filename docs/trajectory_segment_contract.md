@@ -1,5 +1,11 @@
 # Generic Trajectory Segment Contract
 
+The segment adapters and joins are supplied by the explicitly activated
+`scwbTrajectory` pack under `scwbtrajectory::` names. Core authenticates their
+primitive/axis exchange and atomic publication; the pack owns trajectory
+normalization, filtering, overlap rules, and endpoint computations. This guide
+describes method semantics, not an invitation to access core storage directly.
+
 ## Purpose
 
 Composite trajectories are assembled from ordered trajectory-like segments.
@@ -232,8 +238,8 @@ cell sets from free-text labels.
 
 The resulting composite remains compatible with:
 
-- `trajectory_geneset_dynamics` explicit-pseudotime mode.
-- `trajectory_signal_dynamics` explicit-pseudotime mode.
+- `scwbtrajectory::trajectory_geneset_dynamics_explicit`.
+- `scwbtrajectory::trajectory_signal_dynamics_explicit`.
 - UMAP/path overlay workflows through `path_2d_family`.
 - future explicit-pseudotime trajectory smoothing ops.
 

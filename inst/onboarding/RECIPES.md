@@ -2,6 +2,12 @@
 
 Canonical workflows as reusable patterns.
 
+Start with [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md). Install and explicitly
+activate the named packs in each process before using these recipes; a standard
+profile installation alone does not change the catalog. Inspect
+`wb_op_interface()` for exact input names, defaults, outputs, and dependencies.
+These patterns are not a substitute for that live interface.
+
 ## 0. Mount a Bundle in a Container
 
 Writable workflow:
@@ -27,9 +33,11 @@ singularity exec --cleanenv \
   --bind "/host/project/example.bundle:/bundle:ro" \
   "/path/to/scworkbench.sif" \
   Rscript --vanilla -e '
-    library(scworkbench)
-    b <- wb_open_bundle("/bundle", read_only = TRUE, validate = TRUE)
-    on.exit(wb_close_bundle(b), add = TRUE)
+    local({
+      library(scworkbench)
+      b <- wb_open_bundle("/bundle", read_only = TRUE, validate = TRUE)
+      on.exit(wb_close_bundle(b), add = TRUE)
+    })
   '
 ```
 
@@ -40,7 +48,7 @@ Inputs:
 - `group_a` and `group_b` (`set:<name>`)
 
 Pattern:
-1. `wb_session_run_op(..., op_name = "de_wilcox", inputs = list(matrix=..., group_a=..., group_b=...))`
+1. Activate `scwbStatistics`, then use `wb_session_run_op(..., op_name = "scwbstatistics::de_wilcox", inputs = list(matrix=..., group_a=..., group_b=...))`.
 2. Promote `de_table`
 3. Export DE table + volcano + MA plot
 
@@ -59,8 +67,8 @@ Pattern:
 ## 3. Cluster -> Markers -> Pathways
 
 Pattern:
-1. `leiden` on selected space.
-2. `markers_topn` with cluster vector.
+1. Activate `scwbRepresentation`; run `scwbrepresentation::leiden` on selected space.
+2. Activate `scwbStatistics`; run `scwbstatistics::markers_topn` with cluster vector.
 3. Per-cluster pathway enrichment using selected namespace.
 4. Emit summary manifest and pathway-per-cluster table.
 
@@ -85,5 +93,8 @@ Always emit:
 ## 6. Set Recovery
 
 If a set was deleted but cells still exist:
-- recover from known IDs via `wb_cell_set_replace()`.
-- if needed, reconstruct from `all` minus baseline/core set or dataset filters.
+- inspect `wb_op_interface("cell_set_derive")` and reconstruct through the
+  registered core operation and promotion, preserving declared source inputs.
+- if needed, derive from `all` minus baseline/core set or dataset filters.
+- do not call a registry writer on a committed handle or silently revive an
+  immutable historical identifier; use an explicit new identity/revision.
