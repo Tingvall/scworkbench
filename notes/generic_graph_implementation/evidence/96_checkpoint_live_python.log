@@ -1,0 +1,7 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_ABI4_LIVE_PYTHON matrix_to_graph=PASS graph_broker_to_table=PASS retained_cv_bound_graph_table=PASS full_closure=PASS source_authority=verified recipient=PASS fingerprint_unchanged=TRUE
+GRAPH_CURRENT_INSTALLED_LIVE passed=1 skipped=0 failed=0

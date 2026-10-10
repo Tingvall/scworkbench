@@ -1,0 +1,6 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+golden_bundle=/tmp/scworkbench_golden_4002416bcc5fa
+Error: Unknown selected contract test file(s): tests/composite/phase4c/test_exclusive_bundle_writer_lock_contract.R
+Execution halted

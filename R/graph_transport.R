@@ -68,7 +68,12 @@
         end <- positions[[1]]
         .wb_graph_require(end > 1L && end - 1L <= line_bytes,
           "GRAPH_RESOURCE_EXCEEDED", "Empty/oversized graph transport line.")
-        line <- rawToChar(buffer[seq_len(end - 1L)])
+        raw_line <- buffer[seq_len(end - 1L)]
+        .wb_graph_require(!any(raw_line == as.raw(0)), "GRAPH_PAYLOAD_INVALID",
+          "Embedded NUL in graph transport; byte framing must not truncate payload evidence.")
+        line <- iconv(rawToChar(raw_line), from = "UTF-8", to = "UTF-8", sub = NA_character_)
+        .wb_graph_require(!is.na(line),
+          "GRAPH_PAYLOAD_INVALID", "Graph transport record is not valid UTF-8.")
         buffer <<- if (end < length(buffer)) buffer[seq.int(end + 1L, length(buffer))] else raw()
         return(line)
       }

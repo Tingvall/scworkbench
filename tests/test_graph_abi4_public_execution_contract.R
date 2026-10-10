@@ -53,13 +53,21 @@ test_graph_abi4_public_r_execution_contract <- function() {
     "prov_commits", "prov_runs", "prov_run_outputs", "prov_run_entity_bindings"), function(table)
       as.numeric(DBI::dbGetQuery(bundle$con, paste0("SELECT COUNT(*) n FROM ", table))$n[[1L]]), numeric(1))
   before <- counts()
-  old_hook <- options(scworkbench.promotion_transaction_test_hook = function(event, ...) {
-    if (event == "graph_component_rows") stop("graph-public-promotion-fault")
-  })
-  on.exit(options(old_hook), add = TRUE)
-  failed <- tryCatch(wb_session_promote_current(bundle, bound$session, outputs = "result"), error = identity)
-  options(old_hook)
-  stopifnot(inherits(failed, "error"), identical(counts(), before))
+  before_payloads <- list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+  for (boundary in c("graph_component_rows", "after_first_private_terminal_write",
+      "after_payload_move_before_database_commit")) {
+    old_hook <- options(scworkbench.promotion_transaction_test_hook = local({
+      selected <- boundary
+      function(event, ...) if (event == selected) stop(paste0("graph-public-promotion-fault-", selected))
+    }))
+    on.exit(options(old_hook), add = TRUE)
+    failed <- tryCatch(wb_session_promote_current(bundle, bound$session, outputs = "result"), error = identity)
+    options(old_hook)
+    stopifnot(inherits(failed, "error"),
+      grepl(paste0("graph-public-promotion-fault-", boundary), conditionMessage(failed), fixed = TRUE),
+      identical(counts(), before),
+      identical(list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE), before_payloads))
+  }
   promoted_bound <- wb_session_promote_current(bundle, bound$session, outputs = "result")
   stopifnot(nrow(promoted_bound$promoted) == 2L)
   bound_id <- as.character(promoted_bound$promoted$artifact_id[promoted_bound$promoted$output == "result"][[1L]])
@@ -69,7 +77,7 @@ test_graph_abi4_public_r_execution_contract <- function() {
   # analytical claims or payloads into the source destination. Retry is above.
   baseline <- counts()
   payloads <- list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE)
-  for (boundary in c("before_dispatch", "receipt_received", "before_publication", "published", "reopened")) {
+  for (boundary in c("before_dispatch", "receipt_received", "audited", "before_publication", "published", "reopened")) {
     scratch_before <- list.dirs(scworkbench:::.wb_session_stage_root(), recursive = FALSE)
     hook <- options(scworkbench.operation_pack_v2_test_hook = local({
       selected <- boundary
@@ -80,7 +88,9 @@ test_graph_abi4_public_r_execution_contract <- function() {
       "scwbgraphfixture::graph_and_cell_metadata", inputs = list(source = wb_ref_artifact(id, "result"),
         metadata = wb_ref_artifact(metadata_id, "vector"), min_cells = 1L)), error = identity)
     options(hook)
-    stopifnot(inherits(failed, "error"), identical(counts(), baseline),
+    stopifnot(inherits(failed, "error"),
+      grepl(paste0("graph-execution-fault-", boundary), conditionMessage(failed), fixed = TRUE),
+      identical(counts(), baseline),
       identical(list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE), payloads),
       identical(list.dirs(scworkbench:::.wb_session_stage_root(), recursive = FALSE), scratch_before))
   }

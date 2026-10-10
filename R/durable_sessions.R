@@ -43,11 +43,16 @@
 }
 
 .wb_session_source_identity <- function(bundle) {
-  .wb_with_bundle_writer_lock(bundle, operation = "durable session source identity", code = {
+  # Authentication observes committed state under exclusion; it does not
+  # publish a mutation or refresh the durable manifest.
+  source_lock <- .wb_bundle_writer_lock_acquire(bundle,
+    operation = "durable session source identity")
+  on.exit(.wb_bundle_writer_lock_release(source_lock), add = TRUE)
+  {
     state <- .wb_manifest_registry_snapshot(bundle$con)
     list(schema = "scworkbench.session_source.v2", bundle_dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE), location_policy = "fixed_path",
          scientific_state_fingerprint = as.character(state$fingerprint)[1], scientific_state = state)
-  })
+  }
 }
 
 .wb_session_workspace_lock <- function(session, operation, code) {
@@ -303,9 +308,8 @@ wb_session_create <- function(bundle, workspace_root = .wb_session_workspace_roo
   staged <- try(.wb_session_stage_bundle(bundle, s), silent = TRUE)
   if (inherits(staged, "try-error")) { unlink(workspace, recursive = TRUE, force = TRUE); stop(staged) }
   s <- staged$session
-  # Snapshot acquisition is writer-lock coordinated and may publish an already
-  # committed manifest checkpoint; bind the durable session to that final,
-  # coherent source identity rather than the pre-lock view.
+  # Snapshot acquisition and identity observation use the same writer lock;
+  # bind to coherent committed state without republishing the source manifest.
   s$durable$source_identity <- .wb_session_source_identity(bundle)
   .wb_session_checkpoint(s, "active")
 }

@@ -1,0 +1,9 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+golden_bundle=/tmp/scworkbench_golden_40353428f9338
+Discovered 1 contract tests in 1 files.
+RUN test_durable_session_source_payload_corruption_contract [test_durable_session_source_payload_corruption_contract.R; self_contained]
+PASS test_durable_session_source_payload_corruption_contract (24.383s)
+CONTRACT TEST SUMMARY files=1 discovered=1 executed=1 passed=1 skipped=0 failed=0 excluded=0 accounted=1
+scworkbench contract suite passed for /tmp/scworkbench_golden_40353428f9338

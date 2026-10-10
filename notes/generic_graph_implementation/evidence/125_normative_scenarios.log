@@ -1,0 +1,29 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_SCENARIO airline_parallel_isolate independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO social_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO social_directed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO social_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO signed_weighted_grn independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO ppi_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO reaction_hyper_repeated independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO transport_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO empty_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO empty_directed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO empty_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO isolated_only independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO mixed_declared_directed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO mixed_declared_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO disconnected_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO disconnected_undirected_supplemental independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO disconnected_self_loop_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO directed_self_loop independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO undirected_self_loop independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO self_loops_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO repeated_hyper_incidences independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO unary_undirected_hyperedge independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO typed_all_scopes independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIOS_RECIPIENT cases=23 process_replaced=TRUE relocated=TRUE pack_free=TRUE exact_components=TRUE recipient=PASS fingerprint_unchanged=TRUE 

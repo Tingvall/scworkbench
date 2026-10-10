@@ -1,0 +1,1468 @@
+$schema_version
+[1] "scworkbench.operation_pack.manifest_conformance.v4"
+
+$ok
+[1] TRUE
+
+$activated
+[1] FALSE
+
+$structural_only
+[1] TRUE
+
+$backend
+[1] "R"
+
+$identity
+$identity$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$identity$schema_version
+[1] "scworkbench.operation_pack.v4"
+
+$identity$pack_abi_version
+[1] "4"
+
+$identity$namespace
+[1] "graphscalefixt"
+
+$identity$package
+$identity$package$name
+[1] "scwbGraphScaleFixture"
+
+$identity$package$version
+[1] "0.1.0"
+
+
+$identity$backend
+[1] "R"
+
+$identity$compatibility
+$identity$compatibility$pack_abi
+$identity$compatibility$pack_abi$maximum
+[1] "4"
+
+$identity$compatibility$pack_abi$minimum
+[1] "4"
+
+
+$identity$compatibility$scworkbench
+$identity$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+$identity$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+
+
+$identity$entry_point
+[1] "scwbGraphScaleFixture::register_operation_pack"
+
+$identity$manifest_source_identity
+$identity$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$identity$manifest_source_identity$sha256
+[1] "b607e136006cdc2beabf1a7eac7f6174a6d26c28b2a6bed72a769131d87d6ec7"
+
+
+$identity$manifest_identity
+$identity$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v4"
+
+$identity$manifest_identity$sha256
+[1] "95f7c2997b52af50f9956a14fa45872ed4bc2b81dfdd2bdc360fdbb4ea81c124"
+
+
+$identity$manifest_sha256
+[1] "95f7c2997b52af50f9956a14fa45872ed4bc2b81dfdd2bdc360fdbb4ea81c124"
+
+$identity$operation_definition_identities
+$identity$operation_definition_identities$`graphscalefixt::stream_graph`
+$identity$operation_definition_identities$`graphscalefixt::stream_graph`$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$identity$operation_definition_identities$`graphscalefixt::stream_graph`$sha256
+[1] "3ce3df793c604a1fe3785cf5694a12c708c80ebae59901aeab1e55b0ce84884e"
+
+
+
+$identity$operation_definition_sha256
+$identity$operation_definition_sha256$`graphscalefixt::stream_graph`
+[1] "3ce3df793c604a1fe3785cf5694a12c708c80ebae59901aeab1e55b0ce84884e"
+
+
+$identity$distribution_identity
+$identity$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$identity$distribution_identity$sha256
+[1] "a16c01c24b194c19dc96b57a746b04f7c1eff035360c1e1eca3295340bad2bea"
+
+
+$identity$entry_point_identity
+$identity$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$identity$entry_point_identity$sha256
+[1] "be20d0bf27af231c6eab2e6c5ac19fcb05300fc872ba1b963530e7e54715fcc8"
+
+
+$identity$pack_identity
+$identity$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v4"
+
+$identity$pack_identity$sha256
+[1] "6e398bbb660509a0341bced04bf00f72e848045c0c934056e126c7aa864c613e"
+
+
+$identity$pack_sha256
+[1] "6e398bbb660509a0341bced04bf00f72e848045c0c934056e126c7aa864c613e"
+
+
+$manifest
+$manifest$backend
+[1] "R"
+
+$manifest$compatibility
+$manifest$compatibility$pack_abi
+$manifest$compatibility$pack_abi$maximum
+[1] "4"
+
+$manifest$compatibility$pack_abi$minimum
+[1] "4"
+
+
+$manifest$compatibility$scworkbench
+$manifest$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+$manifest$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+
+
+$manifest$entry_point
+[1] "scwbGraphScaleFixture::register_operation_pack"
+
+$manifest$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$manifest$namespace
+[1] "graphscalefixt"
+
+$manifest$operations
+$manifest$operations[[1]]
+$manifest$operations[[1]]$dependencies
+list()
+
+$manifest$operations[[1]]$description
+[1] "Public ABI4 graph SDK reference; no scientific interpretation is asserted."
+
+$manifest$operations[[1]]$inputs
+$manifest$operations[[1]]$inputs[[1]]
+$manifest$operations[[1]]$inputs[[1]]$alignment
+[1] "none"
+
+$manifest$operations[[1]]$inputs[[1]]$binding_policy
+[1] "required"
+
+$manifest$operations[[1]]$inputs[[1]]$kind
+[1] "graph"
+
+$manifest$operations[[1]]$inputs[[1]]$name
+[1] "source"
+
+$manifest$operations[[1]]$inputs[[1]]$read_mode
+[1] "bounded_partitions_v1"
+
+$manifest$operations[[1]]$inputs[[1]]$required
+[1] TRUE
+
+$manifest$operations[[1]]$inputs[[1]]$storage_profile
+[1] "graph_sqlite_v1"
+
+
+
+$manifest$operations[[1]]$name
+[1] "stream_graph"
+
+$manifest$operations[[1]]$outputs
+$manifest$operations[[1]]$outputs[[1]]
+$manifest$operations[[1]]$outputs[[1]]$allocated_id_key
+[1] "result_id"
+
+$manifest$operations[[1]]$outputs[[1]]$axis_sources
+$manifest$operations[[1]]$outputs[[1]]$axis_sources[[1]]
+$manifest$operations[[1]]$outputs[[1]]$axis_sources[[1]]$input_name
+[1] "source"
+
+$manifest$operations[[1]]$outputs[[1]]$axis_sources[[1]]$axis_kind
+[1] "cell"
+
+$manifest$operations[[1]]$outputs[[1]]$axis_sources[[1]]$selection_mode
+[1] "selected_graph_binding"
+
+$manifest$operations[[1]]$outputs[[1]]$axis_sources[[1]]$source_binding_selector
+$manifest$operations[[1]]$outputs[[1]]$axis_sources[[1]]$source_binding_selector$kind
+[1] "fixed_binding_id_v1"
+
+$manifest$operations[[1]]$outputs[[1]]$axis_sources[[1]]$source_binding_selector$binding_id
+[1] "annotations"
+
+
+
+
+$manifest$operations[[1]]$outputs[[1]]$binding_policy
+[1] "required"
+
+$manifest$operations[[1]]$outputs[[1]]$category
+[1] "terminal_artifact"
+
+$manifest$operations[[1]]$outputs[[1]]$kind
+[1] "graph"
+
+$manifest$operations[[1]]$outputs[[1]]$name
+[1] "result"
+
+$manifest$operations[[1]]$outputs[[1]]$promotion_group
+[1] "result"
+
+$manifest$operations[[1]]$outputs[[1]]$required
+[1] TRUE
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_nodes
+[1] "9"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_edges
+[1] "1"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_incidences
+[1] "9"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_attribute_fields
+[1] "3"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_memory_bytes
+[1] "8388608"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_collect_bytes
+[1] "4194304"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_staged_bytes
+[1] "8589934592"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_spill_bytes
+[1] "8589934592"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_published_bytes
+[1] "8589934592"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$max_wal_bytes
+[1] "8589934592"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$partition_limits
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$partition_limits$max_rows
+[1] "256"
+
+$manifest$operations[[1]]$outputs[[1]]$resource_budgets$partition_limits$max_decoded_bytes
+[1] "262144"
+
+
+
+$manifest$operations[[1]]$outputs[[1]]$storage_profile
+[1] "graph_sqlite_v1"
+
+
+$manifest$operations[[1]]$outputs[[2]]
+$manifest$operations[[1]]$outputs[[2]]$allocated_id_key
+[1] "summary_id"
+
+$manifest$operations[[1]]$outputs[[2]]$category
+[1] "terminal_artifact"
+
+$manifest$operations[[1]]$outputs[[2]]$kind
+[1] "obs_table"
+
+$manifest$operations[[1]]$outputs[[2]]$name
+[1] "summary"
+
+$manifest$operations[[1]]$outputs[[2]]$promotion_group
+[1] "result"
+
+$manifest$operations[[1]]$outputs[[2]]$required
+[1] TRUE
+
+$manifest$operations[[1]]$outputs[[2]]$storage_profile
+[1] "terminal_primitive_v1"
+
+$manifest$operations[[1]]$outputs[[2]]$table_type
+[1] "graph_summary"
+
+
+
+$manifest$operations[[1]]$params_schema
+$manifest$operations[[1]]$params_schema$additionalProperties
+[1] FALSE
+
+$manifest$operations[[1]]$params_schema$properties
+$manifest$operations[[1]]$params_schema$properties$nodes
+$manifest$operations[[1]]$params_schema$properties$nodes$type
+[1] "integer"
+
+$manifest$operations[[1]]$params_schema$properties$nodes$minimum
+[1] 0
+attr(,"operation_pack_json_number")
+[1] "0"
+attr(,"operation_pack_canonical_number")
+[1] "0"
+
+$manifest$operations[[1]]$params_schema$properties$nodes$maximum
+[1] 9
+attr(,"operation_pack_json_number")
+[1] "9"
+attr(,"operation_pack_canonical_number")
+[1] "9e0"
+
+
+$manifest$operations[[1]]$params_schema$properties$fault
+$manifest$operations[[1]]$params_schema$properties$fault$type
+[1] "string"
+
+$manifest$operations[[1]]$params_schema$properties$fault$enum
+$manifest$operations[[1]]$params_schema$properties$fault$enum[[1]]
+[1] "none"
+
+$manifest$operations[[1]]$params_schema$properties$fault$enum[[2]]
+[1] "nodes"
+
+$manifest$operations[[1]]$params_schema$properties$fault$enum[[3]]
+[1] "attribute_values"
+
+$manifest$operations[[1]]$params_schema$properties$fault$enum[[4]]
+[1] "binding_mappings"
+
+
+
+
+$manifest$operations[[1]]$params_schema$type
+[1] "object"
+
+$manifest$operations[[1]]$params_schema$required
+$manifest$operations[[1]]$params_schema$required[[1]]
+[1] "nodes"
+
+$manifest$operations[[1]]$params_schema$required[[2]]
+[1] "fault"
+
+
+
+$manifest$operations[[1]]$promotion_closure
+$manifest$operations[[1]]$promotion_closure$result
+$manifest$operations[[1]]$promotion_closure$result[[1]]
+[1] "result"
+
+$manifest$operations[[1]]$promotion_closure$result[[2]]
+[1] "summary"
+
+
+$manifest$operations[[1]]$promotion_closure$summary
+$manifest$operations[[1]]$promotion_closure$summary[[1]]
+[1] "result"
+
+$manifest$operations[[1]]$promotion_closure$summary[[2]]
+[1] "summary"
+
+
+
+$manifest$operations[[1]]$qualified_name
+[1] "graphscalefixt::stream_graph"
+
+$manifest$operations[[1]]$replay_equivalence
+$manifest$operations[[1]]$replay_equivalence$result
+[1] "exact_graph_descriptor"
+
+$manifest$operations[[1]]$replay_equivalence$summary
+[1] "exact_canonical_value"
+
+
+$manifest$operations[[1]]$runner
+[1] ".stream_graph"
+
+$manifest$operations[[1]]$title
+[1] "stream_graph"
+
+
+
+$manifest$pack_abi_version
+[1] "4"
+
+$manifest$package
+$manifest$package$name
+[1] "scwbGraphScaleFixture"
+
+$manifest$package$version
+[1] "0.1.0"
+
+
+$manifest$schema_version
+[1] "scworkbench.operation_pack.v4"
+
+attr(,"operation_pack_v3_source_path")
+[1] "/tmp/scwb-graph-public-scale-small-4fa797f/scale-pack/inst/scworkbench/operation-pack.json"
+attr(,"operation_pack_v3_source_sha256")
+[1] "b607e136006cdc2beabf1a7eac7f6174a6d26c28b2a6bed72a769131d87d6ec7"
+attr(,"operation_pack_v4_source_path")
+[1] "/tmp/scwb-graph-public-scale-small-4fa797f/scale-pack/inst/scworkbench/operation-pack.json"
+attr(,"operation_pack_v4_source_sha256")
+[1] "b607e136006cdc2beabf1a7eac7f6174a6d26c28b2a6bed72a769131d87d6ec7"
+
+$claims
+$claims$structurally_validated
+[1] TRUE
+
+$claims$runtime_activated
+[1] FALSE
+
+$claims$scientifically_validated
+[1] FALSE
+
+$claims$host_sandboxed
+[1] FALSE
+
+$claims$bundle_mutated
+[1] FALSE
+
+
+attr(,"class")
+[1] "wb_operation_pack_manifest_conformance_v4"
+[2] "wb_operation_pack_manifest_conformance"   
+[3] "list"                                     
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+$session_id
+[1] "session_5nggtipm33ve"
+
+$runs
+$runs$run_voo7pytemopb
+$run_id
+[1] "run_voo7pytemopb"
+
+$op_name
+[1] "graphscalesource::matrix_to_graph"
+
+$created_at
+[1] "2026-10-11T00:29:35+0200"
+
+$inputs
+$inputs$cell_set
+[1] "all"
+
+$inputs$effective_n
+[1] 9
+
+$inputs$parents
+character(0)
+
+$inputs$provenance_refs
+list()
+
+$inputs$coverage
+$inputs$coverage$schema_version
+[1] "scworkbench.effective_cell_coverage.v1"
+
+$inputs$coverage$requested_source
+[1] "cell_set"
+
+$inputs$coverage$cell_set
+[1] "all"
+
+$inputs$coverage$requested_n
+[1] 9
+
+$inputs$coverage$per_input
+$inputs$coverage$per_input$matrix
+$inputs$coverage$per_input$matrix$kind
+[1] "matrix"
+
+$inputs$coverage$per_input$matrix$required
+[1] TRUE
+
+$inputs$coverage$per_input$matrix$coverage_mode
+[1] "cell_indexed"
+
+$inputs$coverage$per_input$matrix$source_id
+[1] "counts"
+
+$inputs$coverage$per_input$matrix$dims
+NULL
+
+$inputs$coverage$per_input$matrix$available_n
+[1] 9
+
+$inputs$coverage$per_input$matrix$input_n
+[1] 9
+
+$inputs$coverage$per_input$matrix$overlap_n
+[1] 9
+
+$inputs$coverage$per_input$matrix$dropped_n
+[1] 0
+
+
+
+$inputs$coverage$effective_n
+[1] 9
+
+$inputs$coverage$dropped_n
+[1] 0
+
+$inputs$coverage$percent
+[1] 100
+
+
+$inputs$cell_set_resolutions
+list()
+
+$inputs$user_inputs
+$inputs$user_inputs$matrix
+[1] "counts"
+
+$inputs$user_inputs$min_cells
+[1] 1
+
+$inputs$user_inputs$cell_set
+[1] "all"
+
+
+$inputs$symbolic_inputs
+$inputs$symbolic_inputs$cell_set
+[1] "all"
+
+$inputs$symbolic_inputs$min_cells
+[1] 1
+
+$inputs$symbolic_inputs$matrix
+[1] "counts"
+
+
+$inputs$execution_inputs
+$inputs$execution_inputs$effective_n
+[1] 9
+
+$inputs$execution_inputs$resolved
+$inputs$execution_inputs$resolved$matrix
+$inputs$execution_inputs$resolved$matrix$kind
+[1] "matrix"
+
+$inputs$execution_inputs$resolved$matrix$matrix_id
+[1] "counts"
+
+
+
+
+$inputs$operation_pack_registry_requests
+list()
+
+
+$params
+list()
+
+$outputs
+$outputs$result
+$kind
+[1] "graph"
+
+$content_identity
+$content_identity$scheme
+[1] "scworkbench.graph.content.canonical-json.v1"
+
+$content_identity$sha256
+[1] "86e879e6e6ed574f0f8a5d8e7488ba22e8eaaf21a5dab8d79afdd1969a032c12"
+
+
+$binding_identity
+$binding_identity$scheme
+[1] "scworkbench.graph.axis-bindings.canonical-json.v1"
+
+$binding_identity$sha256
+[1] "8529db30172fa5e9da7be4264b557d48aac314b26aae52667270adcf2d722f92"
+
+
+$descriptor_identity
+$descriptor_identity$scheme
+[1] "scworkbench.graph.retained-descriptor.canonical-json.v1"
+
+$descriptor_identity$sha256
+[1] "fa89775e8acd2c85e8d2cae1f0d01fcbabc9014d84a2f9223a3527e59d747592"
+
+
+attr(,"class")
+[1] "wb_primitive"
+attr(,"graph_stage")
+<environment: 0x5fd66d01c7d8>
+
+
+$notes
+NULL
+
+$operation_pack
+$operation_pack$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$operation_pack$schema_version
+[1] "scworkbench.operation_pack.v4"
+
+$operation_pack$pack_abi_version
+[1] "4"
+
+$operation_pack$namespace
+[1] "graphscalesource"
+
+$operation_pack$package
+$operation_pack$package$name
+[1] "scwbGraphScaleSource"
+
+$operation_pack$package$version
+[1] "0.1.0"
+
+
+$operation_pack$backend
+[1] "R"
+
+$operation_pack$compatibility
+$operation_pack$compatibility$pack_abi
+$operation_pack$compatibility$pack_abi$maximum
+[1] "4"
+
+$operation_pack$compatibility$pack_abi$minimum
+[1] "4"
+
+
+$operation_pack$compatibility$scworkbench
+$operation_pack$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+$operation_pack$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+
+
+$operation_pack$entry_point
+[1] "scwbGraphScaleSource::register_operation_pack"
+
+$operation_pack$manifest_source_identity
+$operation_pack$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack$manifest_source_identity$sha256
+[1] "176ac5aed7ddffbd0ecc21e4e7432e473ad59612e99963544cb0822e3facdef0"
+
+
+$operation_pack$manifest_identity
+$operation_pack$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v4"
+
+$operation_pack$manifest_identity$sha256
+[1] "4049ec2768a3b4484f041651ef58f7c53a0c59b3ad31366878ae07313990b256"
+
+
+$operation_pack$manifest_sha256
+[1] "4049ec2768a3b4484f041651ef58f7c53a0c59b3ad31366878ae07313990b256"
+
+$operation_pack$operation_definition_identities
+$operation_pack$operation_definition_identities$`graphscalesource::graph_and_cell_metadata`
+$operation_pack$operation_definition_identities$`graphscalesource::graph_and_cell_metadata`$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack$operation_definition_identities$`graphscalesource::graph_and_cell_metadata`$sha256
+[1] "6d94c61052b3cb484d84432ee845a14973518540f2720ae4eacb2555317e3193"
+
+
+$operation_pack$operation_definition_identities$`graphscalesource::graph_to_table`
+$operation_pack$operation_definition_identities$`graphscalesource::graph_to_table`$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack$operation_definition_identities$`graphscalesource::graph_to_table`$sha256
+[1] "4d48a3a3f6ddc49b680977a7d63672548d932f71c12cffbe858495008055b6b5"
+
+
+$operation_pack$operation_definition_identities$`graphscalesource::matrix_to_graph`
+$operation_pack$operation_definition_identities$`graphscalesource::matrix_to_graph`$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack$operation_definition_identities$`graphscalesource::matrix_to_graph`$sha256
+[1] "0b66c2b1b6924eea41e3c150e764ad264781d7cd9ee9d692170b7866615393db"
+
+
+
+$operation_pack$operation_definition_sha256
+$operation_pack$operation_definition_sha256$`graphscalesource::graph_and_cell_metadata`
+[1] "6d94c61052b3cb484d84432ee845a14973518540f2720ae4eacb2555317e3193"
+
+$operation_pack$operation_definition_sha256$`graphscalesource::graph_to_table`
+[1] "4d48a3a3f6ddc49b680977a7d63672548d932f71c12cffbe858495008055b6b5"
+
+$operation_pack$operation_definition_sha256$`graphscalesource::matrix_to_graph`
+[1] "0b66c2b1b6924eea41e3c150e764ad264781d7cd9ee9d692170b7866615393db"
+
+
+$operation_pack$distribution_identity
+$operation_pack$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack$distribution_identity$sha256
+[1] "3667a85a2a7a5c62d838ed275066d7a3c86acf85b9ae3415ed9ca3d7aa3dd97a"
+
+
+$operation_pack$entry_point_identity
+$operation_pack$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack$entry_point_identity$sha256
+[1] "19732c36311db29851f25f4e10a8e8fcda6353fc64e45a761fdf7e2762d98384"
+
+
+$operation_pack$pack_identity
+$operation_pack$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v4"
+
+$operation_pack$pack_identity$sha256
+[1] "b3e75d308cd1e4e92176a705625a3887e042037a4985ff955d4794078c667ecf"
+
+
+$operation_pack$pack_sha256
+[1] "b3e75d308cd1e4e92176a705625a3887e042037a4985ff955d4794078c667ecf"
+
+
+$operation_definition_sha256
+[1] "0b66c2b1b6924eea41e3c150e764ad264781d7cd9ee9d692170b7866615393db"
+
+$operation_pack_runtime
+$operation_pack_runtime$schema
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$backend
+[1] "R"
+
+$operation_pack_runtime$pack_identity
+$operation_pack_runtime$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v4"
+
+$operation_pack_runtime$pack_identity$sha256
+[1] "b3e75d308cd1e4e92176a705625a3887e042037a4985ff955d4794078c667ecf"
+
+
+$operation_pack_runtime$manifest_source_identity
+$operation_pack_runtime$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack_runtime$manifest_source_identity$sha256
+[1] "176ac5aed7ddffbd0ecc21e4e7432e473ad59612e99963544cb0822e3facdef0"
+
+
+$operation_pack_runtime$distribution_identity
+$operation_pack_runtime$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack_runtime$distribution_identity$sha256
+[1] "3667a85a2a7a5c62d838ed275066d7a3c86acf85b9ae3415ed9ca3d7aa3dd97a"
+
+
+$operation_pack_runtime$operation_definition_identity
+$operation_pack_runtime$operation_definition_identity$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack_runtime$operation_definition_identity$sha256
+[1] "0b66c2b1b6924eea41e3c150e764ad264781d7cd9ee9d692170b7866615393db"
+
+
+$operation_pack_runtime$entry_point
+$operation_pack_runtime$entry_point$value
+[1] "scwbGraphScaleSource::register_operation_pack"
+
+$operation_pack_runtime$entry_point$identity
+$operation_pack_runtime$entry_point$identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack_runtime$entry_point$identity$sha256
+[1] "19732c36311db29851f25f4e10a8e8fcda6353fc64e45a761fdf7e2762d98384"
+
+
+
+$operation_pack_runtime$declared_requirement_set_identity
+$operation_pack_runtime$declared_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$declared_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$selected_requirement_set_identity
+$operation_pack_runtime$selected_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$selected_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$dynamic_resolutions
+list()
+
+$operation_pack_runtime$preflight_report_identity
+$operation_pack_runtime$preflight_report_identity$scheme
+[1] "scworkbench.operation_pack.preflight.v2"
+
+$operation_pack_runtime$preflight_report_identity$sha256
+[1] "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+
+
+$operation_pack_runtime$path_policy
+[1] "no_absolute_paths"
+
+$operation_pack_runtime$runtime_identity
+$operation_pack_runtime$runtime_identity$scheme
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$runtime_identity$scope
+[1] "runtime attestation excluding runtime_identity"
+
+$operation_pack_runtime$runtime_identity$sha256
+[1] "1dd2c356726ff0737d6d596a71a3bf1d6f395ee7354e392c30fd37689708ce1c"
+
+
+
+$operation_pack_transition
+$operation_pack_transition$transition_id
+[1] "transition_y9b0a4p0bnz78np7"
+
+$operation_pack_transition$receipt_identity
+$operation_pack_transition$receipt_identity$scheme
+[1] "scworkbench.operation_pack.transition_receipt.v4"
+
+$operation_pack_transition$receipt_identity$scope
+[1] "receipt excluding receipt_identity"
+
+$operation_pack_transition$receipt_identity$sha256
+[1] "0a598786a19d49d4dff7e83cfe23e40902f24a3d4344020d0b752ba2a98c8c91"
+
+
+
+$operation_pack_registry_requests
+list()
+
+attr(,"class")
+[1] "wb_run"
+
+
+$active
+$active$result
+$active$result$ref_type
+[1] "run"
+
+$active$result$run_id
+[1] "run_voo7pytemopb"
+
+$active$result$output
+[1] "result"
+
+
+
+$head_run_id
+[1] "run_voo7pytemopb"
+
+attr(,"class")
+[1] "wb_session"
+$session_id
+[1] "session_5y857hjfa50k"
+
+$runs
+$runs$run_shddyit3g49k
+$run_id
+[1] "run_shddyit3g49k"
+
+$op_name
+[1] "graphscalesource::graph_and_cell_metadata"
+
+$created_at
+[1] "2026-10-11T00:29:42+0200"
+
+$inputs
+$inputs$cell_set
+[1] "all"
+
+$inputs$effective_n
+[1] 9
+
+$inputs$parents
+character(0)
+
+$inputs$provenance_refs
+$inputs$provenance_refs$source
+$inputs$provenance_refs$source$ref_type
+[1] "artifact"
+
+$inputs$provenance_refs$source$artifact_id
+[1] "graph_20261011_002935_u07h2ioq"
+
+$inputs$provenance_refs$source$output
+[1] "result"
+
+
+$inputs$provenance_refs$metadata
+$inputs$provenance_refs$metadata$ref_type
+[1] "artifact"
+
+$inputs$provenance_refs$metadata$artifact_id
+[1] "cell_vector_20261011_002931_x1sqn3ux"
+
+$inputs$provenance_refs$metadata$output
+[1] "vector"
+
+
+
+$inputs$coverage
+$inputs$coverage$schema_version
+[1] "scworkbench.effective_cell_coverage.v1"
+
+$inputs$coverage$requested_source
+[1] "cell_set"
+
+$inputs$coverage$cell_set
+[1] "all"
+
+$inputs$coverage$requested_n
+[1] 9
+
+$inputs$coverage$per_input
+$inputs$coverage$per_input$source
+$inputs$coverage$per_input$source$kind
+[1] "graph"
+
+$inputs$coverage$per_input$source$required
+[1] TRUE
+
+$inputs$coverage$per_input$source$coverage_mode
+[1] "reference_only"
+
+$inputs$coverage$per_input$source$source_id
+NULL
+
+$inputs$coverage$per_input$source$dims
+NULL
+
+$inputs$coverage$per_input$source$available_n
+[1] NA
+
+$inputs$coverage$per_input$source$input_n
+[1] 9
+
+$inputs$coverage$per_input$source$overlap_n
+[1] 9
+
+$inputs$coverage$per_input$source$dropped_n
+[1] 0
+
+
+$inputs$coverage$per_input$metadata
+$inputs$coverage$per_input$metadata$kind
+[1] "cell_vector"
+
+$inputs$coverage$per_input$metadata$required
+[1] TRUE
+
+$inputs$coverage$per_input$metadata$coverage_mode
+[1] "cell_indexed"
+
+$inputs$coverage$per_input$metadata$source_id
+NULL
+
+$inputs$coverage$per_input$metadata$dims
+NULL
+
+$inputs$coverage$per_input$metadata$available_n
+[1] 9
+
+$inputs$coverage$per_input$metadata$input_n
+[1] 9
+
+$inputs$coverage$per_input$metadata$overlap_n
+[1] 9
+
+$inputs$coverage$per_input$metadata$dropped_n
+[1] 0
+
+
+
+$inputs$coverage$effective_n
+[1] 9
+
+$inputs$coverage$dropped_n
+[1] 0
+
+$inputs$coverage$percent
+[1] 100
+
+
+$inputs$cell_set_resolutions
+list()
+
+$inputs$user_inputs
+$inputs$user_inputs$source
+$inputs$user_inputs$source$ref_type
+[1] "artifact"
+
+$inputs$user_inputs$source$artifact_id
+[1] "graph_20261011_002935_u07h2ioq"
+
+$inputs$user_inputs$source$output
+[1] "result"
+
+
+$inputs$user_inputs$metadata
+$inputs$user_inputs$metadata$ref_type
+[1] "artifact"
+
+$inputs$user_inputs$metadata$artifact_id
+[1] "cell_vector_20261011_002931_x1sqn3ux"
+
+$inputs$user_inputs$metadata$output
+[1] "vector"
+
+
+$inputs$user_inputs$min_cells
+[1] 1
+
+$inputs$user_inputs$cell_set
+[1] "all"
+
+
+$inputs$symbolic_inputs
+$inputs$symbolic_inputs$cell_set
+[1] "all"
+
+$inputs$symbolic_inputs$min_cells
+[1] 1
+
+$inputs$symbolic_inputs$source
+$inputs$symbolic_inputs$source$ref_type
+[1] "artifact"
+
+$inputs$symbolic_inputs$source$artifact_id
+[1] "graph_20261011_002935_u07h2ioq"
+
+$inputs$symbolic_inputs$source$output
+[1] "result"
+
+
+$inputs$symbolic_inputs$metadata
+$inputs$symbolic_inputs$metadata$ref_type
+[1] "artifact"
+
+$inputs$symbolic_inputs$metadata$artifact_id
+[1] "cell_vector_20261011_002931_x1sqn3ux"
+
+$inputs$symbolic_inputs$metadata$output
+[1] "vector"
+
+
+
+$inputs$execution_inputs
+$inputs$execution_inputs$effective_n
+[1] 9
+
+$inputs$execution_inputs$resolved
+$inputs$execution_inputs$resolved$source
+$inputs$execution_inputs$resolved$source$kind
+[1] "graph"
+
+
+$inputs$execution_inputs$resolved$metadata
+$inputs$execution_inputs$resolved$metadata$kind
+[1] "cell_vector"
+
+$inputs$execution_inputs$resolved$metadata$value_type
+[1] "categorical"
+
+$inputs$execution_inputs$resolved$metadata$n
+[1] 9
+
+$inputs$execution_inputs$resolved$metadata$meta
+$inputs$execution_inputs$resolved$metadata$meta$label
+[1] "complete retained fixture axis"
+
+
+
+
+
+$inputs$operation_pack_registry_requests
+list()
+
+
+$params
+list()
+
+$outputs
+$outputs$result
+$kind
+[1] "graph"
+
+$content_identity
+$content_identity$scheme
+[1] "scworkbench.graph.content.canonical-json.v1"
+
+$content_identity$sha256
+[1] "8a4b5ba527cf472df557bbde56daea64ebd767cdb2f91434deb7cbf5383d63a1"
+
+
+$binding_identity
+$binding_identity$scheme
+[1] "scworkbench.graph.axis-bindings.canonical-json.v1"
+
+$binding_identity$sha256
+[1] "897da183b806543139b4ba79396c1558ac31d35ac7bc68666bd3f2eb3b99b068"
+
+
+$descriptor_identity
+$descriptor_identity$scheme
+[1] "scworkbench.graph.retained-descriptor.canonical-json.v1"
+
+$descriptor_identity$sha256
+[1] "ad25c502dd424221bc656e1c2976b79beee0f5be1f506fbdeaef90ec3018155b"
+
+
+attr(,"class")
+[1] "wb_primitive"
+attr(,"graph_stage")
+<environment: 0x5fd667b4cbb0>
+
+$outputs$summary
+$kind
+[1] "obs_table"
+
+$table_type
+[1] "graph_summary"
+
+$entity_kind
+[1] "generic"
+
+$table
+  nodes
+1     9
+
+$meta
+list()
+
+attr(,"class")
+[1] "wb_primitive"
+
+
+$notes
+NULL
+
+$operation_pack
+$operation_pack$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$operation_pack$schema_version
+[1] "scworkbench.operation_pack.v4"
+
+$operation_pack$pack_abi_version
+[1] "4"
+
+$operation_pack$namespace
+[1] "graphscalesource"
+
+$operation_pack$package
+$operation_pack$package$name
+[1] "scwbGraphScaleSource"
+
+$operation_pack$package$version
+[1] "0.1.0"
+
+
+$operation_pack$backend
+[1] "R"
+
+$operation_pack$compatibility
+$operation_pack$compatibility$pack_abi
+$operation_pack$compatibility$pack_abi$maximum
+[1] "4"
+
+$operation_pack$compatibility$pack_abi$minimum
+[1] "4"
+
+
+$operation_pack$compatibility$scworkbench
+$operation_pack$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+$operation_pack$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+
+
+$operation_pack$entry_point
+[1] "scwbGraphScaleSource::register_operation_pack"
+
+$operation_pack$manifest_source_identity
+$operation_pack$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack$manifest_source_identity$sha256
+[1] "176ac5aed7ddffbd0ecc21e4e7432e473ad59612e99963544cb0822e3facdef0"
+
+
+$operation_pack$manifest_identity
+$operation_pack$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v4"
+
+$operation_pack$manifest_identity$sha256
+[1] "4049ec2768a3b4484f041651ef58f7c53a0c59b3ad31366878ae07313990b256"
+
+
+$operation_pack$manifest_sha256
+[1] "4049ec2768a3b4484f041651ef58f7c53a0c59b3ad31366878ae07313990b256"
+
+$operation_pack$operation_definition_identities
+$operation_pack$operation_definition_identities$`graphscalesource::graph_and_cell_metadata`
+$operation_pack$operation_definition_identities$`graphscalesource::graph_and_cell_metadata`$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack$operation_definition_identities$`graphscalesource::graph_and_cell_metadata`$sha256
+[1] "6d94c61052b3cb484d84432ee845a14973518540f2720ae4eacb2555317e3193"
+
+
+$operation_pack$operation_definition_identities$`graphscalesource::graph_to_table`
+$operation_pack$operation_definition_identities$`graphscalesource::graph_to_table`$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack$operation_definition_identities$`graphscalesource::graph_to_table`$sha256
+[1] "4d48a3a3f6ddc49b680977a7d63672548d932f71c12cffbe858495008055b6b5"
+
+
+$operation_pack$operation_definition_identities$`graphscalesource::matrix_to_graph`
+$operation_pack$operation_definition_identities$`graphscalesource::matrix_to_graph`$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack$operation_definition_identities$`graphscalesource::matrix_to_graph`$sha256
+[1] "0b66c2b1b6924eea41e3c150e764ad264781d7cd9ee9d692170b7866615393db"
+
+
+
+$operation_pack$operation_definition_sha256
+$operation_pack$operation_definition_sha256$`graphscalesource::graph_and_cell_metadata`
+[1] "6d94c61052b3cb484d84432ee845a14973518540f2720ae4eacb2555317e3193"
+
+$operation_pack$operation_definition_sha256$`graphscalesource::graph_to_table`
+[1] "4d48a3a3f6ddc49b680977a7d63672548d932f71c12cffbe858495008055b6b5"
+
+$operation_pack$operation_definition_sha256$`graphscalesource::matrix_to_graph`
+[1] "0b66c2b1b6924eea41e3c150e764ad264781d7cd9ee9d692170b7866615393db"
+
+
+$operation_pack$distribution_identity
+$operation_pack$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack$distribution_identity$sha256
+[1] "3667a85a2a7a5c62d838ed275066d7a3c86acf85b9ae3415ed9ca3d7aa3dd97a"
+
+
+$operation_pack$entry_point_identity
+$operation_pack$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack$entry_point_identity$sha256
+[1] "19732c36311db29851f25f4e10a8e8fcda6353fc64e45a761fdf7e2762d98384"
+
+
+$operation_pack$pack_identity
+$operation_pack$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v4"
+
+$operation_pack$pack_identity$sha256
+[1] "b3e75d308cd1e4e92176a705625a3887e042037a4985ff955d4794078c667ecf"
+
+
+$operation_pack$pack_sha256
+[1] "b3e75d308cd1e4e92176a705625a3887e042037a4985ff955d4794078c667ecf"
+
+
+$operation_definition_sha256
+[1] "6d94c61052b3cb484d84432ee845a14973518540f2720ae4eacb2555317e3193"
+
+$operation_pack_runtime
+$operation_pack_runtime$schema
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$backend
+[1] "R"
+
+$operation_pack_runtime$pack_identity
+$operation_pack_runtime$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v4"
+
+$operation_pack_runtime$pack_identity$sha256
+[1] "b3e75d308cd1e4e92176a705625a3887e042037a4985ff955d4794078c667ecf"
+
+
+$operation_pack_runtime$manifest_source_identity
+$operation_pack_runtime$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack_runtime$manifest_source_identity$sha256
+[1] "176ac5aed7ddffbd0ecc21e4e7432e473ad59612e99963544cb0822e3facdef0"
+
+
+$operation_pack_runtime$distribution_identity
+$operation_pack_runtime$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack_runtime$distribution_identity$sha256
+[1] "3667a85a2a7a5c62d838ed275066d7a3c86acf85b9ae3415ed9ca3d7aa3dd97a"
+
+
+$operation_pack_runtime$operation_definition_identity
+$operation_pack_runtime$operation_definition_identity$scheme
+[1] "scworkbench.operation_pack.definition.v4"
+
+$operation_pack_runtime$operation_definition_identity$sha256
+[1] "6d94c61052b3cb484d84432ee845a14973518540f2720ae4eacb2555317e3193"
+
+
+$operation_pack_runtime$entry_point
+$operation_pack_runtime$entry_point$value
+[1] "scwbGraphScaleSource::register_operation_pack"
+
+$operation_pack_runtime$entry_point$identity
+$operation_pack_runtime$entry_point$identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack_runtime$entry_point$identity$sha256
+[1] "19732c36311db29851f25f4e10a8e8fcda6353fc64e45a761fdf7e2762d98384"
+
+
+
+$operation_pack_runtime$declared_requirement_set_identity
+$operation_pack_runtime$declared_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$declared_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$selected_requirement_set_identity
+$operation_pack_runtime$selected_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$selected_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$dynamic_resolutions
+list()
+
+$operation_pack_runtime$preflight_report_identity
+$operation_pack_runtime$preflight_report_identity$scheme
+[1] "scworkbench.operation_pack.preflight.v2"
+
+$operation_pack_runtime$preflight_report_identity$sha256
+[1] "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+
+
+$operation_pack_runtime$path_policy
+[1] "no_absolute_paths"
+
+$operation_pack_runtime$runtime_identity
+$operation_pack_runtime$runtime_identity$scheme
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$runtime_identity$scope
+[1] "runtime attestation excluding runtime_identity"
+
+$operation_pack_runtime$runtime_identity$sha256
+[1] "fef9723b3be375577c3251c578bdbf072fb5b4208bb14667f7fef484daf8d2df"
+
+
+
+$operation_pack_transition
+$operation_pack_transition$transition_id
+[1] "transition_t7row4qlkf2afyb9"
+
+$operation_pack_transition$receipt_identity
+$operation_pack_transition$receipt_identity$scheme
+[1] "scworkbench.operation_pack.transition_receipt.v4"
+
+$operation_pack_transition$receipt_identity$scope
+[1] "receipt excluding receipt_identity"
+
+$operation_pack_transition$receipt_identity$sha256
+[1] "2afc1644af0c7cabf3f03017554a8877d11cdb7b8368ebf5e696a73dd0c6b714"
+
+
+
+$operation_pack_registry_requests
+list()
+
+attr(,"class")
+[1] "wb_run"
+
+
+$active
+$active$result
+$active$result$ref_type
+[1] "run"
+
+$active$result$run_id
+[1] "run_shddyit3g49k"
+
+$active$result$output
+[1] "result"
+
+
+$active$summary
+$active$summary$ref_type
+[1] "run"
+
+$active$summary$run_id
+[1] "run_shddyit3g49k"
+
+$active$summary$output
+[1] "summary"
+
+
+
+$head_run_id
+[1] "run_shddyit3g49k"
+
+attr(,"class")
+[1] "wb_session"
+GRAPH_SCALE_SOURCE_SETUP public_sdk=TRUE native_source_ref=retained_cell_axis complete_axis_count=9 setup_not_memory_qualification=TRUE
+	Command being timed: "Rscript notes/generic_graph_implementation/prepare_scale_fixture.R /tmp/scwb-graph-public-scale-small-4fa797f /tmp/scwb-graph-core-checkpoint.igp49W/library 9"
+	User time (seconds): 19.51
+	System time (seconds): 0.72
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:20.51
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 609820
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 349869
+	Voluntary context switches: 624
+	Involuntary context switches: 265
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 20448
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

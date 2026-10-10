@@ -1,0 +1,2 @@
+ARCHIVED_CONTENTION_ERROR: Operation 'matrix_log_normalize' moved to 'scwbrna::matrix_log_normalize'. Install and explicitly activate its operation pack. 
+ARCHIVED_METHOD_FIXTURE_UNAVAILABLE: confirmed; not lock acceptance

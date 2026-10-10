@@ -1,0 +1,48 @@
+GRAPH_SCALE_LIFECYCLE canonical_bytes=363 nodes=0 mixed_closure=2 promote_finalize_relocate=PASS reopen=pending_separate_process
+	Command being timed: "Rscript --vanilla notes/generic_graph_implementation/scale_worker.R /tmp/scwb-graph-public-scale-small-persistent-4fa797f/fixture.rds /tmp/scwb-graph-public-scale-empty-diagnostic-4fa797f 0 baseline"
+	User time (seconds): 8.41
+	System time (seconds): 0.32
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.82
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 663888
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 162640
+	Voluntary context switches: 90
+	Involuntary context switches: 206
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 9248
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+GRAPH_SCALE_REOPEN process_replaced=TRUE pack_free=TRUE source_verified=TRUE descriptor_unchanged=TRUE bounded_components=PASS
+	Command being timed: "Rscript --vanilla notes/generic_graph_implementation/scale_worker.R /tmp/scwb-graph-public-scale-small-persistent-4fa797f/fixture.rds /tmp/scwb-graph-public-scale-empty-diagnostic-4fa797f 0 inspect"
+	User time (seconds): 2.55
+	System time (seconds): 0.04
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.59
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 122784
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 29123
+	Voluntary context switches: 35
+	Involuntary context switches: 87
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 48
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

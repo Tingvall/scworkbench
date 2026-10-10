@@ -87,3 +87,33 @@ test_graph_resource_publication_budget_rollback_contract <- function() {
   stopifnot(length(id) == 1L, counts()[["artifacts"]] == 1L)
   TRUE
 }
+
+test_graph_resource_padded_mapping_cursor_contract <- function() {
+  id <- function(scheme) list(scheme = scheme, sha256 = paste(rep("1", 64L), collapse = ""))
+  binding <- list(binding_id = "view", axis_kind = "cell",
+    source_ref = list(kind = "retained_cell_axis", source_id = "synthetic"),
+    source_snapshot_identity = id("scworkbench.provenance.snapshot_head.v1"),
+    axis_content_identity = id("scworkbench.graph.source-axis-content.canonical-json.v1"),
+    axis_order_identity = id("scworkbench.cell_order.v1"),
+    mapping = list(list(node_id = "n2", axis_id = "c2"), list(node_id = "n1", axis_id = "c1")))
+  graph <- wb_prim_graph(list(list(node_id = "n2"), list(node_id = "n1")), list(), list(),
+    associations = list(binding))
+  stage <- scworkbench:::.wb_graph_stage_small(graph, list(partition_bytes = 2048))
+  on.exit(scworkbench:::.wb_graph_stage_discard(stage), add = TRUE)
+  rows <- DBI::dbGetQuery(stage$con,
+    "SELECT row_ordinal,record_json FROM artifact_graph_rows WHERE component='binding_mappings';")
+  for (i in seq_len(nrow(rows))) DBI::dbExecute(stage$con,
+    "UPDATE artifact_graph_rows SET record_json=? WHERE component='binding_mappings' AND row_ordinal=?;",
+    params = list(paste0(rows$record_json[[i]], paste(rep(" ", 1800L), collapse = "")), rows$row_ordinal[[i]]))
+  batches <- 0L
+  old <- options(scworkbench.graph_storage_test_hook = function(event, evidence) {
+    if (event == "binding_mapping_batch") {
+      stopifnot(evidence$rows == 1L, evidence$encoded_bytes <= 2048)
+      batches <<- batches + 1L
+    }
+  })
+  on.exit(options(old), add = TRUE)
+  stopifnot(identical(scworkbench:::.wb_graph_sql_identities(stage$con, "staged", stage$budgets)$descriptor_identity,
+    wb_graph_identity(graph)$descriptor_identity), batches == 2L)
+  TRUE
+}

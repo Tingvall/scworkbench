@@ -73,6 +73,8 @@ wb_graph_identity <- function(graph) {
 }
 
 .wb_graph_validate_sql_bindings <- function(con, artifact_id, budgets) {
+  database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+  database_path <- database$file[database$name == "main"][[1L]]
   .wb_graph_scan(con, artifact_id, "bindings", function(rows) {
     for (row in seq_len(nrow(rows))) {
       header <- .wb_graph_parse(rows$record_json[[row]])
@@ -90,8 +92,14 @@ wb_graph_identity <- function(graph) {
         "AND json_extract(m.record_json,'$.binding_id')=? ORDER BY m.row_ordinal;")
       cursor <- DBI::dbSendQuery(con, query, params = list(artifact_id, header$binding_id))
       tryCatch(repeat {
-        batch <- DBI::dbFetch(cursor, n = budgets$partition_rows)
+        if (as.numeric(expected_mapping) %% budgets$partition_rows == 0)
+          .wb_graph_transient_admit(budgets, database_path)
+        # Stored JSON may be valid but whitespace-padded up to the per-record
+        # byte ceiling. A row-count-only cursor could multiply this by hundreds.
+        batch <- DBI::dbFetch(cursor, n = 1L)
         if (!nrow(batch)) break
+        .wb_graph_storage_fault("binding_mapping_batch", list(rows = nrow(batch),
+          encoded_bytes = sum(nchar(batch$record_json, type = "bytes"))))
         for (i in seq_len(nrow(batch))) {
           mapping <- .wb_graph_parse(batch$record_json[[i]])
           .wb_graph_row_validate("binding_mappings", mapping)

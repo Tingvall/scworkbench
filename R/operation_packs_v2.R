@@ -54,6 +54,12 @@
     if (!identical(byte(i), '"')) stop("expected string")
     j <- i + 1L
     while (j <= n) {
+      # Search a whole ordinary string run in compiled PCRE rather than calling
+      # substr/utf8ToInt once per character. Escape and surrogate validation below
+      # is unchanged; positions remain Unicode characters, never byte offsets.
+      hit <- regexpr('["\\\\\\x00-\\x1F]', substr(text, j, n), perl = TRUE)
+      if (hit[[1L]] < 0L) stop("unterminated string")
+      j <- j + hit[[1L]] - 1L
       if (identical(byte(j), '"')) return(j + 1L)
       if (identical(byte(j), "\\")) {
         j <- j + 1L

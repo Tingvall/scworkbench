@@ -1,0 +1,10 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Error: Op 'graphscenariofixture::emit_scenario' cannot run:
+  requested cells: 1
+  effective cells: 1
+  minimum cells: 10
+  typed input coverage:
+    matrix (matrix): 1/1; available=1
+Execution halted

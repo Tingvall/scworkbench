@@ -6,19 +6,20 @@ must be attributed to exact source/install pins, never to an untested descendant
 
 | Requirement | Executable focused coverage | Remaining final evidence |
 | --- | --- | --- |
-| Ordered NEI structure, types, missingness, frozen roots | `tests/test_graph_primitive_contract.R`, strict JSON/unicode test, shared content vectors | Exact installed R/Python parity and complete normative scenario inventory |
+| Ordered NEI structure, types, missingness, frozen roots | Primitive/strict JSON tests; `test_graph_scenario_roundtrip_contract.R` executes all23 normative cases through public writers, promotion, igraph and fresh relocated pack-free recipient (125 PASS); shared13 malicious rehash roots independently checked (139 PASS) | Exact final installed R/Python parity; no generic/non-durable substitution |
 | Independent binding and descriptor roots, multi-axis/named-empty/unavailable views | source authority, binding selection, shared binding/descriptor vectors | Final live installed/source certificate coverage; matrix certificate approval and implementation pending |
 | Stale/forged source and self-rehashed malformed evidence rejection | source authority, ABI4 admission/runtime/count tests | Final exact tuple focused rerun |
 | Authenticated mixed graph/ordinary IO | public execution and opt-in Python live broker tests | Clean checkpoint installations; public matrix -> graph, graph+metadata -> graph/table, graph -> table |
 | Atomic broker visibility and exact ACK | broker publication contract | Included in final core suite; live peer gate |
 | Atomic promotion/receipt/mixed closure, zero residue/retry | public execution, retained count and resource accounting tests | All design-ledger fault boundaries reconciled, scale fault/cleanup evidence |
+| Source observation purity, online backup, lock exclusion/cleanup | `test_session_snapshot_observation_contract.R` plus existing owner/WAL regressions (1344/4 PASS), durable source/payload corruption (1321/1), installed late application fault (128 PASS) | Final full-suite coverage; archived method-bearing131 failed setup is not acceptance evidence |
 | Finalize/relocate/process replacement/pack-free recipient purity | public execution and installed SDK recipient child | Exact frozen install and large fixture retained evidence |
 | Bounded write/read/hash/validate/seal/storage/publication | storage, partition, count and resource accounting tests | Public full-lifecycle fixture >=8x total admitted baseline+working+variation memory; huge hyperedge, attributes, large binding and complete source axis |
 | True transient disk admission | live unlinked SQLite sort, combined metadata spill, journal failure, staged descriptor and transactional publication budget tests | Sampled peak owned main/temp/journal/WAL/SHM in final scale run, cleanup after late faults |
 | R/Python optional lossless igraph boundary | primitive adapter tests and Python graph adapter tests | Exact installed adapters, named unavailable-dependency skips if applicable |
 | SDK public-only authoring and discovery | SDK authoring contract, installed scaffold/tutorial six cases | Clean final installed candidates; refreshed catalogs and link/document checks |
 | ABI3/process4 preservation | gate65 native activation/lifecycle, PyBench focused inherited ABI tests | One complete core/Python qualification at frozen full tuple, named skips not passes |
-| Shared assets and protocol locks | five shared schemas + synthetic mixed fixture parity | Whole shared graph corpus reconciliation, schema/fixture checksums recorded for exact final tuple |
+| Shared assets and protocol locks | five shared schemas + four authoritative graph assets + test-only synthetic mixed fixture byte parity (141 PASS, Py peer c3dfdbd) | Exact final tuple hashes and installed-wheel provenance; c3 wheel SHA40f49574c1dd05f31b2e9067a6ffa7231fefcae4df53668e51e5020871182cb8, no parent live-gate attribution |
 | Independent review | Recorded focused Sable broker/resource reviews | Sable complete focused closure, frozen tuple/evidence to Meridian-9 |
 
 ## Work that does not depend on pending matrix certificate decision

@@ -1,0 +1,16 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+golden_bundle=/tmp/scworkbench_golden_4012d5ead3712
+Discovered 3 contract tests in 2 files.
+RUN test_exclusive_bundle_writer_lock_safety_closure_contract [test_exclusive_bundle_writer_lock_safety_closure_contract.R; self_contained]
+PASS test_exclusive_bundle_writer_lock_safety_closure_contract (0.172s)
+RUN test_session_wal_snapshot_contract [test_exclusive_bundle_writer_lock_safety_closure_contract.R; isolated_bundle]
+PASS test_session_wal_snapshot_contract (3.597s)
+RUN test_session_snapshot_source_observation_contract [test_session_snapshot_observation_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS test_session_snapshot_source_observation_contract (8.901s)
+CONTRACT TEST SUMMARY files=2 discovered=3 executed=3 passed=3 skipped=0 failed=0 excluded=0 accounted=3
+scworkbench contract suite passed for /tmp/scworkbench_golden_4012d5ead3712

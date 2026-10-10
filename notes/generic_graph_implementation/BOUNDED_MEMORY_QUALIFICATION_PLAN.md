@@ -12,8 +12,11 @@ measured qualification. No retrospective increase of these budgets is allowed.
 - SQLite cache: 2 MiB; encoded graph partition: 256 KiB, at most 256 rows.
   These are included in the working allocation, not additional RSS allowances.
 - Small collection/native-adapter cap: 4 MiB; the large fixture never collects.
-- Independently declared staged/publication, journal/WAL and spill budgets:
-  8 GiB each for the measured fixtures. Budget failures are typed resource
+- Independently declared staged/publication and journal/WAL budgets: 8 GiB each;
+  combined scratch/token/SQLite spill: 16 GiB. Controller approved this larger
+  storage-only spill envelope before final measurement after the empty diagnostic
+  showed a roughly 650 MiB loaded-runtime baseline and an eight-times-total target
+  above 5 GiB. Memory, cache and partition limits are unchanged. Budget failures are typed resource
   failures with cleanup, not structural graph-invalid judgments.
 - After the baseline run, freeze the admitted total-process budget as baseline
   maximum + 8 MiB working allocation + 4 MiB variation allowance. Data scales:
@@ -43,6 +46,13 @@ axis into the measured process. Complete authenticated axis scans, mapping
 checks, metadata verification and all graph work occur inside the measured
 subprocess. Report fixture-setup memory separately, never as graph streaming
 evidence. The operator driver itself must not hold whole graph/axis arrays.
+The first three IDs are `cell_2`, `cell_10`, `cell_1`; remaining IDs contain a
+192-byte ASCII suffix and remain below the 256-byte source-ID admission ceiling.
+At scale the complete original retained vector axis and mappings must themselves
+exceed the 8 MiB working allowance. Record native axis count and exact UTF-8 byte
+sum. Do not qualify an attribute-heavy graph bound to a fixed tiny source axis.
+Fixed small warmup baselines use their own tiny source fixture; a large source
+must not be preloaded into the baseline to inflate the admitted process budget.
 
 ## Measured lifecycle and fixture composition
 

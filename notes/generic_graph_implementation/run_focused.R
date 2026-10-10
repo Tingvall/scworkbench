@@ -5,7 +5,7 @@ files <- c("test_graph_primitive_contract.R", "test_graph_source_authority_contr
   "test_graph_binding_read_selection_contract.R", "test_graph_abi4_public_execution_contract.R",
   "test_graph_abi4_runtime_sidecar_contract.R", "test_graph_abi4_retained_count_contract.R",
   "test_graph_abi4_broker_publication_contract.R", "test_graph_resource_accounting_contract.R",
-  "test_graph_sdk_authoring_contract.R")
+  "test_graph_sdk_authoring_contract.R", "test_graph_scenario_roundtrip_contract.R")
 tests <- new.env(parent = globalenv())
 for (file in files) sys.source(file.path("tests", file), envir = tests)
 names <- sort(ls(tests, pattern = "^test_"))

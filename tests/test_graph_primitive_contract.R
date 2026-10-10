@@ -5,6 +5,10 @@ test_graph_content_frozen_identity_contract <- function() {
     paste(readLines(file, encoding = "UTF-8", warn = FALSE), collapse = "\n"))
   fixtures <- stats::setNames(lapply(vectors$positive, `[[`, "content"),
     vapply(vectors$positive, `[[`, character(1), "id"))
+  rehashed <- utils::read.csv(system.file("protocol/fixtures/graph-v1/negative-rehash-identities.csv",
+    package = "scworkbench"), stringsAsFactors = FALSE)
+  stopifnot(nrow(rehashed) == 13L, !anyDuplicated(rehashed$mutation_id),
+    all(rehashed$expected_validation == "reject"))
   for (case in vectors$positive) {
     content_identity <- scworkbench:::.wb_graph_content_identity(case$content)
     stopifnot(identical(content_identity$sha256, case$expected_sha256))
@@ -39,7 +43,10 @@ test_graph_content_frozen_identity_contract <- function() {
       strsplit(sub("^/", "", change$from), "/", fixed = TRUE)[[1]]) else change$value
     altered <- mutate(base, path, change$op, replacement)
     # A valid self-hash of the malicious claim must never waive structure.
-    scworkbench:::.wb_operation_pack_canonical_json(altered)
+    malicious_json <- scworkbench:::.wb_operation_pack_canonical_json(altered)
+    row <- rehashed[rehashed$mutation_id == negative$id, , drop = FALSE]
+    stopifnot(nrow(row) == 1L, identical(digest::digest(enc2utf8(malicious_json),
+      algo = "sha256", serialize = FALSE), row$expected_rehashed_sha256[[1L]]))
     error <- tryCatch({scworkbench:::.wb_graph_content_identity(altered); NULL},
       error = identity)
     stopifnot(inherits(error, "wb_graph_error"))
@@ -380,5 +387,29 @@ test_graph_bounded_transport_seal_contract <- function() {
   writeChar(lines[[1]], changed, eos = NULL, useBytes = TRUE)
   error <- tryCatch(scworkbench:::.wb_graph_import_parts(changed), error = identity)
   stopifnot(inherits(error, "wb_graph_error"), error$code == "GRAPH_READER_INCOMPLETE")
+  # A correctly self-hashed prefix must not survive a byte decoder that warns
+  # and truncates at NUL. Exercise after a valid header so owned-stage cleanup
+  # is required, not merely rejection before allocating the SQLite stage.
+  raw_cases <- list(c(charToRaw(paste0(lines[[1]], "\n", lines[[2]])), as.raw(0), charToRaw("garbage\n")),
+    c(charToRaw(paste0(lines[[1]], "\n", lines[[2]])), as.raw(255), charToRaw("\n")),
+    charToRaw(paste0(lines[[1]], "\n", lines[[2]], " trailing\n")))
+  for (bytes in raw_cases) {
+    writeBin(bytes, changed)
+    error <- tryCatch(scworkbench:::.wb_graph_import_parts(changed, expected = expected), error = identity)
+    stopifnot(inherits(error, "error"),
+      identical(before, sort(list.files(tempdir(), pattern = "^scwb_graph_stage_", full.names = TRUE))))
+    if (any(bytes %in% as.raw(c(0, 255)))) stopifnot(inherits(error, "wb_graph_error"),
+      error$code == "GRAPH_PAYLOAD_INVALID")
+  }
+  # Valid raw UTF-8 must remain UTF-8 under a non-UTF-8 native locale.
+  # This exercises byte framing, strict decoding and independent SQL hashing,
+  # not only an iconv validity predicate whose converted result is discarded.
+  previous_locale <- Sys.getlocale("LC_CTYPE")
+  on.exit(Sys.setlocale("LC_CTYPE", previous_locale), add = TRUE)
+  stopifnot(Sys.setlocale("LC_CTYPE", "C") == "C")
+  loaded <- scworkbench:::.wb_graph_import_parts(path, expected = expected)
+  stopifnot(identical(loaded$seal$content_identity, expected$content_identity))
+  scworkbench:::.wb_graph_stage_discard(loaded)
+  Sys.setlocale("LC_CTYPE", previous_locale)
   TRUE
 }

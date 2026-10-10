@@ -1,0 +1,7 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Error in hook(event = event, ...) : 
+  Source authentication/snapshot must not publish a manifest
+Calls: stopifnot ... .wb_bundle_write_manifest -> .wb_manifest_test_hook -> hook
+Execution halted

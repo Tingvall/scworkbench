@@ -1,0 +1,6 @@
+SHARED_ASSET inst/protocol/graph-v1.schema.json sha256=760e031210948c1194183061472921520037f6dbb34bd1388233ce9476f0a007 PASS
+SHARED_ASSET inst/protocol/operation-pack-v4.schema.json sha256=9a994504e03c847bbc876c23f7bf06171da4ce8b2a5bc11f5e69d12084af71d7 PASS
+SHARED_ASSET inst/protocol/operation-pack-transition-request-v4.schema.json sha256=e95e0dd7e86456edccc3b4097a9d10a9210d3371c64e3ce2e14159053d14bb1c PASS
+SHARED_ASSET inst/protocol/operation-pack-transition-receipt-v4.schema.json sha256=9eb38dc446aa0791d16868660c10901ad5db933ed73ba6cdf03abfd34173aa2e PASS
+Error: sha(core[[i]]) == sha(python[[i]]) is not TRUE
+Execution halted

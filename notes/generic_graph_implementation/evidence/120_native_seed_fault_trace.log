@@ -1,0 +1,60 @@
+[[1]]
+main(args)
+
+[[2]]
+tryCatch(wb_session_run_op(wb_session_new(), bundle, "graphscalefixt::stream_graph", 
+    inputs = list(source = wb_ref_artifact(fixture$seed_graph_artifact_id, 
+        "result"), nodes = count, fault = if (mode == "fault") "binding_mappings" else "none")), 
+    error = identity)
+
+[[3]]
+tryCatchList(expr, classes, parentenv, handlers)
+
+[[4]]
+tryCatchOne(expr, names, parentenv, handlers[[1L]])
+
+[[5]]
+doTryCatch(return(expr), name, parentenv, handler)
+
+[[6]]
+wb_session_run_op(wb_session_new(), bundle, "graphscalefixt::stream_graph", 
+    inputs = list(source = wb_ref_artifact(fixture$seed_graph_artifact_id, 
+        "result"), nodes = count, fault = if (mode == "fault") "binding_mappings" else "none"))
+
+[[7]]
+session$durable %||% list(source_identity = .wb_session_source_identity(bundle))
+
+[[8]]
+.wb_session_source_identity(bundle)
+
+[[9]]
+.wb_with_bundle_writer_lock(bundle, operation = "durable session source identity", 
+    code = {
+        state <- .wb_manifest_registry_snapshot(bundle$con)
+        list(schema = "scworkbench.session_source.v2", bundle_dir = normalizePath(bundle$dir, 
+            winslash = "/", mustWork = TRUE), location_policy = "fixed_path", 
+            scientific_state_fingerprint = as.character(state$fingerprint)[1], 
+            scientific_state = state)
+    })
+
+[[10]]
+.wb_manifest_publish_current_locked(bundle_or_dir, result = result)
+
+[[11]]
+.wb_refresh_manifest_committed(candidate)
+
+[[12]]
+.wb_bundle_write_manifest(bundle$dir, manifest)
+
+[[13]]
+.wb_manifest_test_hook("published", staged = staged, final = final, 
+    manifest = manifest)
+
+[[14]]
+hook(event = event, ...)
+
+[1] "Component “publication”: Component “published_at”: 1 string mismatch"
+Error in main(args) : 
+  identical(wb_manifest(bundle), manifest_before) is not TRUE
+Calls: main -> stopifnot
+Execution halted

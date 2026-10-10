@@ -1,0 +1,7 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Error in test_session_snapshot_source_observation_contract() : 
+  !scworkbench:::.wb_writer_lock_held(bundle) is not TRUE
+Calls: stopifnot ... test_session_snapshot_source_observation_contract -> stopifnot
+Execution halted

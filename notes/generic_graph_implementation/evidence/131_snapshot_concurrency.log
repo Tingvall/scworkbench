@@ -1,0 +1,4 @@
+Error in test_exclusive_bundle_writer_lock_contract("/tmp/scworkbench_golden_4012d5ead3712") : 
+  grepl("Timed out", as.character(blocked_snapshot), fixed = TRUE) is not TRUE
+Calls: stopifnot ... test_exclusive_bundle_writer_lock_contract -> stopifnot
+Execution halted

@@ -1,0 +1,11 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error: inherits(failed, "wb_operation_pack_unavailable") is not TRUE
+Execution halted 
+Error in test_graph_abi4_public_r_execution_contract() : 
+  status == 0L is not TRUE
+Calls: stopifnot ... test_graph_abi4_public_r_execution_contract -> stopifnot
+Execution halted

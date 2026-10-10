@@ -15,6 +15,14 @@ fingerprint <- function() {
 before <- fingerprint()
 bundle <- wb_open_bundle(bundle_dir, read_only = TRUE)
 stopifnot(!"scwbgraphfixture::graph_to_table" %in% wb_list_ops())
+missing_pack_copy <- tempfile("graph_missing_pack_")
+fs::dir_copy(bundle_dir, missing_pack_copy)
+writable <- wb_open_bundle(missing_pack_copy)
+failed <- tryCatch(wb_session_run_op(wb_session_new(), writable,
+  "scwbgraphfixture::graph_to_table", inputs = list(source = wb_ref_artifact(artifact_id, "result"))), error = identity)
+wb_close_bundle(writable)
+stopifnot(inherits(failed, "wb_operation_pack_unavailable"))
+unlink(missing_pack_copy, recursive = TRUE)
 graph <- wb_art_load(bundle, artifact_id, expected_kind = "graph")
 info <- wb_art_graph_info(bundle, artifact_id)
 stopifnot(identical(info$descriptor_identity$sha256, descriptor_sha256),
@@ -29,4 +37,4 @@ if (!isTRUE(report$ok)) print(report$diagnostics)
 stopifnot(isTRUE(report$ok), identical(report$pre_validation_fingerprint,
   report$post_validation_fingerprint), identical(before, fingerprint()))
 cat("GRAPH_RECIPIENT_PROCESS pack_free=TRUE read_only=TRUE relocated=TRUE",
-  "descriptor_unchanged=TRUE sources_verified=TRUE recipient=PASS fingerprint_unchanged=TRUE\n")
+  "descriptor_unchanged=TRUE sources_verified=TRUE missing_pack_rejected=TRUE recipient=PASS fingerprint_unchanged=TRUE\n")

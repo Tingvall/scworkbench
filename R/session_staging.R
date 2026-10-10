@@ -91,7 +91,12 @@
   # Capture a coherent source snapshot under the committed bundle's lock. The
   # lock is released before the operation runs; later computation touches only
   # this private overlay and remains concurrent with committed writers.
-  .wb_with_bundle_writer_lock(bundle, operation = "session staging snapshot", code = {
+  # Snapshotting is not a committed mutation. Own the same exclusive lock,
+  # but do not use the mutation publisher: otherwise even a failed private
+  # invocation durably rewrites the source manifest's publication timestamp.
+  snapshot_lock <- .wb_bundle_writer_lock_acquire(bundle,
+    operation = "session staging snapshot")
+  tryCatch({
     db_rel <- as.character(bundle$manifest$storage$sqlite$path)[1]
     .wb_session_sqlite_backup(bundle$con, file.path(stage_dir, db_rel))
     ok_manifest <- file.copy(file.path(bundle$dir, "manifest.json"), file.path(stage_dir, "manifest.json"), overwrite = FALSE)
@@ -123,7 +128,7 @@
       dir.create(file.path(stage_dir, nm), recursive = TRUE,
         showWarnings = FALSE)
     }
-  })
+  }, finally = .wb_bundle_writer_lock_release(snapshot_lock))
 
   stage_bundle <- wb_open_bundle(stage_dir, validate = FALSE)
   # Runners receive this overlay bundle directly. Retain the known source

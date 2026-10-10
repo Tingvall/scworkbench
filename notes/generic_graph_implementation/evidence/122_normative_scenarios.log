@@ -1,0 +1,9 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_SCENARIO airline_parallel_isolate independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+Error in value[[3L]](cond) : attempt to apply non-function
+Calls: stopifnot ... test_graph_normative_scenario_public_lifecycle_contract -> tryCatch -> tryCatchList -> tryCatchOne
+Execution halted

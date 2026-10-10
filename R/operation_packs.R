@@ -203,6 +203,10 @@
   .wb_operation_pack_assert(!is.na(value), "OPERATION_PACK_CANONICAL_STRING_INVALID",
     "Canonical identity strings must be valid UTF-8.",
     class = "wb_operation_pack_identity_error")
+  # A maximum-size ordinary UTF-8 scalar need not allocate a character object
+  # and execute an R callback for every code point. The slow escape path below
+  # remains authoritative for quotes, backslashes and ASCII control characters.
+  if (!grepl('["\\\\\\x00-\\x1F]', value, perl = TRUE)) return(paste0('"', value, '"'))
   points <- utf8ToInt(value)
   encoded <- vapply(points, function(point) {
     if (point == 34L) return("\\\"")
@@ -312,31 +316,12 @@
 }
 
 .wb_operation_pack_json_number_tokens <- function(text) {
-  bytes <- charToRaw(enc2utf8(text))
-  masked <- bytes
-  in_string <- FALSE
-  escaped <- FALSE
-  for (i in seq_along(bytes)) {
-    byte <- as.integer(bytes[[i]])
-    if (in_string) {
-      masked[[i]] <- as.raw(32L)
-      if (escaped) {
-        escaped <- FALSE
-      } else if (byte == 92L) {
-        escaped <- TRUE
-      } else if (byte == 34L) {
-        in_string <- FALSE
-      }
-    } else if (byte == 34L) {
-      in_string <- TRUE
-      masked[[i]] <- as.raw(32L)
-    }
-  }
-  outside <- rawToChar(masked)
-  hits <- gregexpr("-?(?:0|[1-9][0-9]*)(?:[.][0-9]+)?(?:[eE][+-]?[0-9]+)?", outside, perl = TRUE)[[1]]
-  if (identical(hits[[1]], -1L)) return(character())
-  lengths <- attr(hits, "match.length")
-  substring(outside, hits, hits + lengths - 1L)
+  # Called after JSON parsing. Skip complete quoted tokens in compiled PCRE,
+  # preserving original numeric lexemes without a per-byte R masking loop.
+  # Possessive runs avoid recursive matching per character of large strings.
+  pattern <- paste0('"(?:[^"\\\\]++|\\\\.)*+"(*SKIP)(*F)|',
+    "-?(?:0|[1-9][0-9]*)(?:[.][0-9]+)?(?:[eE][+-]?[0-9]+)?")
+  unname(regmatches(text, gregexpr(pattern, text, perl = TRUE))[[1L]])
 }
 
 .wb_operation_pack_decorate_numbers <- function(value, tokens) {
