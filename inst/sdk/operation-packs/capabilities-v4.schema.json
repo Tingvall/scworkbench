@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scworkbench.sdk.capabilities.v2",
+  "title": "SDK reference inventory, not an execution authority or pack validator",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sdk_version",
+    "pack_abi_version",
+    "schema_sha256",
+    "primitive_kinds",
+    "storage_profiles",
+    "operation_declaration_fields",
+    "capabilities",
+    "declaration_branches",
+    "public_api",
+    "declaration_recipes",
+    "callbacks_and_context",
+    "Python_policy_support",
+    "authoring_interface"
+  ],
+  "properties": {
+    "sdk_version": {
+      "const": "1.1.0"
+    },
+    "pack_abi_version": {
+      "const": "4"
+    },
+    "schema_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "primitive_kinds": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "storage_profiles": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "operation_declaration_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "manifest_locations",
+          "kinds",
+          "backends",
+          "callback_signature",
+          "source_binding",
+          "call_discipline",
+          "empty_na_rules",
+          "limits",
+          "seal_close_timing",
+          "R",
+          "Python",
+          "evidence",
+          "recipe",
+          "declaration_examples"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "manifest_locations": {
+            "type": "array"
+          },
+          "kinds": {
+            "type": "array"
+          },
+          "backends": {
+            "type": "array"
+          },
+          "callback_signature": {
+            "type": "string"
+          },
+          "source_binding": {
+            "type": "string"
+          },
+          "call_discipline": {
+            "type": "string"
+          },
+          "empty_na_rules": {
+            "type": "string"
+          },
+          "limits": {
+            "type": "string"
+          },
+          "seal_close_timing": {
+            "type": "string"
+          },
+          "R": {
+            "type": "object"
+          },
+          "Python": {
+            "type": "object"
+          },
+          "evidence": {
+            "type": "array"
+          },
+          "recipe": {
+            "type": "string"
+          },
+          "declaration_examples": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "declaration_branches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_path",
+          "values",
+          "capability_id",
+          "classification"
+        ],
+        "properties": {
+          "schema_path": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array"
+          },
+          "capability_id": {
+            "type": "string"
+          },
+          "classification": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "public_api": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "source",
+          "signature"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "declaration_recipes": {
+      "type": "array"
+    },
+    "callbacks_and_context": {
+      "type": "object"
+    },
+    "Python_policy_support": {
+      "type": "object"
+    },
+    "authoring_interface": {
+      "type": "object"
+    }
+  }
+}

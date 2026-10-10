@@ -1,0 +1,8 @@
+Error: Error in generate_schema_catalog() : !length(unclassified) is not TRUE
+Calls: generate_schema_catalog -> stopifnot
+Execution halted
+Rscript inst/dev/generate_schema_catalog.R
+In addition: Warning message:
+In system2(command, arguments, stdout = TRUE, stderr = TRUE) :
+  running command ''Rscript' inst/dev/generate_schema_catalog.R 2>&1' had status 1
+Execution halted

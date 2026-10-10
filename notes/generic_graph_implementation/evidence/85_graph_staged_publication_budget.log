@@ -1,0 +1,4 @@
+Error in test_graph_resource_publication_budget_rollback_contract() : 
+  inherits(bad, "wb_graph_error") is not TRUE
+Calls: stopifnot ... test_graph_resource_publication_budget_rollback_contract -> stopifnot
+Execution halted

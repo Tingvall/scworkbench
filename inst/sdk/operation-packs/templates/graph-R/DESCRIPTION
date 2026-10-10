@@ -1,0 +1,11 @@
+Package: @PACKAGE@
+Title: Authenticated Graph Operation Pack Reference
+Version: 0.1.0
+Authors@R: person("@AUTHOR@", email = "@EMAIL@", role = c("aut", "cre"))
+Description: Public ABI4 examples constructing a standalone graph from a small
+    matrix, attaching authenticated retained cell annotations, and streaming a
+    graph summary. The reference asserts no scientific interpretation.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports: scworkbench (>= 0.1.0)
+Suggests: jsonlite

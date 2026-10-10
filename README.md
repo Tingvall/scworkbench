@@ -140,6 +140,11 @@ wb_session_promote_current(
 
 ## Important Public Surfaces
 
+For domain-neutral ordered graphs, see the [graph primitive contract](docs/graph_primitive.md)
+and installed [ABI4 graph authoring guide](inst/sdk/operation-packs/GRAPH_GUIDE.md).
+Graph packs use declared readers and writers; core owns authenticated associations,
+canonical identities and atomic publication. The default ABI3 SDK remains available.
+
 Bundle lifecycle:
 
 - `wb_open_bundle()`

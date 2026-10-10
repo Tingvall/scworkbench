@@ -15,8 +15,8 @@
     identical(compact$output_name, name) && identical(compact$parts_file, "graph.parts.ndjson") &&
     identical(.wb_operation_pack_canonical_json(compact$observation),
       .wb_operation_pack_canonical_json(observation)), "GRAPH_SEAL_MISMATCH", "Compact graph payload disagrees with receipt.")
-  .wb_graph_require(file.info(parts)$size <= as.numeric(grant$resource_budgets$max_staged_bytes),
-    "GRAPH_RESOURCE_EXCEEDED", "Graph parts exceed admitted storage budget.")
+  .wb_graph_require(sum(file.info(c(parts, path))$size) <= as.numeric(grant$resource_budgets$max_staged_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Complete graph stage including descriptor exceeds admitted storage budget.")
   staged <- .wb_graph_import_parts(parts,
     .wb_operation_pack_v4_graph_budgets(grant$resource_budgets), expected = observation)
   succeeded <- FALSE

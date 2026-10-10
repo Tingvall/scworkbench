@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "getter_count": 85,
+  "getter_count": 87,
   "getters": [
     {
       "function_name": "wb_status",
@@ -496,6 +496,28 @@
       "payload_level": "metadata",
       "arguments": ["bundle", "artifact_id"],
       "use_when": "inspect table type before slicing",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_art_graph_info",
+      "title": "Retained Graph Identity and Counts",
+      "category": "artifacts",
+      "description": "Independently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations.",
+      "returns": "list",
+      "payload_level": "metadata/bounded payload validation",
+      "arguments": ["bundle", "artifact_id", "budgets"],
+      "use_when": ["inspect graph pack-free", "verify graph logical identity and source associations"],
+      "mutates": false
+    },
+    {
+      "function_name": "wb_art_graph_slice",
+      "title": "Ordered Graph Component Partition",
+      "category": "artifacts",
+      "description": "Read one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes.",
+      "returns": "list of ordered records",
+      "payload_level": "bounded payload",
+      "arguments": ["bundle", "artifact_id", "component", "offset", "limit", "partition_bytes"],
+      "use_when": ["stream graph components", "inspect nodes, edges, incidences, attributes or bindings"],
       "mutates": false
     },
     {

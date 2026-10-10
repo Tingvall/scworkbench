@@ -453,6 +453,26 @@
       use_when = c("inspect table type before slicing")
     ),
     list(
+      function_name = "wb_art_graph_info",
+      title = "Retained Graph Identity and Counts",
+      category = "artifacts",
+      description = "Independently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations.",
+      returns = "list",
+      payload_level = "metadata/bounded payload validation",
+      arguments = c("bundle", "artifact_id", "budgets"),
+      use_when = c("inspect graph pack-free", "verify graph logical identity and source associations")
+    ),
+    list(
+      function_name = "wb_art_graph_slice",
+      title = "Ordered Graph Component Partition",
+      category = "artifacts",
+      description = "Read one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes.",
+      returns = "list of ordered records",
+      payload_level = "bounded payload",
+      arguments = c("bundle", "artifact_id", "component", "offset", "limit", "partition_bytes"),
+      use_when = c("stream graph components", "inspect nodes, edges, incidences, attributes or bindings")
+    ),
+    list(
       function_name = "wb_art_table_slice",
       title = "Table Artifact Slice",
       category = "artifacts",

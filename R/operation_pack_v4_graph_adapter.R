@@ -1,8 +1,11 @@
 # The ABI4 graph callbacks extend the existing invocation adapter. Their
 # closures own staging state; none of it is returned to an operation pack.
 .wb_operation_pack_v4_graph_budgets <- function(resource) {
-  .wb_graph_budgets(list(storage_bytes = resource$max_staged_bytes,
+  .wb_graph_budgets(list(storage_bytes = resource$max_spill_bytes,
     token_bytes = resource$max_spill_bytes,
+    published_bytes = resource$max_published_bytes, wal_bytes = resource$max_wal_bytes,
+    memory_bytes = resource$max_memory_bytes,
+    sqlite_cache_kib = max(1L, as.integer(min(8192, as.numeric(resource$max_memory_bytes) / 4096))),
     partition_bytes = as.numeric(resource$partition_limits$max_decoded_bytes),
     partition_rows = as.numeric(resource$partition_limits$max_rows),
     collect_bytes = as.numeric(resource$max_collect_bytes)))
@@ -136,6 +139,9 @@
       .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.graph.staged_payload.v1",
         output_name = name, parts_file = "graph.parts.ndjson", observation = sealed),
         file.path(root, "payload.json"))
+      .wb_graph_require(sum(file.info(c(parts, file.path(root, "payload.json")))$size) <=
+        as.numeric(grant$resource_budgets$max_staged_bytes), "GRAPH_RESOURCE_EXCEEDED",
+        "Complete graph stage including its descriptor exceeds admitted staged bytes.")
       state$writes[[name]] <- list(graph_observation = sealed, payload = parts)
       finished <<- TRUE
       .wb_graph_stage_discard(staged)

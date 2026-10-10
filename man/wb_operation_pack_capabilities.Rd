@@ -4,12 +4,18 @@
 \alias{wb_operation_pack_capabilities}
 \title{Inspect Installed Operation Pack SDK Capabilities}
 \usage{
-wb_operation_pack_capabilities(backend = NULL, kind = NULL)
+wb_operation_pack_capabilities(
+  backend = NULL,
+  kind = NULL,
+  pack_abi_version = c("3", "4")
+)
 }
 \arguments{
 \item{backend}{Optional \code{"R"} or \code{"Python"} backend filter.}
 
 \item{kind}{Optional primitive kind filter.}
+
+\item{pack_abi_version}{Inventory version, \code{"3"} (default) or \code{"4"}.}
 }
 \value{
 Versioned catalog with distinct manifest, request and runtime support.

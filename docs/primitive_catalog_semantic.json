@@ -1,8 +1,18 @@
 {
   "schema_version": "scworkbench.primitive_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "primitive_count": 11,
+  "primitive_count": 12,
   "primitives": [
+    {
+      "primitive_kind": "graph",
+      "constructor": "wb_prim_graph",
+      "title": "Standalone Graph",
+      "description": "Ordered domain-neutral nodes, edges, incidences and typed attributes with optional independently authenticated multi-axis associations.",
+      "shape": "ordered NEI components, typed attributes, separate bindings",
+      "payload_level": "payload/bounded SQLite stage",
+      "use_when": ["retain ordinary graphs or hypergraphs", "stream graph components independently of cell axes"],
+      "promotable": true
+    },
     {
       "primitive_kind": "matrix",
       "constructor": "wb_prim_matrix",

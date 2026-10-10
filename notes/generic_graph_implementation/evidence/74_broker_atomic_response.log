@@ -1,0 +1,1 @@
+GRAPH_ATOMIC_BROKER publication=PASS exact_ack=PASS self_rehashed_response_rejected=PASS substituted_token_rejected=PASS passed=1 skipped=0 failed=0

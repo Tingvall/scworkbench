@@ -31,6 +31,7 @@ scwb_documentation_policy <- function(root = ".") {
     "docs/extension_engineering.md", "docs/operation_packs.md",
     "docs/operation_pack_sdk.md",
     "docs/operation_pack_v2_protocol.md", "docs/operation_pack_v3_protocol.md",
+    "docs/operation_pack_v4_protocol.md", "docs/graph_primitive.md",
     "docs/phase6_matrix_trained_model_boundary.md",
     "docs/source_ownership.md",
     "docs/source_ingestion.md", "docs/engine_extension_patterns.md",
@@ -46,6 +47,11 @@ scwb_documentation_policy <- function(root = ".") {
     "inst/protocol/operation-pack-transition-request-v2.schema.json",
     "inst/protocol/operation-pack-transition-receipt-v2.schema.json",
     "inst/protocol/operation-pack-v3.schema.json",
+    "inst/protocol/graph-v1.schema.json",
+    "inst/protocol/operation-pack-v4.schema.json",
+    "inst/protocol/operation-pack-transition-request-v4.schema.json",
+    "inst/protocol/operation-pack-transition-receipt-v4.schema.json",
+    "inst/protocol/pybench-op-v5-python-runtime.schema.json",
     "inst/protocol/operation-pack-transition-request-v3.schema.json",
     "inst/protocol/operation-pack-transition-receipt-v3.schema.json",
     "inst/protocol/pybench-op-v3-python-runtime.schema.json",
@@ -53,7 +59,7 @@ scwb_documentation_policy <- function(root = ".") {
   )
   sdk_files <- sort(list.files(file.path(root, "inst", "sdk", "operation-packs"),
     recursive = TRUE, full.names = FALSE))
-  sdk_generated <- sdk_files[grepl("^(capabilities[.]json$|CAPABILITIES[.]md$|RECIPES[.]md$|recipes/)", sdk_files)]
+  sdk_generated <- sdk_files[grepl("^(capabilities(-v4)?[.]json$|CAPABILITIES(_V4)?[.]md$|RECIPES[.]md$|recipes/)", sdk_files)]
   canonical <- c(canonical, file.path("inst/sdk/operation-packs", setdiff(sdk_files, sdk_generated)))
   operation_pack_fixtures <- sort(list.files(
     file.path(root, "inst", "protocol", "fixtures", "operation-pack-v1"),
@@ -83,6 +89,11 @@ scwb_documentation_policy <- function(root = ".") {
   canonical <- c(canonical, file.path(
     "inst/protocol/fixtures/operation-pack-v3", operation_pack_v3_fixtures
   ))
+  graph_fixtures <- sort(list.files(
+    file.path(root, "inst", "protocol", "fixtures", "graph-v1"),
+    pattern = "[.](json|csv)$", recursive = TRUE, full.names = FALSE
+  ))
+  canonical <- c(canonical, file.path("inst/protocol/fixtures/graph-v1", graph_fixtures))
   onboarding <- sort(list.files(file.path(root, "inst", "onboarding"), recursive = TRUE,
                                 full.names = FALSE, all.files = FALSE))
   onboarding <- file.path("inst/onboarding", onboarding)

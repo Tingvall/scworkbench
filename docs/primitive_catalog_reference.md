@@ -2,7 +2,25 @@
 
 <!-- Generated from wb_primitive_catalog_semantic(); do not edit entries by hand. -->
 
-Primitive count: 11
+Primitive count: 12
+
+### `graph`
+
+Constructor: `wb_prim_graph`
+
+Title: Standalone Graph
+
+Description: Ordered domain-neutral nodes, edges, incidences and typed attributes with optional independently authenticated multi-axis associations.
+
+Shape: ordered NEI components, typed attributes, separate bindings
+
+Payload level: payload/bounded SQLite stage
+
+Promotable: TRUE
+
+Use when:
+- retain ordinary graphs or hypergraphs
+- stream graph components independently of cell axes
 
 ### `matrix`
 

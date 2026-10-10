@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 78
+Artifact type count: 79
 
 ## cell_vector
 
@@ -147,6 +147,22 @@ Entity kind: feature
 Use when:
 - inspect promoted table payload
 - route artifact through semantic planning
+
+## graph
+
+### `graph`
+
+Title: Graph Artifact
+
+Description: Retained ordered NEI graph with independent content, binding and path-free descriptor identities; graph-isomorphism equivalence is not asserted.
+
+Table type: (none)
+
+Entity kind: graph
+
+Use when:
+- inspect bounded graph components without its authoring pack
+- authenticate optional retained source axes
 
 ## model_ref
 

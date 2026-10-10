@@ -1,14 +1,14 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 275,
+  "record_count": 279,
   "record_type_counts": {
-    "artifact_type": 78,
-    "getter": 85,
+    "artifact_type": 79,
+    "getter": 87,
     "op": 5,
     "parameter": 59,
     "plot": 12,
-    "primitive": 11,
+    "primitive": 12,
     "recipe": 11,
     "wrangler": 14
   },
@@ -1947,6 +1947,46 @@
       }
     },
     {
+      "record_id": "getter:wb_art_graph_info",
+      "record_type": "getter",
+      "name": "wb_art_graph_info",
+      "title": "Retained Graph Identity and Counts",
+      "description": "Independently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations.",
+      "search_text": "Retained Graph Identity and Counts\nIndependently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations.\nartifacts\nlist\nbundle\nartifact_id\nbudgets\ninspect graph pack-free\nverify graph logical identity and source associations",
+      "tags": ["getter", "artifacts"],
+      "payload": {
+        "function_name": "wb_art_graph_info",
+        "title": "Retained Graph Identity and Counts",
+        "category": "artifacts",
+        "description": "Independently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations.",
+        "returns": "list",
+        "payload_level": "metadata/bounded payload validation",
+        "arguments": ["bundle", "artifact_id", "budgets"],
+        "use_when": ["inspect graph pack-free", "verify graph logical identity and source associations"],
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_art_graph_slice",
+      "record_type": "getter",
+      "name": "wb_art_graph_slice",
+      "title": "Ordered Graph Component Partition",
+      "description": "Read one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes.",
+      "search_text": "Ordered Graph Component Partition\nRead one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes.\nartifacts\nlist of ordered records\nbundle\nartifact_id\ncomponent\noffset\nlimit\npartition_bytes\nstream graph components\ninspect nodes, edges, incidences, attributes or bindings",
+      "tags": ["getter", "artifacts"],
+      "payload": {
+        "function_name": "wb_art_graph_slice",
+        "title": "Ordered Graph Component Partition",
+        "category": "artifacts",
+        "description": "Read one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes.",
+        "returns": "list of ordered records",
+        "payload_level": "bounded payload",
+        "arguments": ["bundle", "artifact_id", "component", "offset", "limit", "partition_bytes"],
+        "use_when": ["stream graph components", "inspect nodes, edges, incidences, attributes or bindings"],
+        "mutates": false
+      }
+    },
+    {
       "record_id": "getter:wb_art_table_slice",
       "record_type": "getter",
       "name": "wb_art_table_slice",
@@ -3801,6 +3841,25 @@
       }
     },
     {
+      "record_id": "primitive:graph",
+      "record_type": "primitive",
+      "name": "graph",
+      "title": "Standalone Graph",
+      "description": "Ordered domain-neutral nodes, edges, incidences and typed attributes with optional independently authenticated multi-axis associations.",
+      "search_text": "Standalone Graph\nOrdered domain-neutral nodes, edges, incidences and typed attributes with optional independently authenticated multi-axis associations.\nordered NEI components, typed attributes, separate bindings\npayload/bounded SQLite stage\nretain ordinary graphs or hypergraphs\nstream graph components independently of cell axes",
+      "tags": ["primitive", "payload/bounded SQLite stage"],
+      "payload": {
+        "primitive_kind": "graph",
+        "constructor": "wb_prim_graph",
+        "title": "Standalone Graph",
+        "description": "Ordered domain-neutral nodes, edges, incidences and typed attributes with optional independently authenticated multi-axis associations.",
+        "shape": "ordered NEI components, typed attributes, separate bindings",
+        "payload_level": "payload/bounded SQLite stage",
+        "use_when": ["retain ordinary graphs or hypergraphs", "stream graph components independently of cell axes"],
+        "promotable": true
+      }
+    },
+    {
       "record_id": "primitive:matrix",
       "record_type": "primitive",
       "name": "matrix",
@@ -4007,6 +4066,24 @@
         "payload_level": "payload",
         "use_when": ["represent checkpoint paths", "score cells against high-dimensional trajectories"],
         "promotable": true
+      }
+    },
+    {
+      "record_id": "artifact_type:graph",
+      "record_type": "artifact_type",
+      "name": "graph",
+      "title": "Graph Artifact",
+      "description": "Retained ordered NEI graph with independent content, binding and path-free descriptor identities; graph-isomorphism equivalence is not asserted.",
+      "search_text": "Graph Artifact\nRetained ordered NEI graph with independent content, binding and path-free descriptor identities; graph-isomorphism equivalence is not asserted.\ngraph\ninspect bounded graph components without its authoring pack\nauthenticate optional retained source axes",
+      "tags": ["artifact_type", "graph", ""],
+      "payload": {
+        "artifact_type": "graph",
+        "primitive_kind": "graph",
+        "title": "Graph Artifact",
+        "description": "Retained ordered NEI graph with independent content, binding and path-free descriptor identities; graph-isomorphism equivalence is not asserted.",
+        "table_type": null,
+        "entity_kind": "graph",
+        "use_when": ["inspect bounded graph components without its authoring pack", "authenticate optional retained source axes"]
       }
     },
     {
@@ -6769,8 +6846,8 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 275,
-    "edge_count": 389,
+    "node_count": 279,
+    "edge_count": 390,
     "nodes": [
       {
         "record_id": "op:feature_set_import",
@@ -7071,6 +7148,18 @@
         "record_type": "getter",
         "name": "wb_art_table_info",
         "title": "Table Artifact Info"
+      },
+      {
+        "record_id": "getter:wb_art_graph_info",
+        "record_type": "getter",
+        "name": "wb_art_graph_info",
+        "title": "Retained Graph Identity and Counts"
+      },
+      {
+        "record_id": "getter:wb_art_graph_slice",
+        "record_type": "getter",
+        "name": "wb_art_graph_slice",
+        "title": "Ordered Graph Component Partition"
       },
       {
         "record_id": "getter:wb_art_table_slice",
@@ -7469,6 +7558,12 @@
         "title": "Pseudotime Signature Wrangler"
       },
       {
+        "record_id": "primitive:graph",
+        "record_type": "primitive",
+        "name": "graph",
+        "title": "Standalone Graph"
+      },
+      {
         "record_id": "primitive:matrix",
         "record_type": "primitive",
         "name": "matrix",
@@ -7533,6 +7628,12 @@
         "record_type": "primitive",
         "name": "space_path_family",
         "title": "High-Dimensional Space Path Family"
+      },
+      {
+        "record_id": "artifact_type:graph",
+        "record_type": "artifact_type",
+        "name": "graph",
+        "title": "Graph Artifact"
       },
       {
         "record_id": "artifact_type:cell_vector",
@@ -8729,6 +8830,12 @@
         "to": "artifact_type:model_ref",
         "edge_type": "promotes_as",
         "label": "promotable:model"
+      },
+      {
+        "from": "artifact_type:graph",
+        "to": "primitive:graph",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
       },
       {
         "from": "artifact_type:cell_vector",

@@ -4,11 +4,17 @@
 
 Generated at: source-controlled
 
-Record count: 275
+Record count: 279
 
-Graph edges: 389
+Graph edges: 390
 
 ## artifact_type
+
+### `artifact_type:graph`
+
+Title: Graph Artifact
+
+Description: Retained ordered NEI graph with independent content, binding and path-free descriptor identities; graph-isomorphism equivalence is not asserted.
 
 ### `artifact_type:cell_vector`
 
@@ -750,6 +756,18 @@ Title: Table Artifact Info
 
 Description: Read metadata for a promoted table artifact.
 
+### `getter:wb_art_graph_info`
+
+Title: Retained Graph Identity and Counts
+
+Description: Independently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations.
+
+### `getter:wb_art_graph_slice`
+
+Title: Ordered Graph Component Partition
+
+Description: Read one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes.
+
 ### `getter:wb_art_table_slice`
 
 Title: Table Artifact Slice
@@ -1453,6 +1471,12 @@ Title: Pseudotime Signature Line
 Description: Show feature-set or signal curves along trajectory pseudotime.
 
 ## primitive
+
+### `primitive:graph`
+
+Title: Standalone Graph
+
+Description: Ordered domain-neutral nodes, edges, incidences and typed attributes with optional independently authenticated multi-axis associations.
 
 ### `primitive:matrix`
 

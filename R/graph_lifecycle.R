@@ -88,7 +88,10 @@ wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", lim
   owned <- is.null(stage)
   if (owned) stage <- .wb_graph_stage_small(prim)
   on.exit(if (owned) .wb_graph_stage_discard(stage), add = TRUE)
+  baseline <- .wb_graph_disk_usage(bundle$con)
   identity <- .wb_graph_sql_identities(stage$con, "staged", stage$budgets)
+  .wb_graph_require(.wb_graph_i64(identity$canonical_bytes) <= .wb_graph_i64(stage$budgets$published_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Graph canonical payload exceeds publication budget.")
   # Bindings require independent core source admission, not just self-hashes.
   .wb_graph_sources_assert(bundle, stage$con, "staged", stage$budgets)
   if (!is.null(stage$seal)) .wb_graph_require(identical(identity, stage$seal),
@@ -110,14 +113,21 @@ wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", lim
       .wb_operation_pack_canonical_json(identity$binding_identity),
       .wb_operation_pack_canonical_json(identity$descriptor),
       .wb_operation_pack_canonical_json(identity$descriptor_identity), identity$canonical_bytes))
+  published_records_bytes <- bit64::as.integer64(0)
   for (component in .wb_graph_components()) .wb_graph_scan(stage$con, "staged", component,
     function(rows) {
+      published_records_bytes <<- published_records_bytes + bit64::as.integer64(sum(nchar(rows$record_json, type = "bytes")))
+      .wb_graph_require(!is.na(published_records_bytes) && published_records_bytes <=
+        .wb_graph_i64(stage$budgets$published_bytes), "GRAPH_RESOURCE_EXCEEDED",
+        "Graph retained component bytes exceed publication budget.")
       rows$artifact_id <- artifact_id; rows$component <- component
       rows$row_ordinal <- bit64::as.integer64(rows$row_ordinal)
       DBI::dbAppendTable(bundle$con, "artifact_graph_rows", rows)
+      .wb_graph_disk_admit(bundle$con, stage$budgets, baseline)
       .wb_promotion_transaction_fault("graph_component_rows", component = component)
     }, page = stage$budgets$partition_rows, bytes = stage$budgets$partition_bytes)
   .wb_graph_sources_assert(bundle, stage$con, "staged", stage$budgets)
+  .wb_graph_disk_admit(bundle$con, stage$budgets, baseline)
   artifact_id
 }
 

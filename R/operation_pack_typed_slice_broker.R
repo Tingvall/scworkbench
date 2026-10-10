@@ -251,8 +251,8 @@
   tryCatch({
     request <- jsonlite::read_json(file.path(stage, "request.json"),
       simplifyVector = FALSE)
-    grants <- stats::setNames(request$typed_slice_grants,
-      vapply(request$typed_slice_grants, `[[`, character(1), "name"))
+    grants <- stats::setNames(request$typed_slice_grants %||% list(),
+      vapply(request$typed_slice_grants %||% list(), `[[`, character(1), "name"))
     axes <- lapply(grants, function(grant) list(
       features = .wb_operation_pack_v3_broker_axis_ids(stage,
         grant$features_axis),

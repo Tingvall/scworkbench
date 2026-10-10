@@ -318,6 +318,10 @@
     motif_match_membership = list(fk("motif_match_set", "motif_match_sets"), fk("motif_key", "motifs")),
     space_models = list(fk("space_id", "spaces", "space_id"), fk("source_space_id", "spaces", "space_id")),
     artifacts = list(fk("provenance_snapshot_id", "prov_heads", "snapshot_id")),
+    artifact_graph_meta = list(fk("artifact_id", "artifacts")),
+    artifact_graph_rows = list(fk("artifact_id", "artifact_graph_meta")),
+    artifact_object_payload_meta = list(fk("artifact_id", "artifacts")),
+    artifact_object_metadata_chunks = list(fk("artifact_id", "artifact_object_payload_meta")),
     artifact_labels = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
     artifact_pseudotime = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
     artifact_relation_rows = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
@@ -502,7 +506,12 @@
   # Rebuild referenced provenance parents before artifacts begin referring to
   # them. SQLite tracks a dropped referenced parent as a deferred violation
   # even when an equivalent table is recreated under the same name.
-  table_order <- c("prov_heads", "prov_runs", setdiff(names(definitions), c("prov_heads", "prov_runs")))
+  # The four fresh graph-profile tables first exist in migration 011, whose
+  # canonical declarations already include the exact central constraints.
+  later_tables <- c("artifact_graph_meta", "artifact_graph_rows",
+    "artifact_object_payload_meta", "artifact_object_metadata_chunks")
+  table_order <- c("prov_heads", "prov_runs", setdiff(names(definitions),
+    c("prov_heads", "prov_runs", later_tables)))
   for (table in table_order) {
     tryCatch(
       .wb_schema_rebuild_with_foreign_keys(con, table, definitions[[table]]),

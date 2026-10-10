@@ -11,7 +11,8 @@ wb_operation_pack_scaffold(
   author,
   email,
   license = "MIT",
-  backend = "R"
+  backend = "R",
+  template = c("matrix_cell_sum", "graph")
 )
 }
 \arguments{
@@ -28,12 +29,14 @@ wb_operation_pack_scaffold(
 \item{license}{Supported template license, currently \code{"MIT"}.}
 
 \item{backend}{Supported installed template backend, currently \code{"R"}.}
+
+\item{template}{\code{"matrix_cell_sum"} (ABI3) or \code{"graph"} (ABI4).}
 }
 \value{
 Descriptor with SDK version, project, package, namespace and manifest.
 }
 \description{
-Generate the installed ABI-v3 R reference project without installation,
+Generate an installed ABI-v3 matrix or ABI-v4 graph reference project without installation,
 activation, network access or Git mutation. The destination must not exist
 and its parent must exist. Generation is published by one directory rename.
 Publication uses Linux \code{renameat2(RENAME_NOREPLACE)} and atomically refuses

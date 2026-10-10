@@ -211,6 +211,28 @@
       "installed_relative_path": null
     },
     {
+      "path": "docs/operation_pack_v4_protocol.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/operation_pack_v4_protocol.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/graph_primitive.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/graph_primitive.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "docs/phase6_matrix_trained_model_boundary.md",
       "class": "public_canonical",
       "audience": "public",
@@ -596,6 +618,61 @@
       "installed_relative_path": "protocol/operation-pack-v3.schema.json"
     },
     {
+      "path": "inst/protocol/graph-v1.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/graph-v1.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/graph-v1.schema.json"
+    },
+    {
+      "path": "inst/protocol/operation-pack-v4.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-v4.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-v4.schema.json"
+    },
+    {
+      "path": "inst/protocol/operation-pack-transition-request-v4.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-transition-request-v4.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-transition-request-v4.schema.json"
+    },
+    {
+      "path": "inst/protocol/operation-pack-transition-receipt-v4.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-transition-receipt-v4.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-transition-receipt-v4.schema.json"
+    },
+    {
+      "path": "inst/protocol/pybench-op-v5-python-runtime.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/pybench-op-v5-python-runtime.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/pybench-op-v5-python-runtime.schema.json"
+    },
+    {
       "path": "inst/protocol/operation-pack-transition-request-v3.schema.json",
       "class": "public_canonical",
       "audience": "public",
@@ -651,6 +728,17 @@
       "installed_relative_path": "sdk/operation-packs/callbacks.json"
     },
     {
+      "path": "inst/sdk/operation-packs/capabilities-v4.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/capabilities-v4.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/capabilities-v4.schema.json"
+    },
+    {
       "path": "inst/sdk/operation-packs/capabilities.schema.json",
       "class": "public_canonical",
       "audience": "public",
@@ -660,6 +748,17 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "sdk/operation-packs/capabilities.schema.json"
+    },
+    {
+      "path": "inst/sdk/operation-packs/GRAPH_GUIDE.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/GRAPH_GUIDE.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/GRAPH_GUIDE.md"
     },
     {
       "path": "inst/sdk/operation-packs/GUIDE.md",
@@ -849,6 +948,17 @@
       "installed_relative_path": "sdk/operation-packs/scripts/activation_negatives.R"
     },
     {
+      "path": "inst/sdk/operation-packs/scripts/graph_tutorial.R",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/scripts/graph_tutorial.R",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/scripts/graph_tutorial.R"
+    },
+    {
       "path": "inst/sdk/operation-packs/scripts/installed_check.R",
       "class": "public_canonical",
       "audience": "public",
@@ -880,6 +990,105 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "sdk/operation-packs/scripts/tutorial.R"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/DESCRIPTION",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/DESCRIPTION",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/DESCRIPTION"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/inst/scworkbench/operation-pack.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/inst/scworkbench/operation-pack.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/inst/scworkbench/operation-pack.json"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/LICENSE",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/LICENSE",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/LICENSE"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/LICENSE.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/LICENSE.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/LICENSE.md"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/man/register_operation_pack.Rd",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/man/register_operation_pack.Rd",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/man/register_operation_pack.Rd"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/NAMESPACE",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/NAMESPACE",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/NAMESPACE"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/R/register.R",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/R/register.R",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/R/register.R"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/README.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/README.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/README.md"
+    },
+    {
+      "path": "inst/sdk/operation-packs/templates/graph-R/tests/run_contract_tests.R",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/sdk/operation-packs/templates/graph-R/tests/run_contract_tests.R",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/templates/graph-R/tests/run_contract_tests.R"
     },
     {
       "path": "inst/sdk/operation-packs/templates/R/DESCRIPTION",
@@ -1199,6 +1408,28 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "protocol/fixtures/operation-pack-v3/relation-family-identities.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/graph-v1/binding-descriptor-identities.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/graph-v1/binding-descriptor-identities.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/graph-v1/binding-descriptor-identities.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/graph-v1/content-identities.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/graph-v1/content-identities.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/graph-v1/content-identities.json"
     },
     {
       "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
@@ -1762,6 +1993,28 @@
       "installed_relative_path": "documentation_manifest.json"
     },
     {
+      "path": "inst/sdk/operation-packs/CAPABILITIES_V4.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "SDK frozen interface, recipes and accepted ABI",
+      "generator": "inst/dev/generate_operation_pack_sdk_catalog.R",
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/CAPABILITIES_V4.md"
+    },
+    {
+      "path": "inst/sdk/operation-packs/capabilities-v4.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "SDK frozen interface, recipes and accepted ABI",
+      "generator": "inst/dev/generate_operation_pack_sdk_catalog.R",
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "sdk/operation-packs/capabilities-v4.json"
+    },
+    {
       "path": "inst/sdk/operation-packs/capabilities.json",
       "class": "generated_public_reference",
       "audience": "public",
@@ -2192,6 +2445,28 @@
     },
     {
       "path": "man/wb_art_get_labels.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_art_graph_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_art_graph_slice.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",
@@ -3248,6 +3523,94 @@
     },
     {
       "path": "man/wb_getter_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_binding_from_source.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_collect.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_encode_finite_f64.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_from_igraph.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_identity.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_to_igraph.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_validate.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_graph_with_node_attribute.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",
@@ -4502,6 +4865,17 @@
     },
     {
       "path": "man/wb_prim_feature_table.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_prim_graph.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

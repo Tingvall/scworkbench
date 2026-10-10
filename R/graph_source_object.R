@@ -9,13 +9,13 @@
       "_payload_order ON ", table, "(artifact_id,payload_ordinal);"))
   }
   DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_object_payload_meta (",
-    "artifact_id TEXT PRIMARY KEY REFERENCES artifacts(artifact_id),",
+    "artifact_id TEXT PRIMARY KEY REFERENCES artifacts(artifact_id) DEFERRABLE INITIALLY DEFERRED,",
     "kind TEXT NOT NULL CHECK(kind IN ('cell_vector','cell_vector_family')),",
     "value_type TEXT NOT NULL,meta_present INTEGER NOT NULL CHECK(meta_present IN (0,1)),",
     "content_identity_json TEXT NOT NULL CHECK(length(CAST(content_identity_json AS BLOB))<=1024),",
     "closure_identity_json TEXT);"))
   DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_object_metadata_chunks (",
-    "artifact_id TEXT NOT NULL REFERENCES artifact_object_payload_meta(artifact_id),",
+    "artifact_id TEXT NOT NULL REFERENCES artifact_object_payload_meta(artifact_id) DEFERRABLE INITIALLY DEFERRED,",
     "chunk_ordinal INTEGER NOT NULL CHECK(typeof(chunk_ordinal)='integer' AND chunk_ordinal>=0),",
     "chunk BLOB NOT NULL CHECK(typeof(chunk)='blob' AND length(chunk)>0 AND length(chunk)<=65536),",
     "PRIMARY KEY(artifact_id,chunk_ordinal));"))
@@ -29,7 +29,7 @@
   sink <- file(file, "wb")
   on.exit(if (file.exists(file)) unlink(file), add = TRUE)
   next_row <- "0"; bytes <- bit64::as.integer64(0)
-  tryCatch(repeat {
+  tryCatch({repeat {
     size <- DBI::dbGetQuery(con, paste0("SELECT length(chunk) n,typeof(chunk) type ",
       "FROM artifact_object_metadata_chunks WHERE artifact_id=? AND chunk_ordinal>=CAST(? AS INTEGER) ",
       "ORDER BY chunk_ordinal LIMIT 1;"), params = list(artifact_id, next_row))
@@ -53,7 +53,12 @@
     .wb_graph_require(!is.na(bytes) && bytes <= .wb_graph_i64(budgets$token_bytes),
       "GRAPH_RESOURCE_EXCEEDED", "Source metadata spill budget exceeded.")
     writeBin(rows$chunk[[1]], sink)
+    flush(sink)
+    .wb_graph_spill_admit(budgets)
     next_row <- .wb_graph_add_count(next_row, 1L)
+  }
+    flush(sink)
+    .wb_graph_spill_admit(budgets)
   }, finally = close(sink))
   hidden <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_object_metadata_chunks WHERE artifact_id=? ",
     "AND (typeof(chunk_ordinal)!='integer' OR chunk_ordinal<0) LIMIT 1;"), params = list(artifact_id))

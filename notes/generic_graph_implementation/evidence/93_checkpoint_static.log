@@ -1,0 +1,2 @@
+GRAPH_CHECKPOINT_STATIC parsed=PASS schemas_byte_identical=5 synthetic_fixture_identical=1
+GIT_DIFF_CHECK PASS

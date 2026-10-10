@@ -13,7 +13,7 @@
 
 #' Scaffold an Explicit Operation Pack
 #'
-#' Generate the installed ABI-v3 R reference project without installation,
+#' Generate an installed ABI-v3 matrix or ABI-v4 graph reference project without installation,
 #' activation, network access or Git mutation. The destination must not exist
 #' and its parent must exist. Generation is published by one directory rename.
 #' Publication uses Linux `renameat2(RENAME_NOREPLACE)` and atomically refuses
@@ -27,10 +27,13 @@
 #' @param email Maintainer email address.
 #' @param license Supported template license, currently `"MIT"`.
 #' @param backend Supported installed template backend, currently `"R"`.
+#' @param template `"matrix_cell_sum"` (ABI3) or `"graph"` (ABI4).
 #' @return Descriptor with SDK version, project, package, namespace and manifest.
 #' @export
 wb_operation_pack_scaffold <- function(path, package, namespace, author, email,
-                                       license = "MIT", backend = "R") {
+                                       license = "MIT", backend = "R",
+                                       template = c("matrix_cell_sum", "graph")) {
+  template <- match.arg(template)
   path <- .wb_sdk_text(path, "path")
   package <- .wb_sdk_text(package, "package")
   namespace <- .wb_sdk_text(namespace, "namespace")
@@ -55,8 +58,8 @@ wb_operation_pack_scaffold <- function(path, package, namespace, author, email,
   stage <- tempfile(".scwb-sdk-", tmpdir = parent)
   if (!dir.create(stage)) stop("Cannot create scaffold staging directory.", call. = FALSE)
   on.exit(if (dir.exists(stage)) unlink(stage, recursive = TRUE, force = TRUE), add = TRUE)
-  template <- .wb_sdk_asset("templates", "R")
-  paths <- sort(list.files(template, recursive = TRUE, all.files = TRUE,
+  template_root <- .wb_sdk_asset("templates", if (template == "graph") "graph-R" else "R")
+  paths <- sort(list.files(template_root, recursive = TRUE, all.files = TRUE,
     no.. = TRUE, include.dirs = FALSE))
   replacements <- c("@PACKAGE@" = package, "@NAMESPACE@" = namespace,
     "@AUTHOR@" = author, "@EMAIL@" = email, "@YEAR@" = format(Sys.Date(), "%Y"))
@@ -66,7 +69,7 @@ wb_operation_pack_scaffold <- function(path, package, namespace, author, email,
   for (relative in paths) {
     output <- file.path(stage, relative)
     dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
-    value <- readLines(file.path(template, relative), warn = FALSE)
+    value <- readLines(file.path(template_root, relative), warn = FALSE)
     for (key in names(replacements)) value <- gsub(key, replacements[[key]],
       value, fixed = TRUE)
     writeLines(value, output, useBytes = TRUE)
@@ -79,7 +82,9 @@ wb_operation_pack_scaffold <- function(path, package, namespace, author, email,
   publish_hook <- getOption("scworkbench.sdk_scaffold_publication_test_hook", NULL)
   if (is.function(publish_hook)) publish_hook(stage, destination)
   .Call(C_scwb_sdk_publish_noreplace, stage, destination)
-  list(sdk_version = "1.0.0", path = destination, package = package,
+  list(sdk_version = if (template == "graph") "1.1.0" else "1.0.0",
+    pack_abi_version = if (template == "graph") "4" else "3",
+    path = destination, package = package,
     namespace = namespace, manifest = file.path(destination, "inst",
       "scworkbench", "operation-pack.json"))
 }
@@ -87,11 +92,15 @@ wb_operation_pack_scaffold <- function(path, package, namespace, author, email,
 #' Inspect Installed Operation Pack SDK Capabilities
 #' @param backend Optional `"R"` or `"Python"` backend filter.
 #' @param kind Optional primitive kind filter.
+#' @param pack_abi_version Inventory version, `"3"` (default) or `"4"`.
 #' @return Versioned catalog with distinct manifest, request and runtime support.
 #'   Inspection supplies no grants. Unsupported policy combinations are explicit.
 #' @export
-wb_operation_pack_capabilities <- function(backend = NULL, kind = NULL) {
-  catalog <- jsonlite::read_json(.wb_sdk_asset("capabilities.json"), simplifyVector = FALSE)
+wb_operation_pack_capabilities <- function(backend = NULL, kind = NULL,
+                                           pack_abi_version = c("3", "4")) {
+  pack_abi_version <- match.arg(pack_abi_version)
+  catalog <- jsonlite::read_json(.wb_sdk_asset(if (pack_abi_version == "4")
+    "capabilities-v4.json" else "capabilities.json"), simplifyVector = FALSE)
   if (!is.null(backend)) {
     if (length(backend) != 1L || is.na(backend) || !backend %in% c("R", "Python"))
       stop("backend must be R or Python.", call. = FALSE)

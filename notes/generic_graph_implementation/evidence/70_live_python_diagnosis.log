@@ -1,0 +1,24 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+$message
+[1] "Typed-slice broker exited before Python: cannot open the connection"
+
+$call
+NULL
+
+$code
+[1] "PYBENCH_PROCESS_FAILED"
+
+$phase
+[1] "execution"
+
+DIAGNOSTIC_RECEIPT /tmp/RtmpnBThp7/scworkbench_sessions/session_35z3dwvrmm13_3bffcf50a561/operation_pack_v2/transition_fyl84gelx9crur2e/receipt.json 
+DIAGNOSTIC_RECEIPT /tmp/RtmpnBThp7/scworkbench_sessions/session_35z3dwvrmm13_3bffcf50a561/operation_pack_v2/transition_u95104m8bukkbcyt/receipt.json 
+DIAGNOSTIC_RECEIPT /tmp/RtmpnBThp7/scworkbench_sessions/session_4leq4j8wht6d_3bffc3f97cb1b/operation_pack_v2/transition_fyl84gelx9crur2e/receipt.json 
+DIAGNOSTIC_RECEIPT /tmp/RtmpnBThp7/scworkbench_sessions/session_gaxs6db3e8gu_3bffc72347730/operation_pack_v2/transition_fyl84gelx9crur2e/receipt.json 
+DIAGNOSTIC_RECEIPT /tmp/RtmpnBThp7/scworkbench_sessions/session_gaxs6db3e8gu_3bffc72347730/operation_pack_v2/transition_u95104m8bukkbcyt/receipt.json 
+Error: Typed-slice broker exited before Python: cannot open the connection
+Execution halted

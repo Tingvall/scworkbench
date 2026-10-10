@@ -1,5 +1,9 @@
 # Authoring ABI-v3 operation packs (SDK 1.0.0)
 
+The additive ABI4 graph reference is documented in [GRAPH_GUIDE.md](GRAPH_GUIDE.md).
+Use `template = "graph"` when scaffolding and `pack_abi_version = "4"` when
+inspecting capabilities. Existing ABI3 defaults and authority remain unchanged.
+
 ## Quick start and trust
 
 The installed [system overview](../../onboarding/SYSTEM_OVERVIEW.md) maps the

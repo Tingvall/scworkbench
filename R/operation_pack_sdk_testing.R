@@ -120,20 +120,23 @@ wb_operation_pack_sdk_run <- function(bundle, operation, inputs, fault = NULL) {
   stage_unchanged <- if (inherits(value, "error")) identical(stage_before,
     wb_operation_pack_sdk_state(staged$bundle)) else FALSE
   if (inherits(value, "error")) wb_session_discard(staged$session)
-  observations <- NULL
+  observations <- graph_observations <- graph_seals <- NULL
   if (!inherits(value, "error")) {
     id <- value$run$operation_pack_transition$transition_id
     record <- .wb_operation_pack_v2_record_validate(file.path(
       .wb_operation_pack_v2_store(value$session$staging_bundle), id), load_payloads = FALSE)
     if (!isTRUE(record$ok)) stop("SDK cannot inspect the audited transition.")
     observations <- record$receipt$typed_slice_usage
+    graph_observations <- record$receipt$graph_read_usage
+    graph_seals <- record$receipt$graph_write_observations
   }
   list(ok = !inherits(value, "error"), result = if (!inherits(value, "error")) value else NULL,
     error = if (inherits(value, "error")) value else NULL,
     before = before, after = after, unchanged = identical(before, after) &&
       (!inherits(value, "error") || stage_unchanged),
     staging_unchanged = stage_unchanged,
-    read_observations = observations)
+    read_observations = observations, graph_read_observations = graph_observations,
+    graph_write_observations = graph_seals)
 }
 
 #' Assert SDK Execution Values, Parameters or Rollback

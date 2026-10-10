@@ -115,18 +115,24 @@ wb_graph_identity <- function(graph) {
   invisible(TRUE)
 }
 
-.wb_graph_token_hash <- function(emitter, budgets) {
+.wb_graph_token_hash <- function(emitter, budgets, scratch_path = NULL) {
   token_file <- tempfile("scwb_graph_identity_")
   on.exit(if (file.exists(token_file)) unlink(token_file), add = TRUE)
   sink <- file(token_file, "wb"); count <- bit64::as.integer64(0)
+  observed <- bit64::as.integer64(0)
   emit <- function(value) {
     bytes <- charToRaw(enc2utf8(value))
     count <<- count + bit64::as.integer64(length(bytes))
     .wb_graph_require(!is.na(count) && count <= .wb_graph_i64(budgets$token_bytes),
       "GRAPH_RESOURCE_EXCEEDED", "Identity token spill budget exceeded.")
     writeBin(bytes, sink)
+    if (count - observed >= min(1048576, as.numeric(budgets$token_bytes))) {
+      flush(sink); .wb_graph_spill_admit(budgets, scratch_path)
+      observed <<- count
+    }
   }
-  tryCatch(emitter(emit), finally = close(sink))
+  tryCatch({emitter(emit); flush(sink); .wb_graph_spill_admit(budgets, scratch_path)},
+    finally = close(sink))
   input <- file(token_file, "rb")
   tryCatch(unclass(as.character(openssl::sha256(input))), finally = close(input))
 }
@@ -135,6 +141,11 @@ wb_graph_identity <- function(graph) {
   content <- .wb_graph_sql_content_hash(con, artifact_id, budgets)
   .wb_graph_validate_sql_bindings(con, artifact_id, budgets)
   binding_count <- .wb_graph_count(con, artifact_id, "bindings")
+  scratch_path <- NULL
+  if (isTRUE(attr(con, "wb_graph_owned_stage"))) {
+    database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+    scratch_path <- database$file[database$name == "main"][[1L]]
+  }
   .wb_graph_require(.wb_graph_i64(binding_count) <= bit64::as.integer64("999999999999999"),
     "GRAPH_COUNT_INVALID", "Binding-count representation exceeds canonical JSON v1 domain.")
   digest <- .wb_graph_token_hash(function(emit) {
@@ -170,7 +181,7 @@ wb_graph_identity <- function(graph) {
     emit(paste0('],"graph_content_identity":',
       .wb_operation_pack_canonical_json(content$identity),
       ',"schema":"scworkbench.graph.axis-bindings.v1"}'))
-  }, budgets)
+  }, budgets, scratch_path)
   binding <- list(scheme = "scworkbench.graph.axis-bindings.canonical-json.v1", sha256 = digest)
   descriptor <- list(schema = "scworkbench.graph.retained-descriptor.v1",
     content_identity = content$identity, binding_identity = binding,

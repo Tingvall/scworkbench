@@ -79,6 +79,8 @@
 .wb_graph_source_axis_hash <- function(bundle, source_ref, axis_kind, budgets) {
   query <- .wb_graph_source_axis_query(bundle, source_ref, axis_kind)
   con <- bundle$con
+  database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+  database_path <- database$file[database$name == "main"][[1L]]
   oversized <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM (", query$sql,
     ") WHERE octet_length(axis_id)>? LIMIT 1;"), params = c(query$params,
       list(min(256, budgets$partition_bytes))))
@@ -89,6 +91,8 @@
       params = query$params)
     first <- TRUE; previous <- NULL; count <- "0"
     tryCatch(repeat {
+      if (as.numeric(count) %% budgets$partition_rows == 0)
+        .wb_graph_transient_admit(budgets, database_path)
       rows <- DBI::dbFetch(cursor, n = 1L)
       if (!nrow(rows)) break
       id <- rows$axis_id[[1]]

@@ -1,8 +1,17 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "artifact_type_count": 78,
+  "artifact_type_count": 79,
   "artifact_types": [
+    {
+      "artifact_type": "graph",
+      "primitive_kind": "graph",
+      "title": "Graph Artifact",
+      "description": "Retained ordered NEI graph with independent content, binding and path-free descriptor identities; graph-isomorphism equivalence is not asserted.",
+      "table_type": null,
+      "entity_kind": "graph",
+      "use_when": ["inspect bounded graph components without its authoring pack", "authenticate optional retained source axes"]
+    },
     {
       "artifact_type": "cell_vector",
       "primitive_kind": "cell_vector",

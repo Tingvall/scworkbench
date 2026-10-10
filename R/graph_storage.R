@@ -4,22 +4,91 @@
 
 .wb_graph_budgets <- function(overrides = list()) {
   defaults <- list(storage_bytes = "8589934592", token_bytes = "8589934592",
+    published_bytes = "8589934592", wal_bytes = "8589934592", memory_bytes = "67108864",
     partition_bytes = 1048576, partition_rows = 512L, collect_bytes = 16777216,
     sqlite_cache_kib = 8192L)
   .wb_graph_require(is.list(overrides) && !anyDuplicated(names(overrides)) &&
     all(names(overrides) %in% names(defaults)), "GRAPH_RESOURCE_POLICY_INVALID",
     "Unknown or duplicate resource budget.")
   defaults[names(overrides)] <- overrides
-  for (name in c("storage_bytes", "token_bytes"))
+  byte_fields <- c("storage_bytes", "token_bytes", "published_bytes", "wal_bytes", "memory_bytes")
+  for (name in byte_fields)
     .wb_graph_require(.wb_graph_int64(defaults[[name]]) &&
       !startsWith(defaults[[name]], "-") && defaults[[name]] != "0",
       "GRAPH_RESOURCE_POLICY_INVALID", name)
-  for (name in setdiff(names(defaults), c("storage_bytes", "token_bytes")))
+  for (name in setdiff(names(defaults), byte_fields))
     .wb_graph_require(is.numeric(defaults[[name]]) && length(defaults[[name]]) == 1L &&
       is.finite(defaults[[name]]) && defaults[[name]] > 0 &&
       defaults[[name]] <= 2147483647 && defaults[[name]] == floor(defaults[[name]]),
       "GRAPH_RESOURCE_POLICY_INVALID", name)
+  .wb_graph_require(defaults$sqlite_cache_kib * 1024 + 8 * defaults$partition_bytes <=
+    as.numeric(defaults$memory_bytes) && defaults$collect_bytes <= as.numeric(defaults$memory_bytes),
+    "GRAPH_RESOURCE_POLICY_INVALID", "Cache/decoded-partition or collect reservation exceeds working-memory admission.")
   defaults
+}
+
+.wb_graph_disk_usage <- function(con) {
+  database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+  path <- database$file[database$name == "main"][[1L]]
+  pages <- as.double(DBI::dbGetQuery(con, "PRAGMA page_count;")[[1L]][[1L]])
+  page_bytes <- as.double(DBI::dbGetQuery(con, "PRAGMA page_size;")[[1L]][[1L]])
+  c(list(database_bytes = pages * page_bytes), .wb_graph_transient_usage(path))
+}
+
+.wb_graph_transient_usage <- function(path = "") {
+  journal_paths <- paste0(path, c("-wal", "-journal", "-shm"))
+  journal <- file.info(journal_paths)$size
+  # SQLite unlinks temporary sort/spill files while their descriptors are
+  # still open. Directory inventories alone would silently omit these bytes.
+  # Procfs is used only inside core resource accounting; never exposed to packs.
+  temp_bytes <- 0
+  fd_root <- "/proc/self/fd"
+  .wb_graph_require(dir.exists(fd_root), "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE",
+    "Bounded graph SQLite runtime requires Linux procfs for unlinked temporary spill accounting.")
+  if (dir.exists(fd_root)) {
+    fds <- list.files(fd_root, full.names = TRUE)
+    targets <- Sys.readlink(fds)
+    temporary <- !is.na(targets) & grepl("(^|/)(etilqs_|scwb_graph_tokens_|scwb_graph_identity_|scwb_object_meta_)", targets)
+    selected <- fds[temporary][!duplicated(targets[temporary])]
+    sizes <- suppressWarnings(file.info(selected)$size)
+    temp_bytes <- sum(sizes[!is.na(sizes)])
+  }
+  list(journal_bytes = sum(journal[!is.na(journal)]), temporary_bytes = temp_bytes,
+    temporary_accounting = if (dir.exists(fd_root)) "procfs_open_descriptors" else "unavailable")
+}
+
+.wb_graph_transient_admit <- function(budgets, path = "") {
+  usage <- .wb_graph_transient_usage(path)
+  .wb_graph_require(usage$journal_bytes <= as.numeric(budgets$wal_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Graph SQLite WAL/journal/SHM budget exceeded.")
+  .wb_graph_require(usage$temporary_bytes <= as.numeric(budgets$token_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Graph combined canonical-token/SQLite temporary spill budget exceeded.")
+  invisible(usage)
+}
+
+.wb_graph_spill_admit <- function(budgets, scratch_path = NULL) {
+  usage <- .wb_graph_transient_usage()
+  scratch_bytes <- if (is.null(scratch_path)) 0 else file.info(scratch_path)$size
+  .wb_graph_require(is.finite(scratch_bytes) && scratch_bytes + usage$temporary_bytes <=
+    as.numeric(budgets$token_bytes), "GRAPH_RESOURCE_EXCEEDED",
+    "Combined graph scratch database/canonical-token/temporary spill budget exceeded.")
+  invisible(usage)
+}
+
+.wb_graph_disk_admit <- function(con, budgets, baseline = NULL) {
+  usage <- .wb_graph_disk_usage(con)
+  if (is.null(baseline)) .wb_graph_require(usage$database_bytes <= as.numeric(budgets$storage_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Graph staging database budget exceeded.")
+  else .wb_graph_require(max(0, usage$database_bytes - baseline$database_bytes) <=
+    as.numeric(budgets$published_bytes), "GRAPH_RESOURCE_EXCEEDED",
+    "Graph publication database-growth budget exceeded.")
+  .wb_graph_require(usage$journal_bytes <= as.numeric(budgets$wal_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Graph SQLite WAL/journal/SHM budget exceeded.")
+  .wb_graph_require(usage$temporary_bytes <= as.numeric(budgets$token_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Graph SQLite temporary spill budget exceeded.")
+  if (is.null(baseline)) .wb_graph_require(usage$database_bytes + usage$temporary_bytes <=
+    as.numeric(budgets$token_bytes), "GRAPH_RESOURCE_EXCEEDED", "Combined graph scratch and spill budget exceeded.")
+  invisible(usage)
 }
 
 .wb_graph_i64 <- function(value) {
@@ -75,14 +144,14 @@
     "artifact_id TEXT PRIMARY KEY,profile TEXT NOT NULL,direction_mode TEXT NOT NULL,",
     "content_identity_json TEXT,binding_identity_json TEXT,descriptor_json TEXT,",
     "descriptor_identity_json TEXT,canonical_bytes TEXT,",
-    if (retained) "FOREIGN KEY(artifact_id) REFERENCES artifacts(artifact_id)" else
+    if (retained) "FOREIGN KEY(artifact_id) REFERENCES artifacts(artifact_id) DEFERRABLE INITIALLY DEFERRED" else
       "CHECK(profile='graph_sqlite_v1')", ");"))
   DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_graph_rows (",
     "artifact_id TEXT NOT NULL,component TEXT NOT NULL CHECK(component IN (",
     paste0("'", .wb_graph_components(), "'", collapse = ","), ")),",
     "row_ordinal INTEGER NOT NULL CHECK(typeof(row_ordinal)='integer' AND row_ordinal>=0),",
     "record_json TEXT NOT NULL CHECK(json_valid(record_json)),PRIMARY KEY(artifact_id,component,row_ordinal),",
-    "FOREIGN KEY(artifact_id) REFERENCES artifact_graph_meta(artifact_id));"))
+    "FOREIGN KEY(artifact_id) REFERENCES artifact_graph_meta(artifact_id) DEFERRABLE INITIALLY DEFERRED);"))
   unique_fields <- list(nodes = "node_id", edges = "edge_id", incidences = "incidence_id",
     bindings = "binding_id")
   for (component in names(unique_fields)) DBI::dbExecute(con, paste0(
@@ -125,6 +194,7 @@
 }
 
 .wb_graph_stage_new <- function(direction_mode, budgets = list()) {
+  .wb_graph_transient_usage()
   .wb_graph_require(.wb_graph_string(direction_mode) && direction_mode %in%
     c("directed", "undirected", "mixed"), "GRAPH_DIRECTION_INVALID", "Invalid header.")
   state <- new.env(parent = emptyenv())
@@ -134,6 +204,7 @@
   succeeded <- FALSE
   on.exit(if (!succeeded) .wb_graph_stage_discard(state), add = TRUE)
   state$con <- DBI::dbConnect(RSQLite::SQLite(), state$path, bigint = "character")
+  attr(state$con, "wb_graph_owned_stage") <- TRUE
   # Register after SQLite creates its external pointer. R finalizes newer
   # registrations first: close our owned connection before its pointer is
   # collected, including abandoned session values and process exit.
@@ -148,6 +219,7 @@
     .wb_graph_components())
   state$component <- 1L
   state$finished <- FALSE
+  .wb_graph_disk_admit(state$con, state$budgets)
   succeeded <- TRUE
   state
 }
@@ -216,6 +288,8 @@
   .wb_graph_require(!is.na(index) && index >= state$component,
     "GRAPH_PART_ORDER_INVALID", "Components cannot be repeated or reordered.")
   rows <- .wb_graph_records(rows)
+  .wb_graph_require(as.numeric(object.size(rows)) <= as.numeric(state$budgets$memory_bytes),
+    "GRAPH_RESOURCE_EXCEEDED", "Decoded graph part exceeds working-memory admission.")
   .wb_graph_require(length(rows) <= state$budgets$partition_rows,
     "GRAPH_RESOURCE_EXCEEDED", "Partition row budget exceeded.")
   start <- state$counts[[component]]
@@ -226,14 +300,17 @@
   .wb_graph_require(sum(nchar(encoded, type = "bytes")) <= state$budgets$partition_bytes,
     "GRAPH_RESOURCE_EXCEEDED", "Decoded partition byte budget exceeded.")
   ordinals <- as.character(.wb_graph_i64(start) + bit64::as.integer64(seq_along(rows) - 1L))
-  tryCatch(DBI::dbWithTransaction(state$con, DBI::dbAppendTable(state$con,
-    "artifact_graph_rows", data.frame(artifact_id = "staged", component = component,
-      row_ordinal = bit64::as.integer64(ordinals), record_json = encoded))),
-    error = function(error) .wb_graph_error("GRAPH_ROWS_INVALID", conditionMessage(error)))
+  tryCatch(DBI::dbWithTransaction(state$con, {
+    DBI::dbAppendTable(state$con, "artifact_graph_rows", data.frame(artifact_id = "staged",
+      component = component, row_ordinal = bit64::as.integer64(ordinals), record_json = encoded))
+    .wb_graph_disk_admit(state$con, state$budgets)
+  }), error = function(error) {
+    if (inherits(error, "wb_graph_error")) stop(error)
+    .wb_graph_error("GRAPH_ROWS_INVALID", conditionMessage(error))
+  })
   state$counts[[component]] <- .wb_graph_add_count(start, length(rows))
   state$component <- index
-  .wb_graph_require(file.info(state$path)$size <=
-    .wb_graph_i64(state$budgets$storage_bytes), "GRAPH_RESOURCE_EXCEEDED", "Staging budget exceeded.")
+  .wb_graph_disk_admit(state$con, state$budgets)
   invisible(TRUE)
 }
 
@@ -275,6 +352,8 @@
 
 .wb_graph_validate_sql <- function(con, artifact_id, budgets = .wb_graph_budgets()) {
   .wb_graph_backend_assert(con)
+  database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+  database_path <- database$file[database$name == "main"][[1L]]
   oversized <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows WHERE artifact_id=? ",
     "AND octet_length(record_json)>? LIMIT 1;"), params = list(artifact_id, budgets$partition_bytes))
   .wb_graph_require(!nrow(oversized), "GRAPH_RESOURCE_EXCEEDED", "Stored graph record exceeds decoded budget.")
@@ -336,6 +415,7 @@
     "WHERE e.artifact_id=? AND e.component='edges' GROUP BY e.row_ordinal ORDER BY e.row_ordinal;")
   cursor <- DBI::dbSendQuery(con, edge_sql, params = list(artifact_id))
   tryCatch(repeat {
+    .wb_graph_transient_admit(budgets, database_path)
     # Each edge can occupy the entire admitted byte partition. A row-count
     # limit alone would permit partition_rows times that memory, especially
     # with whitespace-padded but valid JSON. Keep this aggregate cursor scalar.
@@ -380,6 +460,7 @@
   previous_edge <- bit64::as.integer64(-1)
   previous_ordinal <- -1
   tryCatch(repeat {
+    .wb_graph_transient_admit(budgets, database_path)
     batch <- DBI::dbFetch(order_cursor, n = budgets$partition_rows)
     if (!nrow(batch)) break
     for (i in seq_len(nrow(batch))) {
@@ -442,16 +523,26 @@
 
 .wb_graph_sql_content_hash <- function(con, artifact_id, budgets = .wb_graph_budgets()) {
   .wb_graph_validate_sql(con, artifact_id, budgets)
+  scratch_path <- NULL
+  if (isTRUE(attr(con, "wb_graph_owned_stage"))) {
+    database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+    scratch_path <- database$file[database$name == "main"][[1L]]
+  }
   file <- tempfile("scwb_graph_tokens_")
   on.exit(if (file.exists(file)) unlink(file), add = TRUE)
   sink <- file(file, "wb")
   written <- bit64::as.integer64(0)
+  observed_spill <- bit64::as.integer64(0)
   emit <- function(token) {
     bytes <- charToRaw(enc2utf8(token))
     written <<- written + bit64::as.integer64(length(bytes))
     .wb_graph_require(!is.na(written) && written <= .wb_graph_i64(budgets$token_bytes),
       "GRAPH_RESOURCE_EXCEEDED", "Canonical-token spill budget exceeded.")
     writeBin(bytes, sink)
+    if (written - observed_spill >= min(1048576, as.numeric(budgets$token_bytes))) {
+      flush(sink); .wb_graph_spill_admit(budgets, scratch_path)
+      observed_spill <<- written
+    }
   }
   array <- function(component, transform = .wb_graph_parse, predicate = "", params = list()) {
     emit("["); first <- TRUE
@@ -493,6 +584,7 @@
     array("edges"); emit(',"incidences":'); array("incidences")
     emit(',"nodes":'); array("nodes")
     emit(',"schema":"scworkbench.graph.content.v1"}')
+    flush(sink); .wb_graph_spill_admit(budgets, scratch_path)
   }, finally = close(sink))
   input <- file(file, "rb")
   sha <- tryCatch(unclass(as.character(openssl::sha256(input))), finally = close(input))

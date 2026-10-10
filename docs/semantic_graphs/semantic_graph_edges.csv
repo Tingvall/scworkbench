@@ -53,6 +53,7 @@
 "artifact_type:feature_table:rna_qc_feature_membership","primitive:feature_table","loads_as","wb_art_load"
 "artifact_type:feature_table:trajectory_branch_compare","primitive:feature_table","loads_as","wb_art_load"
 "artifact_type:feature_table:trajectory_de","primitive:feature_table","loads_as","wb_art_load"
+"artifact_type:graph","primitive:graph","loads_as","wb_art_load"
 "artifact_type:model_ref","primitive:model_ref","loads_as","wb_art_load"
 "artifact_type:obs_table:attach_report","primitive:obs_table","loads_as","wb_art_load"
 "artifact_type:obs_table:cell_suffix_label","primitive:obs_table","loads_as","wb_art_load"

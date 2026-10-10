@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 275,
-  "edge_count": 389,
+  "node_count": 279,
+  "edge_count": 390,
   "nodes": [
     {
       "record_id": "op:feature_set_import",
@@ -303,6 +303,18 @@
       "record_type": "getter",
       "name": "wb_art_table_info",
       "title": "Table Artifact Info"
+    },
+    {
+      "record_id": "getter:wb_art_graph_info",
+      "record_type": "getter",
+      "name": "wb_art_graph_info",
+      "title": "Retained Graph Identity and Counts"
+    },
+    {
+      "record_id": "getter:wb_art_graph_slice",
+      "record_type": "getter",
+      "name": "wb_art_graph_slice",
+      "title": "Ordered Graph Component Partition"
     },
     {
       "record_id": "getter:wb_art_table_slice",
@@ -701,6 +713,12 @@
       "title": "Pseudotime Signature Wrangler"
     },
     {
+      "record_id": "primitive:graph",
+      "record_type": "primitive",
+      "name": "graph",
+      "title": "Standalone Graph"
+    },
+    {
       "record_id": "primitive:matrix",
       "record_type": "primitive",
       "name": "matrix",
@@ -765,6 +783,12 @@
       "record_type": "primitive",
       "name": "space_path_family",
       "title": "High-Dimensional Space Path Family"
+    },
+    {
+      "record_id": "artifact_type:graph",
+      "record_type": "artifact_type",
+      "name": "graph",
+      "title": "Graph Artifact"
     },
     {
       "record_id": "artifact_type:cell_vector",
@@ -1961,6 +1985,12 @@
       "to": "artifact_type:model_ref",
       "edge_type": "promotes_as",
       "label": "promotable:model"
+    },
+    {
+      "from": "artifact_type:graph",
+      "to": "primitive:graph",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
     },
     {
       "from": "artifact_type:cell_vector",

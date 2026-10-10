@@ -30,6 +30,12 @@ test_graph_abi4_actual_payload_count_contract <- function() {
   stopifnot(inherits(rejected, "wb_graph_error"),
     identical(rejected$code, "GRAPH_RESOURCE_EXCEEDED"), !any(file.exists(owned_paths)))
   grant$resource_budgets$max_nodes <- "100"
+  original_staged_budget <- grant$resource_budgets$max_staged_bytes
+  grant$resource_budgets$max_staged_bytes <- as.character(file.info(parts)$size)
+  rejected <- tryCatch(payload(root, "result", seal, grant), error = identity)
+  stopifnot(inherits(rejected, "wb_graph_error"), rejected$code == "GRAPH_RESOURCE_EXCEEDED",
+    !any(file.exists(owned_paths)))
+  grant$resource_budgets$max_staged_bytes <- original_staged_budget
   altered <- seal; altered$component_counts$nodes <- "2"
   altered$sealed_output_identity <- get(".wb_operation_pack_v2_identity_scoped", ns)(
     "scworkbench.graph.sealed_output.v1", "seal excluding sealed_output_identity", altered)

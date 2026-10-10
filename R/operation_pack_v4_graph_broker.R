@@ -57,9 +57,17 @@
     "scworkbench.graph.broker_read_response.v1", "response excluding response_identity", response)
   unlink(path)
   response_root <- file.path(spool, "response")
-  .wb_graph_require(!dir.exists(response_root), "GRAPH_GRANT_INVALID", "Outstanding broker response was not consumed.")
-  dir.create(response_root)
-  .wb_operation_pack_v2_atomic_json(response, file.path(response_root, "manifest.json"))
+  pending <- file.path(spool, "response.pending")
+  .wb_graph_require(!file.exists(response_root) && !file.exists(pending),
+    "GRAPH_GRANT_INVALID", "Outstanding broker response was not consumed.")
+  .wb_graph_require(dir.create(pending), "GRAPH_GRANT_INVALID",
+    "Could not create the private graph response workspace.")
+  on.exit(if (dir.exists(pending)) unlink(pending, recursive = TRUE), add = TRUE)
+  .wb_operation_pack_v2_atomic_json(response, file.path(pending, "manifest.json"))
+  # A process consumer treats the directory's existence as publication. Never
+  # expose it before the complete manifest is durable in the private spool.
+  .wb_graph_require(file.rename(pending, response_root), "GRAPH_GRANT_INVALID",
+    "Could not atomically publish the complete graph response.")
   ack_path <- file.path(spool, "acknowledgement.json")
   while (!file.exists(ack_path)) {
     .wb_graph_require(Sys.time() <= deadline, "GRAPH_READER_INCOMPLETE", "Graph broker acknowledgement timed out.")

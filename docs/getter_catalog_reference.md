@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Getter count: 85
+Getter count: 87
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -121,6 +121,38 @@ Arguments: bundle, artifact_id
 
 Use when:
 - inspect table type before slicing
+
+### `wb_art_graph_info`
+
+Title: Retained Graph Identity and Counts
+
+Description: Independently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations.
+
+Returns: list
+
+Payload level: metadata/bounded payload validation
+
+Arguments: bundle, artifact_id, budgets
+
+Use when:
+- inspect graph pack-free
+- verify graph logical identity and source associations
+
+### `wb_art_graph_slice`
+
+Title: Ordered Graph Component Partition
+
+Description: Read one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes.
+
+Returns: list of ordered records
+
+Payload level: bounded payload
+
+Arguments: bundle, artifact_id, component, offset, limit, partition_bytes
+
+Use when:
+- stream graph components
+- inspect nodes, edges, incidences, attributes or bindings
 
 ### `wb_art_table_slice`
 
