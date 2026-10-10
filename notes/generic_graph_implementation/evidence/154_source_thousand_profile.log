@@ -1,0 +1,56 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+GRAPH_SCALE_SOURCE_SETUP public_sdk=TRUE native_source_ref=retained_cell_axis complete_axis_count=1000 complete_axis_utf8_bytes=200517 setup_not_memory_qualification=TRUE
+                                      self.time self.pct total.time total.pct
+"grepl"                                    2.34     5.26       2.50      5.62
+"length"                                   1.62     3.64       1.62      3.64
+"lazyLoadDBfetch"                          1.44     3.24       1.50      3.37
+".local"                                   1.34     3.01      16.60     37.30
+"binattr"                                  1.34     3.01       4.50     10.11
+"isTRUE"                                   1.30     2.92       7.26     16.31
+"is"                                       1.24     2.79       3.28      7.37
+"iconv"                                    1.16     2.61       1.18      2.65
+"result_create"                            1.16     2.61       1.16      2.61
+".wb_operation_pack_canonical_string"      1.06     2.38       4.24      9.53
+"initialize"                               0.96     2.16       6.00     13.48
+"getClassDef"                              0.86     1.93       1.66      3.73
+"%in%"                                     0.78     1.75       2.12      4.76
+".getClassesFromCache"                     0.78     1.75       0.78      1.75
+"paste0"                                   0.76     1.71       3.80      8.54
+"result_fetch"                             0.76     1.71       0.76      1.71
+"validObject"                              0.74     1.66       2.36      5.30
+"FUN"                                      0.72     1.62      17.98     40.40
+"as.integer64"                             0.68     1.53       0.92      2.07
+"unique"                                   0.58     1.30       0.94      2.11
+"emit"                                     0.52     1.17      14.16     31.82
+"dim"                                      0.52     1.17       0.60      1.35
+"as.vector"                                0.52     1.17       0.54      1.21
+"result_bind"                              0.52     1.17       0.54      1.21
+"stopifnot"                                0.50     1.12       3.32      7.46
+                                total.time total.pct self.time self.pct
+"eval"                               44.50    100.00      0.18     0.40
+"source"                             44.50    100.00      0.00     0.00
+"withVisible"                        44.50    100.00      0.00     0.00
+"tryCatch"                           38.12     85.66      0.14     0.31
+"tryCatchList"                       38.08     85.57      0.22     0.49
+"force"                              34.44     77.39      0.00     0.00
+".wb_with_bundle_writer_lock"        32.78     73.66      0.00     0.00
+".wb_graph_token_hash"               28.06     63.06      0.00     0.00
+"emitter"                            28.02     62.97      0.18     0.40
+"tryCatchOne"                        26.24     58.97      0.14     0.31
+"doTryCatch"                         26.16     58.79      0.26     0.58
+"wb_session_run_op"                  22.44     50.43      0.00     0.00
+".wb_graph_source_authorize"         22.08     49.62      0.00     0.00
+".wb_with_mutation_context"          19.84     44.58      0.00     0.00
+"run_in_context"                     19.60     44.04      0.00     0.00
+".wb_operation_pack_v2_execute"      18.58     41.75      0.00     0.00
+"runner"                             18.58     41.75      0.00     0.00
+".wb_graph_object_closure"           18.30     41.12      0.00     0.00
+"FUN"                                17.98     40.40      0.72     1.62
+".local"                             16.60     37.30      1.34     3.01
+".wb_graph_object_verify"            15.36     34.52      0.00     0.00
+"lapply"                             14.70     33.03      0.18     0.40
+"emit"                               14.16     31.82      0.52     1.17
+"wb_promote_analysis"                11.94     26.83      0.00     0.00
+"callback"                           11.70     26.29      0.00     0.00

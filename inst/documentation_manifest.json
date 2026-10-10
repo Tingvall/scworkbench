@@ -1432,6 +1432,28 @@
       "installed_relative_path": "protocol/fixtures/graph-v1/content-identities.json"
     },
     {
+      "path": "inst/protocol/fixtures/graph-v1/negative-rehash-identities.csv",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/graph-v1/negative-rehash-identities.csv",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/graph-v1/negative-rehash-identities.csv"
+    },
+    {
+      "path": "inst/protocol/fixtures/graph-v1/scenario-roundtrip-vectors.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/graph-v1/scenario-roundtrip-vectors.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/graph-v1/scenario-roundtrip-vectors.json"
+    },
+    {
       "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
       "class": "public_canonical",
       "audience": "operator",

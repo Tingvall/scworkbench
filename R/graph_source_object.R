@@ -111,17 +111,20 @@
       .wb_operation_pack_canonical_json(list(present = header$meta_present[[1]] == 1,
         encoding = "R.serializeJSON.v1", sha256 = metadata$sha256)), ',"rows":['))
     next_row <- "0"; first <- TRUE
-    repeat {
-      # One row at a time: ordinary primitive labels have a separately admitted
-      # source-record limit, never a complete source axis in memory.
-      rows <- DBI::dbGetQuery(con, paste0("SELECT payload_ordinal,cell_id,",
+    # Compile one ordered cursor rather than a query for every source row.
+    # Global byte/type checks above AND the cursor's predicates enforce
+    # pre-decoding admission. Fetch still holds exactly one admitted row;
+    # source verification is not cached across authority boundaries.
+    cursor <- DBI::dbSendQuery(con, paste0("SELECT payload_ordinal,cell_id,",
         if (kind == "cell_vector") "label,value_type,value_num" else "lineage_id,pseudotime",
-        " FROM ", table, " WHERE artifact_id=? AND payload_ordinal>=CAST(? AS INTEGER) ",
+        " FROM ", table, " WHERE artifact_id=? ",
         "AND typeof(", numeric_column, ") IN ('null','integer','real') AND ",
         "COALESCE(octet_length(cell_id),0)+",
         if (kind == "cell_vector") "COALESCE(octet_length(label),0)+COALESCE(octet_length(value_type),0)" else "COALESCE(octet_length(lineage_id),0)",
-        "+512<=? ORDER BY payload_ordinal LIMIT 1;"),
-        params = list(artifact_id, next_row, budgets$partition_bytes))
+        "+512<=? ORDER BY payload_ordinal;"),
+        params = list(artifact_id, budgets$partition_bytes))
+    tryCatch(repeat {
+      rows <- DBI::dbFetch(cursor, n = 1L)
       if (!nrow(rows)) break
       .wb_graph_require(identical(as.character(rows$payload_ordinal[[1]]), next_row),
         "GRAPH_SOURCE_PAYLOAD_INVALID", "Source payload order is not dense.")
@@ -137,7 +140,7 @@
       if (!first) emit(",")
       emit(.wb_operation_pack_canonical_json(row))
       first <- FALSE; next_row <- .wb_graph_add_count(next_row, 1L)
-    }
+    }, finally = DBI::dbClearResult(cursor))
     emit(paste0('],"schema":"scworkbench.artifact.ordered-object-payload.v1","value_type":',
       .wb_operation_pack_canonical_json(value_type), "}"))
   }, budgets)

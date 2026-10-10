@@ -1,0 +1,4 @@
+EXACT_CORE_COMMIT=8cc56e8d6b49f7a3343c131969014b0563675daf
+Error in diagnostic$message : $ operator is invalid for atomic vectors
+Calls: cat
+Execution halted

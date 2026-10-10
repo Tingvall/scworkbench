@@ -21,6 +21,92 @@ test_graph_retained_cell_source_payload_contract <- function() {
     loaded <- wb_art_load(bundle, artifact)
     stopifnot(identical(unclass(value), unclass(loaded)))
     expected <- scworkbench:::.wb_graph_object_verify(bundle$con, artifact)
+    # Independent small-fixture preimage: the streaming cursor must preserve
+    # the earlier ordered-row contract, not merely agree with its own header.
+    reference_table <- if (value$kind == "cell_vector") "artifact_labels" else "artifact_pseudotime"
+    reference_rows <- DBI::dbGetQuery(bundle$con, paste0("SELECT * FROM ", reference_table,
+      " WHERE artifact_id=? ORDER BY payload_ordinal;"), params = list(artifact))
+    stopifnot(nrow(reference_rows) <= 4L)
+    numeric_field <- if (value$kind == "cell_vector") "value_num" else "pseudotime"
+    cursor_plan <- DBI::dbGetQuery(bundle$con, paste0("EXPLAIN QUERY PLAN SELECT payload_ordinal,cell_id,",
+      if (value$kind == "cell_vector") "label,value_type,value_num" else "lineage_id,pseudotime",
+      " FROM ", reference_table, " WHERE artifact_id=? AND typeof(", numeric_field,
+      ") IN ('null','integer','real') AND COALESCE(octet_length(cell_id),0)+",
+      if (value$kind == "cell_vector") "COALESCE(octet_length(label),0)+COALESCE(octet_length(value_type),0)" else
+        "COALESCE(octet_length(lineage_id),0)",
+      "+512<=? ORDER BY payload_ordinal;"), params = list(artifact, 262144L))
+    stopifnot(any(grepl(paste0(reference_table, "_payload_order"), cursor_plan$detail, fixed = TRUE)),
+      !any(grepl("TEMP B-TREE", cursor_plan$detail, fixed = TRUE)))
+    cat("GRAPH_SOURCE_CURSOR_PLAN", value$kind, paste(cursor_plan$detail, collapse = ";"), "\n")
+    reference_payload <- lapply(seq_len(nrow(reference_rows)), function(i) {
+      row <- reference_rows[i, , drop = FALSE]
+      if (value$kind == "cell_vector") list(ordinal = as.character(row$payload_ordinal[[1L]]),
+        cell_id = row$cell_id[[1L]], label = row$label[[1L]], value_type = row$value_type[[1L]],
+        value_num = wb_graph_encode_finite_f64(row$value_num[[1L]])[[1L]]) else
+        list(ordinal = as.character(row$payload_ordinal[[1L]]), cell_id = row$cell_id[[1L]],
+          key = row$lineage_id[[1L]], value = wb_graph_encode_finite_f64(row$pseudotime[[1L]])[[1L]])
+    })
+    reference <- scworkbench:::.wb_graph_identity(
+      "scworkbench.artifact.ordered-object-payload.canonical-json.v1",
+      list(content_identity = list(scheme = "scworkbench.content.object.canonical-json.v1",
+        sha256 = scworkbench:::.wb_prov_sha256_object(unclass(value))), kind = value$kind,
+        metadata = list(present = TRUE, encoding = "R.serializeJSON.v1", sha256 =
+          digest::digest(charToRaw(enc2utf8(jsonlite::serializeJSON(value$meta, digits = NA))),
+            algo = "sha256", serialize = FALSE)), rows = reference_payload,
+        schema = "scworkbench.artifact.ordered-object-payload.v1", value_type = value$value_type))
+    stopifnot(identical(reference, expected))
+    if (value$kind == "cell_vector") {
+      last_row <- nrow(reference_rows)
+      original_label <- reference_rows$label[[last_row]]
+      original_ordinal <- reference_rows$payload_ordinal[[last_row]]
+      DBI::dbExecute(bundle$con,
+        "UPDATE artifact_labels SET label=? WHERE artifact_id=? AND payload_ordinal=?;",
+        params = list(strrep("x", 262145L), artifact, original_ordinal))
+      smaller <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608",
+        partition_bytes = 262144L, partition_rows = 256L, collect_bytes = 4194304L,
+        sqlite_cache_kib = 2048L))
+      oversized <- tryCatch(scworkbench:::.wb_graph_object_verify(bundle$con, artifact, smaller),
+        error = identity)
+      stopifnot(inherits(oversized, "wb_graph_error"),
+        grepl("Source record exceeds decoded byte admission", conditionMessage(oversized), fixed = TRUE))
+      DBI::dbExecute(bundle$con,
+        "UPDATE artifact_labels SET label=? WHERE artifact_id=? AND payload_ordinal=?;",
+        params = list(original_label, artifact, original_ordinal))
+      stopifnot(identical(scworkbench:::.wb_graph_object_verify(bundle$con, artifact, smaller), expected))
+      # Raw bytes fit the SQL predicate, but escaped canonical bytes do not.
+      # Fail after opening/fetching the cursor and prove it is retired before
+      # retry, rather than leaving SQLite to close a pending result implicitly.
+      spill_before <- sort(list.files(tempdir(),
+        pattern = "^scwb_(graph_(identity_|tokens_)|object_meta_)", full.names = TRUE))
+      DBI::dbExecute(bundle$con,
+        "UPDATE artifact_labels SET label=? WHERE artifact_id=? AND payload_ordinal=?;",
+        params = list(strrep("\001", 45000L), artifact, original_ordinal))
+      escaped <- tryCatch(scworkbench:::.wb_graph_object_verify(bundle$con, artifact, smaller), error = identity)
+      stopifnot(inherits(escaped, "wb_graph_error"),
+        grepl("Whole-object materialization budget exceeded", conditionMessage(escaped), fixed = TRUE),
+        identical(sort(list.files(tempdir(),
+          pattern = "^scwb_(graph_(identity_|tokens_)|object_meta_)", full.names = TRUE)), spill_before))
+      restoration_warnings <- character()
+      withCallingHandlers(DBI::dbExecute(bundle$con,
+        "UPDATE artifact_labels SET label=? WHERE artifact_id=? AND payload_ordinal=?;",
+        params = list(original_label, artifact, original_ordinal)), warning = function(warning) {
+          restoration_warnings <<- c(restoration_warnings, conditionMessage(warning))
+          invokeRestart("muffleWarning")
+        })
+      stopifnot(!length(restoration_warnings),
+        identical(scworkbench:::.wb_graph_object_verify(bundle$con, artifact, smaller), expected))
+    }
+    last_ordinal <- reference_rows$payload_ordinal[[nrow(reference_rows)]]
+    DBI::dbExecute(bundle$con, paste0("UPDATE ", reference_table,
+      " SET payload_ordinal=? WHERE artifact_id=? AND payload_ordinal=?;"),
+      params = list(last_ordinal + 3L, artifact, last_ordinal))
+    broken_order <- tryCatch(scworkbench:::.wb_graph_object_verify(bundle$con, artifact), error = identity)
+    stopifnot(inherits(broken_order, "wb_graph_error"),
+      grepl("Source payload order is not dense", conditionMessage(broken_order), fixed = TRUE))
+    DBI::dbExecute(bundle$con, paste0("UPDATE ", reference_table,
+      " SET payload_ordinal=? WHERE artifact_id=? AND payload_ordinal=?;"),
+      params = list(last_ordinal, artifact, last_ordinal + 3L))
+    stopifnot(identical(scworkbench:::.wb_graph_object_verify(bundle$con, artifact), expected))
     snapshot <- DBI::dbGetQuery(bundle$con,
       "SELECT h.* FROM prov_heads h JOIN artifacts a ON a.provenance_snapshot_id=h.snapshot_id WHERE a.artifact_id=?;",
       params = list(artifact))
