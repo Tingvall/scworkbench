@@ -16,13 +16,16 @@
 .wb_graph_igraph_admit <- function(graph, materialization_bytes) {
   .wb_graph_require(requireNamespace("igraph", quietly = TRUE),
     "GRAPH_ADAPTER_UNAVAILABLE", "Install optional igraph for native conversion.")
-  wb_graph_validate(graph)
   .wb_graph_require(is.numeric(materialization_bytes) && length(materialization_bytes) == 1L &&
     is.finite(materialization_bytes) && materialization_bytes > 0,
     "GRAPH_RESOURCE_POLICY_INVALID", "Invalid materialization budget.")
-  encoded <- .wb_operation_pack_canonical_json(list(content = graph$content, bindings = graph$associations))
-  .wb_graph_require(nchar(encoded, type = "bytes") <= materialization_bytes,
-    "GRAPH_RESOURCE_EXCEEDED", "igraph materialization budget exceeded.")
+  .wb_graph_materialization_admit(list(content = graph$content,
+    bindings = graph$associations), materialization_bytes)
+  wb_graph_validate(graph)
+  identity <- wb_graph_identity(graph)
+  .wb_graph_materialization_admit(list(schema = "scworkbench.graph.igraph_carrier.v1",
+    content = graph$content, bindings = graph$associations,
+    descriptor_identity = identity$descriptor_identity), materialization_bytes)
   edges <- graph$content$edges
   directions <- unique(vapply(edges, `[[`, character(1), "direction"))
   .wb_graph_require(all(vapply(edges, function(edge) edge$kind == "ordinary", logical(1))) &&

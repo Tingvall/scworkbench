@@ -74,10 +74,14 @@ wb_graph_identity <- function(graph) {
 
 .wb_graph_validate_sql_bindings <- function(con, artifact_id, budgets) {
   .wb_graph_scan(con, artifact_id, "bindings", function(rows) {
-    for (json in rows$record_json) {
-      header <- .wb_graph_parse(json)
+    for (row in seq_len(nrow(rows))) {
+      header <- .wb_graph_parse(rows$record_json[[row]])
+      .wb_graph_require(identical(header$binding_ordinal,
+        as.character(rows$row_ordinal[[row]])), "GRAPH_BINDINGS_INVALID", "Binding ordinal mismatch.")
+      header$binding_ordinal <- NULL
       .wb_graph_binding_header_validate(header)
       previous_node <- bit64::as.integer64(-1)
+      expected_mapping <- "0"
       # Existence/order use the authoritative graph rows, not a full node list.
       query <- paste0("SELECT m.record_json,n.row_ordinal node_ordinal FROM artifact_graph_rows m ",
         "LEFT JOIN artifact_graph_rows n ON n.artifact_id=m.artifact_id AND n.component='nodes' ",
@@ -89,7 +93,11 @@ wb_graph_identity <- function(graph) {
         batch <- DBI::dbFetch(cursor, n = budgets$partition_rows)
         if (!nrow(batch)) break
         for (i in seq_len(nrow(batch))) {
-          .wb_graph_row_validate("binding_mappings", .wb_graph_parse(batch$record_json[[i]]))
+          mapping <- .wb_graph_parse(batch$record_json[[i]])
+          .wb_graph_row_validate("binding_mappings", mapping)
+          .wb_graph_require(identical(mapping$mapping_ordinal, expected_mapping),
+            "GRAPH_BINDINGS_INVALID", "Missing/reordered binding mapping ordinal.")
+          expected_mapping <- .wb_graph_add_count(expected_mapping, 1L)
           node <- bit64::as.integer64(batch$node_ordinal[[i]])
           .wb_graph_require(!is.na(node) && node > previous_node,
             "GRAPH_BINDINGS_INVALID", "Foreign or reordered mapped graph node.")
@@ -97,7 +105,7 @@ wb_graph_identity <- function(graph) {
         }
       }, finally = DBI::dbClearResult(cursor))
     }
-  }, page = budgets$partition_rows)
+  }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
   bad <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows m ",
     "LEFT JOIN artifact_graph_rows b ON b.artifact_id=m.artifact_id AND b.component='bindings' ",
     "AND json_extract(b.record_json,'$.binding_id')=json_extract(m.record_json,'$.binding_id') ",
@@ -134,6 +142,7 @@ wb_graph_identity <- function(graph) {
     .wb_graph_scan(con, artifact_id, "bindings", function(rows) {
       for (json in rows$record_json) {
         binding <- .wb_graph_parse(json)
+        binding$binding_ordinal <- NULL
         if (!first) emit(",")
         emit("{"); field_first <- TRUE
         for (name in sort(c(names(binding), "mapping"), method = "radix")) {
@@ -148,7 +157,7 @@ wb_graph_identity <- function(graph) {
                 emit(.wb_operation_pack_canonical_json(pair[c("node_id", "axis_id")]))
                 mapping_first <<- FALSE
               }
-            }, page = budgets$partition_rows,
+            }, page = budgets$partition_rows, bytes = budgets$partition_bytes,
               predicate = "AND json_extract(record_json,'$.binding_id')=?",
               params = list(binding$binding_id))
             emit("]")
@@ -157,7 +166,7 @@ wb_graph_identity <- function(graph) {
         }
         emit("}"); first <<- FALSE
       }
-    }, page = budgets$partition_rows)
+    }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
     emit(paste0('],"graph_content_identity":',
       .wb_operation_pack_canonical_json(content$identity),
       ',"schema":"scworkbench.graph.axis-bindings.v1"}'))

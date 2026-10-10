@@ -41,7 +41,9 @@
   text <- enc2utf8(as.character(text)[1])
   .wb_operation_pack_assert(!is.na(text), "OPERATION_PACK_MANIFEST_PARSE_INVALID",
     "Manifest source is not valid UTF-8.", class = "wb_operation_pack_v2_error")
-  n <- nchar(text, type = "bytes")
+  # substr() positions are Unicode characters, not UTF-8 byte offsets. Using
+  # a byte count here incorrectly reports trailing content for non-ASCII JSON.
+  n <- nchar(text, type = "chars")
   byte <- function(i) if (i > n) "" else substr(text, i, i)
   skip <- function(i) {
     while (i <= n && byte(i) %in% c(" ", "\t", "\r", "\n")) i <- i + 1L

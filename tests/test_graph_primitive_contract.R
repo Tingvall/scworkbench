@@ -173,3 +173,166 @@ test_graph_igraph_lossless_boundary_contract <- function() {
   stopifnot(inherits(tryCatch(wb_graph_to_igraph(graph), error = identity), "wb_graph_error"))
   TRUE
 }
+
+test_graph_hidden_row_closure_contract <- function() {
+  graph <- wb_prim_graph(list(list(node_id = "visible")), list(), list())
+  attacks <- list(list(component = "nodes", ordinal = -1),
+    list(component = "unknown", ordinal = 0), list(component = "nodes", ordinal = 0.5))
+  for (attack in attacks) {
+    stage <- scworkbench:::.wb_graph_stage_small(graph)
+    tryCatch({
+      DBI::dbExecute(stage$con, "PRAGMA ignore_check_constraints=ON;")
+      DBI::dbExecute(stage$con, paste0("INSERT INTO artifact_graph_rows ",
+        "(artifact_id,component,row_ordinal,record_json) VALUES('staged',?,?,?);"),
+        params = list(attack$component, attack$ordinal, '{"node_id":"hidden"}'))
+      error <- tryCatch(scworkbench:::.wb_graph_sql_identities(stage$con, "staged"),
+        error = identity)
+      stopifnot(inherits(error, "wb_graph_error"), error$code == "GRAPH_ROWS_INVALID")
+    }, finally = scworkbench:::.wb_graph_stage_discard(stage))
+  }
+  TRUE
+}
+
+test_graph_decoded_partition_budget_contract <- function() {
+  nodes <- lapply(1:3, function(i) list(node_id = paste0("n", i)))
+  graph <- wb_prim_graph(nodes, list(), list(), node_attributes = list(list(
+    name = "large", type = "utf8", nullable = FALSE,
+    values = rep(list(paste(rep("é", 20000), collapse = "")), 3))))
+  stage <- scworkbench:::.wb_graph_stage_small(graph,
+    list(partition_bytes = 50000, partition_rows = 512L))
+  on.exit(scworkbench:::.wb_graph_stage_discard(stage), add = TRUE)
+  batches <- integer()
+  scworkbench:::.wb_graph_scan(stage$con, "staged", "attribute_values", function(rows) {
+    stopifnot(sum(nchar(rows$record_json, type = "bytes")) <= 50000)
+    batches <<- c(batches, nrow(rows))
+  }, page = 512L, bytes = 50000)
+  stopifnot(identical(batches, c(1L, 1L, 1L)),
+    identical(stage$content$identity, wb_graph_identity(graph)$content_identity))
+  error <- tryCatch(scworkbench:::.wb_graph_scan(stage$con, "staged", "attribute_values",
+    function(rows) stop("must not decode"), bytes = 100), error = identity)
+  stopifnot(inherits(error, "wb_graph_error"), error$code == "GRAPH_RESOURCE_EXCEEDED")
+  error <- tryCatch(scworkbench:::.wb_graph_stage_small(graph, list(collect_bytes = 100)),
+    error = identity)
+  stopifnot(inherits(error, "wb_graph_error"), error$code == "GRAPH_RESOURCE_EXCEEDED")
+  TRUE
+}
+
+test_graph_factory_failure_cleanup_contract <- function() {
+  captured <- NULL
+  prior <- options(scworkbench.graph_storage_test_hook = function(event, state) {
+    if (event == "connected") {captured <<- state; stop("injected setup failure")}
+  })
+  on.exit(options(prior), add = TRUE)
+  error <- tryCatch(scworkbench:::.wb_graph_stage_new("mixed"), error = identity)
+  stopifnot(inherits(error, "error"), identical(conditionMessage(error), "injected setup failure"),
+    !is.null(captured), isTRUE(captured$closed), !DBI::dbIsValid(captured$con),
+    !file.exists(captured$path), !file.exists(paste0(captured$path, "-journal")))
+  TRUE
+}
+
+test_graph_sql_binding_descriptor_frozen_identity_contract <- function() {
+  cases <- scworkbench:::.wb_graph_parse(paste(readLines(system.file(
+    "protocol/fixtures/graph-v1/binding-descriptor-identities.json", package = "scworkbench"),
+    warn = FALSE), collapse = "\n"))$positive
+  stopifnot(length(cases) == 13L)
+  for (case in cases) {
+    content <- case$content; attrs <- content$attributes
+    graph <- wb_prim_graph(content$nodes, content$edges, content$incidences,
+      attrs$graph, attrs$node, attrs$edge, attrs$incidence,
+      associations = case$claimed_projections$binding_preimage$bindings,
+      direction_mode = content$direction_mode)
+    for (page in c(1L, 2L, 512L)) {
+      stage <- scworkbench:::.wb_graph_stage_small(graph, list(partition_rows = page))
+      tryCatch({
+        actual <- scworkbench:::.wb_graph_sql_identities(stage$con, "staged", stage$budgets)
+        for (field in c("content_identity", "binding_identity", "descriptor_identity"))
+          stopifnot(identical(actual[[field]], case$claimed_projections[[field]]))
+        if (scworkbench:::.wb_graph_count(stage$con, "staged", "binding_mappings") != "0") {
+          row <- scworkbench:::.wb_graph_parse(DBI::dbGetQuery(stage$con,
+            "SELECT record_json FROM artifact_graph_rows WHERE component='binding_mappings' ORDER BY row_ordinal LIMIT 1;")$record_json[[1]])
+          row$mapping_ordinal <- "1"
+          DBI::dbExecute(stage$con, "UPDATE artifact_graph_rows SET record_json=? WHERE component='binding_mappings' AND row_ordinal=0;",
+            params = list(scworkbench:::.wb_operation_pack_canonical_json(row)))
+          stopifnot(inherits(tryCatch(scworkbench:::.wb_graph_sql_identities(stage$con,
+            "staged", stage$budgets), error = identity), "wb_graph_error"))
+        }
+      }, finally = scworkbench:::.wb_graph_stage_discard(stage))
+    }
+  }
+  TRUE
+}
+
+test_graph_sdk_collect_contract <- function() {
+  graph <- wb_prim_graph(list(list(node_id = "z"), list(node_id = "a")), list(), list(),
+    node_attributes = list(list(name = "label", type = "utf8", nullable = TRUE,
+      values = list("second", NULL))))
+  stage <- scworkbench:::.wb_graph_stage_small(graph)
+  on.exit(scworkbench:::.wb_graph_stage_discard(stage), add = TRUE)
+  parts <- list()
+  add <- function(component, ordinal, rows) {
+    value <- list(schema = "scworkbench.graph.component_partition.v1",
+      component = component, first_ordinal = ordinal, row_count = as.character(length(rows)), rows = rows)
+    value$partition_identity <- scworkbench:::.wb_graph_identity("scworkbench.graph.partition.v1", value)
+    parts[[length(parts) + 1L]] <<- value
+  }
+  add("header", "0", list(list(schema = "scworkbench.graph.content.v1", direction_mode = "mixed")))
+  for (component in scworkbench:::.wb_graph_components())
+    scworkbench:::.wb_graph_scan(stage$con, "staged", component, function(rows)
+      add(component, as.character(rows$row_ordinal[[1]]),
+        lapply(rows$record_json, scworkbench:::.wb_graph_parse)), page = 1L)
+  expected_identity <- wb_graph_identity(graph)
+  counts <- c(list(header = "1"), as.list(stage$counts))
+  reader <- function(chunks) {
+    cursor <- 0L
+    list(header = c(list(direction_mode = "mixed", component_counts = counts), expected_identity),
+      next_part = function() {cursor <<- cursor + 1L; if (cursor <= length(chunks)) chunks[[cursor]] else NULL})
+  }
+  loaded <- wb_graph_collect(reader(parts))
+  stopifnot(identical(wb_graph_identity(loaded), expected_identity))
+  for (chunks in list(parts[-1], c(parts[1], parts), parts[-length(parts)]))
+    stopifnot(inherits(tryCatch(wb_graph_collect(reader(chunks)), error = identity), "wb_graph_error"))
+  altered <- parts
+  altered[[2]]$rows[[1]]$node_id <- "foreign"
+  stopifnot(inherits(tryCatch(wb_graph_collect(reader(altered)), error = identity), "wb_graph_error"),
+    inherits(tryCatch(wb_graph_collect(reader(parts), materialization_bytes = 1),
+      error = identity), "wb_graph_error"))
+  TRUE
+}
+
+test_graph_bounded_transport_seal_contract <- function() {
+  graph <- wb_prim_graph(lapply(c("z", "b", "a"), function(id) list(node_id = id)),
+    list(), list(), node_attributes = list(list(name = "title", type = "utf8",
+      nullable = TRUE, values = list("hi", NULL, "東京"))))
+  stage <- scworkbench:::.wb_graph_stage_small(graph, list(partition_rows = 1L))
+  path <- tempfile("graph_parts_"); changed <- tempfile("graph_parts_bad_")
+  on.exit({scworkbench:::.wb_graph_stage_discard(stage); unlink(c(path, changed))}, add = TRUE)
+  observed <- scworkbench:::.wb_graph_export_parts(stage$con, "staged", path,
+    list(partition_rows = 1L))
+  expected <- c(list(component_observations = observed), wb_graph_identity(graph))
+  loaded <- scworkbench:::.wb_graph_import_parts(path, expected = expected)
+  stopifnot(identical(loaded$seal$content_identity, expected$content_identity))
+  scworkbench:::.wb_graph_stage_discard(loaded)
+  lines <- readLines(path, warn = FALSE)
+  cases <- list(lines[-1], c(lines[1], lines), lines[-length(lines)], lines[c(1, 3, 2, 4:length(lines))])
+  node <- scworkbench:::.wb_graph_parse(lines[[2]])
+  node$rows[[1]]$node_id <- "self_rehashed_foreign"
+  node$partition_identity <- NULL
+  node$partition_identity <- scworkbench:::.wb_graph_identity("scworkbench.graph.partition.v1", node)
+  altered <- lines; altered[[2]] <- scworkbench:::.wb_operation_pack_canonical_json(node)
+  cases[[length(cases) + 1L]] <- altered
+  before <- sort(list.files(tempdir(), pattern = "^scwb_graph_stage_", full.names = TRUE))
+  for (case in cases) {
+    writeLines(case, changed, useBytes = TRUE)
+    error <- tryCatch(scworkbench:::.wb_graph_import_parts(changed, expected = expected), error = identity)
+    stopifnot(inherits(error, "wb_graph_error"),
+      identical(before, sort(list.files(tempdir(), pattern = "^scwb_graph_stage_", full.names = TRUE))))
+  }
+  # Reject an oversized line before decoding it, including a valid self-hash.
+  error <- tryCatch(scworkbench:::.wb_graph_import_parts(path,
+    budgets = list(partition_bytes = 100)), error = identity)
+  stopifnot(inherits(error, "wb_graph_error"), error$code == "GRAPH_RESOURCE_EXCEEDED")
+  writeChar(lines[[1]], changed, eos = NULL, useBytes = TRUE)
+  error <- tryCatch(scworkbench:::.wb_graph_import_parts(changed), error = identity)
+  stopifnot(inherits(error, "wb_graph_error"), error$code == "GRAPH_READER_INCOMPLETE")
+  TRUE
+}

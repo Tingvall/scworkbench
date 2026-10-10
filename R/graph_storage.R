@@ -34,6 +34,41 @@
   as.character(next_count)
 }
 
+.wb_graph_materialization_admit <- function(value, bytes) {
+  # Count canonical tokens without allocating a whole serialized graph or
+  # expanded attribute/mapping rows. Abort before visiting the remaining tree.
+  .wb_graph_require(is.numeric(bytes) && length(bytes) == 1L &&
+    is.finite(bytes) && bytes > 0, "GRAPH_RESOURCE_POLICY_INVALID", "Materialization budget.")
+  used <- 0
+  add <- function(n) {
+    used <<- used + n
+    .wb_graph_require(used <= bytes, "GRAPH_RESOURCE_EXCEEDED",
+      "Whole-object materialization budget exceeded; use bounded graph parts.")
+  }
+  walk <- function(x) {
+    if (is.null(x)) {add(4); return(invisible(NULL))}
+    if (is.list(x)) {
+      add(2 + max(0, length(x) - 1))
+      object <- !is.null(names(x))
+      for (i in seq_along(x)) {
+        if (object) {
+          .wb_graph_require(nchar(names(x)[[i]], type = "bytes") <= bytes,
+            "GRAPH_RESOURCE_EXCEEDED", "Oversized field token.")
+          add(nchar(.wb_operation_pack_canonical_json(names(x)[[i]]), type = "bytes") + 1)
+        }
+        walk(x[[i]])
+      }
+    } else {
+      if (is.character(x)) .wb_graph_require(all(nchar(x, type = "bytes") <= bytes),
+        "GRAPH_RESOURCE_EXCEEDED", "Oversized scalar token.")
+      add(nchar(.wb_operation_pack_canonical_json(x), type = "bytes"))
+    }
+    invisible(NULL)
+  }
+  walk(value)
+  invisible(used)
+}
+
 .wb_graph_create_schema <- function(con, retained = TRUE) {
   DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_graph_meta (",
     "artifact_id TEXT PRIMARY KEY,profile TEXT NOT NULL,direction_mode TEXT NOT NULL,",
@@ -42,8 +77,10 @@
     if (retained) "FOREIGN KEY(artifact_id) REFERENCES artifacts(artifact_id)" else
       "CHECK(profile='graph_sqlite_v1')", ");"))
   DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_graph_rows (",
-    "artifact_id TEXT NOT NULL,component TEXT NOT NULL,row_ordinal INTEGER NOT NULL,",
-    "record_json TEXT NOT NULL,PRIMARY KEY(artifact_id,component,row_ordinal),",
+    "artifact_id TEXT NOT NULL,component TEXT NOT NULL CHECK(component IN (",
+    paste0("'", .wb_graph_components(), "'", collapse = ","), ")),",
+    "row_ordinal INTEGER NOT NULL CHECK(typeof(row_ordinal)='integer' AND row_ordinal>=0),",
+    "record_json TEXT NOT NULL CHECK(json_valid(record_json)),PRIMARY KEY(artifact_id,component,row_ordinal),",
     "FOREIGN KEY(artifact_id) REFERENCES artifact_graph_meta(artifact_id));"))
   unique_fields <- list(nodes = "node_id", edges = "edge_id", incidences = "incidence_id",
     bindings = "binding_id")
@@ -84,7 +121,12 @@
   state <- new.env(parent = emptyenv())
   state$budgets <- .wb_graph_budgets(budgets)
   state$path <- tempfile("scwb_graph_stage_", fileext = ".sqlite")
+  state$closed <- FALSE
+  succeeded <- FALSE
+  on.exit(if (!succeeded) .wb_graph_stage_discard(state), add = TRUE)
+  reg.finalizer(state, function(x) .wb_graph_stage_discard(x), onexit = TRUE)
   state$con <- DBI::dbConnect(RSQLite::SQLite(), state$path, bigint = "character")
+  .wb_graph_storage_fault("connected", state)
   .wb_graph_configure(state$con, state$budgets)
   .wb_graph_create_schema(state$con, retained = FALSE)
   DBI::dbExecute(state$con, paste0("INSERT INTO artifact_graph_meta",
@@ -94,31 +136,59 @@
     .wb_graph_components())
   state$component <- 1L
   state$finished <- FALSE
-  state$closed <- FALSE
-  reg.finalizer(state, function(x) .wb_graph_stage_discard(x), onexit = TRUE)
+  succeeded <- TRUE
   state
+}
+
+.wb_graph_storage_fault <- function(event, state) {
+  hook <- getOption("scworkbench.graph_storage_test_hook")
+  if (is.function(hook)) hook(event, state)
+  invisible(TRUE)
 }
 
 .wb_graph_stage_discard <- function(state) {
   if (!isTRUE(state$closed)) {
     if (!is.null(state$con) && DBI::dbIsValid(state$con)) DBI::dbDisconnect(state$con)
-    for (path in c(state$path, paste0(state$path, "-wal"), paste0(state$path, "-shm")))
+    for (path in c(state$path, paste0(state$path, c("-wal", "-shm", "-journal"))))
       if (file.exists(path)) unlink(path)
     state$closed <- TRUE
   }
   invisible(TRUE)
 }
 
-.wb_graph_scan <- function(con, artifact_id, component, callback, page = 512L,
+.wb_graph_page <- function(con, artifact_id, component, after, page, bytes,
                            predicate = "", params = list()) {
+  # Measure encoded bytes inside SQLite before any payload crosses into R.
+  # The first window is row-bounded; only the byte-admitted prefix is decoded.
+  query <- paste0("WITH candidate AS (SELECT row_ordinal,",
+    "length(CAST(record_json AS BLOB)) n FROM artifact_graph_rows ",
+    "WHERE artifact_id=? AND component=? ", predicate,
+    " AND row_ordinal>=CAST(? AS INTEGER) ORDER BY row_ordinal LIMIT ?),",
+    "bounded AS (SELECT *,SUM(n) OVER (ORDER BY row_ordinal) used FROM candidate) ",
+    "SELECT g.row_ordinal,g.record_json FROM bounded b JOIN artifact_graph_rows g ",
+    "ON g.artifact_id=? AND g.component=? AND g.row_ordinal=b.row_ordinal ",
+    "WHERE b.used<=? ORDER BY g.row_ordinal;")
+  values <- c(list(artifact_id, component), params, list(after, page, artifact_id, component, bytes))
+  rows <- DBI::dbGetQuery(con, query, params = values)
+  if (!nrow(rows)) {
+    exists <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows ",
+      "WHERE artifact_id=? AND component=? ", predicate,
+      " AND row_ordinal>=CAST(? AS INTEGER) LIMIT 1;"),
+      params = c(list(artifact_id, component), params, list(after)))
+    .wb_graph_require(!nrow(exists), "GRAPH_RESOURCE_EXCEEDED",
+      "Single graph record exceeds the admitted decoded-partition budget.")
+  }
+  rows
+}
+
+.wb_graph_scan <- function(con, artifact_id, component, callback, page = 512L,
+                           predicate = "", params = list(), bytes = 1048576) {
   # RSQLite has one live result per connection. Keyset pages are independently
   # closed before callbacks, permitting bounded nested field/value scans.
   after <- "0"
   repeat {
-    rows <- DBI::dbGetQuery(con, paste0("SELECT row_ordinal,record_json ",
-      "FROM artifact_graph_rows WHERE artifact_id=? AND component=? ", predicate,
-      " AND row_ordinal>=CAST(? AS INTEGER) ORDER BY row_ordinal LIMIT ?;"),
-      params = c(list(artifact_id, component), params, list(after, page)))
+    rows <- .wb_graph_page(con, artifact_id, component, after, page, bytes,
+      predicate, params)
     if (!nrow(rows)) break
     callback(rows)
     after <- .wb_graph_add_count(as.character(rows$row_ordinal[[nrow(rows)]]), 1L)
@@ -160,26 +230,31 @@
     incidences = c("incidence_id", "edge_id", "node_id", "role", "ordinal"),
     attribute_fields = c("scope", "field_ordinal", "name", "type", "nullable"),
     attribute_values = c("scope", "field_ordinal", "entity_ordinal", "value"),
-    bindings = c("binding_id", "axis_kind", "source_ref", "source_snapshot_identity",
+    bindings = c("binding_ordinal", "binding_id", "axis_kind", "source_ref", "source_snapshot_identity",
       "axis_content_identity", "axis_order_identity"),
-    binding_mappings = c("binding_id", "node_id", "axis_id"))
+    binding_mappings = c("binding_id", "mapping_ordinal", "node_id", "axis_id"))
   .wb_graph_closed(record, fields, component)
   for (name in intersect(fields, c("node_id", "edge_id", "incidence_id", "binding_id", "axis_id", "name")))
     .wb_graph_require(.wb_graph_string(record[[name]]), "GRAPH_ID_INVALID", name)
-  for (name in intersect(fields, c("ordinal", "field_ordinal", "entity_ordinal"))) {
+  for (name in intersect(fields, "ordinal")) {
     value <- record[[name]]
     .wb_graph_require(is.numeric(value) && length(value) == 1L && is.finite(value) &&
       value >= 0 && value <= 999999999999999 && value == floor(value),
       "GRAPH_ORDINAL_INVALID", name)
   }
-  if (component == "edges") .wb_graph_require(record$kind %in% c("ordinary", "hyper") &&
+  for (name in intersect(fields, c("field_ordinal", "entity_ordinal", "binding_ordinal", "mapping_ordinal")))
+    .wb_graph_i64(record[[name]])
+  if (component == "edges") .wb_graph_require(.wb_graph_string(record$kind) &&
+    .wb_graph_string(record$direction) && record$kind %in% c("ordinary", "hyper") &&
     record$direction %in% c("directed", "undirected"), "GRAPH_DIRECTION_INVALID", "Invalid edge.")
-  if (component == "incidences") .wb_graph_require(record$role %in% c("tail", "head", "member"),
+  if (component == "incidences") .wb_graph_require(.wb_graph_string(record$role) &&
+    record$role %in% c("tail", "head", "member"),
     "GRAPH_ROLE_INVALID", "Invalid incidence role.")
   if (component %in% c("attribute_fields", "attribute_values"))
-    .wb_graph_require(record$scope %in% c("graph", "node", "edge", "incidence"),
+    .wb_graph_require(.wb_graph_string(record$scope) &&
+      record$scope %in% c("graph", "node", "edge", "incidence"),
       "GRAPH_ATTRIBUTE_INVALID", "Invalid attribute scope.")
-  if (component == "attribute_fields") .wb_graph_require(record$type %in%
+  if (component == "attribute_fields") .wb_graph_require(.wb_graph_string(record$type) && record$type %in%
     c("bool", "utf8", "int64_decimal_string", "float64_le_hex") &&
     is.logical(record$nullable) && length(record$nullable) == 1L && !is.na(record$nullable),
     "GRAPH_ATTRIBUTE_INVALID", "Invalid attribute declaration.")
@@ -193,6 +268,11 @@
     "GRAPH_VERSION_UNSUPPORTED", "Graph registry missing or unsupported.")
   .wb_graph_require(meta$direction_mode[[1]] %in% c("directed", "undirected", "mixed"),
     "GRAPH_DIRECTION_INVALID", "Invalid stored direction mode.")
+  hidden <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows WHERE artifact_id=? AND (",
+    "typeof(row_ordinal)!='integer' OR row_ordinal<0 OR component NOT IN (",
+    paste0("'", .wb_graph_components(), "'", collapse = ","),
+    ") OR NOT json_valid(record_json)) LIMIT 1;"), params = list(artifact_id))
+  .wb_graph_require(!nrow(hidden), "GRAPH_ROWS_INVALID", "Hidden/unknown/invalid stored component rows.")
   unique_keys <- list(nodes = "node_id", edges = "edge_id", incidences = "incidence_id",
     attribute_fields = c("scope", "name"), attribute_values = c("scope", "field_ordinal", "entity_ordinal"),
     bindings = "binding_id", binding_mappings = c("binding_id", "node_id"))
@@ -216,7 +296,7 @@
         "GRAPH_PART_ORDER_INVALID", "Missing/gapped stored partition rows.")
       for (json in rows$record_json) .wb_graph_row_validate(component, .wb_graph_parse(json))
       expected <<- .wb_graph_add_count(expected, nrow(rows))
-    }, page = budgets$partition_rows)
+    }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
   }
   # The disk join computes arity/counts, not a per-edge in-memory incidence list.
   edge_sql <- paste0("SELECT e.record_json edge_json,COUNT(i.row_ordinal) n,",
@@ -292,32 +372,32 @@
 }
 
 .wb_graph_validate_sql_attributes <- function(con, artifact_id, budgets) {
-  expected_fields <- stats::setNames(rep(0, 4), c("graph", "node", "edge", "incidence"))
+  expected_fields <- stats::setNames(rep("0", 4), c("graph", "node", "edge", "incidence"))
   counts <- c(graph = "1", node = .wb_graph_count(con, artifact_id, "nodes"),
     edge = .wb_graph_count(con, artifact_id, "edges"),
     incidence = .wb_graph_count(con, artifact_id, "incidences"))
   .wb_graph_scan(con, artifact_id, "attribute_fields", function(rows) {
     for (json in rows$record_json) {
       field <- .wb_graph_parse(json)
-      .wb_graph_require(field$field_ordinal == expected_fields[[field$scope]],
+      .wb_graph_require(identical(field$field_ordinal, expected_fields[[field$scope]]),
         "GRAPH_ATTRIBUTE_INVALID", "Gapped/reordered field declarations.")
-      expected_fields[[field$scope]] <<- expected_fields[[field$scope]] + 1
+      expected_fields[[field$scope]] <<- .wb_graph_add_count(expected_fields[[field$scope]], 1L)
       expected <- "0"
       .wb_graph_scan(con, artifact_id, "attribute_values", function(values) {
         for (value_json in values$record_json) {
           value <- .wb_graph_parse(value_json)
-          .wb_graph_require(bit64::as.integer64(value$entity_ordinal) == .wb_graph_i64(expected) &&
+          .wb_graph_require(.wb_graph_i64(value$entity_ordinal) == .wb_graph_i64(expected) &&
             .wb_graph_scalar(value$value, field$type, field$nullable),
             "GRAPH_ATTRIBUTE_INVALID", field$name)
           expected <<- .wb_graph_add_count(expected, 1L)
         }
-      }, page = budgets$partition_rows,
+      }, page = budgets$partition_rows, bytes = budgets$partition_bytes,
       predicate = "AND json_extract(record_json,'$.scope')=? AND json_extract(record_json,'$.field_ordinal')=?",
       params = list(field$scope, field$field_ordinal))
       .wb_graph_require(identical(expected, counts[[field$scope]]),
         "GRAPH_ATTRIBUTE_INVALID", "Attribute dense coverage mismatch.")
     }
-  }, page = budgets$partition_rows)
+  }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
   bad <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows v ",
     "LEFT JOIN artifact_graph_rows f ON f.artifact_id=v.artifact_id ",
     "AND f.component='attribute_fields' AND json_extract(f.record_json,'$.scope')=json_extract(v.record_json,'$.scope') ",
@@ -349,7 +429,8 @@
         emit(.wb_operation_pack_canonical_json(transform(json)))
         first <<- FALSE
       }
-    }, page = budgets$partition_rows, predicate = predicate, params = params)
+    }, page = budgets$partition_rows, bytes = budgets$partition_bytes,
+      predicate = predicate, params = params)
     emit("]")
   }
   tryCatch({
@@ -370,7 +451,7 @@
             list(scope, field$field_ordinal))
           emit("}"); first_field <<- FALSE
         }
-      }, page = budgets$partition_rows,
+      }, page = budgets$partition_rows, bytes = budgets$partition_bytes,
         predicate = "AND json_extract(record_json,'$.scope')=?", params = list(scope))
       emit("]"); first_scope <- FALSE
     }
@@ -388,38 +469,50 @@
 }
 
 .wb_graph_stage_small <- function(graph, budgets = list()) {
+  admitted <- .wb_graph_budgets(budgets)
+  .wb_graph_materialization_admit(list(content = graph$content,
+    bindings = graph$associations), admitted$collect_bytes)
   wb_graph_validate(graph)
   state <- .wb_graph_stage_new(graph$content$direction_mode, budgets)
   succeeded <- FALSE
   on.exit(if (!succeeded) .wb_graph_stage_discard(state), add = TRUE)
-  append <- function(component, rows) {
-    if (!length(rows)) return(invisible(TRUE))
-    starts <- seq.int(1, length(rows), by = state$budgets$partition_rows)
-    for (start in starts) .wb_graph_append(state, component,
-      rows[seq.int(start, min(length(rows), start + state$budgets$partition_rows - 1))])
+  append <- function(component, producer) {
+    buffer <- list(); bytes <- 0
+    flush <- function() {
+      if (length(buffer)) .wb_graph_append(state, component, buffer)
+      buffer <<- list(); bytes <<- 0
+    }
+    put <- function(record) {
+      n <- nchar(.wb_operation_pack_canonical_json(record), type = "bytes")
+      .wb_graph_require(n <= state$budgets$partition_bytes,
+        "GRAPH_RESOURCE_EXCEEDED", "Single output record exceeds partition budget.")
+      if (length(buffer) >= state$budgets$partition_rows ||
+          bytes + n > state$budgets$partition_bytes) flush()
+      buffer[[length(buffer) + 1L]] <<- record; bytes <<- bytes + n
+    }
+    producer(put); flush()
   }
-  for (component in c("nodes", "edges", "incidences")) append(component, graph$content[[component]])
-  fields <- values <- list()
-  for (scope in c("graph", "node", "edge", "incidence")) {
+  for (component in c("nodes", "edges", "incidences"))
+    append(component, function(put) for (record in graph$content[[component]]) put(record))
+  for (component in c("attribute_fields", "attribute_values")) append(component,
+    function(put) for (scope in c("graph", "node", "edge", "incidence")) {
     declarations <- graph$content$attributes[[scope]]
     for (i in seq_along(declarations)) {
       field <- declarations[[i]]
-      fields[[length(fields) + 1L]] <- list(scope = scope, field_ordinal = i - 1L,
-        name = field$name, type = field$type, nullable = field$nullable)
-      for (j in seq_along(field$values)) values[[length(values) + 1L]] <-
-        list(scope = scope, field_ordinal = i - 1L, entity_ordinal = j - 1L,
-          value = field$values[[j]])
+      if (component == "attribute_fields") put(list(scope = scope, field_ordinal = as.character(i - 1L),
+        name = field$name, type = field$type, nullable = field$nullable)) else
+        for (j in seq_along(field$values)) put(list(scope = scope,
+          field_ordinal = as.character(i - 1L), entity_ordinal = as.character(j - 1L), value = field$values[[j]]))
     }
-  }
-  append("attribute_fields", fields); append("attribute_values", values)
+  })
   # Associations enter the same streamed tables; authentication is independent.
-  bindings <- mappings <- list()
-  for (binding in graph$associations) {
-    bindings[[length(bindings) + 1L]] <- binding[setdiff(names(binding), "mapping")]
-    for (pair in binding$mapping) mappings[[length(mappings) + 1L]] <-
-      c(list(binding_id = binding$binding_id), pair)
-  }
-  append("bindings", bindings); append("binding_mappings", mappings)
+  append("bindings", function(put) for (i in seq_along(graph$associations)) {
+    binding <- graph$associations[[i]]
+    put(c(list(binding_ordinal = as.character(i - 1L)), binding[setdiff(names(binding), "mapping")]))
+  })
+  append("binding_mappings", function(put) for (binding in graph$associations)
+    for (j in seq_along(binding$mapping)) put(c(list(binding_id = binding$binding_id,
+      mapping_ordinal = as.character(j - 1L)), binding$mapping[[j]])))
   state$content <- .wb_graph_sql_content_hash(state$con, "staged", state$budgets)
   succeeded <- TRUE
   state

@@ -38,19 +38,21 @@ wb_art_graph_info <- function(bundle, artifact_id, budgets = list()) {
 #' @param component Graph component name.
 #' @param offset Exact nonnegative decimal int64 starting row ordinal.
 #' @param limit Maximum number of rows in this partition.
+#' @param partition_bytes Maximum encoded bytes admitted before decoding rows.
 #' @return Ordered component records. Full identity validation is available via
 #'   wb_art_graph_info; invocation readers independently validate complete closure.
 #' @export
-wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", limit = 512L) {
+wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", limit = 512L,
+                              partition_bytes = 1048576) {
   .wb_assert_observational_schema(bundle,
     c("artifact_graph_meta", "artifact_graph_rows"), "graph slice")
   .wb_graph_i64(offset)
   .wb_graph_require(component %in% .wb_graph_components() && length(component) == 1L &&
-    is.numeric(limit) && length(limit) == 1L && limit > 0 && limit <= 512 && limit == floor(limit),
+    is.numeric(limit) && length(limit) == 1L && limit > 0 && limit <= 512 && limit == floor(limit) &&
+    is.numeric(partition_bytes) && length(partition_bytes) == 1L &&
+    is.finite(partition_bytes) && partition_bytes > 0,
     "GRAPH_RESOURCE_EXCEEDED", "Invalid bounded slice request.")
-  rows <- DBI::dbGetQuery(bundle$con, paste0("SELECT record_json FROM artifact_graph_rows ",
-    "WHERE artifact_id=? AND component=? AND row_ordinal>=CAST(? AS INTEGER) ",
-    "ORDER BY row_ordinal LIMIT ?;"), params = list(artifact_id, component, offset, limit))
+  rows <- .wb_graph_page(bundle$con, artifact_id, component, offset, limit, partition_bytes)
   lapply(rows$record_json, function(json) {
     row <- .wb_graph_parse(json); .wb_graph_row_validate(component, row); row
   })
@@ -93,7 +95,7 @@ wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", lim
       rows$row_ordinal <- bit64::as.integer64(rows$row_ordinal)
       DBI::dbAppendTable(bundle$con, "artifact_graph_rows", rows)
       .wb_promotion_transaction_fault("graph_component_rows", component = component)
-    }, page = stage$budgets$partition_rows)
+    }, page = stage$budgets$partition_rows, bytes = stage$budgets$partition_bytes)
   .wb_graph_sources_assert(bundle, stage$con, "staged", stage$budgets)
   artifact_id
 }
