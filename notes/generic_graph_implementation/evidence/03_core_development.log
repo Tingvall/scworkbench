@@ -1,0 +1,5 @@
+test_graph_content_frozen_identity_contract PASS
+Error in get(name)() : 
+  inherits(tryCatch(wb_graph_from_igraph(changed), error = identity),  .... is not TRUE
+Calls: stopifnot -> <Anonymous> -> stopifnot
+Execution halted

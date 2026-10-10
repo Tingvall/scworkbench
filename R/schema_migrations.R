@@ -2,7 +2,7 @@
 # Component schema helpers remain compatibility shims for callers inside the
 # package, but only this file orchestrates schema creation and upgrades.
 
-.wb_bundle_schema_version <- function() 10L
+.wb_bundle_schema_version <- function() 11L
 
 .wb_bundle_schema_migrations <- function() {
   list(
@@ -15,8 +15,14 @@
     list(version = 7L, id = "007_analysis_capsules", apply = .wb_schema_migration_007),
     list(version = 8L, id = "008_metadata_field_content_identity", apply = .wb_schema_migration_008),
     list(version = 9L, id = "009_typed_cell_set_consumption", apply = .wb_schema_migration_009),
-    list(version = 10L, id = "010_nullable_cell_vector_family", apply = .wb_schema_migration_010)
+    list(version = 10L, id = "010_nullable_cell_vector_family", apply = .wb_schema_migration_010),
+    list(version = 11L, id = "011_graph_sqlite_v1", apply = .wb_schema_migration_011)
   )
+}
+
+.wb_schema_migration_011 <- function(con, bundle_dir = NULL) {
+  .wb_graph_create_schema(con, retained = TRUE)
+  invisible(TRUE)
 }
 
 .wb_sqlite_configure_connection <- function(con, writable = TRUE, configure_journal = TRUE) {

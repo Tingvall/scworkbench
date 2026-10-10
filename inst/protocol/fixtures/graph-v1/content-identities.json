@@ -1,0 +1,71 @@
+{
+  "schema": "scworkbench.graph.design.identity_vectors.v1",
+  "canonical_encoder": "scworkbench.operation_pack.canonical_json.v1",
+  "content_identity_scheme": "scworkbench.graph.content.canonical-json.v1",
+  "parity_scope": "canonical-byte parity on proposed closed projections; semantic validation and publication are separate checks",
+  "positive": [
+    {
+      "id": "empty_undirected",
+      "content": {
+        "schema": "scworkbench.graph.content.v1",
+        "direction_mode": "undirected",
+        "nodes": [],
+        "edges": [],
+        "incidences": [],
+        "attributes": {"graph": [], "node": [], "edge": [], "incidence": []}
+      },
+      "expected_sha256": "42bdcca94542516c412606d96d835f3ed5893664ff430f35342011507c90ea3c"
+    },
+    {
+      "id": "directed_self_loop_mixed_mode",
+      "content": {
+        "schema": "scworkbench.graph.content.v1",
+        "direction_mode": "mixed",
+        "nodes": [{"node_id": "n1"}],
+        "edges": [{"edge_id": "e1", "kind": "ordinary", "direction": "directed"}],
+        "incidences": [
+          {"incidence_id": "i1", "edge_id": "e1", "node_id": "n1", "role": "tail", "ordinal": 0},
+          {"incidence_id": "i2", "edge_id": "e1", "node_id": "n1", "role": "head", "ordinal": 1}
+        ],
+        "attributes": {"graph": [], "node": [], "edge": [], "incidence": []}
+      },
+      "expected_sha256": "0fee29a1b65143c1e1bedab98fb811ffd156a0972573275df8fc4a5fb864e479"
+    },
+    {
+      "id": "directed_hyper_repeated_tail_typed_incidence",
+      "content": {
+        "schema": "scworkbench.graph.content.v1",
+        "direction_mode": "directed",
+        "nodes": [{"node_id": "r"}, {"node_id": "p"}],
+        "edges": [{"edge_id": "h", "kind": "hyper", "direction": "directed"}],
+        "incidences": [
+          {"incidence_id": "i1", "edge_id": "h", "node_id": "r", "role": "tail", "ordinal": 0},
+          {"incidence_id": "i2", "edge_id": "h", "node_id": "r", "role": "tail", "ordinal": 1},
+          {"incidence_id": "i3", "edge_id": "h", "node_id": "p", "role": "head", "ordinal": 2}
+        ],
+        "attributes": {
+          "graph": [], "node": [], "edge": [],
+          "incidence": [{"name": "coefficient", "type": "float64_le_hex", "nullable": false, "values": ["000000000000e03f", "000000000000e03f", "000000000000f03f"]}]
+        }
+      },
+      "expected_sha256": "4e34e64051803681f1d9672adeb7f3652df660b62bc524c203d5998876df14e2"
+    }
+  ],
+  "negative": [
+    {"id": "duplicate_node_id", "base": "directed_hyper_repeated_tail_typed_incidence", "mutation": {"op": "replace", "path": "/nodes/1/node_id", "value": "r"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "duplicate_edge_id", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "add", "path": "/edges/-", "value": {"edge_id": "e1", "kind": "hyper", "direction": "directed"}}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "duplicate_incidence_id", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "replace", "path": "/incidences/1/incidence_id", "value": "i1"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "dangling_node", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "replace", "path": "/incidences/1/node_id", "value": "unknown"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "dangling_edge", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "replace", "path": "/incidences/1/edge_id", "value": "unknown"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "invalid_directed_role", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "replace", "path": "/incidences/1/role", "value": "member"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "ordinary_extra_incidence", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "add", "path": "/incidences/-", "value": {"incidence_id": "i3", "edge_id": "e1", "node_id": "n1", "role": "head", "ordinal": 2}}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "gapped_ordinal", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "replace", "path": "/incidences/1/ordinal", "value": 2}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "hyper_missing_head", "base": "directed_hyper_repeated_tail_typed_incidence", "mutation": {"op": "replace", "path": "/incidences/2/role", "value": "tail"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "attribute_length_mismatch", "base": "directed_hyper_repeated_tail_typed_incidence", "mutation": {"op": "remove", "path": "/attributes/incidence/0/values/2"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "nonnullable_null", "base": "directed_hyper_repeated_tail_typed_incidence", "mutation": {"op": "replace", "path": "/attributes/incidence/0/values/1", "value": null}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "duplicate_attribute_field", "base": "directed_hyper_repeated_tail_typed_incidence", "mutation": {"op": "copy", "from": "/attributes/incidence/0", "path": "/attributes/incidence/-"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "float64_infinity_bits", "base": "directed_hyper_repeated_tail_typed_incidence", "mutation": {"op": "replace", "path": "/attributes/incidence/0/values/0", "value": "000000000000f07f"}, "expected": "semantic_reject_even_if_rehashed"},
+    {"id": "stale_axis_binding", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "replace_source_axis_identity_after_grant"}, "expected": "source_reject_before_publication"},
+    {"id": "payload_tamper", "base": "directed_self_loop_mixed_mode", "mutation": {"op": "alter_staged_incidence_after_seal_then_self_rehash_receipt"}, "expected": "independent_content_and_receipt_reject_before_publication"}
+  ]
+}

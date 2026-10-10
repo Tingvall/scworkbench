@@ -96,6 +96,7 @@ wb_bundle_validation_plan <- function(level=c("content","structural","recipient"
 
 .wb_validation_artifact_payload_table <- function(type) {
   switch(as.character(type)[1],
+    graph = "artifact_graph_meta",
     cell_vector = "artifact_labels",
     cell_vector_family = "artifact_pseudotime",
     relation_family = "artifact_relation_rows",

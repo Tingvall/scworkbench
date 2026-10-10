@@ -368,6 +368,7 @@
 .wb_content_identity_schemes <- function() {
   c(
     object = "scworkbench.content.object.canonical-json.v1",
+    graph = "scworkbench.graph.content.canonical-json.v1",
     table = "scworkbench.content.table.row-json-fold.v1",
     matrix = "scworkbench.content.matrix.fragment-tree.v2",
     space = "scworkbench.content.space.canonical-json.v1",
@@ -569,6 +570,20 @@
   structural <- .wb_prov_structural_fingerprint(prim)
   if (!.wb_is_primitive(prim)) return(list(structural_fingerprint = structural, content_sha256 = NA_character_, content_identity_scheme = NA_character_, verification_level = "structural", verification_status = "unavailable"))
   kind <- as.character(prim$kind)[1]
+  if (kind == "graph") {
+    identity <- if (!is.null(prim$artifact_id)) {
+      .wb_graph_retained_identities(bundle, prim$artifact_id)
+    } else if (!is.null(attr(prim, "graph_stage", exact = TRUE))) {
+      state <- attr(prim, "graph_stage", exact = TRUE)
+      .wb_graph_sql_identities(state$con, "staged", state$budgets)
+    } else wb_graph_identity(prim)
+    return(list(structural_fingerprint = structural,
+      content_sha256 = identity$content_identity$sha256,
+      content_identity_scheme = identity$content_identity$scheme,
+      graph_binding_identity = identity$binding_identity,
+      graph_descriptor_identity = identity$descriptor_identity,
+      verification_level = "content", verification_status = "content_verified"))
+  }
   if (kind %in% c("feature_table", "obs_table")) {
     return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_table_content_sha256(prim), content_identity_scheme = unname(.wb_content_identity_schemes()[["table"]]), verification_level = "content", verification_status = "content_verified"))
   }

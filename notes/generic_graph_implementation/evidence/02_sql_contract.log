@@ -1,0 +1,16 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+golden_bundle=/tmp/scworkbench_golden_351cb5a12dc5a
+Discovered 3 contract tests in 1 files.
+RUN test_graph_content_frozen_identity_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_content_frozen_identity_contract (0.184s)
+RUN test_graph_sql_stream_identity_contract [test_graph_primitive_contract.R; self_contained]
+FAIL test_graph_sql_stream_identity_contract -- Invalid result set
+RUN test_graph_typed_missing_values_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_typed_missing_values_contract (0.001s)
+CONTRACT TEST SUMMARY files=1 discovered=3 executed=3 passed=2 skipped=0 failed=1 excluded=0 accounted=3
+There were 22 warnings (use warnings() to see them)
+Error: Contract suite failed:
+- test_graph_sql_stream_identity_contract [test_graph_primitive_contract.R]: Invalid result set
+Execution halted

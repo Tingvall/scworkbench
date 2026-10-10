@@ -56,6 +56,8 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
   prim <- switch(
     type,
 
+    "graph" = .wb_graph_load_reference(bundle, artifact_id),
+
     # ---- cell_vector stored as artifact_labels (cell_id, label) ----
     "cell_vector" = {
       payload_descriptor <- .wb_artifact_object_descriptor(

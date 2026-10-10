@@ -11,6 +11,7 @@
 # Keep this small. This is your "promotion kernel".
 .wb_promoters_by_kind <- function() {
   list(
+    graph               = .wb_promote_graph,
     cell_vector         = .wb_promote_cell_vector,
     cell_vector_family  = .wb_promote_cell_vector_family,
     relation_family     = .wb_promote_relation_family,

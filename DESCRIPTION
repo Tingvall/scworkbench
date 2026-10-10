@@ -26,12 +26,14 @@ RoxygenNote: 7.3.3
 LazyData: true
 NeedsCompilation: yes
 Imports:
+    bit64,
     DBI,
     digest,
     fs,
     RSQLite,
     jsonlite,
     Matrix,
+    openssl,
     processx,
     rhdf5
 Suggests:
