@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scworkbench.org/protocol/pybench-op-v5-python-runtime.schema.json",
+  "title": "PyBench process-v5 validation of unchanged Python runtime v4 sidecar",
+  "description": "Python-specific runtime evidence accompanying the shared ABI-v3 transition receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "backend",
+    "distribution_identity",
+    "request_identity",
+    "capability_identity",
+    "operation_definition_identity",
+    "interpreter",
+    "seed",
+    "device",
+    "runtime_identity"
+  ],
+  "properties": {
+    "schema": {
+      "const": "pybench.operation_pack.python_runtime.v4"
+    },
+    "backend": {
+      "const": "Python"
+    },
+    "distribution_identity": {
+      "$ref": "#/$defs/distribution_identity"
+    },
+    "request_identity": {
+      "$ref": "#/$defs/request_identity"
+    },
+    "capability_identity": {
+      "$ref": "#/$defs/capability_identity"
+    },
+    "operation_definition_identity": {
+      "$ref": "#/$defs/definition_identity"
+    },
+    "interpreter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation",
+        "version",
+        "abi",
+        "platform",
+        "executable_sha256"
+      ],
+      "properties": {
+        "implementation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "abi": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "seed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "value"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "declared",
+            "not_declared"
+          ]
+        },
+        "value": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "descriptor"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "cpu",
+            "cuda",
+            "metal"
+          ]
+        },
+        "descriptor": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "runtime_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "pybench.operation_pack.python_runtime.v4"
+        },
+        "scope": {
+          "const": "python runtime sidecar excluding runtime_identity"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "distribution_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.content.v1"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "request_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.transition_request.v4"
+        },
+        "scope": {
+          "const": "request excluding request_identity"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "capability_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.capability.v4"
+        },
+        "scope": {
+          "const": "capability excluding capability_identity"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "definition_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.definition.v4"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  },
+  "x-document-status": "JOINT_FREEZE_CANDIDATE"
+}

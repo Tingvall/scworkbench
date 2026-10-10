@@ -146,12 +146,13 @@
   type %in% types && (!nullable || "null" %in% types)
 }
 
-.wb_operation_pack_v3_semantic_validate <- function(manifest) {
+.wb_operation_pack_v3_semantic_validate <- function(manifest, validated_successor = FALSE) {
   # Reuse the accepted v2 admission rules for unchanged fields, after removing
   # only the explicit v3 additions. This does not reinterpret a v2 document.
   projected <- .wb_operation_pack_v3_v2_projection(manifest)
-  .wb_operation_pack_v2_outer_validate(projected)
-  .wb_operation_pack_v2_semantic_validate(projected)
+  if (!validated_successor) .wb_operation_pack_v2_outer_validate(projected)
+  .wb_operation_pack_v2_semantic_validate(projected,
+    allow_graph_replay = validated_successor)
 
   for (operation in manifest$operations) {
     opname <- as.character(operation$qualified_name)[1]
@@ -1001,7 +1002,7 @@
 .wb_operation_pack_v3_registration <- function(manifest, runners,
                                                  package_description,
                                                  installed_path,
-                                                 manifest_path) {
+                                                 manifest_path, abi = "3") {
   .wb_operation_pack_named_object(runners, "operations", allow_empty = FALSE)
   expected <- vapply(manifest$operations, function(x) as.character(
     x$qualified_name)[1], character(1))
@@ -1020,12 +1021,12 @@
     }
   }
   content <- .wb_operation_pack_v2_content_identity(installed_path)
-  identity <- .wb_operation_pack_v3_identity(manifest,
+  identity <- (if (abi == "4") .wb_operation_pack_v4_identity else .wb_operation_pack_v3_identity)(manifest,
     .wb_operation_pack_v2_file_sha256(manifest_path), content)
   definitions <- stats::setNames(lapply(manifest$operations,
-    .wb_operation_pack_v3_catalog_definition), expected)
+    if (abi == "4") .wb_operation_pack_v4_catalog_definition else .wb_operation_pack_v3_catalog_definition), expected)
   structure(list(manifest = manifest, runners = runners,
-    identity = identity, definitions = definitions, protocol_version = "3",
+    identity = identity, definitions = definitions, protocol_version = abi,
     manifest_path = manifest_path, installed_path = installed_path,
     runtime_attestation = list(schema = "scworkbench.operation_pack.runtime.r.v3",
       backend = "R", package = manifest$package,
@@ -1034,18 +1035,18 @@
         NA_character_)[1], distribution_identity = content,
       manifest_source_identity = identity$manifest_source_identity,
       entry_point_identity = identity$entry_point_identity)),
-    class = c("wb_operation_pack_registration_v3",
+    class = c(if (abi == "4") "wb_operation_pack_registration_v4", "wb_operation_pack_registration_v3",
       "wb_operation_pack_registration_v2", "wb_operation_pack_registration",
       "list"))
 }
 
 .wb_operation_pack_v3_manifest_path <- .wb_operation_pack_v2_manifest_path
 
-.wb_operation_pack_v3_invoke <- function(package, lib.loc = NULL) {
+.wb_operation_pack_v3_invoke <- function(package, lib.loc = NULL, abi = "3") {
   manifest_path <- .wb_operation_pack_v3_manifest_path(package, lib.loc)
   description <- utils::packageDescription(package, lib.loc = lib.loc)
-  manifest <- .wb_operation_pack_v3_normalize(
-    .wb_operation_pack_v3_read_manifest(manifest_path), package,
+  manifest <- (if (abi == "4") .wb_operation_pack_v4_normalize else .wb_operation_pack_v3_normalize)(
+    (if (abi == "4") .wb_operation_pack_v4_read_manifest else .wb_operation_pack_v3_read_manifest)(manifest_path), package,
     description)
   if (!identical(as.character(manifest$backend)[1], "R"))
     .wb_operation_pack_v3_error("OPERATION_PACK_RUNTIME_UNAVAILABLE",
@@ -1065,7 +1066,7 @@
     .wb_operation_pack_v3_error("OPERATION_PACK_ENTRY_POINT_INVALID",
       "V3 R entry point must be a zero-argument function.", "authentication")
   context <- new.env(parent = emptyenv())
-  context$abi <- "3"; context$package <- package
+  context$abi <- abi; context$package <- package
   context$manifest_path <- manifest_path
   context$package_description <- description
   context$installed_path <- dirname(dirname(manifest_path)); context$result <- NULL

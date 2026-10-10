@@ -1,0 +1,29 @@
+test_graph_abi4_actual_payload_count_contract PASS
+test_graph_abi4_closed_admission_contract PASS
+test_graph_abi4_core_issued_request_contract PASS
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_RECIPIENT_PROCESS pack_free=TRUE read_only=TRUE relocated=TRUE descriptor_unchanged=TRUE sources_verified=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+test_graph_abi4_public_r_execution_contract PASS
+test_graph_abi4_runtime_sidecar_scheme_contract PASS
+test_graph_bounded_transport_seal_contract PASS
+test_graph_content_frozen_identity_contract PASS
+test_graph_content_only_and_selected_view_contract PASS
+test_graph_decoded_partition_budget_contract PASS
+test_graph_factory_failure_cleanup_contract PASS
+test_graph_hidden_row_closure_contract PASS
+test_graph_igraph_lossless_boundary_contract PASS
+test_graph_padded_edge_byte_admission_contract PASS
+test_graph_retained_cell_source_payload_contract PASS
+test_graph_sdk_collect_contract PASS
+test_graph_sql_binding_descriptor_frozen_identity_contract PASS
+test_graph_sql_stream_identity_contract PASS
+test_graph_sql_transaction_roundtrip_contract PASS
+test_graph_strict_json_unicode_contract PASS
+test_graph_typed_missing_values_contract PASS
+Warning message:
+call dbDisconnect() when finished working with a connection 
+GRAPH_FOCUSED_SUMMARY discovered=20 executed=20 passed=20 skipped=0 failed=0

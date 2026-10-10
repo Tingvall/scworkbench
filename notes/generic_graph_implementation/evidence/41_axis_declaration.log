@@ -1,0 +1,9 @@
+Error in grepl(schema$pattern, instance, perl = TRUE) : 
+  invalid regular expression '^[^\u0000]+$'
+Calls: stopifnot ... .wb_json_schema_validate_2020 -> .wb_json_schema_validate_2020 -> grepl
+In addition: Warning message:
+In grepl(schema$pattern, instance, perl = TRUE) :
+  PCRE pattern compilation error
+	'PCRE2 does not support \F, \L, \l, \N{name}, \U, or \u'
+	at '0000]+$'
+Execution halted

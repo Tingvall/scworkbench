@@ -1,0 +1,8 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Warning message:
+call dbDisconnect() when finished working with a connection 
+ABI4_PUBLIC_FAULTS passed=1 skipped=0 failed=0

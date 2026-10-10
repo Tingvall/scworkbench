@@ -952,6 +952,8 @@
   for (i in seq_along(base$outputs)) {
     name <- as.character(base$outputs[[i]]$name)[1]
     descriptor <- base$outputs[[i]]$descriptor
+    if (inherits(registration, "wb_operation_pack_registration_v4") &&
+      identical(descriptor$kind, "graph")) next
     policy <- policies[[name]]
     if (!is.null(policy) && identical(as.character(policy$policy)[1],
         "standalone_sparse_cell_family_v1")) {
@@ -1670,9 +1672,13 @@
       "input_name")))
   expected_readers <- c(
     lapply(Filter(function(x) !x$name %in% private_input_names,
-      request$inputs), function(x) list(input_name = x$name,
-      reader = x$descriptor$reader,
-      descriptor_identity = x$descriptor$descriptor_identity)),
+      request$inputs), function(x) {
+      if (identical(request$pack_abi_version, "4") && identical(x$descriptor$kind, "graph"))
+        return(list(input_name = x$name, reader = x$descriptor$reader,
+          grant_identity = x$descriptor$graph_read_grant_identity))
+      list(input_name = x$name, reader = x$descriptor$reader,
+        descriptor_identity = x$descriptor$descriptor_identity)
+    }),
     lapply(request$registry_reads %||% list(), function(x) list(
       registry_read_name = x$name, reader = x$descriptor$reader,
       descriptor_identity = x$descriptor$descriptor_identity)),
@@ -2801,10 +2807,14 @@
   fail <- function(code, output = NULL) list(ok = FALSE, code = code,
     output = output)
   checked <- tryCatch({
-    .wb_operation_pack_v3_schema_assert(request, "request",
+    schema_assert <- if (identical(request$pack_abi_version, "4"))
+      .wb_operation_pack_v4_schema_assert else .wb_operation_pack_v3_schema_assert
+    schema_assert(request, "request",
       "PYBENCH_REOPEN_VALIDATION_FAILED")
-    .wb_operation_pack_v3_schema_assert(receipt, "receipt",
+    schema_assert(receipt, "receipt",
       "PYBENCH_REOPEN_VALIDATION_FAILED")
+    if (identical(request$pack_abi_version, "4"))
+      .wb_operation_pack_v4_graph_record_assert(request, receipt, path, load_payloads)
     .wb_operation_pack_v3_assert_self_identity(request, "request_identity",
       "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
     .wb_operation_pack_v3_assert_self_identity(receipt, "receipt_identity",
@@ -2850,6 +2860,7 @@
   for (name in names(grants)) {
     grant <- grants[[name]]$descriptor
     observed <- observation_map[[name]]$descriptor
+    if (identical(request$pack_abi_version, "4") && identical(grant$kind, "graph")) next
     valid <- tryCatch({
       if (!is.null(grant$cardinality_grant))
         .wb_operation_pack_v3_assert_self_identity(grant$cardinality_grant,
@@ -3663,13 +3674,13 @@
   })
 }
 
-.wb_operation_pack_v3_runner <- function(op_name) {
-  force(op_name)
+.wb_operation_pack_v3_runner <- function(op_name, abi = "3") {
+  force(op_name); force(abi)
   function(bundle, resolved, effective_cells, inputs, ...) {
     binding <- bundle$pybench_session_binding %||% list()
     source_refs <- inputs[names(resolved)]
-    operation <- .wb_operation_pack_registry$operations[[op_name]]$definition$
-      v3_definition
+    operation <- .wb_operation_pack_registry$operations[[op_name]]$definition[[
+      if (abi == "4") "v4_definition" else "v3_definition"]]
     adoption_declaration <- .wb_operation_pack_v3_g3_declaration(operation)
     adoption_candidate <- if (is.null(adoption_declaration)) NULL else
       resolved[[as.character(adoption_declaration$state_input)[1]]]
@@ -3699,6 +3710,7 @@
       list(), `[[`, character(1), "input"))
     bound <- stats::setNames(lapply(names(resolved), function(name) {
       value <- resolved[[name]]
+      if (abi == "4" && identical(value$kind, "graph")) return(value)
       if (name %in% typed_space_inputs && identical(value$kind, "space")) {
         out <- .wb_operation_pack_v2_deep_copy(value)
         coordinates <- value$values

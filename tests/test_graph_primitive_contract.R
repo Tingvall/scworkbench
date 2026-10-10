@@ -104,7 +104,7 @@ test_graph_sql_transaction_roundtrip_contract <- function() {
   graph <- wb_prim_graph(list(list(node_id = "isolated")), list(), list(),
     node_attributes = list(list(name = "caption", type = "utf8", nullable = FALSE,
       values = list("東京\nquoted\""))))
-  run <- wb_new_run("graph_contract_fixture", inputs = list(), params = list(),
+  run <- wb_new_run("metadata_cell_vector", inputs = list(), params = list(),
     outputs = list(graph = graph))
   before <- wb_graph_identity(graph)
   con <- bundle$con
@@ -120,6 +120,11 @@ test_graph_sql_transaction_roundtrip_contract <- function() {
   options(options_before)
   artifact <- DBI::dbWithTransaction(con,
     scworkbench:::.wb_promote_graph(bundle, run, "graph", graph))
+  stopifnot(inherits(tryCatch(wb_art_load(bundle, artifact), error = identity), "wb_graph_error"))
+  scworkbench:::.wb_prov_write_snapshot(bundle,
+    stats::setNames(list(run), run$run_id), topo = run$run_id, heads = run$run_id,
+    promoted_df = data.frame(run_id = run$run_id, output = "graph", artifact_id = artifact,
+      status = "ok", stringsAsFactors = FALSE))
   loaded <- wb_art_load(bundle, artifact, "graph")
   info <- wb_art_graph_info(bundle, artifact)
   stopifnot(identical(info$content_identity, before$content_identity),
@@ -217,6 +222,46 @@ test_graph_decoded_partition_budget_contract <- function() {
   TRUE
 }
 
+test_graph_padded_edge_byte_admission_contract <- function() {
+  nodes <- list(list(node_id = "node"))
+  edges <- lapply(seq_len(9L), function(i) list(edge_id = paste0("edge_", i),
+    kind = "ordinary", direction = "undirected"))
+  incidences <- unlist(lapply(seq_along(edges), function(i) lapply(0:1, function(j)
+    list(incidence_id = paste0("inc_", i, "_", j), edge_id = edges[[i]]$edge_id,
+      node_id = "node", role = "member", ordinal = j))), recursive = FALSE)
+  graph <- wb_prim_graph(nodes, edges, incidences, direction_mode = "undirected")
+  stage <- scworkbench:::.wb_graph_stage_small(graph,
+    list(partition_bytes = 4096, partition_rows = 512L))
+  on.exit(scworkbench:::.wb_graph_stage_discard(stage), add = TRUE)
+  for (i in seq_along(edges)) {
+    text <- scworkbench:::.wb_operation_pack_canonical_json(edges[[i]])
+    text <- paste0(text, strrep(" ", 4096 - nchar(text, type = "bytes")))
+    DBI::dbExecute(stage$con,
+      "UPDATE artifact_graph_rows SET record_json=? WHERE component='edges' AND row_ordinal=?;",
+      params = list(text, i - 1L))
+  }
+  batches <- list()
+  old <- options(scworkbench.graph_storage_test_hook = function(event, state) {
+    if (event == "edge_aggregate_batch") batches[[length(batches) + 1L]] <<- state
+  })
+  on.exit(options(old), add = TRUE)
+  result <- scworkbench:::.wb_graph_sql_identities(stage$con, "staged", stage$budgets)
+  stopifnot(length(batches) >= 9L,
+    all(vapply(batches, function(x) x$rows == 1L && x$encoded_bytes <= 4096, logical(1))),
+    identical(result$content_identity, wb_graph_identity(graph)$content_identity))
+  DBI::dbExecute(stage$con, "PRAGMA ignore_check_constraints=ON;")
+  for (field in c("profile", "direction_mode", "canonical_bytes")) {
+    before <- DBI::dbGetQuery(stage$con, paste0("SELECT ", field, " FROM artifact_graph_meta;"))[[1L]][[1L]]
+    DBI::dbExecute(stage$con, paste0("UPDATE artifact_graph_meta SET ", field, "=?;"),
+      params = list(strrep("x", 4097)))
+    err <- tryCatch(scworkbench:::.wb_graph_sql_identities(stage$con, "staged", stage$budgets), error = identity)
+    stopifnot(inherits(err, "wb_graph_error"), err$code == "GRAPH_RESOURCE_EXCEEDED")
+    DBI::dbExecute(stage$con, paste0("UPDATE artifact_graph_meta SET ", field, "=?;"), params = list(before))
+  }
+  DBI::dbExecute(stage$con, "PRAGMA ignore_check_constraints=OFF;")
+  TRUE
+}
+
 test_graph_factory_failure_cleanup_contract <- function() {
   captured <- NULL
   prior <- options(scworkbench.graph_storage_test_hook = function(event, state) {
@@ -308,7 +353,8 @@ test_graph_bounded_transport_seal_contract <- function() {
   on.exit({scworkbench:::.wb_graph_stage_discard(stage); unlink(c(path, changed))}, add = TRUE)
   observed <- scworkbench:::.wb_graph_export_parts(stage$con, "staged", path,
     list(partition_rows = 1L))
-  expected <- c(list(component_observations = observed), wb_graph_identity(graph))
+  expected <- c(list(component_observations = observed,
+    component_counts = c(list(header = "1"), as.list(stage$counts))), wb_graph_identity(graph))
   loaded <- scworkbench:::.wb_graph_import_parts(path, expected = expected)
   stopifnot(identical(loaded$seal$content_identity, expected$content_identity))
   scworkbench:::.wb_graph_stage_discard(loaded)

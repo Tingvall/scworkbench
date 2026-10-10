@@ -1,0 +1,3 @@
+Error in value[[3L]](cond) : attempt to apply non-function
+Calls: stopifnot ... stopifnot -> tryCatch -> tryCatchList -> tryCatchOne
+Execution halted

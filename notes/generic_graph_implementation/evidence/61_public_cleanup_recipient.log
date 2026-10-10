@@ -1,0 +1,9 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_RECIPIENT_PROCESS pack_free=TRUE read_only=TRUE relocated=TRUE descriptor_unchanged=TRUE sources_verified=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+Warning message:
+call dbDisconnect() when finished working with a connection 
+GRAPH_PUBLIC_CLEANUP_RECIPIENT passed=1 skipped=0 failed=0

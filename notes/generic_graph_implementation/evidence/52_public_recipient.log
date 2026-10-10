@@ -1,0 +1,14 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error in wb_list_ops()$op_name : $ operator is invalid for atomic vectors
+Calls: stopifnot -> %in%
+Execution halted 
+Error in test_graph_abi4_public_r_execution_contract() : 
+  status == 0L is not TRUE
+Calls: stopifnot ... test_graph_abi4_public_r_execution_contract -> stopifnot
+In addition: Warning message:
+call dbDisconnect() when finished working with a connection 
+Execution halted

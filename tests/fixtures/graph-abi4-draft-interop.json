@@ -1,0 +1,1102 @@
+{
+  "manifest": {
+    "backend": "Python",
+    "compatibility": {
+      "pack_abi": {
+        "maximum": "4",
+        "minimum": "4"
+      },
+      "process_protocol": {
+        "maximum": "pybench-op-v5",
+        "minimum": "pybench-op-v5"
+      },
+      "scworkbench": {
+        "maximum_exclusive": "0.2.0",
+        "minimum": "0.1.0"
+      }
+    },
+    "entry_point": "scworkbench.operation_packs.v4:fixture=scwbgraphfixture.pack:register",
+    "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+    "namespace": "scwbgraphfixture",
+    "operations": [
+      {
+        "dependencies": [],
+        "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+        "inputs": [
+          {
+            "alignment": "cell_and_feature_ordered",
+            "kind": "matrix",
+            "name": "matrix",
+            "required": true
+          }
+        ],
+        "name": "matrix_to_graph",
+        "outputs": [
+          {
+            "allocated_id_key": "result_id",
+            "axis_sources": [],
+            "binding_policy": "optional",
+            "category": "terminal_artifact",
+            "kind": "graph",
+            "name": "result",
+            "promotion_group": "result",
+            "required": true,
+            "resource_budgets": {
+              "max_attribute_fields": "100000",
+              "max_collect_bytes": "16777216",
+              "max_edges": "1000000",
+              "max_incidences": "8000000",
+              "max_memory_bytes": "67108864",
+              "max_nodes": "1000000",
+              "max_published_bytes": "1073741824",
+              "max_spill_bytes": "1073741824",
+              "max_staged_bytes": "1073741824",
+              "max_wal_bytes": "1073741824",
+              "partition_limits": {
+                "max_decoded_bytes": "1048576",
+                "max_rows": "4096"
+              }
+            },
+            "storage_profile": "graph_sqlite_v1"
+          }
+        ],
+        "params_schema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "promotion_closure": {
+          "result": [
+            "result"
+          ]
+        },
+        "qualified_name": "scwbgraphfixture::matrix_to_graph",
+        "replay_equivalence": {
+          "result": "exact_graph_descriptor"
+        },
+        "runner": ".matrix_to_graph",
+        "title": "matrix_to_graph"
+      },
+      {
+        "dependencies": [],
+        "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+        "inputs": [
+          {
+            "alignment": "none",
+            "binding_policy": "optional",
+            "kind": "graph",
+            "name": "source",
+            "read_mode": "bounded_partitions_v1",
+            "required": true,
+            "storage_profile": "graph_sqlite_v1"
+          },
+          {
+            "alignment": "none",
+            "kind": "obs_table",
+            "name": "metadata",
+            "required": true
+          }
+        ],
+        "name": "graph_and_metadata",
+        "outputs": [
+          {
+            "allocated_id_key": "result_id",
+            "axis_sources": [
+              {
+                "axis_kind": "cell",
+                "input_name": "source",
+                "selection_mode": "selected_graph_binding",
+                "source_binding_selector": {
+                  "binding_id": "binding_1",
+                  "kind": "fixed_binding_id_v1"
+                }
+              }
+            ],
+            "binding_policy": "optional",
+            "category": "terminal_artifact",
+            "kind": "graph",
+            "name": "result",
+            "promotion_group": "result",
+            "required": true,
+            "resource_budgets": {
+              "max_attribute_fields": "100000",
+              "max_collect_bytes": "16777216",
+              "max_edges": "1000000",
+              "max_incidences": "8000000",
+              "max_memory_bytes": "67108864",
+              "max_nodes": "1000000",
+              "max_published_bytes": "1073741824",
+              "max_spill_bytes": "1073741824",
+              "max_staged_bytes": "1073741824",
+              "max_wal_bytes": "1073741824",
+              "partition_limits": {
+                "max_decoded_bytes": "1048576",
+                "max_rows": "4096"
+              }
+            },
+            "storage_profile": "graph_sqlite_v1"
+          },
+          {
+            "allocated_id_key": "summary_id",
+            "category": "terminal_artifact",
+            "kind": "obs_table",
+            "name": "summary",
+            "promotion_group": "result",
+            "required": true,
+            "storage_profile": "terminal_primitive_v1",
+            "table_type": "graph_summary"
+          }
+        ],
+        "params_schema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "promotion_closure": {
+          "result": [
+            "result",
+            "summary"
+          ],
+          "summary": [
+            "result",
+            "summary"
+          ]
+        },
+        "qualified_name": "scwbgraphfixture::graph_and_metadata",
+        "replay_equivalence": {
+          "result": "exact_graph_descriptor",
+          "summary": "exact_canonical_value"
+        },
+        "runner": ".graph_and_metadata",
+        "title": "graph_and_metadata"
+      },
+      {
+        "dependencies": [],
+        "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+        "inputs": [
+          {
+            "alignment": "none",
+            "binding_policy": "optional",
+            "kind": "graph",
+            "name": "source",
+            "read_mode": "bounded_partitions_v1",
+            "required": true,
+            "storage_profile": "graph_sqlite_v1"
+          }
+        ],
+        "name": "graph_to_table",
+        "outputs": [
+          {
+            "allocated_id_key": "summary_id",
+            "category": "terminal_artifact",
+            "kind": "obs_table",
+            "name": "summary",
+            "promotion_group": "summary",
+            "required": true,
+            "storage_profile": "terminal_primitive_v1",
+            "table_type": "graph_summary"
+          }
+        ],
+        "params_schema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "promotion_closure": {
+          "summary": [
+            "summary"
+          ]
+        },
+        "qualified_name": "scwbgraphfixture::graph_to_table",
+        "replay_equivalence": {
+          "summary": "exact_canonical_value"
+        },
+        "runner": ".graph_to_table",
+        "title": "graph_to_table"
+      },
+      {
+        "dependencies": [],
+        "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+        "inputs": [
+          {
+            "alignment": "none",
+            "binding_policy": "optional",
+            "kind": "graph",
+            "name": "source",
+            "read_mode": "bounded_partitions_v1",
+            "required": true,
+            "storage_profile": "graph_sqlite_v1"
+          },
+          {
+            "alignment": "cell_ordered",
+            "kind": "cell_vector",
+            "name": "labels",
+            "required": true
+          }
+        ],
+        "name": "graph_and_cell_vector",
+        "outputs": [
+          {
+            "allocated_id_key": "result_id",
+            "axis_sources": [
+              {
+                "axis_kind": "cell",
+                "input_name": "labels",
+                "selection_mode": "retained_input_axis",
+                "source_binding_selector": null
+              }
+            ],
+            "binding_policy": "required",
+            "category": "terminal_artifact",
+            "kind": "graph",
+            "name": "result",
+            "promotion_group": "result",
+            "required": true,
+            "resource_budgets": {
+              "max_attribute_fields": "100000",
+              "max_collect_bytes": "16777216",
+              "max_edges": "1000000",
+              "max_incidences": "8000000",
+              "max_memory_bytes": "67108864",
+              "max_nodes": "1000000",
+              "max_published_bytes": "1073741824",
+              "max_spill_bytes": "1073741824",
+              "max_staged_bytes": "1073741824",
+              "max_wal_bytes": "1073741824",
+              "partition_limits": {
+                "max_decoded_bytes": "1048576",
+                "max_rows": "4096"
+              }
+            },
+            "storage_profile": "graph_sqlite_v1"
+          },
+          {
+            "allocated_id_key": "summary_id",
+            "category": "terminal_artifact",
+            "kind": "obs_table",
+            "name": "summary",
+            "promotion_group": "result",
+            "required": true,
+            "storage_profile": "terminal_primitive_v1",
+            "table_type": "graph_summary"
+          }
+        ],
+        "params_schema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "promotion_closure": {
+          "result": [
+            "result",
+            "summary"
+          ],
+          "summary": [
+            "result",
+            "summary"
+          ]
+        },
+        "qualified_name": "scwbgraphfixture::graph_and_cell_vector",
+        "replay_equivalence": {
+          "result": "exact_graph_descriptor",
+          "summary": "exact_canonical_value"
+        },
+        "runner": ".graph_and_cell_vector",
+        "title": "graph_and_cell_vector"
+      }
+    ],
+    "pack_abi_version": "4",
+    "package": {
+      "name": "scwb-graph-fixture",
+      "version": "0.1.0"
+    },
+    "schema_version": "scworkbench.operation_pack.v4"
+  },
+  "receipt": {
+    "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+    "capability_identity": {
+      "scheme": "scworkbench.operation_pack.capability.v4",
+      "scope": "capability excluding capability_identity",
+      "sha256": "e217e49590275bcb3f0bce5db1c7b0c4157506d94754f7e1ac01a74d812ee1b1"
+    },
+    "graph_read_usage": [
+      {
+        "binding_identity": {
+          "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+          "sha256": "bb6165c801598346773dc696447dfdaa06ab600e255025baf84c8b252fe03fda"
+        },
+        "complete": true,
+        "component_observations": {
+          "attribute_fields": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "b3a0cd8aa3e5c8bfccfe155f8bfe54305164db6da7bc7023689b1fff5d244f84"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "attribute_values": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "9675165a525257a6433afea4603fb0fa6f7c85464700a424be4fa9b577adf90f"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "binding_mappings": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "819c52de3c00279b1d4fdb8cafc2d89516c9fba9be898c72571f57ce35282459"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "bindings": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "0e246d18d90db50b14dc542801856c8562736aa479b133971596610868fb83ac"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "edges": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "6d2f6232bead7531d4da11fafa33975a6903f9e08aae399c32acfafa076fbd97"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "header": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "ff7a398482e9126d4639ab5919754767af018fb5819418b176064c4e44e68ed0"
+            },
+            "partitions": "1",
+            "rows": "1"
+          },
+          "incidences": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "5e8e3e59fb0e75a3f42dc438a9c80fb1c949abbf89e46171012395093d430c56"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "nodes": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "45e39a9f91bb60fad02868a841899325d7d546bf97b33a4eab2233b3324e1bb1"
+            },
+            "partitions": "0",
+            "rows": "0"
+          }
+        },
+        "content_identity": {
+          "scheme": "scworkbench.graph.content.canonical-json.v1",
+          "sha256": "42bdcca94542516c412606d96d835f3ed5893664ff430f35342011507c90ea3c"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+          "sha256": "460cb824adb6e9864dfae1402abb98e2df57218479c2cdbf21a1c160ce726b19"
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.graph_read_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "d069cad05ef66c480b9d0070d8d41d7ab3817c3a3e912e15fa0a9230784fb590"
+        },
+        "input_name": "source",
+        "selected_binding_ids": []
+      }
+    ],
+    "graph_write_observations": [
+      {
+        "binding_identity": {
+          "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+          "sha256": "bb6165c801598346773dc696447dfdaa06ab600e255025baf84c8b252fe03fda"
+        },
+        "complete": true,
+        "component_counts": {
+          "attribute_fields": "0",
+          "attribute_values": "0",
+          "binding_mappings": "0",
+          "bindings": "0",
+          "edges": "0",
+          "header": "1",
+          "incidences": "0",
+          "nodes": "0"
+        },
+        "component_observations": {
+          "attribute_fields": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "b3a0cd8aa3e5c8bfccfe155f8bfe54305164db6da7bc7023689b1fff5d244f84"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "attribute_values": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "9675165a525257a6433afea4603fb0fa6f7c85464700a424be4fa9b577adf90f"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "binding_mappings": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "819c52de3c00279b1d4fdb8cafc2d89516c9fba9be898c72571f57ce35282459"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "bindings": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "0e246d18d90db50b14dc542801856c8562736aa479b133971596610868fb83ac"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "edges": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "6d2f6232bead7531d4da11fafa33975a6903f9e08aae399c32acfafa076fbd97"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "header": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "ff7a398482e9126d4639ab5919754767af018fb5819418b176064c4e44e68ed0"
+            },
+            "partitions": "1",
+            "rows": "1"
+          },
+          "incidences": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "5e8e3e59fb0e75a3f42dc438a9c80fb1c949abbf89e46171012395093d430c56"
+            },
+            "partitions": "0",
+            "rows": "0"
+          },
+          "nodes": {
+            "chain_identity": {
+              "scheme": "scworkbench.graph.partition_chain.v1",
+              "sha256": "45e39a9f91bb60fad02868a841899325d7d546bf97b33a4eab2233b3324e1bb1"
+            },
+            "partitions": "0",
+            "rows": "0"
+          }
+        },
+        "content_identity": {
+          "scheme": "scworkbench.graph.content.canonical-json.v1",
+          "sha256": "42bdcca94542516c412606d96d835f3ed5893664ff430f35342011507c90ea3c"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+          "sha256": "460cb824adb6e9864dfae1402abb98e2df57218479c2cdbf21a1c160ce726b19"
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.graph_write_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "5061d9f343082940d0271dc8facd2e58308e4e83a92a104bc44d569159e1d70f"
+        },
+        "output_name": "result",
+        "sealed_output_identity": {
+          "scheme": "scworkbench.graph.sealed_output.v1",
+          "scope": "seal excluding sealed_output_identity",
+          "sha256": "36517d06fcb82e5e78e518415c4c27343030bf69a1321d44cc0366e3c9f57901"
+        }
+      }
+    ],
+    "message_type": "receipt",
+    "mutation_manifest": {
+      "entries_identity": {
+        "scheme": "scworkbench.operation_pack.mutation_entries.v2",
+        "sha256": "f9ff3bfec222bd3314ab28e86cc933547aeb87331b2a93f34d432ee8c0eeb32a"
+      },
+      "entry_count": 3,
+      "mutation_identity": {
+        "scheme": "scworkbench.operation_pack.mutation_manifest.v2",
+        "scope": "mutation manifest excluding mutation_identity",
+        "sha256": "4c56b360843f78926563a58a33317d6107e60a8c3398774757f0226aa494976f"
+      },
+      "unexpected_entries": 0
+    },
+    "outputs": [
+      {
+        "allocated_id": "allocated_result",
+        "descriptor": {
+          "binding_identity": {
+            "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+            "sha256": "bb6165c801598346773dc696447dfdaa06ab600e255025baf84c8b252fe03fda"
+          },
+          "component_counts": {
+            "attribute_fields": "0",
+            "attribute_values": "0",
+            "binding_mappings": "0",
+            "bindings": "0",
+            "edges": "0",
+            "header": "1",
+            "incidences": "0",
+            "nodes": "0"
+          },
+          "content_identity": {
+            "scheme": "scworkbench.graph.content.canonical-json.v1",
+            "sha256": "42bdcca94542516c412606d96d835f3ed5893664ff430f35342011507c90ea3c"
+          },
+          "kind": "graph",
+          "observed_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.observed_output_descriptor.v4",
+            "scope": "descriptor excluding observed_descriptor_identity",
+            "sha256": "1f838f5d0c1f0ac32257fbee5441576557d94d8e1e810d520ad4e689ca5e446b"
+          },
+          "retained_descriptor_identity": {
+            "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+            "sha256": "460cb824adb6e9864dfae1402abb98e2df57218479c2cdbf21a1c160ce726b19"
+          },
+          "sealed_output_identity": {
+            "scheme": "scworkbench.graph.sealed_output.v1",
+            "scope": "seal excluding sealed_output_identity",
+            "sha256": "36517d06fcb82e5e78e518415c4c27343030bf69a1321d44cc0366e3c9f57901"
+          },
+          "storage_profile": "graph_sqlite_v1",
+          "writer": "write_graph"
+        },
+        "name": "result"
+      },
+      {
+        "allocated_id": "allocated_summary",
+        "descriptor": {
+          "alignment": "none",
+          "ancestry_identity": {
+            "scheme": "scworkbench.provenance.ancestry.v1",
+            "sha256": "6e62e97d6056d19b255b21aff3ff28ee60c17dd9dfa587cbc8ade94ac31bcfad"
+          },
+          "category": "terminal_artifact",
+          "content_identity": {
+            "scheme": "scworkbench.obs_table.content.v1",
+            "sha256": "d8642b836f8e68465d8355e3ad0383cb1dce7d7dba1dbd50bb7bd9f356f22fd0"
+          },
+          "dimensions": [
+            1,
+            1
+          ],
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "scope": "descriptor excluding grant_identity",
+            "sha256": "95a1021ce314c32f1adeefde0330984beec85248acb8220d1df671019d6e786f"
+          },
+          "kind": "obs_table",
+          "model_linkage": {
+            "mode": "none"
+          },
+          "observed_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.observed_output.v3",
+            "scope": "descriptor excluding observed_descriptor_identity",
+            "sha256": "3d9d1f2ebe912774f5ee01fef7adcac3e7a308e7769be28d01baaa3aeee296b2"
+          },
+          "payload_manifest_identity": {
+            "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+            "sha256": "d3a2a9bfd14d231bc42872ccb8e02ded25fe2a7d24fa3a0880329fc237e8b43b"
+          },
+          "semantic_metadata_identity": {
+            "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+            "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "semantic_validation": {
+            "constraints_identity": {
+              "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+              "sha256": "b6833ace9c039e6f6fff3efbb2a560677ce6bf430d31c860d2fbd46fec9363ef"
+            },
+            "status": "passed"
+          },
+          "storage_profile": "terminal_primitive_v1",
+          "writer": "write_terminal_primitive"
+        },
+        "name": "summary"
+      }
+    ],
+    "pack_abi_version": "4",
+    "process_protocol_version": "pybench-op-v5",
+    "receipt_identity": {
+      "scheme": "scworkbench.operation_pack.transition_receipt.v4",
+      "scope": "receipt excluding receipt_identity",
+      "sha256": "f7e64450b1a83f40f46e8151e7ebd5bd17ed7122b9758052d18b26d6b072d818"
+    },
+    "registry_requests": [],
+    "request_identity": {
+      "scheme": "scworkbench.operation_pack.transition_request.v4",
+      "scope": "request excluding request_identity",
+      "sha256": "f4eea5f3039d066c3ab66977d57eb4c74ca98328a495e502c6bea07e4da859be"
+    },
+    "run_id": "run_00000000000000000000000000000001",
+    "runtime_attestation": {
+      "backend": "Python",
+      "declared_requirement_set_identity": {
+        "scheme": "scworkbench.operation_pack.dependencies.v2",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "distribution_identity": {
+        "scheme": "scworkbench.operation_pack.content.v1",
+        "sha256": "65c816be67000465774c1015523b3151e9b77b51441ea6f72d979ba8b9e4affc"
+      },
+      "dynamic_resolutions": [],
+      "entry_point": {
+        "identity": {
+          "scheme": "scworkbench.operation_pack.entry_point.v2",
+          "sha256": "83195887c52b6927e5628c6175ca10063dc776901866fa0982bdc4dbe8412aac"
+        },
+        "value": "scworkbench.operation_packs.v4:fixture=scwbgraphfixture.pack:register"
+      },
+      "manifest_source_identity": {
+        "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+        "sha256": "5ab24fe509fc91bfd36fb081a14b50b60557a630f3cc43fd728e0eef2260a972"
+      },
+      "operation_definition_identity": {
+        "scheme": "scworkbench.operation_pack.definition.v4",
+        "sha256": "4bad74d8ed011797945e0a34e84202f2049dfaaecdeba37e2cb1c984110a9b9e"
+      },
+      "pack_identity": {
+        "scheme": "scworkbench.operation_pack.pack.v4",
+        "sha256": "f4afcafd9ad82b5205a6718275893883231e3b810cb3b34d34fd3e1f2c7e176a"
+      },
+      "path_policy": "no_absolute_paths",
+      "preflight_report_identity": {
+        "scheme": "scworkbench.operation_pack.preflight.v2",
+        "sha256": "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+      },
+      "runtime_identity": {
+        "scheme": "scworkbench.operation_pack.runtime.v3",
+        "scope": "runtime attestation excluding runtime_identity",
+        "sha256": "b32e7f8cdd3762a836c8603516d726aa47f2573126556aa9b0e98c414356d5a3"
+      },
+      "schema": "scworkbench.operation_pack.runtime.v3",
+      "selected_requirement_set_identity": {
+        "scheme": "scworkbench.operation_pack.dependencies.v2",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "schema": "scworkbench.operation_pack.transition_receipt.v4",
+    "session_id": "session_00000000000000000000000000000001",
+    "status": "ok",
+    "transition_id": "transition_00000000000000000000000000000001",
+    "transition_identity": {
+      "scheme": "scworkbench.operation_pack.transition.v2",
+      "scope": "transition excluding transition_identity",
+      "sha256": "2cdbd602a89ccdf0f07b983ebb332c3ee76d9d4952367f31a4265161e09bf16e"
+    }
+  },
+  "request": {
+    "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+    "dependency_resolution": {
+      "declared_requirement_set_identity": {
+        "scheme": "scworkbench.operation_pack.dependencies.v2",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "dynamic_resolutions": [],
+      "network_policy": "deny",
+      "preflight_report_identity": {
+        "scheme": "scworkbench.operation_pack.preflight.v2",
+        "sha256": "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+      },
+      "selected_requirement_set_identity": {
+        "scheme": "scworkbench.operation_pack.dependencies.v2",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "engine_contract": {
+      "implementation": "scworkbench",
+      "implementation_version": "phase2b-fixture",
+      "reader_api": "scworkbench.operation_pack.typed_readers.v2",
+      "scientific_state_schema_identity": {
+        "scheme": "scworkbench.scientific_state.schema.v1",
+        "sha256": "391552c099c101b131feaf24c5795a6a15bc8ec82015424e0d2b4274a369a0bf"
+      },
+      "scientific_state_scheme": "scworkbench.scientific_state.v1",
+      "writer_api": "scworkbench.operation_pack.staged_writers.v2"
+    },
+    "execution_capability": {
+      "capability_id": "capability_00000000000000000000000000000001",
+      "capability_identity": {
+        "scheme": "scworkbench.operation_pack.capability.v4",
+        "scope": "capability excluding capability_identity",
+        "sha256": "e217e49590275bcb3f0bce5db1c7b0c4157506d94754f7e1ac01a74d812ee1b1"
+      },
+      "checkpoint_generation": "generation_00000000000000000000000000000001",
+      "distribution_identity": {
+        "scheme": "scworkbench.operation_pack.content.v1",
+        "sha256": "65c816be67000465774c1015523b3151e9b77b51441ea6f72d979ba8b9e4affc"
+      },
+      "entry_point_identity": {
+        "scheme": "scworkbench.operation_pack.entry_point.v2",
+        "sha256": "83195887c52b6927e5628c6175ca10063dc776901866fa0982bdc4dbe8412aac"
+      },
+      "lease_id": "lease_00000000000000000000000000000001",
+      "manifest_source_identity": {
+        "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+        "sha256": "5ab24fe509fc91bfd36fb081a14b50b60557a630f3cc43fd728e0eef2260a972"
+      },
+      "mode": "private_staging_write",
+      "operation_definition_identity": {
+        "scheme": "scworkbench.operation_pack.definition.v4",
+        "sha256": "4bad74d8ed011797945e0a34e84202f2049dfaaecdeba37e2cb1c984110a9b9e"
+      },
+      "pack_identity": {
+        "scheme": "scworkbench.operation_pack.pack.v4",
+        "sha256": "f4afcafd9ad82b5205a6718275893883231e3b810cb3b34d34fd3e1f2c7e176a"
+      },
+      "preflight_report_identity": {
+        "scheme": "scworkbench.operation_pack.preflight.v2",
+        "sha256": "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+      },
+      "reader_grants": [
+        {
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.graph_read_grant.v1",
+            "scope": "grant excluding grant_identity",
+            "sha256": "d069cad05ef66c480b9d0070d8d41d7ab3817c3a3e912e15fa0a9230784fb590"
+          },
+          "input_name": "source",
+          "reader": "read_graph_parts"
+        },
+        {
+          "descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+            "scope": "descriptor excluding descriptor_identity",
+            "sha256": "7ed4d2019e3aabc849e37c401d7846727cfbb3c0eb9df12ec46cf14a0fa31e01"
+          },
+          "input_name": "metadata",
+          "reader": "read_terminal_primitive"
+        }
+      ],
+      "run_id": "run_00000000000000000000000000000001",
+      "selected_requirement_set_identity": {
+        "scheme": "scworkbench.operation_pack.dependencies.v2",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "session_id": "session_00000000000000000000000000000001",
+      "single_use": true,
+      "source_state_identity": {
+        "scheme": "scworkbench.scientific_state.v1",
+        "sha256": "01982ea0777265317b49939c56fd4e77b1879532d4f8a19bbd6888be549434d9"
+      },
+      "staging_root_identity": {
+        "scheme": "scworkbench.operation_pack.staging_root.v1",
+        "sha256": "85a937d41f6ff7e915cba2fdc124df2e69ee86ca5e81916c909111bbe143ef99"
+      },
+      "transition_identity": {
+        "scheme": "scworkbench.operation_pack.transition.v2",
+        "scope": "transition excluding transition_identity",
+        "sha256": "2cdbd602a89ccdf0f07b983ebb332c3ee76d9d4952367f31a4265161e09bf16e"
+      },
+      "writer_grants": [
+        {
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v4",
+            "scope": "descriptor excluding grant_identity",
+            "sha256": "ae73aa09659387c8d6286523ebed1cab8f433b5089edc06f1d2a7b87bf197bc2"
+          },
+          "output_name": "result",
+          "writer": "write_graph"
+        },
+        {
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "scope": "descriptor excluding grant_identity",
+            "sha256": "95a1021ce314c32f1adeefde0330984beec85248acb8220d1df671019d6e786f"
+          },
+          "output_name": "summary",
+          "writer": "write_terminal_primitive"
+        }
+      ]
+    },
+    "graph_read_grants": [
+      {
+        "binding_identity": {
+          "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+          "sha256": "bb6165c801598346773dc696447dfdaa06ab600e255025baf84c8b252fe03fda"
+        },
+        "component_counts": {
+          "attribute_fields": "0",
+          "attribute_values": "0",
+          "binding_mappings": "0",
+          "bindings": "0",
+          "edges": "0",
+          "header": "1",
+          "incidences": "0",
+          "nodes": "0"
+        },
+        "content_identity": {
+          "scheme": "scworkbench.graph.content.canonical-json.v1",
+          "sha256": "42bdcca94542516c412606d96d835f3ed5893664ff430f35342011507c90ea3c"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+          "sha256": "460cb824adb6e9864dfae1402abb98e2df57218479c2cdbf21a1c160ce726b19"
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.graph_read_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "d069cad05ef66c480b9d0070d8d41d7ab3817c3a3e912e15fa0a9230784fb590"
+        },
+        "input_name": "source",
+        "partition_limits": {
+          "max_decoded_bytes": "4096",
+          "max_rows": "10"
+        },
+        "schema": "scworkbench.graph.read_grant.v1",
+        "selected_binding_ids": [],
+        "source_artifact_id": "art_graph_source",
+        "source_snapshot_identity": {
+          "scheme": "scworkbench.provenance.snapshot_head.v1",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    ],
+    "graph_write_grants": [
+      {
+        "authorized_source_axes": [],
+        "binding_policy": "optional",
+        "component_order": "graph_components_v1",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.graph_write_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "5061d9f343082940d0271dc8facd2e58308e4e83a92a104bc44d569159e1d70f"
+        },
+        "output_name": "result",
+        "resource_budgets": {
+          "max_attribute_fields": "100000",
+          "max_collect_bytes": "16777216",
+          "max_edges": "1000000",
+          "max_incidences": "8000000",
+          "max_memory_bytes": "67108864",
+          "max_nodes": "1000000",
+          "max_published_bytes": "1073741824",
+          "max_spill_bytes": "1073741824",
+          "max_staged_bytes": "1073741824",
+          "max_wal_bytes": "1073741824",
+          "partition_limits": {
+            "max_decoded_bytes": "1048576",
+            "max_rows": "4096"
+          }
+        },
+        "schema": "scworkbench.graph.write_grant.v1"
+      }
+    ],
+    "inputs": [
+      {
+        "descriptor": {
+          "alignment": "none",
+          "binding_identity": {
+            "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+            "sha256": "bb6165c801598346773dc696447dfdaa06ab600e255025baf84c8b252fe03fda"
+          },
+          "component_counts": {
+            "attribute_fields": "0",
+            "attribute_values": "0",
+            "binding_mappings": "0",
+            "bindings": "0",
+            "edges": "0",
+            "header": "1",
+            "incidences": "0",
+            "nodes": "0"
+          },
+          "content_identity": {
+            "scheme": "scworkbench.graph.content.canonical-json.v1",
+            "sha256": "42bdcca94542516c412606d96d835f3ed5893664ff430f35342011507c90ea3c"
+          },
+          "descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.graph_input_descriptor.v1",
+            "scope": "descriptor excluding descriptor_identity",
+            "sha256": "658bee51f4c3e12c6eb89509a158ff9e2a3093318eb8de1d62e061bf305ec6aa"
+          },
+          "graph_read_grant_identity": {
+            "scheme": "scworkbench.operation_pack.graph_read_grant.v1",
+            "scope": "grant excluding grant_identity",
+            "sha256": "d069cad05ef66c480b9d0070d8d41d7ab3817c3a3e912e15fa0a9230784fb590"
+          },
+          "kind": "graph",
+          "reader": "read_graph_parts",
+          "retained_descriptor_identity": {
+            "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+            "sha256": "460cb824adb6e9864dfae1402abb98e2df57218479c2cdbf21a1c160ce726b19"
+          },
+          "source_snapshot_identity": {
+            "scheme": "scworkbench.provenance.snapshot_head.v1",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "storage_profile": "graph_sqlite_v1"
+        },
+        "name": "source",
+        "reference": "graph:art_graph_source"
+      },
+      {
+        "descriptor": {
+          "alignment": "none",
+          "ancestry_identity": {
+            "scheme": "scworkbench.provenance.ancestry.v1",
+            "sha256": "2682648eaa6ea47d89a186f27a0d4a1bba0e9ffea07f201ee473c49a0421ffea"
+          },
+          "content_identity": {
+            "scheme": "scworkbench.obs_table.content.v1",
+            "sha256": "d8642b836f8e68465d8355e3ad0383cb1dce7d7dba1dbd50bb7bd9f356f22fd0"
+          },
+          "descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+            "scope": "descriptor excluding descriptor_identity",
+            "sha256": "7ed4d2019e3aabc849e37c401d7846727cfbb3c0eb9df12ec46cf14a0fa31e01"
+          },
+          "dimensions": [
+            1,
+            1
+          ],
+          "kind": "obs_table",
+          "payload_manifest_identity": {
+            "scheme": "scworkbench.payload.manifest.v2",
+            "sha256": "2682648eaa6ea47d89a186f27a0d4a1bba0e9ffea07f201ee473c49a0421ffea"
+          },
+          "reader": "read_terminal_primitive",
+          "semantic_metadata_identity": {
+            "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+            "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "storage_profile": "terminal_primitive_v1"
+        },
+        "name": "metadata",
+        "reference": "obs_table:metadata"
+      }
+    ],
+    "message_type": "request",
+    "operation_authentication": {
+      "distribution_identity": {
+        "scheme": "scworkbench.operation_pack.content.v1",
+        "sha256": "65c816be67000465774c1015523b3151e9b77b51441ea6f72d979ba8b9e4affc"
+      },
+      "entry_point": {
+        "identity": {
+          "scheme": "scworkbench.operation_pack.entry_point.v2",
+          "sha256": "83195887c52b6927e5628c6175ca10063dc776901866fa0982bdc4dbe8412aac"
+        },
+        "value": "scworkbench.operation_packs.v4:fixture=scwbgraphfixture.pack:register"
+      },
+      "manifest_identity": {
+        "scheme": "scworkbench.operation_pack.manifest.v4",
+        "sha256": "27f2a75d7450d6f48b1a2124888b15b9ebdd392b155cda08939246a2bac188c2"
+      },
+      "manifest_source_identity": {
+        "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+        "sha256": "5ab24fe509fc91bfd36fb081a14b50b60557a630f3cc43fd728e0eef2260a972"
+      },
+      "name": "scwbgraphfixture::graph_and_metadata",
+      "operation_definition_identity": {
+        "scheme": "scworkbench.operation_pack.definition.v4",
+        "sha256": "4bad74d8ed011797945e0a34e84202f2049dfaaecdeba37e2cb1c984110a9b9e"
+      },
+      "pack_identity": {
+        "scheme": "scworkbench.operation_pack.pack.v4",
+        "sha256": "f4afcafd9ad82b5205a6718275893883231e3b810cb3b34d34fd3e1f2c7e176a"
+      }
+    },
+    "outputs": [
+      {
+        "allocated_id": "allocated_result",
+        "descriptor": {
+          "binding_policy": "optional",
+          "category": "terminal_artifact",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v4",
+            "scope": "descriptor excluding grant_identity",
+            "sha256": "ae73aa09659387c8d6286523ebed1cab8f433b5089edc06f1d2a7b87bf197bc2"
+          },
+          "graph_write_grant_identity": {
+            "scheme": "scworkbench.operation_pack.graph_write_grant.v1",
+            "scope": "grant excluding grant_identity",
+            "sha256": "5061d9f343082940d0271dc8facd2e58308e4e83a92a104bc44d569159e1d70f"
+          },
+          "kind": "graph",
+          "resource_budgets": {
+            "max_attribute_fields": "100000",
+            "max_collect_bytes": "16777216",
+            "max_edges": "1000000",
+            "max_incidences": "8000000",
+            "max_memory_bytes": "67108864",
+            "max_nodes": "1000000",
+            "max_published_bytes": "1073741824",
+            "max_spill_bytes": "1073741824",
+            "max_staged_bytes": "1073741824",
+            "max_wal_bytes": "1073741824",
+            "partition_limits": {
+              "max_decoded_bytes": "1048576",
+              "max_rows": "4096"
+            }
+          },
+          "storage_profile": "graph_sqlite_v1",
+          "writer": "write_graph"
+        },
+        "name": "result"
+      },
+      {
+        "allocated_id": "allocated_summary",
+        "descriptor": {
+          "category": "terminal_artifact",
+          "expected_alignment": "none",
+          "expected_ancestry_identity": {
+            "scheme": "scworkbench.provenance.ancestry.v1",
+            "sha256": "6e62e97d6056d19b255b21aff3ff28ee60c17dd9dfa587cbc8ade94ac31bcfad"
+          },
+          "expected_dimensions": [
+            1,
+            1
+          ],
+          "expected_model_linkage": {
+            "mode": "none"
+          },
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "scope": "descriptor excluding grant_identity",
+            "sha256": "95a1021ce314c32f1adeefde0330984beec85248acb8220d1df671019d6e786f"
+          },
+          "kind": "obs_table",
+          "relative_root": "outputs/summary",
+          "semantic_constraints": {
+            "row_order": "canonical",
+            "table_type": "graph_summary"
+          },
+          "storage_profile": "terminal_primitive_v1",
+          "writer": "write_terminal_primitive"
+        },
+        "name": "summary"
+      }
+    ],
+    "pack_abi_version": "4",
+    "params": {},
+    "process_protocol_version": "pybench-op-v5",
+    "request_identity": {
+      "scheme": "scworkbench.operation_pack.transition_request.v4",
+      "scope": "request excluding request_identity",
+      "sha256": "f4eea5f3039d066c3ab66977d57eb4c74ca98328a495e502c6bea07e4da859be"
+    },
+    "schema": "scworkbench.operation_pack.transition_request.v4",
+    "transition": {
+      "checkpoint_generation": "generation_00000000000000000000000000000001",
+      "run_id": "run_00000000000000000000000000000001",
+      "session_id": "session_00000000000000000000000000000001",
+      "source_state_identity": {
+        "scheme": "scworkbench.scientific_state.v1",
+        "sha256": "01982ea0777265317b49939c56fd4e77b1879532d4f8a19bbd6888be549434d9"
+      },
+      "transition_id": "transition_00000000000000000000000000000001",
+      "transition_identity": {
+        "scheme": "scworkbench.operation_pack.transition.v2",
+        "scope": "transition excluding transition_identity",
+        "sha256": "2cdbd602a89ccdf0f07b983ebb332c3ee76d9d4952367f31a4265161e09bf16e"
+      }
+    }
+  },
+  "status": "draft"
+}

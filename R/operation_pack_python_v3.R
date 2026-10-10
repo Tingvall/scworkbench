@@ -2,11 +2,12 @@
 
 .wb_operation_pack_v3_python_discover <- function(manifest_path, manifest,
                                                     python, timeout_seconds,
-                                                    activate = FALSE) {
+                                                    activate = FALSE, abi = "3") {
   script <- paste(
     "import json,sys",
     "from pybench.operation_packs import OperationPackError,canonical_json",
-    "from pybench.operation_packs_v3 import discover_operation_pack_v3,activate_operation_pack_v3",
+    paste0("from pybench.operation_packs_v", abi, " import discover_operation_pack_v", abi,
+      " as discover_operation_pack_v3,activate_operation_pack_v", abi, " as activate_operation_pack_v3"),
     "try:",
     " d=discover_operation_pack_v3(sys.argv[1])",
     " r=d.public_record()",
@@ -22,7 +23,7 @@
   discovery <- tryCatch(jsonlite::fromJSON(result$stdout,
     simplifyVector = FALSE), error = function(e) NULL)
   .wb_operation_pack_assert(is.list(discovery) && identical(as.character(
-      discovery$schema %||% "")[1], "pybench.operation_pack.discovery.v3") &&
+      discovery$schema %||% "")[1], paste0("pybench.operation_pack.discovery.v", abi)) &&
       identical(as.character(discovery$backend %||% "")[1], "Python"),
     "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
     "PyBench ABI v3 discovery output is invalid.",
@@ -49,7 +50,8 @@
     "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH",
     "PyBench ABI v3 discovery distribution differs from the manifest.",
     class = "wb_operation_pack_v3_error")
-  expected <- .wb_operation_pack_v3_identity(manifest, source$sha256, content)
+  expected <- (if (abi == "4") .wb_operation_pack_v4_identity else .wb_operation_pack_v3_identity)(
+    manifest, source$sha256, content)
   observed <- discovery$identity %||% list()
   observed$manifest_relative_path <- NULL
   .wb_operation_pack_assert(identical(.wb_operation_pack_canonical_json(expected),
@@ -62,7 +64,7 @@
     as.character(entry$name %||% "")[1], "=",
     as.character(entry$value %||% "")[1])
   .wb_operation_pack_assert(identical(as.character(entry$group %||% "")[1],
-      "scworkbench.operation_packs.v3") &&
+      paste0("scworkbench.operation_packs.v", abi)) &&
       identical(entry_value, manifest$entry_point) &&
       identical(entry$identity, expected$entry_point_identity),
     "OPERATION_PACK_ENTRY_POINT_INVALID",
@@ -85,31 +87,32 @@
 }
 
 .wb_operation_pack_v3_python_registration <- function(manifest, discovery,
-    manifest_path, python, timeout_seconds) {
+    manifest_path, python, timeout_seconds, abi = "3") {
   expected <- vapply(manifest$operations, `[[`, character(1),
     "qualified_name")
   noop <- function(readers, writers, params, context) invisible(NULL)
   runners <- stats::setNames(rep(list(noop), length(expected)), expected)
   definitions <- stats::setNames(lapply(manifest$operations,
-    .wb_operation_pack_v3_catalog_definition), expected)
+    if (abi == "4") .wb_operation_pack_v4_catalog_definition else .wb_operation_pack_v3_catalog_definition), expected)
   structure(list(manifest = manifest, runners = runners,
     identity = discovery$identity, definitions = definitions,
-    protocol_version = "3", manifest_path = manifest_path,
+    protocol_version = abi, manifest_path = manifest_path,
     installed_path = dirname(dirname(manifest_path)),
     runtime_attestation = list(
-      schema = "pybench.operation_pack.discovery.v3", backend = "Python",
+      schema = paste0("pybench.operation_pack.discovery.v", abi), backend = "Python",
       distribution = discovery$distribution,
       manifest_source_identity = discovery$manifest_source_identity,
       entry_point = discovery$entry_point),
     runtime_config = list(backend = "Python", python = python,
       manifest_path = manifest_path, timeout_seconds = timeout_seconds)),
-    class = c("wb_operation_pack_registration_v3",
+    class = c(if (abi == "4") "wb_operation_pack_registration_v4", "wb_operation_pack_registration_v3",
       "wb_operation_pack_registration_v2", "wb_operation_pack_registration",
       "list"))
 }
 
 .wb_operation_pack_v3_python_sidecar_audit <- function(value, registration,
                                                         request) {
+  abi_v4 <- identical(request$pack_abi_version, "4")
   required <- c("schema", "backend", "distribution_identity",
     "request_identity", "capability_identity",
     "operation_definition_identity", "interpreter", "seed", "device",
@@ -121,6 +124,16 @@
     "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
     "Python v4 runtime sidecar has the wrong closed shape.",
     class = "wb_operation_pack_v3_error")
+  if (abi_v4) {
+    schema <- jsonlite::read_json(system.file("protocol",
+      "pybench-op-v5-python-runtime.schema.json", package = "scworkbench"),
+      simplifyVector = FALSE)
+    validation <- .wb_json_schema_validate_2020(value, schema)
+    .wb_operation_pack_assert(isTRUE(validation$ok),
+      "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+      paste("Process-v5 runtime evidence disagrees with its closed schema:",
+        validation$message %||% "invalid field"), class = "wb_operation_pack_v3_error")
+  }
   .wb_operation_pack_v3_assert_self_identity(value, "runtime_identity",
     "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID", "receipt")
   .wb_operation_pack_assert(identical(value$distribution_identity,
@@ -143,6 +156,8 @@
 }
 
 .wb_operation_pack_v3_python_audit <- function(stage, request, receipt) {
+  abi_v4 <- identical(request$pack_abi_version, "4")
+  if (abi_v4) .wb_operation_pack_v4_graph_record_assert(request, receipt, stage, TRUE)
   observed <- c(receipt$outputs %||% list(),
     receipt$registry_requests %||% list())
   names_observed <- vapply(observed, `[[`, character(1), "name")
@@ -152,6 +167,7 @@
     .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
       "Python v4 outputs are not a bijection with grants.", "receipt")
   for (item in observed) {
+    if (abi_v4 && identical(item$descriptor$kind, "graph")) next
     root <- if (identical(as.character(item$descriptor$category)[1],
       "core_registry_request")) "registry_requests" else "outputs"
     path <- file.path(stage, root, item$name, "payload.json")
@@ -174,10 +190,11 @@
   }
   inventory <- sort(list.files(stage, recursive = TRUE, all.files = TRUE,
     include.dirs = FALSE, no.. = TRUE), method = "radix")
-  output_paths <- vapply(observed, function(item) paste0(
+  output_paths <- unlist(lapply(observed, function(item) paste0(
     if (identical(as.character(item$descriptor$category)[1],
       "core_registry_request")) "registry_requests/" else "outputs/",
-    item$name, "/payload.json"), character(1))
+    item$name, if (abi_v4 && identical(item$descriptor$kind, "graph"))
+      c("/payload.json", "/graph.parts.ndjson") else "/payload.json")), use.names = FALSE)
   registry_paths <- vapply(request$registry_reads %||% list(), function(x)
     paste0("registry_reads/", x$name, "/payload.json"), character(1))
   provenance_paths <- vapply(request$provenance_reads %||% list(), function(x)
@@ -336,15 +353,18 @@
 
 .wb_operation_pack_v3_python_dispatch <- function(request, registration,
                                                    stage, bundle = NULL) {
+  abi_v4 <- identical(request$pack_abi_version, "4")
+  supervised_reads <- length(request$typed_slice_grants %||% list()) ||
+    (abi_v4 && length(request$graph_read_grants %||% list()))
   config <- registration$runtime_config
   receipt_path <- file.path(stage, "receipt.json")
   runtime_path <- file.path(stage, "python-runtime.json")
   args <- c(
-    "-m", "pybench.operation_pack_v4_cli", "--manifest",
+    "-m", if (abi_v4) "pybench.operation_pack_v5_cli" else "pybench.operation_pack_v4_cli", "--manifest",
     config$manifest_path, "--request", file.path(stage, "request.json"),
     "--stage-root", stage, "--receipt", receipt_path,
     "--python-runtime", runtime_path)
-  result <- if (length(request$typed_slice_grants %||% list())) {
+  result <- if (supervised_reads) {
     .wb_operation_pack_assert(!is.null(bundle),
       "PYBENCH_CAPABILITY_MISMATCH",
       "Python typed-slice execution requires a trusted bundle binding.",
@@ -409,9 +429,24 @@
       "Python typed-slice receipt differs from broker-owned evidence.",
       "receipt")
     unlink(observations_path, force = TRUE)
+  }
+  graph_usage <- NULL
+  if (abi_v4 && length(request$graph_read_grants %||% list())) {
+    path <- file.path(stage, "graph-broker-observations.json")
+    graph_usage <- tryCatch(jsonlite::read_json(path, simplifyVector = FALSE),
+      error = function(error) NULL)
+    .wb_graph_require(is.list(graph_usage), "GRAPH_READER_INCOMPLETE",
+      "Core graph broker did not retain complete read evidence.")
+    .wb_graph_require(identical(.wb_operation_pack_canonical_json(graph_usage),
+      .wb_operation_pack_canonical_json(receipt$graph_read_usage %||% list())),
+      "GRAPH_READER_INCOMPLETE", "Python graph usage differs from core broker evidence.")
+    unlink(path)
+  } else if (abi_v4) graph_usage <- list()
+  if (supervised_reads) {
     unlink(file.path(stage, "broker-error.json"), force = TRUE)
+    unlink(file.path(stage, "broker-observations.json"), force = TRUE)
     unlink(file.path(stage, "broker"), recursive = TRUE, force = TRUE)
   }
   list(receipt = receipt, sidecar = runtime, process = result,
-    reader_observation = NULL)
+    reader_observation = NULL, graph_read_usage = graph_usage)
 }

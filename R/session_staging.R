@@ -148,6 +148,14 @@
 #' @export
 wb_session_discard <- function(session) {
   .wb_assert(wb_is_session(session), "session must be wb_session")
+  # Graph staging databases are core-owned, bounded scratch outside the bundle.
+  # Discard them explicitly; waiting for GC is not a lifecycle cleanup boundary.
+  for (run in session$runs %||% list()) for (value in run$outputs %||% list()) {
+    if (is.list(value) && identical(value$kind, "graph")) {
+      graph_stage <- attr(value, "graph_stage", exact = TRUE)
+      if (is.environment(graph_stage)) .wb_graph_stage_discard(graph_stage)
+    }
+  }
   stage_dir <- as.character(session$staging_dir %||% "")[1]
   if (!is.null(session$durable)) {
     workspace <- as.character(session$durable$workspace %||% "")[1]

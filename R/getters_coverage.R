@@ -170,10 +170,10 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
 }
 
 .wb_primitive_cell_coverage <- function(bundle, name, kind, primitive, inputs, mode = "cell_indexed") {
-  canonical <- wb_cells(bundle, cell_set = "all")
   if (mode %in% c("reference_only", "reference_only_explicit_query_space")) {
     return(list(cells = NULL, source_id = NULL, dims = NULL))
   }
+  canonical <- wb_cells(bundle, cell_set = "all")
 
   cells <- NULL
   source_id <- NULL
@@ -230,6 +230,16 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
 
 .wb_typed_effective_cells <- function(bundle, cell_set, inputs, resolved, requirements,
                                       op_name, min_cells = 10L, coverage_modes = list()) {
+  if (identical(.wb_op(op_name)$cell_axis_policy,
+      "optional_if_no_cell_aligned_inputs") && is.null(inputs$cell_ids) &&
+      all(vapply(names(resolved), function(name) identical(coverage_modes[[name]],
+        "reference_only"), logical(1)))) {
+    return(list(cells = character(), diagnostics = list(
+      schema_version = "scworkbench.effective_cell_coverage.v1",
+      requested_source = "no_cell_aligned_inputs", cell_set = as.character(cell_set)[1],
+      requested_n = 0L, per_input = list(), effective_n = 0L,
+      dropped_n = 0L, percent = 0)))
+  }
   canonical <- wb_cells(bundle, cell_set = "all")
   explicit <- !is.null(inputs$cell_ids)
   requested <- if (explicit) {

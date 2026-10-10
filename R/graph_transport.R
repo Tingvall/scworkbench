@@ -119,6 +119,11 @@
   state$seal <- .wb_graph_sql_identities(state$con, "staged", state$budgets)
   state$observations <- observations
   if (!is.null(expected)) {
+    counts <- c(list(header = "1"), stats::setNames(lapply(.wb_graph_components(),
+      function(component) .wb_graph_count(state$con, "staged", component)), .wb_graph_components()))
+    .wb_graph_require(identical(.wb_operation_pack_canonical_json(counts),
+      .wb_operation_pack_canonical_json(expected$component_counts)),
+      "GRAPH_SEAL_MISMATCH", "Imported SQL counts disagree with the complete declared output seal.")
     .wb_graph_require(identical(.wb_operation_pack_canonical_json(observations),
       .wb_operation_pack_canonical_json(expected$component_observations)),
       "GRAPH_SEAL_MISMATCH", "Imported partitions disagree with independently issued observation.")

@@ -1,0 +1,12 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error: Op 'scwbgraphfixture::graph_to_table' cannot run:
+  requested cells: 2
+  effective cells: 2
+  minimum cells: 10
+  typed input coverage:
+    source (graph): 2/2
+Execution halted

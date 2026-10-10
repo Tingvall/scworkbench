@@ -39,7 +39,8 @@
 # without ever constructing a last-key-wins object.
 .wb_operation_pack_v2_assert_strict_json <- function(text) {
   text <- enc2utf8(as.character(text)[1])
-  .wb_operation_pack_assert(!is.na(text), "OPERATION_PACK_MANIFEST_PARSE_INVALID",
+  .wb_operation_pack_assert(!is.na(text) && !is.na(iconv(text, from = "UTF-8",
+    to = "UTF-8", sub = NA_character_)), "OPERATION_PACK_MANIFEST_PARSE_INVALID",
     "Manifest source is not valid UTF-8.", class = "wb_operation_pack_v2_error")
   # substr() positions are Unicode characters, not UTF-8 byte offsets. Using
   # a byte count here incorrectly reports trailing content for non-ASCII JSON.
@@ -61,6 +62,15 @@
           if (j + 4L > n || !grepl("^[0-9A-Fa-f]{4}$", substr(text, j + 1L, j + 4L))) {
             stop("invalid unicode escape")
           }
+          code <- strtoi(substr(text, j + 1L, j + 4L), 16L)
+          if (code >= 0xD800 && code <= 0xDBFF) {
+            if (j + 10L > n || substr(text, j + 5L, j + 6L) != "\\u" ||
+                !grepl("^[0-9A-Fa-f]{4}$", substr(text, j + 7L, j + 10L)))
+              stop("unpaired high surrogate")
+            low <- strtoi(substr(text, j + 7L, j + 10L), 16L)
+            if (low < 0xDC00 || low > 0xDFFF) stop("invalid surrogate pair")
+            j <- j + 6L
+          } else if (code >= 0xDC00 && code <= 0xDFFF) stop("unpaired low surrogate")
           j <- j + 4L
         } else if (!byte(j) %in% c('"', "\\", "/", "b", "f", "n", "r", "t")) {
           stop("invalid escape")
@@ -143,6 +153,8 @@
     probe <- tryCatch(jsonlite::fromJSON(text, simplifyVector = FALSE), error = identity)
     schema_version <- if (inherits(probe, "error")) "" else
       as.character(probe$schema_version %||% "")[1]
+    if (identical(schema_version, "scworkbench.operation_pack.v4"))
+      return(.wb_operation_pack_v4_read_manifest(path))
     if (identical(schema_version, "scworkbench.operation_pack.v3"))
       return(.wb_operation_pack_v3_read_manifest(path))
     if (identical(schema_version, "scworkbench.operation_pack.v2"))
@@ -225,7 +237,12 @@
     length_chars <- nchar(instance, type = "chars")
     if (!is.null(schema$minLength) && length_chars < as.integer(schema$minLength)) return(fail("minLength"))
     if (!is.null(schema$maxLength) && length_chars > as.integer(schema$maxLength)) return(fail("maxLength"))
-    if (!is.null(schema$pattern) && !grepl(schema$pattern, instance, perl = TRUE)) return(fail("pattern"))
+    if (!is.null(schema$pattern)) {
+      # JSON Schema uses ECMAScript Unicode escapes; PCRE uses \x{HHHH}.
+      # Keep the shared schema bytes and their character semantics unchanged.
+      pattern <- gsub("\\\\u([0-9A-Fa-f]{4})", "\\\\x{\\1}", schema$pattern, perl = TRUE)
+      if (!grepl(pattern, instance, perl = TRUE)) return(fail("pattern"))
+    }
   }
   if ("number" %in% types) {
     value <- as.numeric(instance)
@@ -369,7 +386,7 @@
     operation = operation)
 }
 
-.wb_operation_pack_v2_semantic_validate <- function(manifest) {
+.wb_operation_pack_v2_semantic_validate <- function(manifest, allow_graph_replay = FALSE) {
   namespace <- as.character(manifest$namespace)[1]
   operations <- manifest$operations
   short <- vapply(operations, function(x) as.character(x$name)[1], character(1))
@@ -565,6 +582,8 @@
     invalid_replay <- !setequal(names(replay), output_names) || anyDuplicated(names(replay))
     allowed_policy <- function(output) {
       category <- as.character(output$category)[1]; kind <- as.character(output$kind)[1]
+      if (allow_graph_replay && identical(kind, "graph") &&
+          identical(category, "terminal_artifact")) return("exact_graph_descriptor")
       if (identical(category, "materialization") && kind %in% c("matrix", "space")) return("exact_canonical_value")
       if (kind == "space_2d" && category %in% c("materialization", "terminal_artifact")) return(c("exact_canonical_value", "cell_aligned_embedding"))
       if (identical(category, "terminal_artifact") && identical(kind, "model_ref")) return("loadable_reference")

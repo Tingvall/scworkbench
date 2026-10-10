@@ -1,0 +1,4 @@
+Error in test_graph_abi4_runtime_sidecar_scheme_contract() : 
+  inherits(tryCatch(audit(altered, registration, request), error = identity),  .... is not TRUE
+Calls: stopifnot ... test_graph_abi4_runtime_sidecar_scheme_contract -> stopifnot
+Execution halted

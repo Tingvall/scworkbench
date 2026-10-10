@@ -92,3 +92,32 @@ wb_graph_with_node_attribute <- function(graph, name, type, values, nullable = F
   wb_graph_validate(graph)
   graph
 }
+
+#' Declare a Graph Binding From an Issued Source-Axis Projection
+#' @param axis Path-free source projection from context$graph_source_axes.
+#' @param binding_id Unique graph-local binding ID.
+#' @param mapping Ordered node_id/axis_id pairs, injective within this binding.
+#' @return A binding value. It grants no authority; core independently checks it
+#'   against the issued source and the actual graph before publication.
+#' @export
+wb_graph_binding_from_source <- function(axis, binding_id, mapping) {
+  .wb_graph_closed(axis, c("input_name", "source_binding_id", "axis_kind", "source_ref",
+    "source_snapshot_identity", "axis_content_identity", "axis_order_identity", "axis_count"), "source-axis projection")
+  .wb_graph_i64(axis$axis_count)
+  binding <- c(list(binding_id = binding_id), axis[c("axis_kind", "source_ref",
+    "source_snapshot_identity", "axis_content_identity", "axis_order_identity")])
+  .wb_graph_binding_header_validate(binding)
+  binding$mapping <- .wb_graph_records(mapping)
+  .wb_graph_require(length(binding$mapping) <= .wb_graph_i64(axis$axis_count),
+    "GRAPH_BINDINGS_INVALID", "Mapping exceeds the issued source axis.")
+  binding
+}
+
+.wb_operation_pack_v4_graph_source_context <- function(request) {
+  fields <- c("input_name", "source_binding_id", "axis_kind", "source_ref",
+    "source_snapshot_identity", "axis_content_identity", "axis_order_identity", "axis_count")
+  grants <- request$graph_write_grants %||% list()
+  stats::setNames(lapply(grants, function(grant) lapply(grant$authorized_source_axes,
+    function(axis) .wb_operation_pack_v2_deep_copy(axis[fields]))),
+    vapply(grants, `[[`, character(1), "output_name"))
+}

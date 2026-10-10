@@ -383,6 +383,7 @@ wb_refresh_manifest <- function(bundle) {
     "bundle_schema_migrations", "cells", "metadata_fields", "metadata_field_identities", "datasets", "features", "matrices", "matrix_cells",
     "matrix_fragments", "matrix_fragment_cells", "matrix_fragment_features",
     "spaces", "space_payloads", "space_models", "artifacts", "artifact_tables",
+    "artifact_graph_meta", "artifact_object_payload_meta",
     "cell_set_membership", "cell_set_recipes", "cell_set_styles",
     "feature_sets", "feature_set_membership", "cell_vectors",
     "motif_libraries", "motifs", "motif_match_sets", "motif_match_membership",

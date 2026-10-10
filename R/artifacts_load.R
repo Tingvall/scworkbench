@@ -87,6 +87,8 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       df <- .wb_artifact_restore_object_row_order(
         df, payload_descriptor, "cell_vector", artifact_id
       )
+      durable_meta <- .wb_graph_object_restore(con, artifact_id, df,
+        payload_descriptor, "cell_vector")
 
       vt <- unique(as.character(stats::na.omit(df$value_type %||% character(0))))
       .wb_assert(length(vt) <= 1L,
@@ -102,7 +104,7 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       names(v) <- as.character(df$cell_id)
       out <- wb_prim_cell_vector(v, value_type = inferred_type)
       if (!is.null(payload_descriptor) && isTRUE(payload_descriptor$meta_present)) {
-        out$meta <- .wb_object_primitive_meta_from_descriptor(payload_descriptor)
+        out$meta <- durable_meta
       }
       out
     },
@@ -124,6 +126,8 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       df <- .wb_artifact_restore_object_row_order(
         df, payload_descriptor, "cell_vector_family", artifact_id
       )
+      durable_meta <- .wb_graph_object_restore(con, artifact_id, df,
+        payload_descriptor, "cell_vector_family")
 
       wb_prim_cell_vector_family(
         key = df$lineage_id,
@@ -132,7 +136,7 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         value_type = if (is.null(payload_descriptor)) "continuous" else
           as.character(payload_descriptor$value_type %||% "continuous"),
         meta = if (is.null(payload_descriptor)) list() else
-          .wb_object_primitive_meta_from_descriptor(payload_descriptor) %||% list()
+          durable_meta %||% list()
       )
     },
 

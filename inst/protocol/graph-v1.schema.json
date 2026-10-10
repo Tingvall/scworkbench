@@ -1,0 +1,1128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scworkbench.org/protocol/graph-v1.schema.json",
+  "title": "scworkbench graph primitive v1",
+  "description": "Closed value, component, binding and igraph carrier definitions.",
+  "x-document-status": "JOINT_FREEZE_CANDIDATE",
+  "$ref": "#/$defs/content",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000]+$"
+    },
+    "uint64": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]*)$",
+      "maxLength": 19
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "content_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.graph.content.canonical-json.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "binding_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.graph.axis-bindings.canonical-json.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "descriptor_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.graph.retained-descriptor.canonical-json.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "snapshot_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.provenance.snapshot_head.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "axis_content_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.graph.source-axis-content.canonical-json.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "matrix_payload_closure_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.content.matrix.fragment-tree.v2"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "ordered_object_payload_closure_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.artifact.ordered-object-payload.canonical-json.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "partition_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.graph.partition.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "chain_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.graph.partition_chain.v1"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id"
+      ],
+      "properties": {
+        "node_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "kind",
+        "direction"
+      ],
+      "properties": {
+        "edge_id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "ordinary",
+            "hyper"
+          ]
+        },
+        "direction": {
+          "enum": [
+            "directed",
+            "undirected"
+          ]
+        }
+      }
+    },
+    "incidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incidence_id",
+        "edge_id",
+        "node_id",
+        "role",
+        "ordinal"
+      ],
+      "properties": {
+        "incidence_id": {
+          "$ref": "#/$defs/id"
+        },
+        "edge_id": {
+          "$ref": "#/$defs/id"
+        },
+        "node_id": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "enum": [
+            "tail",
+            "head",
+            "member"
+          ]
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 999999999999999
+        }
+      }
+    },
+    "attribute_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type",
+        "nullable",
+        "values"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\u0000]+$"
+        },
+        "type": {
+          "enum": [
+            "bool",
+            "utf8",
+            "int64_decimal_string",
+            "float64_le_hex"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "source_id"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "matrix",
+            "retained_cell_axis"
+          ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "binding_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "axis_id"
+      ],
+      "properties": {
+        "node_id": {
+          "$ref": "#/$defs/id"
+        },
+        "axis_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding_id",
+        "axis_kind",
+        "source_ref",
+        "source_snapshot_identity",
+        "axis_content_identity",
+        "axis_order_identity",
+        "mapping"
+      ],
+      "properties": {
+        "binding_id": {
+          "$ref": "#/$defs/id"
+        },
+        "axis_kind": {
+          "enum": [
+            "cell",
+            "feature"
+          ]
+        },
+        "source_ref": {
+          "$ref": "#/$defs/source_ref"
+        },
+        "source_snapshot_identity": {
+          "$ref": "#/$defs/snapshot_identity"
+        },
+        "axis_content_identity": {
+          "$ref": "#/$defs/axis_content_identity"
+        },
+        "axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "mapping": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/binding_mapping"
+          }
+        }
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "direction_mode",
+        "nodes",
+        "edges",
+        "incidences",
+        "attributes"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.graph.content.v1"
+        },
+        "direction_mode": {
+          "enum": [
+            "directed",
+            "undirected",
+            "mixed"
+          ]
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/edge"
+          }
+        },
+        "incidences": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/incidence"
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graph",
+            "node",
+            "edge",
+            "incidence"
+          ],
+          "properties": {
+            "graph": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "$ref": "#/$defs/attribute_field"
+              }
+            },
+            "node": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "$ref": "#/$defs/attribute_field"
+              }
+            },
+            "edge": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "$ref": "#/$defs/attribute_field"
+              }
+            },
+            "incidence": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "$ref": "#/$defs/attribute_field"
+              }
+            }
+          }
+        }
+      }
+    },
+    "binding_preimage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "graph_content_identity",
+        "bindings"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.graph.axis-bindings.v1"
+        },
+        "graph_content_identity": {
+          "$ref": "#/$defs/content_identity"
+        },
+        "bindings": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/binding"
+          }
+        }
+      }
+    },
+    "descriptor_preimage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "content_identity",
+        "binding_identity",
+        "binding_count"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.graph.retained-descriptor.v1"
+        },
+        "content_identity": {
+          "$ref": "#/$defs/content_identity"
+        },
+        "binding_identity": {
+          "$ref": "#/$defs/binding_identity"
+        },
+        "binding_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 999999999999999
+        }
+      }
+    },
+    "header_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "direction_mode"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.graph.content.v1"
+        },
+        "direction_mode": {
+          "enum": [
+            "directed",
+            "undirected",
+            "mixed"
+          ]
+        }
+      }
+    },
+    "node_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id"
+      ],
+      "properties": {
+        "node_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "edge_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "kind",
+        "direction"
+      ],
+      "properties": {
+        "edge_id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "ordinary",
+            "hyper"
+          ]
+        },
+        "direction": {
+          "enum": [
+            "directed",
+            "undirected"
+          ]
+        }
+      }
+    },
+    "incidence_row": {
+      "$ref": "#/$defs/incidence"
+    },
+    "attribute_field_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "field_ordinal",
+        "name",
+        "type",
+        "nullable"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "graph",
+            "node",
+            "edge",
+            "incidence"
+          ]
+        },
+        "field_ordinal": {
+          "$ref": "#/$defs/uint64"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\u0000]+$"
+        },
+        "type": {
+          "enum": [
+            "bool",
+            "utf8",
+            "int64_decimal_string",
+            "float64_le_hex"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "attribute_value_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "field_ordinal",
+        "entity_ordinal",
+        "value"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "graph",
+            "node",
+            "edge",
+            "incidence"
+          ]
+        },
+        "field_ordinal": {
+          "$ref": "#/$defs/uint64"
+        },
+        "entity_ordinal": {
+          "$ref": "#/$defs/uint64"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    "binding_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding_ordinal",
+        "binding_id",
+        "axis_kind",
+        "source_ref",
+        "source_snapshot_identity",
+        "axis_content_identity",
+        "axis_order_identity"
+      ],
+      "properties": {
+        "binding_ordinal": {
+          "$ref": "#/$defs/uint64"
+        },
+        "binding_id": {
+          "$ref": "#/$defs/id"
+        },
+        "axis_kind": {
+          "enum": [
+            "cell",
+            "feature"
+          ]
+        },
+        "source_ref": {
+          "$ref": "#/$defs/source_ref"
+        },
+        "source_snapshot_identity": {
+          "$ref": "#/$defs/snapshot_identity"
+        },
+        "axis_content_identity": {
+          "$ref": "#/$defs/axis_content_identity"
+        },
+        "axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        }
+      }
+    },
+    "binding_mapping_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding_id",
+        "mapping_ordinal",
+        "node_id",
+        "axis_id"
+      ],
+      "properties": {
+        "binding_id": {
+          "$ref": "#/$defs/id"
+        },
+        "mapping_ordinal": {
+          "$ref": "#/$defs/uint64"
+        },
+        "node_id": {
+          "$ref": "#/$defs/id"
+        },
+        "axis_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "component_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "header",
+        "nodes",
+        "edges",
+        "incidences",
+        "attribute_fields",
+        "attribute_values",
+        "bindings",
+        "binding_mappings"
+      ],
+      "properties": {
+        "header": {
+          "$ref": "#/$defs/uint64"
+        },
+        "nodes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "edges": {
+          "$ref": "#/$defs/uint64"
+        },
+        "incidences": {
+          "$ref": "#/$defs/uint64"
+        },
+        "attribute_fields": {
+          "$ref": "#/$defs/uint64"
+        },
+        "attribute_values": {
+          "$ref": "#/$defs/uint64"
+        },
+        "bindings": {
+          "$ref": "#/$defs/uint64"
+        },
+        "binding_mappings": {
+          "$ref": "#/$defs/uint64"
+        }
+      }
+    },
+    "partition_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_rows",
+        "max_decoded_bytes"
+      ],
+      "properties": {
+        "max_rows": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_decoded_bytes": {
+          "$ref": "#/$defs/uint64"
+        }
+      }
+    },
+    "resource_budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_nodes",
+        "max_edges",
+        "max_incidences",
+        "max_attribute_fields",
+        "max_staged_bytes",
+        "max_published_bytes",
+        "max_wal_bytes",
+        "max_spill_bytes",
+        "max_memory_bytes",
+        "max_collect_bytes",
+        "partition_limits"
+      ],
+      "properties": {
+        "max_nodes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_edges": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_incidences": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_attribute_fields": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_staged_bytes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_published_bytes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_wal_bytes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_spill_bytes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_memory_bytes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "max_collect_bytes": {
+          "$ref": "#/$defs/uint64"
+        },
+        "partition_limits": {
+          "$ref": "#/$defs/partition_limits"
+        }
+      }
+    },
+    "component_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rows",
+        "partitions",
+        "chain_identity"
+      ],
+      "properties": {
+        "rows": {
+          "$ref": "#/$defs/uint64"
+        },
+        "partitions": {
+          "$ref": "#/$defs/uint64"
+        },
+        "chain_identity": {
+          "$ref": "#/$defs/chain_identity"
+        }
+      }
+    },
+    "component_observations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "header",
+        "nodes",
+        "edges",
+        "incidences",
+        "attribute_fields",
+        "attribute_values",
+        "bindings",
+        "binding_mappings"
+      ],
+      "properties": {
+        "header": {
+          "$ref": "#/$defs/component_observation"
+        },
+        "nodes": {
+          "$ref": "#/$defs/component_observation"
+        },
+        "edges": {
+          "$ref": "#/$defs/component_observation"
+        },
+        "incidences": {
+          "$ref": "#/$defs/component_observation"
+        },
+        "attribute_fields": {
+          "$ref": "#/$defs/component_observation"
+        },
+        "attribute_values": {
+          "$ref": "#/$defs/component_observation"
+        },
+        "bindings": {
+          "$ref": "#/$defs/component_observation"
+        },
+        "binding_mappings": {
+          "$ref": "#/$defs/component_observation"
+        }
+      }
+    },
+    "component_partition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "component",
+        "first_ordinal",
+        "row_count",
+        "rows",
+        "partition_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.graph.component_partition.v1"
+        },
+        "component": {
+          "enum": [
+            "header",
+            "nodes",
+            "edges",
+            "incidences",
+            "attribute_fields",
+            "attribute_values",
+            "bindings",
+            "binding_mappings"
+          ]
+        },
+        "first_ordinal": {
+          "$ref": "#/$defs/uint64"
+        },
+        "row_count": {
+          "$ref": "#/$defs/uint64"
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        },
+        "partition_identity": {
+          "$ref": "#/$defs/partition_identity"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "header"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/header_row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "nodes"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/node_row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "edges"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/edge_row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "incidences"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/incidence_row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "attribute_fields"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/attribute_field_row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "attribute_values"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/attribute_value_row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "bindings"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/binding_row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": {
+                "const": "binding_mappings"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rows": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/binding_mapping_row"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "igraph_carrier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "content",
+        "bindings",
+        "descriptor_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.graph.igraph_carrier.v1"
+        },
+        "content": {
+          "$ref": "#/$defs/content"
+        },
+        "bindings": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/binding"
+          }
+        },
+        "descriptor_identity": {
+          "$ref": "#/$defs/descriptor_identity"
+        }
+      }
+    }
+  }
+}

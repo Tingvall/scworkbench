@@ -1,0 +1,2 @@
+Error: NOT NULL constraint failed: artifact_labels.label
+Execution halted

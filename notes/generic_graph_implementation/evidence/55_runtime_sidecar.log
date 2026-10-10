@@ -1,0 +1,4 @@
+Error in test_graph_abi4_runtime_sidecar_scheme_contract() : 
+  Sidecar attack was accepted: schema
+Calls: stopifnot -> test_graph_abi4_runtime_sidecar_scheme_contract
+Execution halted

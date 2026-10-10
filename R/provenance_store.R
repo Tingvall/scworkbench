@@ -174,7 +174,7 @@
 
 .wb_replay_equivalence_policies <- function() {
   c(
-    "exact_content", "exact_canonical_value", "cell_aligned_embedding",
+    "exact_content", "exact_canonical_value", "exact_graph_descriptor", "cell_aligned_embedding",
     "loadable_reference", "not_comparable"
   )
 }
@@ -327,6 +327,9 @@
   ))
   reference <- if (identical(policy, "loadable_reference") && identical(kind, "model_ref")) {
     .wb_replay_model_reference(prim)
+  } else if (identical(policy, "exact_graph_descriptor")) {
+    .wb_assert(identical(kind, "graph"), "Graph descriptor replay policy requires a graph primitive.")
+    identity$graph_descriptor_identity$sha256
   } else if (identical(policy, "cell_aligned_embedding")) {
     alignment <- .wb_replay_space_alignment_reference(
       bundle, prim, workspace = workspace, staging_bundle = staging_bundle
@@ -720,6 +723,8 @@
   } else NULL
   replayed_ref <- if (identical(policy, "loadable_reference") && identical(actual_kind, "model_ref")) {
     .wb_replay_model_reference(replayed_prim)
+  } else if (identical(policy, "exact_graph_descriptor") && identical(actual_kind, "graph")) {
+    actual_identity$graph_descriptor_identity$sha256
   } else if (identical(policy, "cell_aligned_embedding")) {
     as.character(alignment_result$reference %||% NA_character_)[1]
   } else if (policy %in% c("exact_content", "exact_canonical_value")) {
@@ -736,6 +741,12 @@
   if (identical(policy, "not_comparable")) {
     status <- "unsupported"
     message <- "Legacy or explicitly unsupported output has no replay-equivalence comparison."
+  } else if (identical(policy, "exact_graph_descriptor")) {
+    verified <- isTRUE(kind_ok) && identical(actual_kind, "graph") &&
+      isTRUE(payload_identical) && !is.na(expected_ref) && nzchar(expected_ref) &&
+      identical(expected_ref, replayed_ref)
+    status <- if (verified) "verified" else "failed"
+    message <- if (verified) "Exact graph content and binding descriptor matched." else "Graph descriptor mismatch."
   } else if (policy %in% c("exact_content", "exact_canonical_value")) {
     verified <- isTRUE(kind_ok) && isTRUE(payload_identical)
     status <- if (verified) "verified" else "failed"
@@ -1606,6 +1617,16 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
               unname(.wb_identity_schemes()[["structural"]]), unname(.wb_identity_schemes()[["structural"]])
             )
           )
+          if (!is.na(art_id) && nzchar(art_id) && kind %in%
+              c("cell_vector", "cell_vector_family", "graph")) {
+            retained <- if (kind == "graph") {
+              graph_identity <- .wb_graph_sql_identities(con, art_id)
+              graph_identity[c("content_identity", "binding_identity", "descriptor_identity")]
+            } else .wb_graph_object_verify(con, art_id, require_certificate = FALSE)
+            DBI::dbExecute(con, paste0("UPDATE prov_run_outputs SET retained_payload_identity_json=? ",
+              "WHERE snapshot_id=? AND run_id=? AND output_name=?;"), params = list(
+                .wb_operation_pack_canonical_json(retained), sid, as.character(rid), as.character(nm)))
+          }
           primitive_binding <- .wb_prov_primitive_entity_binding(prim)
           identity_hash <- identity$content_sha256 %||% out_hash
           if (!is.null(primitive_binding)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, primitive_binding$entity_kind, primitive_binding$entity_id, "MATERIALIZES", mat_path, identity_hash, identity$content_identity_scheme, "promotion_materialization")
@@ -3007,6 +3028,8 @@ wb_prov_validate_replay <- function(bundle,
       } else NULL
       replayed_reference <- if (identical(policy, "loadable_reference") && identical(actual_kind, "model_ref")) {
         .wb_replay_model_reference(prim)
+      } else if (identical(policy, "exact_graph_descriptor") && identical(actual_kind, "graph")) {
+        actual_identity$graph_descriptor_identity$sha256
       } else if (identical(policy, "cell_aligned_embedding")) {
         as.character(alignment_result$reference %||% NA_character_)[1]
       } else if (policy %in% c("exact_content", "exact_canonical_value")) {
@@ -3014,6 +3037,10 @@ wb_prov_validate_replay <- function(bundle,
       } else NA_character_
       equivalence_verified <- if (policy %in% c("exact_content", "exact_canonical_value")) {
         isTRUE(kind_match) && isTRUE(hash_match)
+      } else if (identical(policy, "exact_graph_descriptor")) {
+        isTRUE(kind_match) && identical(actual_kind, "graph") && isTRUE(hash_match) &&
+          !is.na(expected_reference) && nzchar(expected_reference) &&
+          identical(expected_reference, replayed_reference)
       } else if (identical(policy, "cell_aligned_embedding")) {
         isTRUE(kind_match) && isTRUE(alignment_result$valid) &&
           !is.na(expected_reference) && identical(expected_reference, replayed_reference)

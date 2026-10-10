@@ -925,6 +925,21 @@
 #' @export
 wb_operation_pack_manifest_validate <- function(manifest, runtime_identity = NULL) {
   input <- .wb_operation_pack_manifest_input_any(manifest)
+  if (identical(input$schema_version, "scworkbench.operation_pack.v4")) {
+    .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
+      "ABI4 structural validation accepts no caller runtime claims.")
+    normalized <- .wb_operation_pack_v4_normalize(input)
+    source_sha <- attr(input, "operation_pack_v4_source_sha256", exact = TRUE) %||%
+      .wb_operation_pack_sha256(normalized)
+    content <- .wb_operation_pack_v2_id("scworkbench.operation_pack.content.v1",
+      list(structural_manifest_only = TRUE, manifest_source_sha256 = source_sha))
+    return(structure(list(schema_version = "scworkbench.operation_pack.manifest_conformance.v4",
+      ok = TRUE, activated = FALSE, structural_only = TRUE, backend = normalized$backend,
+      identity = .wb_operation_pack_v4_identity(normalized, source_sha, content), manifest = normalized,
+      claims = list(structurally_validated = TRUE, runtime_activated = FALSE,
+        scientifically_validated = FALSE, host_sandboxed = FALSE, bundle_mutated = FALSE)),
+      class = c("wb_operation_pack_manifest_conformance_v4", "wb_operation_pack_manifest_conformance", "list")))
+  }
   if (identical(as.character(input$schema_version %||% "")[1], "scworkbench.operation_pack.v3")) {
     .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
       "ABI v3 structural validation derives authentication at activation; caller runtime claims are not accepted.",
@@ -1014,7 +1029,9 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
     normalizePath(manifest, winslash = "/", mustWork = TRUE)
   } else NULL
   input <- .wb_operation_pack_manifest_input_any(manifest)
-  if (identical(as.character(input$schema_version %||% "")[1], "scworkbench.operation_pack.v3")) {
+  if (as.character(input$schema_version %||% "")[1] %in%
+      c("scworkbench.operation_pack.v3", "scworkbench.operation_pack.v4")) {
+    abi <- if (identical(input$schema_version, "scworkbench.operation_pack.v4")) "4" else "3"
     .wb_operation_pack_assert(is.null(runtime_identity),
       "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
       "ABI v3 activation derives runtime identity and does not accept caller claims.",
@@ -1023,7 +1040,7 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
       "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
       "ABI v3 activation requires original installed manifest bytes.",
       class = "wb_operation_pack_identity_error")
-    validated_v3 <- .wb_operation_pack_v3_normalize(input)
+    validated_v3 <- (if (abi == "4") .wb_operation_pack_v4_normalize else .wb_operation_pack_v3_normalize)(input)
     backend <- as.character(validated_v3$backend)[1]
     if (identical(backend, "R")) {
       .wb_operation_pack_assert(is.null(python), "OPERATION_PACK_BACKEND_MISMATCH",
@@ -1036,16 +1053,16 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
         "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
         "ABI v3 activation must authenticate the original installed manifest path.",
         class = "wb_operation_pack_identity_error")
-      registration <- .wb_operation_pack_v3_invoke(package, lib.loc)
+      registration <- .wb_operation_pack_v3_invoke(package, lib.loc, abi = abi)
     } else if (identical(backend, "Python")) {
       .wb_operation_pack_assert(is.null(lib.loc), "OPERATION_PACK_BACKEND_MISMATCH",
         "lib.loc applies only to backend 'R'.",
         class = "wb_operation_pack_v3_error")
       python <- .wb_operation_pack_python_binary(python)
       discovery <- .wb_operation_pack_v3_python_discover(supplied_manifest_path,
-        validated_v3, python, timeout_seconds, activate = TRUE)
+        validated_v3, python, timeout_seconds, activate = TRUE, abi = abi)
       registration <- .wb_operation_pack_v3_python_registration(validated_v3,
-        discovery, supplied_manifest_path, python, timeout_seconds)
+        discovery, supplied_manifest_path, python, timeout_seconds, abi = abi)
     } else .wb_operation_pack_v3_error("OPERATION_PACK_BACKEND_MISMATCH",
       paste0("Unsupported ABI v3 backend: ", backend), "authentication")
     return(.wb_operation_pack_publish(registration))
@@ -1156,7 +1173,13 @@ wb_operation_pack_register <- function(manifest, operations) {
   path <- normalizePath(.wb_operation_pack_scalar(manifest, "manifest"), winslash = "/", mustWork = TRUE)
   .wb_operation_pack_assert(identical(path, context$manifest_path), "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
                             "Entry point attempted to register a manifest other than the installed manifest.")
-  if (identical(as.character(context$abi %||% "1")[1], "3")) {
+  if (identical(as.character(context$abi %||% "1")[1], "4")) {
+    validated <- .wb_operation_pack_v4_normalize(.wb_operation_pack_v4_read_manifest(path),
+      package = context$package, package_description = context$package_description)
+    registration <- .wb_operation_pack_v3_registration(validated, operations,
+      package_description = context$package_description, installed_path = context$installed_path,
+      manifest_path = path, abi = "4")
+  } else if (identical(as.character(context$abi %||% "1")[1], "3")) {
     validated <- .wb_operation_pack_v3_normalize(.wb_operation_pack_v3_read_manifest(path),
       package = context$package, package_description = context$package_description)
     registration <- .wb_operation_pack_v3_registration(validated, operations,
@@ -1185,6 +1208,8 @@ wb_operation_pack_register <- function(manifest, operations) {
   package <- .wb_operation_pack_scalar(package, "package", "^[A-Za-z][A-Za-z0-9.]*$")
   manifest_path <- .wb_operation_pack_manifest_path(package, lib.loc = lib.loc)
   probe <- jsonlite::read_json(manifest_path, simplifyVector = FALSE)
+  if (identical(probe$schema_version, "scworkbench.operation_pack.v4"))
+    return(.wb_operation_pack_v3_invoke(package, lib.loc, abi = "4"))
   if (identical(as.character(probe$schema_version %||% "")[1], "scworkbench.operation_pack.v3")) {
     return(.wb_operation_pack_v3_invoke(package, lib.loc = lib.loc))
   }
@@ -1245,8 +1270,9 @@ wb_operation_pack_register <- function(manifest, operations) {
 wb_operation_pack_validate <- function(package, lib.loc = NULL) {
   registration <- .wb_operation_pack_invoke(package, lib.loc = lib.loc)
   if (inherits(registration, "wb_operation_pack_registration_v3")) {
+    abi <- registration$protocol_version
     return(structure(list(
-      schema_version = "scworkbench.operation_pack.conformance.v3", ok = TRUE,
+      schema_version = paste0("scworkbench.operation_pack.conformance.v", abi), ok = TRUE,
       activated = FALSE, identity = registration$identity,
       operations = lapply(registration$manifest$operations, function(x) list(
         op_name = x$qualified_name,
@@ -1255,7 +1281,7 @@ wb_operation_pack_validate <- function(package, lib.loc = NULL) {
         promotable = names(x$promotion_closure))),
       claims = list(engine_compatible = TRUE, scientifically_validated = FALSE,
         host_sandboxed = FALSE, bundle_mutated = FALSE)),
-      class = c("wb_operation_pack_conformance_v3",
+      class = c(paste0("wb_operation_pack_conformance_v", abi),
         "wb_operation_pack_conformance", "list")))
   }
   if (inherits(registration, "wb_operation_pack_registration_v2")) {
@@ -1343,7 +1369,8 @@ wb_operation_pack_validate <- function(package, lib.loc = NULL) {
     definition <- definitions[[op_name]]
     raw_runner <- registration$runners[[op_name]]
     definition$runner <- if (inherits(registration, "wb_operation_pack_registration_v3")) {
-      .wb_operation_pack_runner(op_name, .wb_operation_pack_v3_runner(op_name))
+      .wb_operation_pack_runner(op_name, .wb_operation_pack_v3_runner(op_name,
+        abi = registration$protocol_version))
     } else if (inherits(registration, "wb_operation_pack_registration_v2")) {
       .wb_operation_pack_runner(op_name, .wb_operation_pack_v2_runner(op_name))
     } else .wb_operation_pack_runner(op_name, raw_runner)

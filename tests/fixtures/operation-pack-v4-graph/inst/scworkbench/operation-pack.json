@@ -1,0 +1,299 @@
+{
+  "backend": "R",
+  "compatibility": {
+    "pack_abi": {
+      "maximum": "4",
+      "minimum": "4"
+    },
+    "scworkbench": {
+      "maximum_exclusive": "0.2.0",
+      "minimum": "0.1.0"
+    }
+  },
+  "entry_point": "scwbGraphFixture::register_operation_pack",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbgraphfixture",
+  "operations": [
+    {
+      "dependencies": [],
+      "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+      "inputs": [
+        {
+          "alignment": "cell_and_feature_ordered",
+          "kind": "matrix",
+          "name": "matrix",
+          "required": true
+        }
+      ],
+      "name": "matrix_to_graph",
+      "outputs": [
+        {
+          "allocated_id_key": "result_id",
+          "axis_sources": [],
+          "binding_policy": "optional",
+          "category": "terminal_artifact",
+          "kind": "graph",
+          "name": "result",
+          "promotion_group": "result",
+          "required": true,
+          "resource_budgets": {
+            "max_attribute_fields": "100000",
+            "max_collect_bytes": "16777216",
+            "max_edges": "1000000",
+            "max_incidences": "8000000",
+            "max_memory_bytes": "67108864",
+            "max_nodes": "1000000",
+            "max_published_bytes": "1073741824",
+            "max_spill_bytes": "1073741824",
+            "max_staged_bytes": "1073741824",
+            "max_wal_bytes": "1073741824",
+            "partition_limits": {
+              "max_decoded_bytes": "1048576",
+              "max_rows": "4096"
+            }
+          },
+          "storage_profile": "graph_sqlite_v1"
+        }
+      ],
+      "params_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "promotion_closure": {
+        "result": [
+          "result"
+        ]
+      },
+      "qualified_name": "scwbgraphfixture::matrix_to_graph",
+      "replay_equivalence": {
+        "result": "exact_graph_descriptor"
+      },
+      "runner": ".matrix_to_graph",
+      "title": "matrix_to_graph"
+    },
+    {
+      "dependencies": [],
+      "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+      "inputs": [
+        {
+          "alignment": "none",
+          "binding_policy": "optional",
+          "kind": "graph",
+          "name": "source",
+          "read_mode": "bounded_partitions_v1",
+          "required": true,
+          "storage_profile": "graph_sqlite_v1"
+        },
+        {
+          "alignment": "none",
+          "kind": "obs_table",
+          "name": "metadata",
+          "required": true
+        }
+      ],
+      "name": "graph_and_metadata",
+      "outputs": [
+        {
+          "allocated_id_key": "result_id",
+          "axis_sources": [],
+          "binding_policy": "optional",
+          "category": "terminal_artifact",
+          "kind": "graph",
+          "name": "result",
+          "promotion_group": "result",
+          "required": true,
+          "resource_budgets": {
+            "max_attribute_fields": "100000",
+            "max_collect_bytes": "16777216",
+            "max_edges": "1000000",
+            "max_incidences": "8000000",
+            "max_memory_bytes": "67108864",
+            "max_nodes": "1000000",
+            "max_published_bytes": "1073741824",
+            "max_spill_bytes": "1073741824",
+            "max_staged_bytes": "1073741824",
+            "max_wal_bytes": "1073741824",
+            "partition_limits": {
+              "max_decoded_bytes": "1048576",
+              "max_rows": "4096"
+            }
+          },
+          "storage_profile": "graph_sqlite_v1"
+        },
+        {
+          "allocated_id_key": "summary_id",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "name": "summary",
+          "promotion_group": "result",
+          "required": true,
+          "storage_profile": "terminal_primitive_v1",
+          "table_type": "graph_summary"
+        }
+      ],
+      "params_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "promotion_closure": {
+        "result": [
+          "result",
+          "summary"
+        ],
+        "summary": [
+          "result",
+          "summary"
+        ]
+      },
+      "qualified_name": "scwbgraphfixture::graph_and_metadata",
+      "replay_equivalence": {
+        "result": "exact_graph_descriptor",
+        "summary": "exact_canonical_value"
+      },
+      "runner": ".graph_and_metadata",
+      "title": "graph_and_metadata"
+    },
+    {
+      "dependencies": [],
+      "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+      "inputs": [
+        {
+          "alignment": "none",
+          "binding_policy": "optional",
+          "kind": "graph",
+          "name": "source",
+          "read_mode": "bounded_partitions_v1",
+          "required": true,
+          "storage_profile": "graph_sqlite_v1"
+        }
+      ],
+      "name": "graph_to_table",
+      "outputs": [
+        {
+          "allocated_id_key": "summary_id",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "name": "summary",
+          "promotion_group": "summary",
+          "required": true,
+          "storage_profile": "terminal_primitive_v1",
+          "table_type": "graph_summary"
+        }
+      ],
+      "params_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "promotion_closure": {
+        "summary": [
+          "summary"
+        ]
+      },
+      "qualified_name": "scwbgraphfixture::graph_to_table",
+      "replay_equivalence": {
+        "summary": "exact_canonical_value"
+      },
+      "runner": ".graph_to_table",
+      "title": "graph_to_table"
+    },
+    {
+      "dependencies": [],
+      "description": "Generic graph ABI4 mixed-primitive contract fixture.",
+      "inputs": [
+        {
+          "alignment": "none",
+          "binding_policy": "forbidden",
+          "kind": "graph",
+          "name": "source",
+          "read_mode": "bounded_partitions_v1",
+          "required": true,
+          "storage_profile": "graph_sqlite_v1"
+        },
+        {
+          "name": "metadata",
+          "kind": "cell_vector",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "name": "graph_and_cell_metadata",
+      "outputs": [
+        {
+          "allocated_id_key": "result_id",
+          "axis_sources": [
+            {
+              "input_name": "metadata",
+              "axis_kind": "cell",
+              "selection_mode": "retained_input_axis",
+              "source_binding_selector": null
+            }
+          ],
+          "binding_policy": "required",
+          "category": "terminal_artifact",
+          "kind": "graph",
+          "name": "result",
+          "promotion_group": "result",
+          "required": true,
+          "resource_budgets": {
+            "max_attribute_fields": "100000",
+            "max_collect_bytes": "16777216",
+            "max_edges": "1000000",
+            "max_incidences": "8000000",
+            "max_memory_bytes": "67108864",
+            "max_nodes": "1000000",
+            "max_published_bytes": "1073741824",
+            "max_spill_bytes": "1073741824",
+            "max_staged_bytes": "1073741824",
+            "max_wal_bytes": "1073741824",
+            "partition_limits": {
+              "max_decoded_bytes": "1048576",
+              "max_rows": "4096"
+            }
+          },
+          "storage_profile": "graph_sqlite_v1"
+        },
+        {
+          "allocated_id_key": "summary_id",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "name": "summary",
+          "promotion_group": "result",
+          "required": true,
+          "storage_profile": "terminal_primitive_v1",
+          "table_type": "graph_summary"
+        }
+      ],
+      "params_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "promotion_closure": {
+        "result": [
+          "result",
+          "summary"
+        ],
+        "summary": [
+          "result",
+          "summary"
+        ]
+      },
+      "qualified_name": "scwbgraphfixture::graph_and_cell_metadata",
+      "replay_equivalence": {
+        "result": "exact_graph_descriptor",
+        "summary": "exact_canonical_value"
+      },
+      "runner": ".graph_and_cell_metadata",
+      "title": "graph_and_cell_metadata"
+    }
+  ],
+  "pack_abi_version": "4",
+  "package": {
+    "name": "scwbGraphFixture",
+    "version": "0.1.0"
+  },
+  "schema_version": "scworkbench.operation_pack.v4"
+}

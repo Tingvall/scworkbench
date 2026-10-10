@@ -29,6 +29,7 @@
       promotable = x$promotable %||% character(0),
       replay_equivalence = replay_equivalence,
       coverage = x$coverage %||% list(),
+      cell_axis_policy = x$cell_axis_policy %||% "required",
       chunking = x$chunking %||% NULL
     )
   })
@@ -425,6 +426,14 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     }
   )
 
+  # ABI4 failures must release a newly allocated private session clone even
+  # when no session handle can be returned to the caller. Reused/durable
+  # workspaces retain their prior state and are cleaned by the executor.
+  owns_failed_graph_workspace <- is.null(session$staging_bundle) && is.null(session$durable) &&
+    identical(as.character((.wb_operation_pack_identity_for_op(op_name) %||% list())$pack_abi_version)[1], "4")
+  graph_invocation_completed <- FALSE
+  on.exit(if (owns_failed_graph_workspace && !graph_invocation_completed)
+    wb_session_discard(session), add = TRUE)
   staged <- .wb_session_stage_bundle(bundle, session)
   session <- staged$session
   work_bundle <- staged$bundle
@@ -579,6 +588,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     completed_operation <- TRUE
   }
 
+  graph_invocation_completed <- TRUE
   list(session = session, run = run, result = res)
 }
 

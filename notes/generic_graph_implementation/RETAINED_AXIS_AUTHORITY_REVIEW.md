@@ -72,7 +72,10 @@ transaction. Artifact-local metadata and self-rehashed source-axis claims cannot
 replace it. Every source grant also carries that exact closure identity alongside
 axis/snapshot identities and its scoped source authority; actual rows/chunks are
 reverified against the independent output evidence before dispatch/publication.
-Matrix sources retain their existing fragment-tree.v2 payload closure identity.
+Matrix-bound admission remains fail-closed pending the Controller decision on a
+bounded, independently retained matrix-source certificate. The legacy
+fragment-tree.v2 identity is not a substitute for recomputing actual numerical
+payload and source-axis authority.
 
 ## Required focused evidence before family edits are accepted
 
@@ -86,5 +89,7 @@ Matrix sources retain their existing fragment-tree.v2 payload closure identity.
 - Fault insertion leaves zero residue and retry succeeds.
 - Bounded source-axis scans and certificate verification measured at scale.
 
-Disposition: proposal awaiting Sable's focused feasibility review; publication
-of associated graphs remains fail-closed until complete authority is implemented.
+Disposition: CV/CVF certificates are implemented with focused review-driven
+hardening; source authority tests pass. Explicit ABI4 source grants and their
+publication binding remain under development. No final qualification is claimed.
+Matrix authority is pending a substantive Controller decision and remains rejected.

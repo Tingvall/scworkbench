@@ -542,21 +542,32 @@
   declarations <- stats::setNames(operation$inputs, vapply(operation$inputs, `[[`, character(1), "name"))
   python_backend <- identical(as.character(registration$identity$backend)[1], "Python")
   transport_inputs <- if (python_backend) stats::setNames(lapply(names(inputs),
-    function(name) .wb_operation_pack_v2_transport_value(inputs[[name]],
-      declarations[[name]]$kind)), names(inputs)) else NULL
-  input_records <- lapply(names(inputs), function(name) .wb_operation_pack_v2_input_descriptor(
-    name, inputs[[name]], declarations[[name]],
-    if (python_backend) transport_inputs[[name]] else NULL,
-    g1_model_read = name %in% g1_model_inputs))
+    function(name) if (identical(inputs[[name]]$kind, "graph") &&
+      inherits(registration, "wb_operation_pack_registration_v4")) NULL else
+      .wb_operation_pack_v2_transport_value(inputs[[name]],
+        declarations[[name]]$kind)), names(inputs)) else NULL
+  input_records <- lapply(names(inputs), function(name) {
+    if (identical(inputs[[name]]$kind, "graph") &&
+      inherits(registration, "wb_operation_pack_registration_v4"))
+      return(.wb_operation_pack_v4_graph_input(bundle, name, inputs[[name]], declarations[[name]]))
+    .wb_operation_pack_v2_input_descriptor(name, inputs[[name]], declarations[[name]],
+      if (python_backend) transport_inputs[[name]] else NULL,
+      g1_model_read = name %in% g1_model_inputs)
+  })
   input_records <- input_records[order(vapply(input_records, `[[`, character(1), "name"), method = "radix")]
   registry_state <- .wb_operation_pack_v2_registry_read_records(
     bundle, operation, inputs, params, input_records, stage_root)
   policies <- stats::setNames(operation$dimension_policies %||% list(),
     vapply(operation$dimension_policies %||% list(), function(x) as.character(x$output)[1], character(1)))
-  output_records <- lapply(operation$outputs, function(output) .wb_operation_pack_v2_output_grant(
-    output, inputs, .wb_allocate_identifier(paste0(as.character(output$allocated_id_key)[1], "_"),
-      12L, purpose = "operation-pack v2 output"), registration = registration,
-    dimension_policy = as.character(policies[[as.character(output$name)[1]]]$policy %||% "")[1]))
+  output_records <- lapply(operation$outputs, function(output) {
+    allocated <- .wb_allocate_identifier(paste0(as.character(output$allocated_id_key)[1], "_"),
+      12L, purpose = "operation-pack v2 output")
+    if (identical(output$kind, "graph") &&
+      inherits(registration, "wb_operation_pack_registration_v4"))
+      return(.wb_operation_pack_v4_graph_output(output, allocated))
+    .wb_operation_pack_v2_output_grant(output, inputs, allocated, registration = registration,
+      dimension_policy = as.character(policies[[as.character(output$name)[1]]]$policy %||% "")[1])
+  })
   transition_value <- list(transition_id = transition_id, session_id = session_id, run_id = run_id,
     checkpoint_generation = generation,
     source_state_identity = .wb_operation_pack_v2_identity_plain("scworkbench.scientific_state.v1",
@@ -1095,8 +1106,8 @@
   receipt_id <- receipt$receipt_identity; receipt$receipt_identity <- NULL
   if (!identical(request_id$sha256, .wb_operation_pack_sha256(request)) ||
       !identical(receipt_id$sha256, .wb_operation_pack_sha256(receipt))) return(list(ok = FALSE, code = "identity_mismatch"))
-  if (identical(as.character(request$schema %||% "")[1],
-      "scworkbench.operation_pack.transition_request.v3")) {
+  if (as.character(request$schema %||% "")[1] %in%
+      c("scworkbench.operation_pack.transition_request.v3", "scworkbench.operation_pack.transition_request.v4")) {
     request$request_identity <- request_id
     receipt$receipt_identity <- receipt_id
     v3 <- .wb_operation_pack_v3_record_validate(request, receipt, path,
@@ -1107,6 +1118,7 @@
   }
   observed <- c(receipt$outputs %||% list(), receipt$registry_requests %||% list())
   for (item in observed) {
+    if (identical(request$pack_abi_version, "4") && identical(item$descriptor$kind, "graph")) next
     python_payload <- identical(as.character(
       receipt$runtime_attestation$backend %||% "R")[1], "Python")
     payload_root <- if (python_payload && identical(as.character(item$descriptor$category)[1],
@@ -1371,7 +1383,8 @@
     .wb_operation_pack_v2_error("OPERATION_PACK_INCOMPATIBLE", "Activated handler is not ABI v2.", "resolution")
   }
   abi_v3 <- inherits(registration, "wb_operation_pack_registration_v3")
-  operation <- if (abi_v3) record$definition$v3_definition else
+  abi_v4 <- inherits(registration, "wb_operation_pack_registration_v4")
+  operation <- if (abi_v4) record$definition$v4_definition else if (abi_v3) record$definition$v3_definition else
     record$definition$v2_definition
   declarations <- stats::setNames(operation$inputs, vapply(operation$inputs, `[[`, character(1), "name"))
   required <- vapply(operation$inputs, function(x) isTRUE(x$required), logical(1))
@@ -1422,7 +1435,8 @@
   .wb_operation_pack_v2_fault("resolved", transition_id = transition_id)
   python_backend <- identical(as.character(registration$identity$backend)[1], "Python")
   transport_inputs <- if (python_backend) stats::setNames(lapply(names(inputs),
-    function(name) .wb_operation_pack_v2_transport_value(inputs[[name]],
+    function(name) if (abi_v4 && identical(inputs[[name]]$kind, "graph")) NULL else
+      .wb_operation_pack_v2_transport_value(inputs[[name]],
       declarations[[name]]$kind)), names(inputs)) else NULL
   preflight <- .wb_operation_pack_v2_preflight(operation, inputs, params,
     registration = registration, transport_inputs = transport_inputs)
@@ -1430,15 +1444,18 @@
     bundle, operation, inputs, preflight)
   .wb_operation_pack_v2_fault("preflighted", transition_id = transition_id)
   source_refs <- attr(inputs, "operation_pack_v3_source_refs") %||% list()
-  request <- if (abi_v3) .wb_operation_pack_v3_request(bundle,
+  request_builder <- if (abi_v4) .wb_operation_pack_v4_request else .wb_operation_pack_v3_request
+  request <- if (abi_v3) request_builder(bundle,
     registration, operation, inputs, params, transition_id, session_id,
     run_id, generation, preflight, stage, effective_cells, source_refs) else
     .wb_operation_pack_v2_request(bundle, registration, operation, inputs,
       params, transition_id, session_id, run_id, generation, preflight, stage)
   if (abi_v3) {
-    .wb_operation_pack_v3_schema_assert(request, "request",
+    schema_assert <- if (abi_v4) .wb_operation_pack_v4_schema_assert else .wb_operation_pack_v3_schema_assert
+    request_audit <- if (abi_v4) .wb_operation_pack_v4_request_audit else .wb_operation_pack_v3_request_audit
+    schema_assert(request, "request",
       "PYBENCH_CAPABILITY_MISMATCH")
-    .wb_operation_pack_v3_request_audit(request, registration, operation,
+    request_audit(request, registration, operation,
       bundle, inputs, params)
   } else {
     .wb_operation_pack_v2_schema_assert(request, "request",
@@ -1455,6 +1472,8 @@
       typed_input_names <- unique(c(typed_input_names, vapply(
         request$typed_space_grants %||% list(), `[[`, character(1),
         "input_name")))
+      if (abi_v4) typed_input_names <- unique(c(typed_input_names,
+        vapply(request$graph_read_grants %||% list(), `[[`, character(1), "input_name")))
       staged_inputs <- staged_inputs[setdiff(names(staged_inputs),
         typed_input_names)]
     }
@@ -1488,6 +1507,7 @@
     request, inputs, "audit")
   if (abi_v3) .wb_operation_pack_v3_rf_source_assert_current(bundle,
     request, inputs, "audit")
+  if (abi_v4) .wb_operation_pack_v4_sources_assert_current(bundle, request)
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
   if (python_backend) {
     process_result <- if (abi_v3) .wb_operation_pack_v3_python_dispatch(
@@ -1496,8 +1516,9 @@
     receipt <- process_result$receipt
     unlink(file.path(stage, "inputs"), recursive = TRUE, force = TRUE)
   } else {
+    adapter_inputs <- if (abi_v4) Filter(function(x) !identical(x$kind, "graph"), inputs) else inputs
     adapter <- if (abi_v3) .wb_operation_pack_v3_capability_adapter(request,
-      operation, inputs, stage, bundle = bundle,
+      operation, adapter_inputs, stage, bundle = bundle,
       registry_read_values = attr(request,
         "operation_pack_v2_registry_read_values") %||% list(),
       provenance_read_values = attr(request,
@@ -1507,11 +1528,14 @@
       .wb_operation_pack_v2_capability_adapter(request, operation, inputs,
         stage, bundle = bundle, registry_read_values = attr(request,
           "operation_pack_v2_registry_read_values") %||% list())
+    if (abi_v4) adapter <- .wb_operation_pack_v4_graph_adapter(adapter, request, bundle, stage)
+    if (abi_v4) on.exit(adapter$consume(), add = TRUE)
     runner <- registration$runners[[op_name]]
     result <- tryCatch(runner(readers = adapter$readers, writers = adapter$writers,
       params = .wb_operation_pack_v2_deep_copy(params),
       context = list(transition_id = transition_id, session_id = session_id, run_id = run_id,
         checkpoint_generation = generation, network_policy = "deny",
+        graph_source_axes = if (abi_v4) .wb_operation_pack_v4_graph_source_context(request) else NULL,
         typed_slice_reads = stats::setNames(lapply(
           request$typed_slice_grants %||% list(), function(x) list(
             name = x$name, input_name = x$input_name,
@@ -1591,8 +1615,16 @@
         adapter$state) else list()
     phase5_usage <- if (abi_v3)
       .wb_operation_pack_v3_phase5_usage(adapter, request) else list()
+    graph_read_usage <- if (abi_v4) unname(lapply(adapter$state$graph_cursors,
+      function(cursor) cursor$usage())) else NULL
+    if (abi_v4) {
+      .wb_graph_require(length(graph_read_usage) == length(request$graph_read_grants %||% list()),
+        "GRAPH_READER_INCOMPLETE", "One or more graph readers were never consumed.")
+      attr(inputs, "operation_pack_v4_graph_read_usage") <- graph_read_usage
+    }
     adapter$consume()
-    receipt <- if (abi_v3) .wb_operation_pack_v3_receipt(request,
+    receipt_builder <- if (abi_v4) .wb_operation_pack_v4_receipt else .wb_operation_pack_v3_receipt
+    receipt <- if (abi_v3) receipt_builder(request,
       registration, operation, adapter$state$writes, preflight, inputs,
       registry_read_observations, provenance_read_observations,
       producer_lineage_reads = producer_lineage_observations,
@@ -1617,10 +1649,13 @@
   }
   .wb_operation_pack_v2_fault("receipt_received", transition_id = transition_id)
   if (abi_v3) {
-    .wb_operation_pack_v3_schema_assert(receipt, "receipt",
+    schema_assert(receipt, "receipt",
       "PYBENCH_RECEIPT_MISMATCH")
-    .wb_operation_pack_v3_receipt_audit(receipt, request, registration,
-      operation, preflight)
+    if (abi_v4) .wb_operation_pack_v4_receipt_audit(receipt, request, registration,
+      operation, preflight, graph_read_usage = if (python_backend)
+        process_result$graph_read_usage else graph_read_usage) else
+      .wb_operation_pack_v3_receipt_audit(receipt, request, registration,
+        operation, preflight)
   } else {
     .wb_operation_pack_v2_schema_assert(receipt, "receipt",
       "PYBENCH_RECEIPT_MISMATCH")
@@ -1692,8 +1727,13 @@
       function(grant) vapply(grant$candidate_snapshot$tree_manifest$entries,
         function(entry) file.path(grant$candidate_snapshot$relative_root,
           entry$path), character(1))), use.names = FALSE)
+    written_payloads <- unlist(lapply(names(adapter$state$writes), function(name) {
+      write <- adapter$state$writes[[name]]
+      paste0("outputs/", name, if (abi_v4 && !is.null(write$graph_observation))
+        c("/payload.json", "/graph.parts.ndjson") else "/payload.rds")
+    }), use.names = FALSE)
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
-      paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
+      written_payloads,
       registry_payloads, provenance_payloads, typed_slice_axes,
       typed_space_axes,
       typed_slice_sources, model_read_files, self_model_read_files,
@@ -1737,6 +1777,7 @@
     request, inputs, "publication")
   if (abi_v3) .wb_operation_pack_v3_rf_source_assert_current(bundle,
     request, inputs, "publication")
+  if (abi_v4) .wb_operation_pack_v4_sources_assert_current(bundle, request)
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
   if (!isTRUE(moved) || !dir.exists(final)) .wb_operation_pack_v2_error("PYBENCH_PUBLICATION_FAILED",
@@ -1752,7 +1793,16 @@
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "reopened", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(final, "state.json"))
   .wb_operation_pack_v2_fault("reopened", transition_id = transition_id)
+  graph_return_stages <- list()
+  on.exit(if (!published) for (owned_stage in graph_return_stages)
+    .wb_graph_stage_discard(owned_stage), add = TRUE)
   values <- stats::setNames(lapply(receipt$outputs %||% list(), function(item) {
+    if (abi_v4 && identical(item$descriptor$kind, "graph")) {
+      value <- .wb_operation_pack_v4_graph_output_value(final, item, receipt, request)
+      graph_return_stages[[length(graph_return_stages) + 1L]] <<-
+        attr(value, "graph_stage", exact = TRUE)
+      return(value)
+    }
     if (python_backend) {
       raw <- jsonlite::read_json(file.path(final, "outputs", item$name,
         "payload.json"), simplifyVector = FALSE)

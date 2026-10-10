@@ -3,11 +3,28 @@
     c("artifact_graph_meta", "artifact_graph_rows"), "graph inspection")
   observed <- .wb_graph_sql_identities(bundle$con, artifact_id, .wb_graph_budgets(budgets))
   row <- DBI::dbGetQuery(bundle$con,
-    "SELECT * FROM artifact_graph_meta WHERE artifact_id=?;", params = list(artifact_id))
+    paste0("SELECT * FROM artifact_graph_meta WHERE artifact_id=? AND ",
+      "COALESCE(octet_length(content_identity_json),0)+COALESCE(octet_length(binding_identity_json),0)+",
+      "COALESCE(octet_length(descriptor_json),0)+COALESCE(octet_length(descriptor_identity_json),0)+",
+      "COALESCE(octet_length(profile),0)+COALESCE(octet_length(direction_mode),0)+",
+      "COALESCE(octet_length(canonical_bytes),0)+COALESCE(octet_length(artifact_id),0)<=?;"),
+    params = list(artifact_id, .wb_graph_budgets(budgets)$partition_bytes))
+  .wb_graph_require(nrow(row) == 1L, "GRAPH_RESOURCE_EXCEEDED",
+    "Retained graph header changed during admitted fetch.")
   for (field in c("content_identity", "binding_identity", "descriptor_identity", "descriptor"))
     .wb_graph_require(identical(.wb_operation_pack_canonical_json(observed[[field]]),
       .wb_operation_pack_canonical_json(.wb_graph_parse(row[[paste0(field, "_json")]][[1]]))),
       "GRAPH_CONTENT_IDENTITY_MISMATCH", paste0("Retained graph differs at ", field))
+  expected <- observed[c("content_identity", "binding_identity", "descriptor_identity")]
+  .wb_graph_certificate_scan(bundle$con, artifact_id, function(certificate) .wb_graph_require(
+    !is.na(certificate$retained_payload_identity_json[[1]]) &&
+      identical(.wb_operation_pack_canonical_json(.wb_graph_parse(
+        certificate$retained_payload_identity_json[[1]])), .wb_operation_pack_canonical_json(expected)) &&
+      identical(certificate$content_identity_scheme[[1]], observed$content_identity$scheme) &&
+      identical(certificate$content_sha256[[1]], observed$content_identity$sha256),
+    "GRAPH_CONTENT_IDENTITY_MISMATCH",
+    "Graph claims disagree with independently retained promotion evidence."),
+    .wb_graph_budgets(budgets))
   observed
 }
 
@@ -28,7 +45,11 @@ wb_art_graph_info <- function(bundle, artifact_id, budgets = list()) {
   identity <- .wb_graph_retained_identities(bundle, artifact_id, budgets)
   counts <- stats::setNames(lapply(.wb_graph_components(), function(component)
     .wb_graph_count(bundle$con, artifact_id, component)), .wb_graph_components())
+  source <- tryCatch({.wb_graph_sources_assert(bundle, bundle$con, artifact_id,
+      .wb_graph_budgets(budgets)); list(status = "verified")}, error = function(error)
+        list(status = "unverified", reason = conditionMessage(error)))
   c(list(artifact_id = artifact_id, storage_profile = "graph_sqlite_v1",
+    source_authority = source,
     component_counts = counts), identity)
 }
 
@@ -100,10 +121,25 @@ wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", lim
   artifact_id
 }
 
-.wb_graph_sources_assert <- function(bundle, con, artifact_id, budgets) {
-  # Source-less standalone graphs need no bundle cell or feature authority.
-  if (.wb_graph_count(con, artifact_id, "bindings") != "0")
-    .wb_graph_error("GRAPH_SOURCE_AUTHORITY_REQUIRED",
-      "Binding source authentication has not been issued.")
+.wb_graph_sources_assert <- function(bundle, con, artifact_id, budgets, selected_binding_ids = NULL) {
+  .wb_graph_scan(con, artifact_id, "bindings", function(rows) {
+    for (json in rows$record_json) {
+      binding <- .wb_graph_parse(json); binding$binding_ordinal <- NULL
+      if (!is.null(selected_binding_ids) && !binding$binding_id %in% unlist(selected_binding_ids)) next
+      .wb_graph_source_authorize(bundle, binding, budgets)
+      query <- .wb_graph_source_axis_query(bundle, binding$source_ref, binding$axis_kind)
+      .wb_graph_scan(con, artifact_id, "binding_mappings", function(mappings) {
+        for (text in mappings$record_json) {
+          mapping <- .wb_graph_parse(text)
+          found <- DBI::dbGetQuery(bundle$con, paste0("SELECT 1 FROM (", query$sql,
+            ") WHERE axis_id=? LIMIT 1;"), params = c(query$params, list(mapping$axis_id)))
+          .wb_graph_require(nrow(found) == 1L, "GRAPH_SOURCE_AUTHORITY_INVALID",
+            "Mapped axis member is absent from its authenticated source.")
+        }
+      }, page = budgets$partition_rows, bytes = budgets$partition_bytes,
+        predicate = "AND json_extract(record_json,'$.binding_id')=?",
+        params = list(binding$binding_id))
+    }
+  }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
   invisible(TRUE)
 }

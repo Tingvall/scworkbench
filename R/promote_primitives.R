@@ -297,10 +297,26 @@ wb_promote_analysis <- function(bundle,
   .wb_assert(all(selected_outputs %in% available),
              paste0("Requested outputs are not promotable terminal outputs: ",
                     paste(setdiff(selected_outputs, available), collapse = ", ")))
+  # A negotiated mixed ABI4 terminal admits its whole manifest-declared
+  # promotion group. Never publish only the graph half of a sealed closure.
+  # Existing ABI1/2/3 selection semantics remain unchanged.
+  for (rid in heads) {
+    definition <- .wb_operation_pack_registry$operations[[runs[[rid]]$op_name]]$definition
+    declaration <- definition$v4_definition %||% NULL
+    if (is.null(declaration)) next
+    if (is.null(selected_by_run)) selected_by_run <- stats::setNames(
+      rep(list(selected_outputs), length(heads)), heads)
+    selected <- as.character(selected_by_run[[rid]] %||% character())
+    closure <- unique(as.character(unlist(declaration$promotion_closure[selected], use.names = FALSE)))
+    terminals <- intersect(closure, .wb_get_op(runs[[rid]]$op_name)$promotable)
+    .wb_assert(all(terminals %in% names(runs[[rid]]$outputs)), "ABI4 promotion closure is incomplete.")
+    selected_by_run[[rid]] <- unique(c(selected, terminals))
+    selected_outputs <- unique(c(selected_outputs, terminals))
+  }
   for (rid in heads) {
     definition <- .wb_operation_pack_registry$operations[[
       runs[[rid]]$op_name]]$definition %||% NULL
-    declaration <- definition$v3_definition %||%
+    declaration <- definition$v4_definition %||% definition$v3_definition %||%
       definition$v2_definition %||% NULL
     if (is.null(declaration) ||
         !length(.wb_operation_pack_v3_rfk_policies(declaration))) next
@@ -787,9 +803,11 @@ wb_promote_analysis <- function(bundle,
     label = as.character(prim$value),
     value_type = rep(value_type, length(prim$cell_id)),
     value_num = if (is_cont) suppressWarnings(as.numeric(prim$value)) else rep(NA_real_, length(prim$cell_id)),
+    payload_ordinal = bit64::as.integer64(seq_along(prim$cell_id) - 1L),
     stringsAsFactors = FALSE
   )
   .wb_db_append_chunked(con, "artifact_labels", df, chunk_size = 1000L)
+  .wb_graph_object_retain(bundle, artifact_id, prim)
 
   artifact_id
 }
@@ -913,9 +931,11 @@ wb_promote_analysis <- function(bundle,
     cell_id = as.character(prim$cell_id),
     lineage_id = as.character(prim$key),
     pseudotime = as.numeric(prim$value),
+    payload_ordinal = bit64::as.integer64(seq_along(prim$value) - 1L),
     stringsAsFactors = FALSE
   )
   .wb_db_append_chunked(con, "artifact_pseudotime", pt, chunk_size = 1000L)
+  .wb_graph_object_retain(bundle, artifact_id, prim)
 
   artifact_id
 }

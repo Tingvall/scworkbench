@@ -1,0 +1,4 @@
+Error in test_graph_abi4_core_issued_request_contract() : 
+  isTRUE(reopened$ok) is not TRUE
+Calls: stopifnot ... test_graph_abi4_core_issued_request_contract -> stopifnot
+Execution halted

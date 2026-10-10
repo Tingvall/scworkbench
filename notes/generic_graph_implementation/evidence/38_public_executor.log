@@ -1,0 +1,7 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error: Unknown replay-equivalence policy for scwbgraphfixture::matrix_to_graph::result: exact_graph_descriptor
+Execution halted

@@ -22,6 +22,7 @@
 
 .wb_schema_migration_011 <- function(con, bundle_dir = NULL) {
   .wb_graph_create_schema(con, retained = TRUE)
+  .wb_graph_object_schema(con)
   invisible(TRUE)
 }
 

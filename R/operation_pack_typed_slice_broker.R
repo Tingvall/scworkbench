@@ -270,6 +270,9 @@
       on.exit(wb_close_bundle(source_bundle), add = TRUE)
       bundle$staging_source_bundle <- source_bundle
     }
+    graph_cursors <- stats::setNames(lapply(request$graph_read_grants %||% list(),
+      function(grant) .wb_operation_pack_v4_graph_cursor(bundle, grant)),
+      vapply(request$graph_read_grants %||% list(), `[[`, character(1), "input_name"))
     ordinals <- stats::setNames(rep(0L, length(grants)), names(grants))
     records <- list()
     deadline <- Sys.time() + timeout
@@ -287,7 +290,14 @@
         Sys.sleep(0.02)
         next
       }
+      if (identical(request$pack_abi_version, "4"))
+        .wb_graph_require(file.info(control_path)$size <= 1048576,
+          "GRAPH_RESOURCE_EXCEEDED", "Broker control exceeds maximum decoded admission.")
       raw <- jsonlite::read_json(control_path, simplifyVector = FALSE)
+      if (identical(raw$schema, "scworkbench.graph.broker_read_request.v1")) {
+        .wb_operation_pack_v4_graph_service(spool, request, bundle, graph_cursors, token, deadline)
+        next
+      }
       grant_hash <- as.character(raw$grant_identity$sha256 %||% "")[1]
       matches <- names(grants)[vapply(grants, function(x) identical(
         as.character(x$grant_identity$sha256)[1], grant_hash), logical(1))]
@@ -312,6 +322,9 @@
     }
     .wb_operation_pack_v2_atomic_json(records,
       file.path(stage, "broker-observations.json"))
+    if (length(graph_cursors)) .wb_operation_pack_v2_atomic_json(
+      unname(lapply(graph_cursors, function(cursor) cursor$usage())),
+      file.path(stage, "graph-broker-observations.json"))
     invisible(TRUE)
   }, error = function(error) {
     .wb_operation_pack_v2_atomic_json(list(

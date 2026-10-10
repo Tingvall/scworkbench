@@ -1,0 +1,4 @@
+Error in test_graph_abi4_closed_admission_contract() : 
+  length(manifest$operations) == 3L is not TRUE
+Calls: stopifnot ... test_graph_abi4_closed_admission_contract -> stopifnot
+Execution halted

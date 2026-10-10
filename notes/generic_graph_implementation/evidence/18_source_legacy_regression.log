@@ -1,0 +1,2 @@
+test_object_primitive_family_durable_roundtrip_contract PASS
+LEGACY_OBJECT_ROUNDTRIP passed=1 skipped=0 failed=0

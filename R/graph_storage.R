@@ -70,6 +70,7 @@
 }
 
 .wb_graph_create_schema <- function(con, retained = TRUE) {
+  .wb_graph_backend_assert(con)
   DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_graph_meta (",
     "artifact_id TEXT PRIMARY KEY,profile TEXT NOT NULL,direction_mode TEXT NOT NULL,",
     "content_identity_json TEXT,binding_identity_json TEXT,descriptor_json TEXT,",
@@ -108,6 +109,14 @@
   invisible(TRUE)
 }
 
+.wb_graph_backend_assert <- function(con) {
+  available <- tryCatch(DBI::dbGetQuery(con, "SELECT octet_length('x') n;")$n[[1]] == 1,
+    error = function(error) FALSE)
+  .wb_graph_require(isTRUE(available), "GRAPH_BACKEND_VERSION_UNSUPPORTED",
+    "Graph bounded reads require SQLite octet_length support (3.43 or later).")
+  invisible(TRUE)
+}
+
 .wb_graph_configure <- function(con, budgets) {
   DBI::dbExecute(con, "PRAGMA foreign_keys=ON;")
   DBI::dbExecute(con, "PRAGMA temp_store=FILE;")
@@ -124,8 +133,11 @@
   state$closed <- FALSE
   succeeded <- FALSE
   on.exit(if (!succeeded) .wb_graph_stage_discard(state), add = TRUE)
-  reg.finalizer(state, function(x) .wb_graph_stage_discard(x), onexit = TRUE)
   state$con <- DBI::dbConnect(RSQLite::SQLite(), state$path, bigint = "character")
+  # Register after SQLite creates its external pointer. R finalizes newer
+  # registrations first: close our owned connection before its pointer is
+  # collected, including abandoned session values and process exit.
+  reg.finalizer(state, function(x) .wb_graph_stage_discard(x), onexit = TRUE)
   .wb_graph_storage_fault("connected", state)
   .wb_graph_configure(state$con, state$budgets)
   .wb_graph_create_schema(state$con, retained = FALSE)
@@ -161,7 +173,7 @@
   # Measure encoded bytes inside SQLite before any payload crosses into R.
   # The first window is row-bounded; only the byte-admitted prefix is decoded.
   query <- paste0("WITH candidate AS (SELECT row_ordinal,",
-    "length(CAST(record_json AS BLOB)) n FROM artifact_graph_rows ",
+    "octet_length(record_json) n FROM artifact_graph_rows ",
     "WHERE artifact_id=? AND component=? ", predicate,
     " AND row_ordinal>=CAST(? AS INTEGER) ORDER BY row_ordinal LIMIT ?),",
     "bounded AS (SELECT *,SUM(n) OVER (ORDER BY row_ordinal) used FROM candidate) ",
@@ -262,8 +274,23 @@
 }
 
 .wb_graph_validate_sql <- function(con, artifact_id, budgets = .wb_graph_budgets()) {
-  meta <- DBI::dbGetQuery(con, "SELECT * FROM artifact_graph_meta WHERE artifact_id=?;",
-    params = list(artifact_id))
+  .wb_graph_backend_assert(con)
+  oversized <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows WHERE artifact_id=? ",
+    "AND octet_length(record_json)>? LIMIT 1;"), params = list(artifact_id, budgets$partition_bytes))
+  .wb_graph_require(!nrow(oversized), "GRAPH_RESOURCE_EXCEEDED", "Stored graph record exceeds decoded budget.")
+  oversized <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_meta WHERE artifact_id=? AND (",
+    "COALESCE(octet_length(content_identity_json),0)+COALESCE(octet_length(binding_identity_json),0)+",
+    "COALESCE(octet_length(descriptor_json),0)+COALESCE(octet_length(descriptor_identity_json),0)+",
+    "COALESCE(octet_length(profile),0)+COALESCE(octet_length(direction_mode),0)+",
+    "COALESCE(octet_length(canonical_bytes),0)+COALESCE(octet_length(artifact_id),0)>?) LIMIT 1;"),
+    params = list(artifact_id, budgets$partition_bytes))
+  .wb_graph_require(!nrow(oversized), "GRAPH_RESOURCE_EXCEEDED", "Graph identity header exceeds decoded budget.")
+  meta <- DBI::dbGetQuery(con, paste0("SELECT * FROM artifact_graph_meta WHERE artifact_id=? AND ",
+    "COALESCE(octet_length(content_identity_json),0)+COALESCE(octet_length(binding_identity_json),0)+",
+    "COALESCE(octet_length(descriptor_json),0)+COALESCE(octet_length(descriptor_identity_json),0)+",
+    "COALESCE(octet_length(profile),0)+COALESCE(octet_length(direction_mode),0)+",
+    "COALESCE(octet_length(canonical_bytes),0)+COALESCE(octet_length(artifact_id),0)<=?;"),
+    params = list(artifact_id, budgets$partition_bytes))
   .wb_graph_require(nrow(meta) == 1L && meta$profile[[1]] == "graph_sqlite_v1",
     "GRAPH_VERSION_UNSUPPORTED", "Graph registry missing or unsupported.")
   .wb_graph_require(meta$direction_mode[[1]] %in% c("directed", "undirected", "mixed"),
@@ -309,8 +336,13 @@
     "WHERE e.artifact_id=? AND e.component='edges' GROUP BY e.row_ordinal ORDER BY e.row_ordinal;")
   cursor <- DBI::dbSendQuery(con, edge_sql, params = list(artifact_id))
   tryCatch(repeat {
-    batch <- DBI::dbFetch(cursor, n = budgets$partition_rows)
+    # Each edge can occupy the entire admitted byte partition. A row-count
+    # limit alone would permit partition_rows times that memory, especially
+    # with whitespace-padded but valid JSON. Keep this aggregate cursor scalar.
+    batch <- DBI::dbFetch(cursor, n = 1L)
     if (!nrow(batch)) break
+    .wb_graph_storage_fault("edge_aggregate_batch", list(
+      rows = nrow(batch), encoded_bytes = sum(nchar(batch$edge_json, type = "bytes"))))
     for (i in seq_len(nrow(batch))) {
       edge <- .wb_graph_parse(batch$edge_json[[i]])
       n <- bit64::as.integer64(batch$n[[i]])

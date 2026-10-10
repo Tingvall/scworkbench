@@ -838,6 +838,17 @@ wb_bundle_validation_report <- function(bundle_dir,
         }
         for (i in seq_len(nrow(arts))) {
           id <- as.character(arts$artifact_id[i]); type <- as.character(arts$type[i]); table <- .wb_validation_artifact_payload_table(type)
+          if (identical(type, "graph")) {
+            verified <- tryCatch({
+              .wb_graph_retained_identities(bundle, id)
+              .wb_graph_sources_assert(bundle, con, id, .wb_graph_budgets())
+              NULL
+            }, error = identity)
+            if (!is.null(verified)) add("GRAPH_RETAINED_AUTHORITY_INVALID", check_class = "artifacts",
+              entity_kind = "artifact", entity_id = id, table = "artifact_graph_meta",
+              observed = conditionMessage(verified),
+              message = "Graph content, bindings, retained descriptor or required source authority could not be authenticated.")
+          }
           if (identical(type, "space_2d")) {
             referenced_space <- as.character(arts$input_space_id[i] %||% "")[1L]
             n_ref <- if (nzchar(referenced_space)) DBI::dbGetQuery(
