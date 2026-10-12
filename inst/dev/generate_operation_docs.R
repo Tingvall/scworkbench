@@ -98,19 +98,24 @@
   )
 }
 
-.wb_operation_docs_build <- function(root = ".") {
+.wb_operation_docs_build <- function(root = ".", namespace = NULL) {
   old <- getwd()
   on.exit(setwd(old), add = TRUE)
   setwd(root)
-  devtools::load_all(".", quiet = TRUE)
-  ns <- asNamespace("scworkbench")
+  if (is.null(namespace)) {
+    devtools::load_all(".", quiet = TRUE)
+    namespace <- asNamespace("scworkbench")
+  }
+  stopifnot(is.environment(namespace),
+    identical(namespace, asNamespace("scworkbench")))
+  ns <- namespace
   exported <- sort(grep("^wb_op_", getNamespaceExports("scworkbench"), value = TRUE))
   generated <- list()
   missing <- list()
 
   for (fun_name in exported) {
     op_name <- sub("^wb_op_", "", fun_name)
-    iface <- try(wb_op_interface(op_name), silent = TRUE)
+    iface <- try(get("wb_op_interface", envir = ns)(op_name), silent = TRUE)
     if (inherits(iface, "try-error")) next
     formal_names <- names(formals(get(fun_name, envir = ns)))
     params <- iface$params %||% list()

@@ -1,0 +1,21 @@
+{
+  "installed_core_source": "53771f10ee275ff24bfc72800681116738255915",
+  "baseline_rebuild": 548,
+  "focused_run": 549,
+  "exit": 0,
+  "discovered": 8,
+  "executed": 8,
+  "passed": 8,
+  "skipped": 0,
+  "failed": 0,
+  "namespace_and_registry_unchanged": true,
+  "docs_library_paths_unchanged": true,
+  "runtime_legacy_loader_modified": false,
+  "marker_proposal": "UNAPPROVED",
+  "source_files": {
+    "inst/dev/generate_operation_docs.R": "152bbbd945ad9495e31b1513a621edeb0f91d24dc01f0df13a43b8f7bf7887e0",
+    "tests/test_operation_docs_single_source_contract.R": "8435cc54788830bbc1d7d307ff491d46848fbc7a5eff16af8939966c764be7fc",
+    "tests/test_graph_resource_accounting_contract.R": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+    "tests/test_large_payload_provenance_hashing_contract.R": "5d3e8dd8f21328a6474798f8aa8c7d69d946be3be740f67531c898bb507a0842"
+  }
+}

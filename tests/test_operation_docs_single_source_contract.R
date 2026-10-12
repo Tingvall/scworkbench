@@ -1,6 +1,12 @@
 test_operation_docs_single_source_contract <- function() {
   source("inst/dev/generate_operation_docs.R", local = TRUE)
-  built <- .wb_operation_docs_build(".")
+  original_namespace <- asNamespace("scworkbench")
+  original_registry <- get(".wb_operation_pack_registry", original_namespace)
+  original_library_paths <- .libPaths()
+  built <- .wb_operation_docs_build(".", namespace = original_namespace)
+  stopifnot(identical(original_namespace, asNamespace("scworkbench")),
+    identical(original_registry, get(".wb_operation_pack_registry", asNamespace("scworkbench"))),
+    identical(original_library_paths, .libPaths()))
   checked_in <- readLines("R/operation_docs.R", warn = FALSE)
   stopifnot(identical(checked_in, built$text))
   stopifnot(!any(grepl("Operation-specific parameter", checked_in, fixed = TRUE)))

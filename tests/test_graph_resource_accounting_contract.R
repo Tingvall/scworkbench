@@ -247,7 +247,10 @@ test_graph_resource_aggregate_cache_and_nested_policy_contract <- function() {
   branches <- character()
   hook <- options(scworkbench.graph_storage_test_hook = function(event, evidence) {
     if (event != "identity_budget") return(invisible(NULL))
-    calls <- vapply(sys.calls(), function(call) paste(deparse(call), collapse = " "), character(1))
+    calls <- vapply(sys.calls(), function(call) {
+      if (!is.call(call) || is.function(call[[1L]])) return("<anonymous>")
+      paste(deparse(call[[1L]]), collapse = " ")
+    }, character(1))
     if (!any(grepl("wb_prov_payload_identity|wb_prov_write_snapshot", calls))) return(invisible(NULL))
     stopifnot(evidence$budgets$memory_bytes == "8388608",
       evidence$budgets$partition_bytes == 262144,

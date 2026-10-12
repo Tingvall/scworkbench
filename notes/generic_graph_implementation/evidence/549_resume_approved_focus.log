@@ -1,0 +1,24 @@
+FOCUSED_RESUME exact_installed_source=537 namespace_path=/tmp/scwb-resume-baseline-548.31n69v9t/library/scworkbench selected=8
+RUN test_operation_docs_single_source_contract [test_operation_docs_single_source_contract.R; self_contained]
+PASS test_operation_docs_single_source_contract (0.034s)
+RUN test_operation_pack_sdk_catalog_coverage [test_operation_pack_sdk_contract.R; self_contained]
+PASS test_operation_pack_sdk_catalog_coverage (1.505s)
+RUN test_operation_pack_sdk_manifest_negatives [test_operation_pack_sdk_contract.R; self_contained]
+PASS test_operation_pack_sdk_manifest_negatives (0.236s)
+RUN test_operation_pack_sdk_scaffold_safety [test_operation_pack_sdk_contract.R; self_contained]
+PASS test_operation_pack_sdk_scaffold_safety (0.376s)
+RUN test_operation_pack_v2_feature_set_registry_fail_closed_contract [test_operation_pack_v2_feature_set_registry_read_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PASS test_operation_pack_v2_feature_set_registry_fail_closed_contract (15.052s)
+RUN test_graph_resource_aggregate_cache_and_nested_policy_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_aggregate_cache_and_nested_policy_contract (5.544s)
+RUN test_mixed_legacy_new_provenance_identity_contract [test_large_payload_provenance_hashing_contract.R; self_contained]
+PASS test_mixed_legacy_new_provenance_identity_contract (27.358s)
+RUN test_contract_runner_discovery_contract [test_contract_runner_discovery_contract.R; self_contained]
+PASS test_contract_runner_discovery_contract (0.161s)
+CONTRACT TEST SUMMARY files=6 discovered=8 executed=8 passed=8 skipped=0 failed=0 excluded=0 accounted=8
+PINNED_NAMESPACE_AND_REGISTRY_UNCHANGED=TRUE
