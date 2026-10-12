@@ -1,0 +1,20 @@
+{
+  "candidate": 444,
+  "parent_tuple": 429,
+  "source_count": 84,
+  "source_ledger_sha256": "86d447800453ac16eebae9ad6322fdea848a914801b851120fe963c777ee90db",
+  "install_root": "/tmp/scwb-graph-forge-duplicate-sensitive-444.ps0av2oi",
+  "qualification": false,
+  "runtime_changes": [
+    "R/getters_artifact_metadata.R"
+  ],
+  "test_changes": [
+    "tests/test_graph_legacy_metadata_expansion_admission_contract.R"
+  ],
+  "scope": "Audit every candidate row.names/class/.Class attribute by position before decoding; preserve admitted legacy duplicate ordering and inert aliases.",
+  "parent_disposition": "REJECTED duplicate row.names selection gap, direct and public",
+  "release": "Meridian final83posthash; Controller independently83posthash/formal narrow release; no final Sable429 report/posthash claimed.",
+  "tuple": 445,
+  "runtime_candidate": 444,
+  "note": "Before ANY focused execution: original83 frozen444 inputs unchanged, adds generic independently pinned original-certificate driver with fresh output prefix parameter."
+}

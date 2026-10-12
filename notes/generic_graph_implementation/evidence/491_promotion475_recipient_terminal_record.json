@@ -1,0 +1,22 @@
+{
+  "run": 489,
+  "parent": 485,
+  "tuple": 475,
+  "installed": 476,
+  "numeric_exit": 0,
+  "elapsed": "31:31.13",
+  "max_rss_kib": 194488,
+  "max_rss_bytes": 199155712,
+  "pack_free": true,
+  "source_verified": true,
+  "descriptor_unchanged": true,
+  "bounded_components": "PASS",
+  "filesystem_fingerprint_unchanged": true,
+  "source90_review35_execution37_recipient3_posthash": "MATCH",
+  "sampled_peak_logical_disk_bytes": 4829033590,
+  "sampled_peak_allocated_disk_bytes": 4829118464,
+  "parent485_resource_verdict": "FAIL",
+  "qualification": false,
+  "large_physical_stress": "DEFERRED",
+  "notification": "Prior error485 already accepted; no duplicate email"
+}

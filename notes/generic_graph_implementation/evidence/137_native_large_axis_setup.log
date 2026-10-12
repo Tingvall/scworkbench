@@ -1,0 +1,28 @@
+SOURCE_SETUP_PREFLIGHT available_bytes=34103287808 reserve_bytes=8589934592 setup_envelope_bytes=1073741824
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+GRAPH_SCALE_SOURCE_SETUP public_sdk=TRUE native_source_ref=retained_cell_axis complete_axis_count=90000 complete_axis_utf8_bytes=18258618 setup_not_memory_qualification=TRUE
+	Command being timed: "Rscript notes/generic_graph_implementation/prepare_scale_fixture.R /tmp/scwb-graph-native-long-axis-90000-development /tmp/scwb-graph-core-checkpoint.igp49W/library 90000"
+	User time (seconds): 2538.73
+	System time (seconds): 15.54
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 42:35.63
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1049996
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 2005889
+	Voluntary context switches: 13049
+	Involuntary context switches: 21409
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 6443984
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

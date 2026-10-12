@@ -25,6 +25,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 LazyData: true
 NeedsCompilation: yes
+SystemRequirements: SQLite3 development headers (RSQLite extension API for incremental read-only TEXT I/O)
 Imports:
     bit64,
     DBI,

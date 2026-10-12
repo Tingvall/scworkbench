@@ -1,0 +1,4 @@
+Error in test_graph_native_matrix_tree_identity_contract() : 
+  identical(actual, expected) is not TRUE
+Calls: test_graph_native_matrix_tree_identity_contract -> stopifnot
+Execution halted

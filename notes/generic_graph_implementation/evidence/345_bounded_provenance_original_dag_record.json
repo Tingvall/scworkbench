@@ -1,0 +1,19 @@
+{
+  "prototype_only": true,
+  "qualification": false,
+  "full_dag_identical_saved272": true,
+  "dag_sha256": "7c35edd6513671df9ec18e81e50376c6333530c6526671682b88653b94fa6ec6",
+  "source_axes": 90000,
+  "elapsed_seconds": 4.353,
+  "before_hwm_kib": 239156,
+  "after_hwm_kib": 239436,
+  "profile_threshold_bytes": 1048576,
+  "allocations_at_or_above_threshold": 0,
+  "largest_profiled_allocation_bytes": null,
+  "original_source_primary_DB_unchanged": true,
+  "limitations": [
+    "wb_open_bundle before prototype profiling retained existing behavior",
+    "no production integration",
+    "arbitrary metadata canonicalization unresolved"
+  ]
+}

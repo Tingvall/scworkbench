@@ -1,0 +1,6 @@
+Tracing function "as.character.integer64" in package
+"namespace:bit64"
+[1] "as.character.integer64"
+Untracing function "as.character.integer64" in package
+"namespace:bit64"
+ORIGINAL_CLOSURE integer64_calls=2816 max_carrier_length=64 rows=90000 exact_stored_closure=PASS

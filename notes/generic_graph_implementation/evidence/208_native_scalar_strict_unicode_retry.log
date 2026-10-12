@@ -1,0 +1,4 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS2/2 native byte/axis strict positive+negative+late mutation development; qualification=FALSE

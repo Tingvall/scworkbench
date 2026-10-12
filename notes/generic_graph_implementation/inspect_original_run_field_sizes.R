@@ -1,0 +1,7 @@
+args <- commandArgs(TRUE)
+.libPaths(c(file.path(args[[1L]],"library"),.libPaths()))
+library(scworkbench)
+con <- DBI::dbConnect(RSQLite::SQLite(),"/tmp/scwb-graph-native-long-axis-90000-development/source.bundle/db/app.sqlite",flags=RSQLite::SQLITE_RO)
+DBI::dbExecute(con,"PRAGMA cache_size=-64;")
+print(DBI::dbGetQuery(con,"SELECT rowid,op_name,octet_length(inputs_json) inputs,octet_length(params_json) params,octet_length(symbolic_inputs_json) symbolic,octet_length(execution_inputs_json) execution,run_hash_scheme FROM prov_runs;"))
+DBI::dbDisconnect(con)

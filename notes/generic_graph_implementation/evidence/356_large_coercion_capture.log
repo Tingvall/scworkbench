@@ -1,0 +1,28 @@
+EXPECTED {"type":"double","attributes":{},"value":[1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25,"NA",-0,1,1.25," 
+ACTUAL {"type":"double","attributes":{},"value":["NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA",1.25,"NA",0,"NA", 
+$sha256
+[1] "35399390a08a4dda57f879596f2a7987f817e333a8f7087b0e49c0dbd3253813"
+
+$descriptor
+$descriptor$type
+[1] "double"
+
+$descriptor$length
+[1] 120000
+
+$descriptor$missing
+[1] TRUE
+
+$descriptor$values
+NULL
+
+$descriptor$children
+list()
+
+$descriptor$attribute_count
+[1] 0
+
+
+$partition_bytes
+[1] 262144
+

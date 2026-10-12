@@ -412,6 +412,20 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   op <- .wb_op(op_name)
   validated <- .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs, session = session)
   inputs <- validated$inputs
+  graph_operation <- (.wb_operation_pack_registry$operations[[op_name]] %||% list())$definition$v4_definition
+  if(!is.null(graph_operation)) {
+    graph_outputs <- Filter(function(output)identical(output$kind,"graph"),graph_operation$outputs)
+    if(length(graph_outputs)) {
+      graph_policy <- .wb_operation_pack_v4_lowest_graph_budgets(lapply(graph_outputs,`[[`,"resource_budgets"))
+      graph_connections <- .wb_graph_bundle_connections(bundle)
+      if(!is.null(session$staging_bundle)) graph_connections <- c(graph_connections,list(session$staging_bundle$con))
+      restore_graph_invocation <- .wb_graph_aggregate_connection_budget(graph_connections,graph_policy,
+        extra=if(is.null(session$staging_bundle))1L else 0L)
+      on.exit(restore_graph_invocation(),add=TRUE)
+    }
+  }
+  matrix_source_selections <- .wb_operation_pack_v4_matrix_sources_precheck(
+    session, bundle, op_name, inputs)
 
   # Allocate administrative identity before staging or runner execution. A
   # collision or entropy failure is therefore a strict zero-write failure.
@@ -437,6 +451,10 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   staged <- .wb_session_stage_bundle(bundle, session)
   session <- staged$session
   work_bundle <- staged$bundle
+  if(exists("graph_policy",inherits=FALSE)) {
+    restore_graph_stage <- .wb_operation_pack_v4_scoped_graph_budgets(work_bundle,graph_policy)
+    on.exit(restore_graph_stage(),add=TRUE,after=FALSE)
+  }
 
   cell_set <- inputs$cell_set %||% "all"
   # Resolve the complete typed input contract before deriving cell coverage.
@@ -467,6 +485,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     }
   }
   .wb_validate_resolved_op_inputs(op_name, resolved)
+  attr(resolved, "operation_pack_v4_matrix_source_selections") <- matrix_source_selections
 
   # This is the sole operation-runner ownership point for effective cells.
   # Every cell-bearing required or present optional primitive participates.

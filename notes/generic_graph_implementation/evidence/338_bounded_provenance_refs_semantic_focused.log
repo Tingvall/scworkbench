@@ -1,0 +1,5 @@
+  load_extension(?,?)
+1                  NA
+[1] 0
+[1] 1
+BOUNDED_PROVENANCE_REFS small_old_semantic_differential=11 ignored_multimegabyte_row_order=TRUE PASS prototype_only=TRUE

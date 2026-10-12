@@ -1,0 +1,390 @@
+{
+  "schema": "scworkbench.operation_pack.transition_request.v4",
+  "message_type": "request",
+  "process_protocol_version": "pybench-op-v5",
+  "pack_abi_version": "4",
+  "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "transition": {
+    "transition_id": "transition_8c0j1asy7dscerze",
+    "session_id": "session_rxcjjfbjxdyg",
+    "run_id": "run_xw6yihfsm74g",
+    "checkpoint_generation": "ephemeral",
+    "source_state_identity": {
+      "scheme": "scworkbench.scientific_state.v1",
+      "sha256": "59673eee08c3b0db535e34d1c0aedf403afe54678877ce5735d6043b20f8b29d"
+    },
+    "transition_identity": {
+      "scheme": "scworkbench.operation_pack.transition.v2",
+      "scope": "transition excluding transition_identity",
+      "sha256": "660b94c063bdf866f3340dd9633f83b24c4eaac5f5812965584398dd5d3209e4"
+    }
+  },
+  "operation_authentication": {
+    "name": "graphsmallfixture::emit_small",
+    "pack_identity": {
+      "scheme": "scworkbench.operation_pack.pack.v4",
+      "sha256": "8934a83daed9f3d433f64ea2121bd7ac597a6665f66462c59aad12c053fac334"
+    },
+    "manifest_identity": {
+      "scheme": "scworkbench.operation_pack.manifest.v4",
+      "sha256": "065c8dba84acee9c5f090aa1fc1daa45de05984ed9f7a7aa04e27f7df1a4dd90"
+    },
+    "manifest_source_identity": {
+      "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+      "sha256": "40043c9af02ee964ad81fc5a03cee6bb6f02f199ffd947c00bf9f710f7172fdd"
+    },
+    "distribution_identity": {
+      "scheme": "scworkbench.operation_pack.content.v1",
+      "sha256": "5add7ed2f2d0a312b8f81f257dda17e6cdd6a371528a2735d06c4d86cb7a42d5"
+    },
+    "operation_definition_identity": {
+      "scheme": "scworkbench.operation_pack.definition.v4",
+      "sha256": "208b49c2e1e1c2d83296a92f94f799dad75cb9156ec7878427886d311d309fab"
+    },
+    "entry_point": {
+      "value": "scwbGraphSmallFixture::register_operation_pack",
+      "identity": {
+        "scheme": "scworkbench.operation_pack.entry_point.v2",
+        "sha256": "c09d3b351ec9cfcd04a871f5d5d3f28ca078b6936896bf8c03e4eaa53e4e1eb0"
+      }
+    }
+  },
+  "engine_contract": {
+    "implementation": "scworkbench",
+    "implementation_version": "0.1.0",
+    "scientific_state_scheme": "scworkbench.scientific_state.v1",
+    "scientific_state_schema_identity": {
+      "scheme": "scworkbench.scientific_state.schema.v1",
+      "sha256": "b77cae2375aad1cea78a2cde3bc13715f6ca9efff7c2f058da3e332cc15b2a22"
+    },
+    "reader_api": "scworkbench.operation_pack.typed_readers.v2",
+    "writer_api": "scworkbench.operation_pack.staged_writers.v2"
+  },
+  "dependency_resolution": {
+    "declared_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "selected_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "dynamic_resolutions": [],
+    "preflight_report_identity": {
+      "scheme": "scworkbench.operation_pack.preflight.v2",
+      "sha256": "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+    },
+    "network_policy": "deny"
+  },
+  "inputs": [
+    {
+      "name": "matrix",
+      "reference": "matrix:matrix",
+      "descriptor": {
+        "kind": "matrix",
+        "storage_profile": "matrix_ordinary_v1",
+        "reader": "read_matrix",
+        "dimensions": [
+          2,
+          32
+        ],
+        "alignment": "cell_and_feature_ordered",
+        "content_identity": {
+          "scheme": "scworkbench.matrix.content.v1",
+          "sha256": "79f9025c5b1185efa5773e3b3d9495b79c71fc11044e3926cf8c33663ba5b14f"
+        },
+        "ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "9869fdd8cb4de0717d3080218efeabbad1a50c0bbd89c532c9e1512e37e67e1c"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.payload.manifest.v2",
+          "sha256": "9869fdd8cb4de0717d3080218efeabbad1a50c0bbd89c532c9e1512e37e67e1c"
+        },
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "7cba82f29ecf2381e4441f70e021bdd73faef617b7382acedf72d6da41c920f2"
+        },
+        "feature_order_identity": {
+          "scheme": "scworkbench.feature_order.v1",
+          "sha256": "3cf6f80e5f8317443be7249e2886db34159d2d3620636492dc8cdf99fe748539"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "scope": "descriptor excluding descriptor_identity",
+          "sha256": "631f35980f3e7fc05080bbf8ecac10bfe56b4e17eedecdd670c3a05c3fecd770"
+        }
+      }
+    }
+  ],
+  "params": {},
+  "outputs": [
+    {
+      "name": "result",
+      "allocated_id": "result_id_26y7ss4rzyve",
+      "descriptor": {
+        "category": "terminal_artifact",
+        "kind": "graph",
+        "storage_profile": "graph_sqlite_v1",
+        "writer": "write_graph",
+        "binding_policy": "required",
+        "resource_budgets": {
+          "max_attribute_fields": "100000",
+          "max_collect_bytes": "8192",
+          "max_edges": "1000000",
+          "max_incidences": "8000000",
+          "max_memory_bytes": "1048576",
+          "max_nodes": "1000000",
+          "max_published_bytes": "8388608",
+          "max_spill_bytes": "16777216",
+          "max_staged_bytes": "16777216",
+          "max_wal_bytes": "8388608",
+          "partition_limits": {
+            "max_rows": "2",
+            "max_decoded_bytes": "4096"
+          }
+        },
+        "graph_write_grant_identity": {
+          "scheme": "scworkbench.operation_pack.graph_write_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "9ced1b0546d4f620f3aa1e6e9a109da0116ecb07a4b24eef4f2594ccd3840dab"
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v4",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "f712145a14c2645c00ee7034edc3beaf665e8bc3fd09026772a348a6f211db62"
+        }
+      }
+    },
+    {
+      "name": "summary",
+      "allocated_id": "summary_id_uxr8dkwt0pyc",
+      "descriptor": {
+        "category": "terminal_artifact",
+        "kind": "obs_table",
+        "storage_profile": "terminal_primitive_v1",
+        "writer": "write_terminal_primitive",
+        "expected_dimensions": [
+          1,
+          1
+        ],
+        "expected_alignment": "none",
+        "expected_ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "310b0b8dd8a5dd327085b74f69e42eecef204f67b445551230a80042d9417e6a"
+        },
+        "expected_model_linkage": {
+          "mode": "none"
+        },
+        "semantic_constraints": {
+          "table_type": "graph_summary",
+          "row_order": "canonical"
+        },
+        "relative_root": "outputs/summary",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "747e7862fc2b4f977c0826886ba110f0575a1f04548f75882baf07ac0e20cd68"
+        }
+      }
+    }
+  ],
+  "execution_capability": {
+    "capability_id": "capability_l705sc6qdldsredy",
+    "mode": "private_staging_write",
+    "transition_identity": {
+      "scheme": "scworkbench.operation_pack.transition.v2",
+      "scope": "transition excluding transition_identity",
+      "sha256": "660b94c063bdf866f3340dd9633f83b24c4eaac5f5812965584398dd5d3209e4"
+    },
+    "session_id": "session_rxcjjfbjxdyg",
+    "run_id": "run_xw6yihfsm74g",
+    "checkpoint_generation": "ephemeral",
+    "source_state_identity": {
+      "scheme": "scworkbench.scientific_state.v1",
+      "sha256": "59673eee08c3b0db535e34d1c0aedf403afe54678877ce5735d6043b20f8b29d"
+    },
+    "staging_root_identity": {
+      "scheme": "scworkbench.operation_pack.staging_root.v1",
+      "sha256": "8df4095257425681d06d2b1750bf9ae1d55699a0ec80b072f68dfd0a09b9b40a"
+    },
+    "lease_id": "lease_nx0iwsaklujhakdx",
+    "pack_identity": {
+      "scheme": "scworkbench.operation_pack.pack.v4",
+      "sha256": "8934a83daed9f3d433f64ea2121bd7ac597a6665f66462c59aad12c053fac334"
+    },
+    "distribution_identity": {
+      "scheme": "scworkbench.operation_pack.content.v1",
+      "sha256": "5add7ed2f2d0a312b8f81f257dda17e6cdd6a371528a2735d06c4d86cb7a42d5"
+    },
+    "manifest_source_identity": {
+      "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+      "sha256": "40043c9af02ee964ad81fc5a03cee6bb6f02f199ffd947c00bf9f710f7172fdd"
+    },
+    "operation_definition_identity": {
+      "scheme": "scworkbench.operation_pack.definition.v4",
+      "sha256": "208b49c2e1e1c2d83296a92f94f799dad75cb9156ec7878427886d311d309fab"
+    },
+    "entry_point_identity": {
+      "scheme": "scworkbench.operation_pack.entry_point.v2",
+      "sha256": "c09d3b351ec9cfcd04a871f5d5d3f28ca078b6936896bf8c03e4eaa53e4e1eb0"
+    },
+    "selected_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "preflight_report_identity": {
+      "scheme": "scworkbench.operation_pack.preflight.v2",
+      "sha256": "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+    },
+    "reader_grants": [
+      {
+        "input_name": "matrix",
+        "reader": "read_matrix",
+        "descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "scope": "descriptor excluding descriptor_identity",
+          "sha256": "631f35980f3e7fc05080bbf8ecac10bfe56b4e17eedecdd670c3a05c3fecd770"
+        }
+      }
+    ],
+    "writer_grants": [
+      {
+        "output_name": "result",
+        "writer": "write_graph",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v4",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "f712145a14c2645c00ee7034edc3beaf665e8bc3fd09026772a348a6f211db62"
+        }
+      },
+      {
+        "output_name": "summary",
+        "writer": "write_terminal_primitive",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "747e7862fc2b4f977c0826886ba110f0575a1f04548f75882baf07ac0e20cd68"
+        }
+      }
+    ],
+    "single_use": true,
+    "capability_identity": {
+      "scheme": "scworkbench.operation_pack.capability.v4",
+      "scope": "capability excluding capability_identity",
+      "sha256": "571522638d2fe1fa9b1fe50494145b7a4e170ba872fe64f127103d5e415bf42f"
+    }
+  },
+  "graph_write_grants": [
+    {
+      "schema": "scworkbench.graph.write_grant.v1",
+      "output_name": "result",
+      "binding_policy": "required",
+      "component_order": "graph_components_v1",
+      "authorized_source_axes": [
+        {
+          "schema": "scworkbench.graph.source_axis_authority.v1",
+          "output_name": "result",
+          "input_name": "matrix",
+          "source_binding_id": null,
+          "axis_kind": "cell",
+          "source_ref": {
+            "kind": "matrix",
+            "source_id": "small_native"
+          },
+          "source_snapshot_identity": {
+            "scheme": "scworkbench.provenance.snapshot_head.v1",
+            "sha256": "c2462332420b91db85b24748d0fbae3e6229198e184f1c7e5978437db3b4d00c"
+          },
+          "source_payload_closure_identity": {
+            "scheme": "scworkbench.content.matrix.fragment-tree.v2",
+            "sha256": "81ef87dd686e6db6b5401d8c10d7fac6772ce70807d3642097120c5e3ca09cd4"
+          },
+          "axis_content_identity": {
+            "scheme": "scworkbench.graph.source-axis-content.canonical-json.v1",
+            "sha256": "d4442fe6842268c35725d37129b11db54e62d53b8ad0b0cb12976bf7a90d0bd7"
+          },
+          "axis_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "7cba82f29ecf2381e4441f70e021bdd73faef617b7382acedf72d6da41c920f2"
+          },
+          "axis_count": "32",
+          "transition_identity": {
+            "scheme": "scworkbench.operation_pack.transition.v2",
+            "scope": "transition excluding transition_identity",
+            "sha256": "660b94c063bdf866f3340dd9633f83b24c4eaac5f5812965584398dd5d3209e4"
+          },
+          "authority_identity": {
+            "scheme": "scworkbench.operation_pack.graph_source_axis_authority.v1",
+            "scope": "authority excluding authority_identity",
+            "sha256": "cf87a05dd5af74f41df7b5c03346f8425b225fe21d635f50a9349083c7f3223c"
+          }
+        },
+        {
+          "schema": "scworkbench.graph.source_axis_authority.v1",
+          "output_name": "result",
+          "input_name": "matrix",
+          "source_binding_id": null,
+          "axis_kind": "feature",
+          "source_ref": {
+            "kind": "matrix",
+            "source_id": "small_native"
+          },
+          "source_snapshot_identity": {
+            "scheme": "scworkbench.provenance.snapshot_head.v1",
+            "sha256": "c2462332420b91db85b24748d0fbae3e6229198e184f1c7e5978437db3b4d00c"
+          },
+          "source_payload_closure_identity": {
+            "scheme": "scworkbench.content.matrix.fragment-tree.v2",
+            "sha256": "81ef87dd686e6db6b5401d8c10d7fac6772ce70807d3642097120c5e3ca09cd4"
+          },
+          "axis_content_identity": {
+            "scheme": "scworkbench.graph.source-axis-content.canonical-json.v1",
+            "sha256": "9be09a77f736ad6121d75857bec5df9cc5da4e8e8317d35636043da2a11b11ea"
+          },
+          "axis_order_identity": {
+            "scheme": "scworkbench.feature_order.v1",
+            "sha256": "3cf6f80e5f8317443be7249e2886db34159d2d3620636492dc8cdf99fe748539"
+          },
+          "axis_count": "2",
+          "transition_identity": {
+            "scheme": "scworkbench.operation_pack.transition.v2",
+            "scope": "transition excluding transition_identity",
+            "sha256": "660b94c063bdf866f3340dd9633f83b24c4eaac5f5812965584398dd5d3209e4"
+          },
+          "authority_identity": {
+            "scheme": "scworkbench.operation_pack.graph_source_axis_authority.v1",
+            "scope": "authority excluding authority_identity",
+            "sha256": "747e2433b9a6702e5e8e692a0dbaf001c69e2d016e741a583111deb9dd348a38"
+          }
+        }
+      ],
+      "resource_budgets": {
+        "max_attribute_fields": "100000",
+        "max_collect_bytes": "8192",
+        "max_edges": "1000000",
+        "max_incidences": "8000000",
+        "max_memory_bytes": "1048576",
+        "max_nodes": "1000000",
+        "max_published_bytes": "8388608",
+        "max_spill_bytes": "16777216",
+        "max_staged_bytes": "16777216",
+        "max_wal_bytes": "8388608",
+        "partition_limits": {
+          "max_rows": "2",
+          "max_decoded_bytes": "4096"
+        }
+      },
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.graph_write_grant.v1",
+        "scope": "grant excluding grant_identity",
+        "sha256": "9ced1b0546d4f620f3aa1e6e9a109da0116ecb07a4b24eef4f2594ccd3840dab"
+      }
+    }
+  ],
+  "request_identity": {
+    "scheme": "scworkbench.operation_pack.transition_request.v4",
+    "scope": "request excluding request_identity",
+    "sha256": "b703de70703f026dc6dbb69743380a9b6686e60e6954afe886c47727aefaf37d"
+  }
+}

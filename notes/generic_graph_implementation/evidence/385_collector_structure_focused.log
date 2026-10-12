@@ -1,0 +1,10 @@
+COLLECTOR_TEST START test_graph_bounded_legacy_metadata_fault_cleanup_contract
+COLLECTOR_TEST PASS test_graph_bounded_legacy_metadata_fault_cleanup_contract
+COLLECTOR_TEST START test_graph_bounded_legacy_public_certificate_parity_and_cache_contract
+COLLECTOR_TEST PASS test_graph_bounded_legacy_public_certificate_parity_and_cache_contract
+COLLECTOR_TEST START test_graph_bounded_legacy_refs_parser_and_fileless_contract
+COLLECTOR_TEST PASS test_graph_bounded_legacy_refs_parser_and_fileless_contract
+COLLECTOR_TEST START test_graph_bounded_legacy_structure_transformation_admission_contract
+Error in get(name)() : inherits(baseline, "error") is not TRUE
+Calls: stopifnot -> isTRUE -> <Anonymous> -> stopifnot
+Execution halted

@@ -1,0 +1,35 @@
+args <- commandArgs(TRUE)
+stopifnot(length(args)==1L)
+.libPaths(c(file.path(args[[1L]],"library"),.libPaths()))
+library(scworkbench)
+fixture <- readRDS("/tmp/scwb-graph-manifest-batch-lifecycle-246.rds")
+path <- file.path(fixture$source_bundle,"db/app.sqlite")
+before <- digest::digest(file=path,algo="sha256",serialize=FALSE)
+diagnostic_root <- "/tmp/scwb-graph-original-artifact-certificate-copy-263"
+stopifnot(!dir.exists(diagnostic_root))
+dir.create(diagnostic_root)
+stopifnot(file.copy(fixture$source_bundle,diagnostic_root,recursive=TRUE))
+copy <- file.path(diagnostic_root,basename(fixture$source_bundle))
+bundle <- wb_open_bundle(copy,validate=FALSE)
+policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes="8388608",sqlite_cache_kib=2048L,
+  partition_bytes=262144L,partition_rows=256L,collect_bytes=4194304L))
+restore <- scworkbench:::.wb_graph_aggregate_connection_budget(list(bundle$con),policy)
+prefix <- "/tmp/scwb-graph-original-artifact-certificate-263"
+stopifnot(!file.exists(paste0(prefix,".allocations")))
+report <- function(phase) {
+  status <- readLines("/proc/self/status")
+  cat("ORIGINAL_ARTIFACT_CERTIFICATE_PROFILE",phase,paste(status[grepl("^(VmRSS|VmHWM):",status)],collapse=" "),"\n")
+  flush.console()
+}
+report("before_certificate")
+Rprof(paste0(prefix,".stacks"),interval=0.02,memory.profiling=TRUE)
+Rprofmem(paste0(prefix,".allocations"),threshold=1048576)
+time <- system.time(certificate <- wb_entity_certificate(bundle,"artifact",fixture$source_axis_artifact_id))
+Rprof(NULL);Rprofmem(NULL)
+saveRDS(summaryRprof(paste0(prefix,".stacks"),memory="both"),paste0(prefix,".summary.rds"))
+saveRDS(certificate,paste0(prefix,".certificate.rds"))
+report("after_certificate")
+restore();wb_close_bundle(bundle)
+stopifnot(identical(before,digest::digest(file=path,algo="sha256",serialize=FALSE)))
+cat("ORIGINAL_ARTIFACT_CERTIFICATE_PROFILE source_axes=90000 sourceDB=UNCHANGED isolated_copy=TRUE elapsed=",time[["elapsed"]],
+  " verification=",certificate$identity$verification_status," qualification=FALSE\n",sep="")

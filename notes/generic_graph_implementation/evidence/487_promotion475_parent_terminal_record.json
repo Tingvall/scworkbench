@@ -1,0 +1,31 @@
+{
+  "run": 485,
+  "tuple": 475,
+  "installed": 476,
+  "numeric_exit": 0,
+  "elapsed": "1:29:41",
+  "max_rss_kib": 713092,
+  "max_rss_bytes": 730206208,
+  "rss_ceilings_bytes": [
+    700235776,
+    699392000
+  ],
+  "resource_verdict": "FAIL",
+  "functional_parent": "PASS",
+  "canonical_bytes": 1453459757,
+  "canonical_floor_bytes": 1400471552,
+  "source_axes": 90000,
+  "nodes": 22000,
+  "source_database_unchanged": true,
+  "source90_evidence35_execution37_posthash": "MATCH",
+  "sampled_peak_logical_disk_bytes": 8327874989,
+  "sampled_peak_allocated_disk_bytes": 8327999488,
+  "minimum_observed_free_bytes": 32673296384,
+  "free_space_reserve_bytes": 8589934592,
+  "recipient": "PENDING",
+  "qualification": false,
+  "cause": "UNPROVEN",
+  "notification_event_key": "graph-lifecycle-485-terminal",
+  "error_email": "Controller already accepted; do not duplicate",
+  "sampling_caveat": "0.5 second samples include open unlinked files; short-lived between-sample allocations may be missed"
+}

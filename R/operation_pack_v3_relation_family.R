@@ -728,7 +728,8 @@
   if (!length(grants)) return(invisible(TRUE))
   if (length(grants) != 1L || !identical(grants[[1L]]$output_name,
       output_name) || !isTRUE(.wb_operation_pack_v3_record_validate(
-        request, receipt, root, load_payloads = TRUE)$ok))
+        request, receipt, root, load_payloads = TRUE, graph_connections = c(
+          .wb_graph_bundle_connections(bundle), list(staging_bundle$con)))$ok))
     .wb_operation_pack_v3_error("PYBENCH_REOPEN_VALIDATION_FAILED",
       "Relation promotion differs from its retained seal.", "publication")
   grant <- grants[[1L]]

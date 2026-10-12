@@ -1,0 +1,9 @@
+{
+  "candidate": 384,
+  "parent_candidate": 380,
+  "source_count": 73,
+  "source_ledger_sha256": "87e6c8183343e7bc9a6084547cfa2655d2f22f4000bcc9b28b1d186870f37b02",
+  "install_root": "/tmp/scwb-graph-forge-bounded-legacy-structure-384.ctr2siel",
+  "qualification": false,
+  "correction": "Operational whole-codec admission for large factor-storage coercion, missing class and compact row.names; old-valid admitted-small exact parity retained."
+}

@@ -1,0 +1,18 @@
+PROMOTION_METADATA START test_promotion_runtime_fingerprint_metadata_loadability_contract 
+FINGERPRINT_METADATA unloaded_version=PASS no_namespace_or_onLoad=PASS missing_unreadable_NA=PASS independent_loadability_reject=PASS 
+PROMOTION_METADATA PASS test_promotion_runtime_fingerprint_metadata_loadability_contract 
+PROMOTION_METADATA START test_promotion_runtime_fingerprint_metadata_parity_contract 
+PROMOTION_METADATA PASS test_promotion_runtime_fingerprint_metadata_parity_contract 
+PROMOTION_METADATA START test_promotion_runtime_fingerprint_legacy_public_commit_contract 
+PROMOTION_METADATA PASS test_promotion_runtime_fingerprint_legacy_public_commit_contract 
+PROMOTION_METADATA START test_graph_abi4_public_r_execution_contract 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_RECIPIENT_PROCESS pack_free=TRUE read_only=TRUE relocated=TRUE descriptor_unchanged=TRUE sources_verified=TRUE missing_pack_rejected=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+PROMOTION_METADATA PASS test_graph_abi4_public_r_execution_contract 
+PROMOTION_METADATA START test_graph_resource_unstaged_public_promotion_cache_contract 
+PROMOTION_METADATA PASS test_graph_resource_unstaged_public_promotion_cache_contract 
+PROMOTION_METADATA_FOCUSED executed=5 passed=5 skipped=0 qualification=FALSE

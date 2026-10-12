@@ -1,0 +1,25 @@
+{
+  "prototype_only": true,
+  "qualification": false,
+  "runtime": {
+    "R": "4.4",
+    "jsonlite": "1.8.8",
+    "installed_core": "/tmp/scwb-graph-forge-bounded-fd-owned-spill.3vly243i/library"
+  },
+  "gate_372": {
+    "normal_metadata": 19,
+    "mixed_admitted_typed": 15,
+    "hostile_emitter": 15,
+    "physical_whole_payload": 6,
+    "exit": 0,
+    "skips": 0
+  },
+  "gate_371": {
+    "assertions": 4,
+    "codec_partition_exact": 7002,
+    "codec_partition_reject": 7001,
+    "conditional_predicate_executed": false,
+    "exit": 0
+  },
+  "scope": "No production source changes before372 terminal;341 source63 hashes rechecked374."
+}

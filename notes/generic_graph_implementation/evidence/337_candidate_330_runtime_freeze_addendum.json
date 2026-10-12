@@ -1,0 +1,13 @@
+{
+  "checkpoint": 330,
+  "historical_ledger_preserved": "notes/generic_graph_implementation/evidence/330_review_checkpoint.sha256",
+  "historical_ledger_sha256": "235d33841044bd732b932ab756feff67018e29bbba38cf9d61d8ba21831df85e",
+  "addendum": "notes/generic_graph_implementation/evidence/337_candidate_330_runtime_freeze_addendum.sha256",
+  "addendum_sha256": "1269de7942f38e8d66fe4a0a5259622607beb41c2b859f9811c5de6f71a0e14e",
+  "missing_changed_runtime_files_bound_now": [
+    "R/operation_pack_v4_graph_axes.R",
+    "R/sdk_native.R"
+  ],
+  "candidate_runtime_unchanged": true,
+  "reason": "61-file selective ledger omitted changed graph axis issuer and potentially other owned dirty runtime modules; freeze exact installed330 sources via additive evidence, do not transfer acceptance or overwrite historical ledger"
+}

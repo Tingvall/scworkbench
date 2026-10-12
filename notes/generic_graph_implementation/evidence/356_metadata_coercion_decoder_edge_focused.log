@@ -1,0 +1,4 @@
+Error in check(text, paste0("large_common_coercion_", case$type)) : 
+  identical(actual$sha256, digest::digest(expected, algo = "sha256",  .... is not TRUE
+Calls: check -> stopifnot
+Execution halted

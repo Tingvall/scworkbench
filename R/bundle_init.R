@@ -397,7 +397,7 @@ wb_refresh_manifest <- function(bundle) {
   )
 }
 
-.wb_manifest_table_identity <- function(con, table, chunk_size = 5000L) {
+.wb_manifest_table_identity_materialized <- function(con, table, chunk_size = 5000L) {
   fields <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", DBI::dbQuoteIdentifier(con, table), ");"))
   header <- list(
     schema = "scworkbench.manifest.registry-table.v1",

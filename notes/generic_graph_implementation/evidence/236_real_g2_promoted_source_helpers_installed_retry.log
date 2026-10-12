@@ -1,0 +1,7 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error: GRAPH_SOURCE_PAYLOAD_INVALID: Logical matrix axis count differs from native fragment union.
+Execution halted

@@ -1,0 +1,11 @@
+args <- commandArgs(TRUE)
+.libPaths(c(file.path(args[[1L]],"library"),.libPaths()))
+library(scworkbench)
+root <- tempfile("public_cell_na_");bundle <- wb_init_bundle(root)
+wb_define_cells(bundle,c("c1","c2"))
+primitive <- wb_prim_cell_vector(c(c1=1,c2=NA_real_),value_type="continuous")
+run <- wb_new_run("metadata_cell_vector",list(),list(),list(vector=primitive))
+error <- tryCatch({wb_promote_analysis(bundle,stats::setNames(list(run),run$run_id),head_run_id=run$run_id,outputs="vector");NULL},error=base::identity)
+wb_close_bundle(bundle);unlink(root,recursive=TRUE)
+if (inherits(error,"error")) {cat("PUBLIC_CELL_VECTOR_NA_PROMOTION_PROBE failed=TRUE message=",conditionMessage(error),"\n",sep="");quit(status=1L)}
+cat("PUBLIC_CELL_VECTOR_NA_PROMOTION_PROBE passed=TRUE\n")

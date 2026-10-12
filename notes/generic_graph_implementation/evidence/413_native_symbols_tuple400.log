@@ -1,0 +1,7 @@
+0000000000003040 T scwb_graph_json_close
+0000000000002e90 T scwb_graph_json_file_open
+0000000000003060 T scwb_graph_json_next
+0000000000002da0 T scwb_graph_json_open
+00000000000035e0 T scwb_graph_json_position
+0000000000009218 B sqlite3_api
+0000000000004080 T sqlite3_scwbgraphbytes_init

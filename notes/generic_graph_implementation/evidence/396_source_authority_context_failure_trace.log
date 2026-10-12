@@ -1,0 +1,13 @@
+Tracing function ".wb_graph_budgets" in package
+"namespace:scworkbench"
+[1] ".wb_graph_budgets"
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+Error: GRAPH_RESOURCE_POLICY_INVALID: storage_bytes
+6: .wb_graph_source_snapshot(bundle, binding$source_snapshot_identity, 
+       budgets, source_ref = source)
+5: .wb_graph_source_authorize(bundle, binding, .wb_operation_pack_v4_graph_budgets(grant$resource_budgets))
+4: scworkbench:::.wb_operation_pack_v4_graph_authorities_assert(bundle, 
+       list(authorized_source_axes = authorities))
+3: test_graph_retained_cell_source_payload_contract()
+2: isTRUE(test_graph_retained_cell_source_payload_contract())
+1: stopifnot(isTRUE(test_graph_retained_cell_source_payload_contract()))

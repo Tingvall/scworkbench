@@ -1,0 +1,35 @@
+args <- commandArgs(TRUE)
+stopifnot(length(args)==1L)
+args <- c(args,"projection")
+.libPaths(c(file.path(args[[1L]],"library"),.libPaths()))
+library(scworkbench)
+fixture <- readRDS("/tmp/scwb-graph-manifest-batch-lifecycle-246.rds")
+source_path <- file.path(fixture$source_bundle,"db/app.sqlite")
+before <- digest::digest(file=source_path,algo="sha256",serialize=FALSE)
+# Reuse only the isolated diagnostic copy; the original source is never opened.
+bundle <- wb_open_bundle("/tmp/scwb-graph-original-artifact-certificate-copy-263/source.bundle",validate=FALSE)
+policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes="8388608",sqlite_cache_kib=2048L,
+  partition_bytes=262144L,partition_rows=256L,collect_bytes=4194304L))
+restore <- scworkbench:::.wb_graph_aggregate_connection_budget(list(bundle$con),policy)
+`%||%` <- getFromNamespace("%||%","scworkbench")
+scworkbench:::.wb_matrix_native_byte_api_initialize()
+prefix <- "/tmp/scwb-graph-artifact-certificate-installed-387"
+stopifnot(!file.exists(paste0(prefix,".allocations")))
+report <- function(phase) {
+  status <- readLines("/proc/self/status")
+  cat("BOUNDED_FULL_CERTIFICATE",phase,paste(status[grepl("^(VmRSS|VmHWM):",status)],collapse=" "),"\n")
+  flush.console()
+}
+report("before")
+Rprofmem(paste0(prefix,".allocations"),threshold=1048576)
+time <- system.time(result <- wb_entity_certificate(bundle,"artifact",fixture$source_axis_artifact_id))
+Rprofmem(NULL)
+expected <- readRDS("/tmp/scwb-graph-original-artifact-certificate-263.certificate.rds")
+saveRDS(result,paste0(prefix,".certificate.rds"))
+stopifnot(identical(result,expected))
+report("after")
+cat("BOUNDED_FULL_CERTIFICATE exact_saved269_object=TRUE source_rows=90000 metadata_bytes=183 content_sha256=",
+  result$identity$content_sha256," elapsed=",time[["elapsed"]]," installed_production=TRUE qualification=FALSE PASS\n",sep="")
+restore();wb_close_bundle(bundle)
+stopifnot(identical(before,digest::digest(file=source_path,algo="sha256",serialize=FALSE)))
+cat("BOUNDED_FULL_CERTIFICATE original_sourceDB=UNCHANGED PASS\n")

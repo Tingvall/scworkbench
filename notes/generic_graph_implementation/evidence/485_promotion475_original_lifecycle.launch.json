@@ -1,0 +1,13 @@
+{
+  "utc": "2026-10-12T06:51:31.014176+00:00",
+  "available_bytes": 41006632960,
+  "envelope_bytes": 17179869184,
+  "reserve_bytes": 8589934592,
+  "tuple": 475,
+  "installed": 476,
+  "source_axes": 90000,
+  "nodes": 22000,
+  "qualification": false,
+  "review_closure": "BOTH_NARROW_ACCEPT_VERIFIED",
+  "notification_event_key": "graph-lifecycle-485-terminal"
+}

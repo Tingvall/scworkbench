@@ -1,0 +1,15 @@
+[1] 0
+logical_chunk 1 PASS
+logical_chunk 2 PASS
+logical_chunk 5 PASS
+logical_chunk 5000 PASS
+Warning messages:
+1: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+2: Column `CASE typeof(`a`) WHEN 'text' THEN CASE WHEN octet_length(`a`)<=256 THEN `a` ELSE '' END WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+3: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+4: Column `CASE typeof(`a`) WHEN 'text' THEN CASE WHEN octet_length(`a`)<=256 THEN `a` ELSE '' END WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+5: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+6: Column `CASE typeof(`a`) WHEN 'text' THEN CASE WHEN octet_length(`a`)<=256 THEN `a` ELSE '' END WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+7: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+8: Column `CASE typeof(`a`) WHEN 'text' THEN CASE WHEN octet_length(`a`)<=256 THEN `a` ELSE '' END WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+development parity PASS qualification=FALSE

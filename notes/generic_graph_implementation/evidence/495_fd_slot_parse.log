@@ -1,0 +1,1524 @@
+expression(.wb_graph_components <- function() c("nodes", "edges", 
+    "incidences", "attribute_fields", "attribute_values", "bindings", 
+    "binding_mappings"), .wb_graph_budgets <- function(overrides = list()) {
+    defaults <- list(storage_bytes = "8589934592", token_bytes = "8589934592", 
+        published_bytes = "8589934592", wal_bytes = "8589934592", 
+        memory_bytes = "67108864", partition_bytes = 1048576, 
+        partition_rows = 512L, collect_bytes = 16777216, sqlite_cache_kib = 8192L)
+    .wb_graph_require(is.list(overrides) && !anyDuplicated(names(overrides)) && 
+        all(names(overrides) %in% names(defaults)), "GRAPH_RESOURCE_POLICY_INVALID", 
+        "Unknown or duplicate resource budget.")
+    defaults[names(overrides)] <- overrides
+    byte_fields <- c("storage_bytes", "token_bytes", "published_bytes", 
+        "wal_bytes", "memory_bytes")
+    for (name in byte_fields) .wb_graph_require(.wb_graph_int64(defaults[[name]]) && 
+        !startsWith(defaults[[name]], "-") && defaults[[name]] != 
+        "0", "GRAPH_RESOURCE_POLICY_INVALID", name)
+    for (name in setdiff(names(defaults), byte_fields)) .wb_graph_require(is.numeric(defaults[[name]]) && 
+        length(defaults[[name]]) == 1L && is.finite(defaults[[name]]) && 
+        defaults[[name]] > 0 && defaults[[name]] <= 2147483647 && 
+        defaults[[name]] == floor(defaults[[name]]), "GRAPH_RESOURCE_POLICY_INVALID", 
+        name)
+    .wb_graph_require(defaults$sqlite_cache_kib * 1024 + 8 * 
+        defaults$partition_bytes <= as.numeric(defaults$memory_bytes) && 
+        defaults$collect_bytes <= as.numeric(defaults$memory_bytes), 
+        "GRAPH_RESOURCE_POLICY_INVALID", "Cache/decoded-partition or collect reservation exceeds working-memory admission.")
+    owned <- attr(overrides, "wb_graph_session_copy_bytes", exact = TRUE)
+    if (!is.null(owned)) {
+        .wb_graph_require(is.numeric(owned) && length(owned) == 
+            1L && is.finite(owned) && owned >= 0, "GRAPH_RESOURCE_POLICY_INVALID", 
+            "Invalid private session-copy reservation.")
+        attr(defaults, "wb_graph_session_copy_bytes") <- owned
+    }
+    defaults
+}, .wb_graph_effective_budgets <- function(con, budgets = list()) {
+    budgets <- .wb_graph_budgets(budgets)
+    active <- con@ref$wb_graph_policy
+    if (!is.null(active)) 
+        for (name in names(budgets)) {
+            value <- min(as.numeric(budgets[[name]]), as.numeric(active[[name]]))
+            budgets[[name]] <- if (is.character(budgets[[name]])) 
+                format(value, scientific = FALSE, trim = TRUE)
+            else if (is.integer(budgets[[name]])) 
+                as.integer(value)
+            else value
+        }
+    owned <- max(c(0, attr(budgets, "wb_graph_session_copy_bytes", 
+        exact = TRUE), attr(active, "wb_graph_session_copy_bytes", 
+        exact = TRUE), con@ref$wb_graph_session_copy_bytes))
+    if (owned > 0) 
+        attr(budgets, "wb_graph_session_copy_bytes") <- owned
+    .wb_graph_budgets(budgets)
+}, .wb_graph_bundle_connections <- function(bundle) {
+    connections <- list(bundle$con)
+    if (!is.null(bundle$staging_source_bundle)) 
+        connections <- c(connections, list(bundle$staging_source_bundle$con))
+    connections
+}, .wb_graph_aggregate_connection_budget <- function(connections, 
+    budgets, extra = 0L) {
+    connections <- Filter(function(con) !is.null(con) && DBI::dbIsValid(con), 
+        connections)
+    connections <- connections[!duplicated(vapply(connections, 
+        function(con) format(con@ref), character(1)))]
+    for (con in connections) budgets <- .wb_graph_effective_budgets(con, 
+        budgets)
+    owned_copies <- sum(vapply(connections, function(con) con@ref$wb_graph_session_copy_bytes %||% 
+        0, numeric(1)))
+    if (owned_copies > 0) 
+        attr(budgets, "wb_graph_session_copy_bytes") <- max(owned_copies, 
+            .wb_graph_session_copy_reservation(budgets))
+    share <- floor((budgets$sqlite_cache_kib - 128L)/(length(connections) + 
+        extra))
+    .wb_graph_require(is.finite(share) && share >= 1, "GRAPH_RESOURCE_EXCEEDED", 
+        "Concurrent SQLite caches exceed aggregate admission.")
+    restores <- list()
+    success <- FALSE
+    restore <- function() for (fn in rev(restores)) fn()
+    on.exit(if (!success) restore(), add = TRUE)
+    for (con in connections) restores[[length(restores) + 1L]] <- .wb_graph_scoped_connection_budget(con, 
+        budgets, cache_kib = share)
+    success <- TRUE
+    attr(restore, "wb_graph_cache_kib") <- share
+    restore
+}, .wb_graph_scoped_connection_budget <- function(con, budgets, 
+    cache_kib = budgets$sqlite_cache_kib) {
+    before_temp <- DBI::dbGetQuery(con, "PRAGMA temp_store;")[[1L]][[1L]]
+    before_cache <- DBI::dbGetQuery(con, "PRAGMA cache_size;")[[1L]][[1L]]
+    before_policy <- con@ref$wb_graph_policy
+    before_cap <- con@ref$wb_graph_cache_kib
+    budgets <- .wb_graph_effective_budgets(con, budgets)
+    cache_kib <- min(cache_kib, budgets$sqlite_cache_kib, if (is.null(before_cap)) Inf else before_cap)
+    if (before_temp != 1L) 
+        .wb_graph_require(!nrow(DBI::dbGetQuery(con, "SELECT 1 FROM sqlite_temp_master LIMIT 1;")), 
+            "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", "Cannot change sorter policy while caller-owned TEMP objects exist.")
+    restore <- function() {
+        if (!DBI::dbIsValid(con)) 
+            return(invisible(NULL))
+        if (before_temp != 1L) 
+            .wb_graph_require(!nrow(DBI::dbGetQuery(con, "SELECT 1 FROM sqlite_temp_master LIMIT 1;")), 
+                "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", "Cannot restore sorter policy while new caller-owned TEMP objects exist.")
+        DBI::dbExecute(con, paste0("PRAGMA cache_size=", before_cache, 
+            ";"))
+        if (before_temp != 1L) 
+            DBI::dbExecute(con, paste0("PRAGMA temp_store=", 
+                before_temp, ";"))
+        con@ref$wb_graph_policy <- before_policy
+        con@ref$wb_graph_cache_kib <- before_cap
+        invisible(NULL)
+    }
+    tryCatch({
+        if (before_temp != 1L) 
+            DBI::dbExecute(con, "PRAGMA temp_store=FILE;")
+        DBI::dbExecute(con, paste0("PRAGMA cache_size=-", cache_kib, 
+            ";"))
+        .wb_graph_require(DBI::dbGetQuery(con, "PRAGMA temp_store;")[[1L]][[1L]] == 
+            1L && DBI::dbGetQuery(con, "PRAGMA cache_size;")[[1L]][[1L]] == 
+            -cache_kib, "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", 
+            "Source connection did not admit disk-backed bounded sorting.")
+    }, error = function(error) {
+        try(restore(), silent = TRUE)
+        .wb_graph_error("GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", 
+            conditionMessage(error))
+    })
+    con@ref$wb_graph_policy <- budgets
+    con@ref$wb_graph_cache_kib <- cache_kib
+    restore
+}, .wb_graph_disk_usage <- function(con, budgets = .wb_graph_effective_budgets(con)) {
+    database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+    path <- database$file[database$name == "main"][[1L]]
+    pages <- as.double(DBI::dbGetQuery(con, "PRAGMA page_count;")[[1L]][[1L]])
+    page_bytes <- as.double(DBI::dbGetQuery(con, "PRAGMA page_size;")[[1L]][[1L]])
+    transient <- .wb_graph_transient_usage(path, budgets)
+    usage <- c(list(database_bytes = pages * page_bytes), transient)
+    attr(usage, "wb_graph_owned_spill_inventory") <- attr(transient, 
+        "wb_graph_owned_spill_inventory")
+    attr(usage, "wb_graph_database_path") <- path
+    usage
+}, .wb_graph_fd_metadata_reservation <- function(budgets) {
+    available <- as.numeric(budgets$memory_bytes) - budgets$sqlite_cache_kib * 
+        1024 - 8 * budgets$partition_bytes - 65536
+    .wb_graph_require(available > 0, "GRAPH_RESOURCE_EXCEEDED", 
+        "No working reservation remains for owned spill metadata.")
+    floor(min(max(65536, as.numeric(budgets$memory_bytes)/32), 
+        available))
+}, .wb_graph_file_identity <- function(path) {
+    tryCatch(.Call(C_scwb_graph_file_identity, path), error = function(error) .wb_graph_error("GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", 
+        conditionMessage(error)))
+}, .wb_graph_transient_usage <- function(path = "", budgets = .wb_graph_budgets()) {
+    journal_paths <- paste0(path, c("-wal", "-journal", "-shm"))
+    journal <- file.info(journal_paths)$size
+    temp_bytes <- 0
+    owned_bytes <- 0
+    inventory <- numeric()
+    temporary_ids <- character()
+    fd_root <- "/proc/self/fd"
+    .wb_graph_require(dir.exists(fd_root), "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", 
+        "Bounded graph SQLite runtime requires Linux procfs for unlinked temporary spill accounting.")
+    if (dir.exists(fd_root)) {
+        allowance <- .wb_graph_fd_metadata_reservation(budgets)
+        names <- tryCatch(.Call(C_scwb_graph_source_directory, 
+            fd_root, allowance), error = function(error) {
+            code <- if (startsWith(conditionMessage(error), "GRAPH_RESOURCE_EXCEEDED:")) 
+                "GRAPH_RESOURCE_EXCEEDED"
+            else "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE"
+            .wb_graph_error(code, conditionMessage(error))
+        })
+        used <- names[[2L]]
+        for (name in names[[1L]]) {
+            fd <- file.path(fd_root, name)
+            link <- tryCatch(.Call(C_scwb_graph_readlink, fd, 
+                allowance - used), error = function(error) {
+                code <- if (startsWith(conditionMessage(error), 
+                  "GRAPH_RESOURCE_EXCEEDED:")) 
+                  "GRAPH_RESOURCE_EXCEEDED"
+                else "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE"
+                .wb_graph_error(code, conditionMessage(error))
+            })
+            if (is.null(link)) 
+                next
+            target <- link[[1L]]
+            link_charge <- link[[2L]]
+            temporary <- grepl("(^|/)(etilqs_|scwb_graph_tokens_|scwb_graph_identity_|scwb_object_meta_)", 
+                target, useBytes = TRUE)
+            if (!temporary && !grepl("(^|/)scwb_graph_stage_", 
+                target, useBytes = TRUE)) 
+                next
+            .wb_graph_require(used + link_charge + 2048 <= allowance, 
+                "GRAPH_RESOURCE_EXCEEDED", "Owned spill identity metadata exceeds bounded admission.")
+            identity <- .wb_graph_file_identity(fd)
+            size <- suppressWarnings(file.info(fd)$size)
+            if (is.na(identity) || is.na(size)) 
+                next
+            before <- inventory[identity]
+            if (is.na(before)) {
+                charge <- 1024 + 16 * (nchar(identity, type = "bytes") + 
+                  1)
+                .wb_graph_require(used + link_charge + 2048 + 
+                  charge <= allowance, "GRAPH_RESOURCE_EXCEEDED", 
+                  "Owned spill inventory exceeds bounded admission.")
+                used <- used + charge
+                before <- 0
+            }
+            inventory[identity] <- max(size, before)
+            if (temporary && !identity %in% temporary_ids) 
+                temporary_ids <- c(temporary_ids, identity)
+        }
+        owned_bytes <- sum(inventory)
+        temp_bytes <- sum(inventory[temporary_ids])
+    }
+    usage <- list(journal_bytes = sum(journal[!is.na(journal)]), 
+        temporary_bytes = temp_bytes, owned_spill_bytes = owned_bytes, 
+        temporary_accounting = if (dir.exists(fd_root)) "procfs_open_descriptors" else "unavailable")
+    attr(usage, "wb_graph_owned_spill_inventory") <- inventory
+    usage
+}, .wb_graph_spill_adjustment <- function(usage, path, bytes) {
+    .wb_graph_require(length(bytes) == 1L && is.finite(bytes) && 
+        bytes >= 0, "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", 
+        "Cannot measure owned graph scratch.")
+    if (is.null(path) || !nzchar(path)) 
+        return(bytes)
+    inventory <- attr(usage, "wb_graph_owned_spill_inventory", 
+        exact = TRUE)
+    identity <- .wb_graph_file_identity(path)
+    observed <- if (is.na(identity)) 
+        NA_real_
+    else inventory[identity]
+    if (!length(observed) || is.na(observed)) 
+        observed <- 0
+    max(0, bytes - observed)
+}, .wb_graph_transient_admit <- function(budgets, path = "") {
+    usage <- .wb_graph_transient_usage(path, budgets)
+    .wb_graph_require(usage$journal_bytes <= as.numeric(budgets$wal_bytes), 
+        "GRAPH_RESOURCE_EXCEEDED", "Graph SQLite WAL/journal/SHM budget exceeded.")
+    .wb_graph_require(usage$owned_spill_bytes + .wb_graph_session_copy_reservation(budgets) <= 
+        as.numeric(budgets$token_bytes), "GRAPH_RESOURCE_EXCEEDED", 
+        "Graph combined canonical-token/SQLite temporary spill budget exceeded.")
+    invisible(usage)
+}, .wb_graph_spill_admit <- function(budgets, scratch_path = NULL) {
+    usage <- .wb_graph_transient_usage(budgets = budgets)
+    scratch_bytes <- if (is.null(scratch_path)) 
+        0
+    else file.info(scratch_path)$size
+    adjustment <- .wb_graph_spill_adjustment(usage, scratch_path, 
+        scratch_bytes)
+    .wb_graph_require(usage$owned_spill_bytes + adjustment + 
+        .wb_graph_session_copy_reservation(budgets) <= as.numeric(budgets$token_bytes), 
+        "GRAPH_RESOURCE_EXCEEDED", "Combined graph scratch database/canonical-token/temporary spill budget exceeded.")
+    invisible(usage)
+}, .wb_graph_disk_admit <- function(con, budgets, baseline = NULL) {
+    usage <- .wb_graph_disk_usage(con, budgets)
+    if (is.null(baseline)) 
+        .wb_graph_require(usage$database_bytes <= as.numeric(budgets$storage_bytes), 
+            "GRAPH_RESOURCE_EXCEEDED", "Graph staging database budget exceeded.")
+    else .wb_graph_require(max(0, usage$database_bytes - baseline$database_bytes) <= 
+        as.numeric(budgets$published_bytes), "GRAPH_RESOURCE_EXCEEDED", 
+        "Graph publication database-growth budget exceeded.")
+    .wb_graph_require(usage$journal_bytes <= as.numeric(budgets$wal_bytes), 
+        "GRAPH_RESOURCE_EXCEEDED", "Graph SQLite WAL/journal/SHM budget exceeded.")
+    adjustment <- if (is.null(baseline) || isTRUE(attr(con, "wb_graph_owned_stage"))) 
+        .wb_graph_spill_adjustment(usage, attr(usage, "wb_graph_database_path"), 
+            usage$database_bytes)
+    else 0
+    .wb_graph_require(usage$owned_spill_bytes + adjustment + 
+        .wb_graph_session_copy_reservation(budgets) <= as.numeric(budgets$token_bytes), 
+        "GRAPH_RESOURCE_EXCEEDED", "Combined graph scratch and spill budget exceeded.")
+    invisible(usage)
+}, .wb_graph_session_copy_reservation <- function(budgets) {
+    attr(budgets, "wb_graph_session_copy_bytes", exact = TRUE) %||% 
+        0
+}, .wb_graph_i64 <- function(value) {
+    .wb_graph_require(.wb_graph_int64(value) && !startsWith(value, 
+        "-"), "GRAPH_COUNT_INVALID", "Expected exact nonnegative decimal int64.")
+    bit64::as.integer64(value)
+}, .wb_graph_add_count <- function(count, increment) {
+    next_count <- suppressWarnings(.wb_graph_i64(count) + bit64::as.integer64(increment))
+    .wb_graph_require(!is.na(next_count), "GRAPH_COUNT_OVERFLOW", 
+        "Count overflow.")
+    as.character(next_count)
+}, .wb_graph_materialization_admit <- function(value, bytes) {
+    .wb_graph_require(is.numeric(bytes) && length(bytes) == 1L && 
+        is.finite(bytes) && bytes > 0, "GRAPH_RESOURCE_POLICY_INVALID", 
+        "Materialization budget.")
+    used <- 0
+    add <- function(n) {
+        used <<- used + n
+        .wb_graph_require(used <= bytes, "GRAPH_RESOURCE_EXCEEDED", 
+            "Whole-object materialization budget exceeded; use bounded graph parts.")
+    }
+    walk <- function(x) {
+        if (is.null(x)) {
+            add(4)
+            return(invisible(NULL))
+        }
+        if (is.list(x)) {
+            add(2 + max(0, length(x) - 1))
+            object <- !is.null(names(x))
+            for (i in seq_along(x)) {
+                if (object) {
+                  .wb_graph_require(nchar(names(x)[[i]], type = "bytes") <= 
+                    bytes, "GRAPH_RESOURCE_EXCEEDED", "Oversized field token.")
+                  add(nchar(.wb_operation_pack_canonical_json(names(x)[[i]]), 
+                    type = "bytes") + 1)
+                }
+                walk(x[[i]])
+            }
+        }
+        else {
+            if (is.character(x)) 
+                .wb_graph_require(all(nchar(x, type = "bytes") <= 
+                  bytes), "GRAPH_RESOURCE_EXCEEDED", "Oversized scalar token.")
+            add(nchar(.wb_operation_pack_canonical_json(x), type = "bytes"))
+        }
+        invisible(NULL)
+    }
+    walk(value)
+    invisible(used)
+}, .wb_graph_create_schema <- function(con, retained = TRUE) {
+    .wb_graph_backend_assert(con)
+    DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_graph_meta (", 
+        "artifact_id TEXT PRIMARY KEY,profile TEXT NOT NULL,direction_mode TEXT NOT NULL,", 
+        "content_identity_json TEXT,binding_identity_json TEXT,descriptor_json TEXT,", 
+        "descriptor_identity_json TEXT,canonical_bytes TEXT,", 
+        if (retained) 
+            "FOREIGN KEY(artifact_id) REFERENCES artifacts(artifact_id) DEFERRABLE INITIALLY DEFERRED"
+        else "CHECK(profile='graph_sqlite_v1')", ");"))
+    DBI::dbExecute(con, paste0("CREATE TABLE IF NOT EXISTS artifact_graph_rows (", 
+        "artifact_id TEXT NOT NULL,component TEXT NOT NULL CHECK(component IN (", 
+        paste0("'", .wb_graph_components(), "'", collapse = ","), 
+        ")),", "row_ordinal INTEGER NOT NULL CHECK(typeof(row_ordinal)='integer' AND row_ordinal>=0),", 
+        "record_json TEXT NOT NULL CHECK(json_valid(record_json)),PRIMARY KEY(artifact_id,component,row_ordinal),", 
+        "FOREIGN KEY(artifact_id) REFERENCES artifact_graph_meta(artifact_id) DEFERRABLE INITIALLY DEFERRED);"))
+    unique_fields <- list(nodes = "node_id", edges = "edge_id", 
+        incidences = "incidence_id", bindings = "binding_id")
+    for (component in names(unique_fields)) DBI::dbExecute(con, 
+        paste0("CREATE UNIQUE INDEX IF NOT EXISTS graph_", component, 
+            "_id ON artifact_graph_rows", "(artifact_id,json_extract(record_json,'$.", 
+            unique_fields[[component]], "')) WHERE component='", 
+            component, "';"))
+    DBI::dbExecute(con, paste0("CREATE UNIQUE INDEX IF NOT EXISTS graph_edge_incidence ", 
+        "ON artifact_graph_rows(artifact_id,json_extract(record_json,'$.edge_id'),", 
+        "json_extract(record_json,'$.ordinal')) WHERE component='incidences';"))
+    DBI::dbExecute(con, paste0("CREATE UNIQUE INDEX IF NOT EXISTS graph_field_id ", 
+        "ON artifact_graph_rows(artifact_id,json_extract(record_json,'$.scope'),", 
+        "json_extract(record_json,'$.field_ordinal')) WHERE component='attribute_fields';"))
+    DBI::dbExecute(con, paste0("CREATE UNIQUE INDEX IF NOT EXISTS graph_field_name ", 
+        "ON artifact_graph_rows(artifact_id,json_extract(record_json,'$.scope'),", 
+        "json_extract(record_json,'$.name')) WHERE component='attribute_fields';"))
+    DBI::dbExecute(con, paste0("CREATE UNIQUE INDEX IF NOT EXISTS graph_value_key ", 
+        "ON artifact_graph_rows(artifact_id,json_extract(record_json,'$.scope'),", 
+        "json_extract(record_json,'$.field_ordinal'),json_extract(record_json,'$.entity_ordinal')) ", 
+        "WHERE component='attribute_values';"))
+    for (field in c("node_id", "axis_id")) DBI::dbExecute(con, 
+        paste0("CREATE UNIQUE INDEX IF NOT EXISTS graph_mapping_", 
+            field, " ON artifact_graph_rows(artifact_id,json_extract(record_json,'$.binding_id'),", 
+            "json_extract(record_json,'$.", field, "')) WHERE component='binding_mappings';"))
+    invisible(TRUE)
+}, .wb_graph_backend_assert <- function(con) {
+    available <- tryCatch(DBI::dbGetQuery(con, "SELECT octet_length('x') n;")$n[[1]] == 
+        1, error = function(error) FALSE)
+    .wb_graph_require(isTRUE(available), "GRAPH_BACKEND_VERSION_UNSUPPORTED", 
+        "Graph bounded reads require SQLite octet_length support (3.43 or later).")
+    invisible(TRUE)
+}, .wb_graph_configure <- function(con, budgets, cache_kib = budgets$sqlite_cache_kib) {
+    DBI::dbExecute(con, "PRAGMA foreign_keys=ON;")
+    DBI::dbExecute(con, "PRAGMA temp_store=FILE;")
+    DBI::dbExecute(con, paste0("PRAGMA cache_size=-", cache_kib, 
+        ";"))
+    invisible(TRUE)
+}, .wb_graph_stage_new <- function(direction_mode, budgets = list(), 
+    cache_kib = NULL) {
+    budgets <- .wb_graph_budgets(budgets)
+    .wb_graph_transient_usage(budgets = budgets)
+    .wb_graph_require(.wb_graph_string(direction_mode) && direction_mode %in% 
+        c("directed", "undirected", "mixed"), "GRAPH_DIRECTION_INVALID", 
+        "Invalid header.")
+    state <- new.env(parent = emptyenv())
+    state$budgets <- .wb_graph_budgets(budgets)
+    if (!is.null(cache_kib)) 
+        .wb_graph_require(is.numeric(cache_kib) && length(cache_kib) == 
+            1L && is.finite(cache_kib) && cache_kib == floor(cache_kib) && 
+            cache_kib >= 1 && cache_kib <= state$budgets$sqlite_cache_kib, 
+            "GRAPH_RESOURCE_POLICY_INVALID", "Invalid stage cache share.")
+    state$path <- tempfile("scwb_graph_stage_", fileext = ".sqlite")
+    state$closed <- FALSE
+    succeeded <- FALSE
+    on.exit(if (!succeeded) .wb_graph_stage_discard(state), add = TRUE)
+    state$con <- DBI::dbConnect(RSQLite::SQLite(), state$path, 
+        bigint = "character")
+    attr(state$con, "wb_graph_owned_stage") <- TRUE
+    reg.finalizer(state, function(x) .wb_graph_stage_discard(x), 
+        onexit = TRUE)
+    .wb_graph_storage_fault("connected", state)
+    .wb_graph_configure(state$con, state$budgets, if (is.null(cache_kib)) 
+        state$budgets$sqlite_cache_kib
+    else cache_kib)
+    if (!is.null(cache_kib)) {
+        state$con@ref$wb_graph_policy <- state$budgets
+        state$con@ref$wb_graph_cache_kib <- cache_kib
+    }
+    .wb_graph_storage_fault("configured", state)
+    .wb_graph_create_schema(state$con, retained = FALSE)
+    DBI::dbExecute(state$con, paste0("INSERT INTO artifact_graph_meta", 
+        "(artifact_id,profile,direction_mode) VALUES('staged','graph_sqlite_v1',?);"), 
+        params = list(direction_mode))
+    state$counts <- stats::setNames(rep("0", length(.wb_graph_components())), 
+        .wb_graph_components())
+    state$component <- 1L
+    state$finished <- FALSE
+    .wb_graph_disk_admit(state$con, state$budgets)
+    succeeded <- TRUE
+    state
+}, .wb_graph_storage_fault <- function(event, state) {
+    hook <- getOption("scworkbench.graph_storage_test_hook")
+    if (is.function(hook)) 
+        hook(event, state)
+    invisible(TRUE)
+}, .wb_graph_stage_discard <- function(state) {
+    if (!isTRUE(state$closed)) {
+        if (!is.null(state$con) && DBI::dbIsValid(state$con)) 
+            DBI::dbDisconnect(state$con)
+        for (path in c(state$path, paste0(state$path, c("-wal", 
+            "-shm", "-journal")))) if (file.exists(path)) 
+            unlink(path)
+        state$closed <- TRUE
+    }
+    invisible(TRUE)
+}, .wb_graph_page <- function(con, artifact_id, component, after, 
+    page, bytes, predicate = "", params = list()) {
+    query <- paste0("WITH candidate AS (SELECT row_ordinal,", 
+        "octet_length(record_json) n FROM artifact_graph_rows ", 
+        "WHERE artifact_id=? AND component=? ", predicate, " AND row_ordinal>=CAST(? AS INTEGER) ORDER BY row_ordinal LIMIT ?),", 
+        "bounded AS (SELECT *,SUM(n) OVER (ORDER BY row_ordinal) used FROM candidate) ", 
+        "SELECT g.row_ordinal,g.record_json FROM bounded b JOIN artifact_graph_rows g ", 
+        "ON g.artifact_id=? AND g.component=? AND g.row_ordinal=b.row_ordinal ", 
+        "WHERE b.used<=? ORDER BY g.row_ordinal;")
+    values <- c(list(artifact_id, component), params, list(after, 
+        page, artifact_id, component, bytes))
+    rows <- DBI::dbGetQuery(con, query, params = values)
+    if (!nrow(rows)) {
+        exists <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows ", 
+            "WHERE artifact_id=? AND component=? ", predicate, 
+            " AND row_ordinal>=CAST(? AS INTEGER) LIMIT 1;"), 
+            params = c(list(artifact_id, component), params, 
+                list(after)))
+        .wb_graph_require(!nrow(exists), "GRAPH_RESOURCE_EXCEEDED", 
+            "Single graph record exceeds the admitted decoded-partition budget.")
+    }
+    rows
+}, .wb_graph_scan <- function(con, artifact_id, component, callback, 
+    page = 512L, predicate = "", params = list(), bytes = 1048576) {
+    after <- "0"
+    repeat {
+        rows <- .wb_graph_page(con, artifact_id, component, after, 
+            page, bytes, predicate, params)
+        if (!nrow(rows)) 
+            break
+        callback(rows)
+        after <- .wb_graph_add_count(as.character(rows$row_ordinal[[nrow(rows)]]), 
+            1L)
+    }
+    invisible(TRUE)
+}, .wb_graph_parse <- function(json) .wb_operation_pack_parse_canonical_json(json), 
+    .wb_graph_append <- function(state, component, rows, first_ordinal = NULL) {
+        .wb_graph_require(!state$closed && !state$finished, "GRAPH_WRITER_RETIRED", 
+            "Writer retired.")
+        index <- match(component, .wb_graph_components())
+        .wb_graph_require(!is.na(index) && index >= state$component, 
+            "GRAPH_PART_ORDER_INVALID", "Components cannot be repeated or reordered.")
+        rows <- .wb_graph_records(rows)
+        .wb_graph_require(as.numeric(object.size(rows)) <= as.numeric(state$budgets$memory_bytes), 
+            "GRAPH_RESOURCE_EXCEEDED", "Decoded graph part exceeds working-memory admission.")
+        .wb_graph_require(length(rows) <= state$budgets$partition_rows, 
+            "GRAPH_RESOURCE_EXCEEDED", "Partition row budget exceeded.")
+        start <- state$counts[[component]]
+        .wb_graph_require(is.null(first_ordinal) || identical(first_ordinal, 
+            start), "GRAPH_PART_ORDER_INVALID", "Partition is stale, repeated or missing.")
+        if (!length(rows)) {
+            state$component <- index
+            return(invisible(TRUE))
+        }
+        encoded <- vapply(rows, .wb_operation_pack_canonical_json, 
+            character(1))
+        .wb_graph_require(sum(nchar(encoded, type = "bytes")) <= 
+            state$budgets$partition_bytes, "GRAPH_RESOURCE_EXCEEDED", 
+            "Decoded partition byte budget exceeded.")
+        ordinals <- as.character(.wb_graph_i64(start) + bit64::as.integer64(seq_along(rows) - 
+            1L))
+        tryCatch(DBI::dbWithTransaction(state$con, {
+            DBI::dbAppendTable(state$con, "artifact_graph_rows", 
+                data.frame(artifact_id = "staged", component = component, 
+                  row_ordinal = bit64::as.integer64(ordinals), 
+                  record_json = encoded))
+            .wb_graph_disk_admit(state$con, state$budgets)
+        }), error = function(error) {
+            if (inherits(error, "wb_graph_error")) 
+                stop(error)
+            .wb_graph_error("GRAPH_ROWS_INVALID", conditionMessage(error))
+        })
+        state$counts[[component]] <- .wb_graph_add_count(start, 
+            length(rows))
+        state$component <- index
+        .wb_graph_disk_admit(state$con, state$budgets)
+        invisible(TRUE)
+    }, .wb_graph_row_validate <- function(component, record) {
+        fields <- switch(component, nodes = "node_id", edges = c("edge_id", 
+            "kind", "direction"), incidences = c("incidence_id", 
+            "edge_id", "node_id", "role", "ordinal"), attribute_fields = c("scope", 
+            "field_ordinal", "name", "type", "nullable"), attribute_values = c("scope", 
+            "field_ordinal", "entity_ordinal", "value"), bindings = c("binding_ordinal", 
+            "binding_id", "axis_kind", "source_ref", "source_snapshot_identity", 
+            "axis_content_identity", "axis_order_identity"), 
+            binding_mappings = c("binding_id", "mapping_ordinal", 
+                "node_id", "axis_id"))
+        .wb_graph_closed(record, fields, component)
+        for (name in intersect(fields, c("node_id", "edge_id", 
+            "incidence_id", "binding_id", "axis_id", "name"))) .wb_graph_require(.wb_graph_string(record[[name]]), 
+            "GRAPH_ID_INVALID", name)
+        for (name in intersect(fields, "ordinal")) {
+            value <- record[[name]]
+            .wb_graph_require(is.numeric(value) && length(value) == 
+                1L && is.finite(value) && value >= 0 && value <= 
+                999999999999999 && value == floor(value), "GRAPH_ORDINAL_INVALID", 
+                name)
+        }
+        for (name in intersect(fields, c("field_ordinal", "entity_ordinal", 
+            "binding_ordinal", "mapping_ordinal"))) .wb_graph_i64(record[[name]])
+        if (component == "edges") 
+            .wb_graph_require(.wb_graph_string(record$kind) && 
+                .wb_graph_string(record$direction) && record$kind %in% 
+                c("ordinary", "hyper") && record$direction %in% 
+                c("directed", "undirected"), "GRAPH_DIRECTION_INVALID", 
+                "Invalid edge.")
+        if (component == "incidences") 
+            .wb_graph_require(.wb_graph_string(record$role) && 
+                record$role %in% c("tail", "head", "member"), 
+                "GRAPH_ROLE_INVALID", "Invalid incidence role.")
+        if (component %in% c("attribute_fields", "attribute_values")) 
+            .wb_graph_require(.wb_graph_string(record$scope) && 
+                record$scope %in% c("graph", "node", "edge", 
+                  "incidence"), "GRAPH_ATTRIBUTE_INVALID", "Invalid attribute scope.")
+        if (component == "attribute_fields") 
+            .wb_graph_require(.wb_graph_string(record$type) && 
+                record$type %in% c("bool", "utf8", "int64_decimal_string", 
+                  "float64_le_hex") && is.logical(record$nullable) && 
+                length(record$nullable) == 1L && !is.na(record$nullable), 
+                "GRAPH_ATTRIBUTE_INVALID", "Invalid attribute declaration.")
+        invisible(TRUE)
+    }, .wb_graph_validate_sql <- function(con, artifact_id, budgets = .wb_graph_budgets()) {
+        .wb_graph_backend_assert(con)
+        database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+        database_path <- database$file[database$name == "main"][[1L]]
+        oversized <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows WHERE artifact_id=? ", 
+            "AND octet_length(record_json)>? LIMIT 1;"), params = list(artifact_id, 
+            budgets$partition_bytes))
+        .wb_graph_require(!nrow(oversized), "GRAPH_RESOURCE_EXCEEDED", 
+            "Stored graph record exceeds decoded budget.")
+        oversized <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_meta WHERE artifact_id=? AND (", 
+            "COALESCE(octet_length(content_identity_json),0)+COALESCE(octet_length(binding_identity_json),0)+", 
+            "COALESCE(octet_length(descriptor_json),0)+COALESCE(octet_length(descriptor_identity_json),0)+", 
+            "COALESCE(octet_length(profile),0)+COALESCE(octet_length(direction_mode),0)+", 
+            "COALESCE(octet_length(canonical_bytes),0)+COALESCE(octet_length(artifact_id),0)>?) LIMIT 1;"), 
+            params = list(artifact_id, budgets$partition_bytes))
+        .wb_graph_require(!nrow(oversized), "GRAPH_RESOURCE_EXCEEDED", 
+            "Graph identity header exceeds decoded budget.")
+        meta <- DBI::dbGetQuery(con, paste0("SELECT * FROM artifact_graph_meta WHERE artifact_id=? AND ", 
+            "COALESCE(octet_length(content_identity_json),0)+COALESCE(octet_length(binding_identity_json),0)+", 
+            "COALESCE(octet_length(descriptor_json),0)+COALESCE(octet_length(descriptor_identity_json),0)+", 
+            "COALESCE(octet_length(profile),0)+COALESCE(octet_length(direction_mode),0)+", 
+            "COALESCE(octet_length(canonical_bytes),0)+COALESCE(octet_length(artifact_id),0)<=?;"), 
+            params = list(artifact_id, budgets$partition_bytes))
+        .wb_graph_require(nrow(meta) == 1L && meta$profile[[1]] == 
+            "graph_sqlite_v1", "GRAPH_VERSION_UNSUPPORTED", "Graph registry missing or unsupported.")
+        .wb_graph_require(meta$direction_mode[[1]] %in% c("directed", 
+            "undirected", "mixed"), "GRAPH_DIRECTION_INVALID", 
+            "Invalid stored direction mode.")
+        hidden <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows WHERE artifact_id=? AND (", 
+            "typeof(row_ordinal)!='integer' OR row_ordinal<0 OR component NOT IN (", 
+            paste0("'", .wb_graph_components(), "'", collapse = ","), 
+            ") OR NOT json_valid(record_json)) LIMIT 1;"), params = list(artifact_id))
+        .wb_graph_require(!nrow(hidden), "GRAPH_ROWS_INVALID", 
+            "Hidden/unknown/invalid stored component rows.")
+        unique_keys <- list(nodes = "node_id", edges = "edge_id", 
+            incidences = "incidence_id", attribute_fields = c("scope", 
+                "name"), attribute_values = c("scope", "field_ordinal", 
+                "entity_ordinal"), bindings = "binding_id", binding_mappings = c("binding_id", 
+                "node_id"))
+        for (component in names(unique_keys)) {
+            group <- paste0("json_extract(record_json,'$.", unique_keys[[component]], 
+                "')", collapse = ",")
+            duplicate <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows ", 
+                "WHERE artifact_id=? AND component=? GROUP BY ", 
+                group, " HAVING COUNT(*)>1 LIMIT 1;"), params = list(artifact_id, 
+                component))
+            .wb_graph_require(!nrow(duplicate), "GRAPH_ID_DUPLICATE", 
+                component)
+        }
+        duplicate <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows ", 
+            "WHERE artifact_id=? AND component='binding_mappings' GROUP BY ", 
+            "json_extract(record_json,'$.binding_id'),json_extract(record_json,'$.axis_id') ", 
+            "HAVING COUNT(*)>1 LIMIT 1;"), params = list(artifact_id))
+        .wb_graph_require(!nrow(duplicate), "GRAPH_BINDINGS_INVALID", 
+            "Noninjective axis mapping.")
+        for (component in .wb_graph_components()) {
+            expected <- "0"
+            .wb_graph_scan(con, artifact_id, component, function(rows) {
+                .wb_graph_require(identical(as.character(rows$row_ordinal), 
+                  as.character(.wb_graph_i64(expected) + bit64::as.integer64(seq_len(nrow(rows)) - 
+                    1L))), "GRAPH_PART_ORDER_INVALID", "Missing/gapped stored partition rows.")
+                for (json in rows$record_json) .wb_graph_row_validate(component, 
+                  .wb_graph_parse(json))
+                expected <<- .wb_graph_add_count(expected, nrow(rows))
+            }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
+        }
+        edge_sql <- paste0("SELECT e.record_json edge_json,COUNT(i.row_ordinal) n,", 
+            "MIN(json_extract(i.record_json,'$.ordinal')) lo,MAX(json_extract(i.record_json,'$.ordinal')) hi,", 
+            "SUM(json_extract(i.record_json,'$.role')='tail') tails,", 
+            "SUM(json_extract(i.record_json,'$.role')='head') heads,", 
+            "SUM(json_extract(i.record_json,'$.role')='member') members ", 
+            "FROM artifact_graph_rows e LEFT JOIN artifact_graph_rows i ON i.artifact_id=e.artifact_id ", 
+            "AND i.component='incidences' AND json_extract(i.record_json,'$.edge_id')=json_extract(e.record_json,'$.edge_id') ", 
+            "WHERE e.artifact_id=? AND e.component='edges' GROUP BY e.row_ordinal ORDER BY e.row_ordinal;")
+        cursor <- DBI::dbSendQuery(con, edge_sql, params = list(artifact_id))
+        tryCatch(repeat {
+            .wb_graph_transient_admit(budgets, database_path)
+            batch <- DBI::dbFetch(cursor, n = 1L)
+            if (!nrow(batch)) 
+                break
+            .wb_graph_storage_fault("edge_aggregate_batch", list(rows = nrow(batch), 
+                encoded_bytes = sum(nchar(batch$edge_json, type = "bytes"))))
+            for (i in seq_len(nrow(batch))) {
+                edge <- .wb_graph_parse(batch$edge_json[[i]])
+                n <- bit64::as.integer64(batch$n[[i]])
+                directed <- edge$direction == "directed"
+                ordinary <- edge$kind == "ordinary"
+                .wb_graph_require(meta$direction_mode[[1]] == 
+                  "mixed" || meta$direction_mode[[1]] == edge$direction, 
+                  "GRAPH_DIRECTION_INVALID", edge$edge_id)
+                .wb_graph_require(n > 0 && as.character(batch$lo[[i]]) == 
+                  "0" && bit64::as.integer64(batch$hi[[i]]) == 
+                  n - 1, "GRAPH_ORDINAL_INVALID", edge$edge_id)
+                valid <- if (ordinary && directed) 
+                  n == 2 && batch$tails[[i]] == 1 && batch$heads[[i]] == 
+                    1
+                else if (ordinary) 
+                  n == 2 && batch$members[[i]] == 2
+                else if (directed) 
+                  batch$tails[[i]] > 0 && batch$heads[[i]] > 
+                    0 && batch$members[[i]] == 0
+                else batch$members[[i]] == n
+                .wb_graph_require(valid, "GRAPH_ARITY_INVALID", 
+                  edge$edge_id)
+            }
+        }, finally = DBI::dbClearResult(cursor))
+        bad <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows i ", 
+            "LEFT JOIN artifact_graph_rows n ON n.artifact_id=i.artifact_id AND n.component='nodes' ", 
+            "AND json_extract(n.record_json,'$.node_id')=json_extract(i.record_json,'$.node_id') ", 
+            "LEFT JOIN artifact_graph_rows e ON e.artifact_id=i.artifact_id AND e.component='edges' ", 
+            "AND json_extract(e.record_json,'$.edge_id')=json_extract(i.record_json,'$.edge_id') ", 
+            "WHERE i.artifact_id=? AND i.component='incidences' AND ", 
+            "(n.row_ordinal IS NULL OR e.row_ordinal IS NULL) LIMIT 1;"), 
+            params = list(artifact_id))
+        .wb_graph_require(!nrow(bad), "GRAPH_INCIDENCE_DANGLING", 
+            "Dangling incidence.")
+        order_cursor <- DBI::dbSendQuery(con, paste0("SELECT e.row_ordinal edge_ordinal,", 
+            "json_extract(i.record_json,'$.ordinal') ordinal,", 
+            "json_extract(i.record_json,'$.role') role,json_extract(e.record_json,'$.kind') kind,", 
+            "json_extract(e.record_json,'$.direction') direction FROM artifact_graph_rows i ", 
+            "JOIN artifact_graph_rows e ON e.artifact_id=i.artifact_id AND e.component='edges' ", 
+            "AND json_extract(e.record_json,'$.edge_id')=json_extract(i.record_json,'$.edge_id') ", 
+            "WHERE i.artifact_id=? AND i.component='incidences' ORDER BY i.row_ordinal;"), 
+            params = list(artifact_id))
+        previous_edge <- bit64::as.integer64(-1)
+        previous_ordinal <- -1
+        tryCatch(repeat {
+            .wb_graph_transient_admit(budgets, database_path)
+            batch <- DBI::dbFetch(order_cursor, n = budgets$partition_rows)
+            if (!nrow(batch)) 
+                break
+            for (i in seq_len(nrow(batch))) {
+                current_edge <- bit64::as.integer64(batch$edge_ordinal[[i]])
+                ordinal <- as.numeric(batch$ordinal[[i]])
+                .wb_graph_require((current_edge > previous_edge && 
+                  ordinal == 0) || (current_edge == previous_edge && 
+                  ordinal == previous_ordinal + 1), "GRAPH_ORDER_INVALID", 
+                  "Incidences do not follow declared edge/ordinal order.")
+                if (batch$kind[[i]] == "ordinary" && batch$direction[[i]] == 
+                  "directed") 
+                  .wb_graph_require(batch$role[[i]] == if (ordinal == 
+                    0) 
+                    "tail"
+                  else "head", "GRAPH_ROLE_INVALID", "Directed ordinary edge must be tail then head.")
+                previous_edge <- current_edge
+                previous_ordinal <- ordinal
+            }
+        }, finally = DBI::dbClearResult(order_cursor))
+        .wb_graph_validate_sql_attributes(con, artifact_id, budgets)
+        invisible(TRUE)
+    }, .wb_graph_count <- function(con, artifact_id, component) {
+        DBI::dbGetQuery(con, paste0("SELECT CAST(COUNT(*) AS TEXT) n FROM artifact_graph_rows ", 
+            "WHERE artifact_id=? AND component=?;"), params = list(artifact_id, 
+            component))$n[[1]]
+    }, .wb_graph_validate_sql_attributes <- function(con, artifact_id, 
+        budgets) {
+        expected_fields <- stats::setNames(rep("0", 4), c("graph", 
+            "node", "edge", "incidence"))
+        counts <- c(graph = "1", node = .wb_graph_count(con, 
+            artifact_id, "nodes"), edge = .wb_graph_count(con, 
+            artifact_id, "edges"), incidence = .wb_graph_count(con, 
+            artifact_id, "incidences"))
+        .wb_graph_scan(con, artifact_id, "attribute_fields", 
+            function(rows) {
+                for (json in rows$record_json) {
+                  field <- .wb_graph_parse(json)
+                  .wb_graph_require(identical(field$field_ordinal, 
+                    expected_fields[[field$scope]]), "GRAPH_ATTRIBUTE_INVALID", 
+                    "Gapped/reordered field declarations.")
+                  expected_fields[[field$scope]] <<- .wb_graph_add_count(expected_fields[[field$scope]], 
+                    1L)
+                  expected <- "0"
+                  .wb_graph_scan(con, artifact_id, "attribute_values", 
+                    function(values) {
+                      for (value_json in values$record_json) {
+                        value <- .wb_graph_parse(value_json)
+                        .wb_graph_require(.wb_graph_i64(value$entity_ordinal) == 
+                          .wb_graph_i64(expected) && .wb_graph_scalar(value$value, 
+                          field$type, field$nullable), "GRAPH_ATTRIBUTE_INVALID", 
+                          field$name)
+                        expected <<- .wb_graph_add_count(expected, 
+                          1L)
+                      }
+                    }, page = budgets$partition_rows, bytes = budgets$partition_bytes, 
+                    predicate = "AND json_extract(record_json,'$.scope')=? AND json_extract(record_json,'$.field_ordinal')=?", 
+                    params = list(field$scope, field$field_ordinal))
+                  .wb_graph_require(identical(expected, counts[[field$scope]]), 
+                    "GRAPH_ATTRIBUTE_INVALID", "Attribute dense coverage mismatch.")
+                }
+            }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
+        bad <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows v ", 
+            "LEFT JOIN artifact_graph_rows f ON f.artifact_id=v.artifact_id ", 
+            "AND f.component='attribute_fields' AND json_extract(f.record_json,'$.scope')=json_extract(v.record_json,'$.scope') ", 
+            "AND json_extract(f.record_json,'$.field_ordinal')=json_extract(v.record_json,'$.field_ordinal') ", 
+            "WHERE v.artifact_id=? AND v.component='attribute_values' AND f.row_ordinal IS NULL LIMIT 1;"), 
+            params = list(artifact_id))
+        .wb_graph_require(!nrow(bad), "GRAPH_ATTRIBUTE_INVALID", 
+            "Undeclared attribute values.")
+        invisible(TRUE)
+    }, .wb_graph_sql_content_hash <- function(con, artifact_id, 
+        budgets = .wb_graph_budgets()) {
+        .wb_graph_validate_sql(con, artifact_id, budgets)
+        scratch_path <- NULL
+        if (isTRUE(attr(con, "wb_graph_owned_stage"))) {
+            database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+            scratch_path <- database$file[database$name == "main"][[1L]]
+        }
+        file <- tempfile("scwb_graph_tokens_")
+        on.exit(if (file.exists(file)) unlink(file), add = TRUE)
+        sink <- file(file, "wb")
+        written <- bit64::as.integer64(0)
+        observed_spill <- bit64::as.integer64(0)
+        emit <- function(token) {
+            bytes <- charToRaw(enc2utf8(token))
+            written <<- written + bit64::as.integer64(length(bytes))
+            .wb_graph_require(!is.na(written) && written <= .wb_graph_i64(budgets$token_bytes), 
+                "GRAPH_RESOURCE_EXCEEDED", "Canonical-token spill budget exceeded.")
+            writeBin(bytes, sink)
+            if (written - observed_spill >= min(1048576, as.numeric(budgets$token_bytes))) {
+                flush(sink)
+                .wb_graph_spill_admit(budgets, scratch_path)
+                observed_spill <<- written
+            }
+        }
+        array <- function(component, transform = .wb_graph_parse, 
+            predicate = "", params = list()) {
+            emit("[")
+            first <- TRUE
+            .wb_graph_scan(con, artifact_id, component, function(rows) {
+                for (json in rows$record_json) {
+                  if (!first) 
+                    emit(",")
+                  emit(.wb_operation_pack_canonical_json(transform(json)))
+                  first <<- FALSE
+                }
+            }, page = budgets$partition_rows, bytes = budgets$partition_bytes, 
+                predicate = predicate, params = params)
+            emit("]")
+        }
+        tryCatch({
+            emit("{\"attributes\":{")
+            first_scope <- TRUE
+            for (scope in c("edge", "graph", "incidence", "node")) {
+                if (!first_scope) 
+                  emit(",")
+                emit(paste0("\"", scope, "\":["))
+                first_field <- TRUE
+                .wb_graph_scan(con, artifact_id, "attribute_fields", 
+                  function(rows) {
+                    for (json in rows$record_json) {
+                      field <- .wb_graph_parse(json)
+                      if (!first_field) 
+                        emit(",")
+                      emit(paste0("{\"name\":", .wb_operation_pack_canonical_json(field$name), 
+                        ",\"nullable\":", .wb_operation_pack_canonical_json(field$nullable), 
+                        ",\"type\":", .wb_operation_pack_canonical_json(field$type), 
+                        ",\"values\":"))
+                      array("attribute_values", function(json) .wb_graph_parse(json)$value, 
+                        "AND json_extract(record_json,'$.scope')=? AND json_extract(record_json,'$.field_ordinal')=?", 
+                        list(scope, field$field_ordinal))
+                      emit("}")
+                      first_field <<- FALSE
+                    }
+                  }, page = budgets$partition_rows, bytes = budgets$partition_bytes, 
+                  predicate = "AND json_extract(record_json,'$.scope')=?", 
+                  params = list(scope))
+                emit("]")
+                first_scope <- FALSE
+            }
+            mode <- DBI::dbGetQuery(con, "SELECT direction_mode FROM artifact_graph_meta WHERE artifact_id=?;", 
+                params = list(artifact_id))$direction_mode[[1]]
+            emit(paste0("},\"direction_mode\":", .wb_operation_pack_canonical_json(mode), 
+                ",\"edges\":"))
+            array("edges")
+            emit(",\"incidences\":")
+            array("incidences")
+            emit(",\"nodes\":")
+            array("nodes")
+            emit(",\"schema\":\"scworkbench.graph.content.v1\"}")
+            flush(sink)
+            .wb_graph_spill_admit(budgets, scratch_path)
+            .wb_graph_storage_fault("canonical_tokens", list(path = file, 
+                budgets = budgets, canonical_bytes = as.character(written)))
+        }, finally = close(sink))
+        input <- file(file, "rb")
+        sha <- tryCatch(unclass(as.character(openssl::sha256(input))), 
+            finally = close(input))
+        list(identity = list(scheme = "scworkbench.graph.content.canonical-json.v1", 
+            sha256 = sha), canonical_bytes = as.character(written))
+    }, .wb_graph_stage_small <- function(graph, budgets = list(), 
+        cache_kib = NULL) {
+        admitted <- .wb_graph_budgets(budgets)
+        .wb_graph_materialization_admit(list(content = graph$content, 
+            bindings = graph$associations), admitted$collect_bytes)
+        wb_graph_validate(graph)
+        state <- .wb_graph_stage_new(graph$content$direction_mode, 
+            budgets, cache_kib)
+        succeeded <- FALSE
+        on.exit(if (!succeeded) .wb_graph_stage_discard(state), 
+            add = TRUE)
+        append <- function(component, producer) {
+            buffer <- list()
+            bytes <- 0
+            flush <- function() {
+                if (length(buffer)) 
+                  .wb_graph_append(state, component, buffer)
+                buffer <<- list()
+                bytes <<- 0
+            }
+            put <- function(record) {
+                n <- nchar(.wb_operation_pack_canonical_json(record), 
+                  type = "bytes")
+                .wb_graph_require(n <= state$budgets$partition_bytes, 
+                  "GRAPH_RESOURCE_EXCEEDED", "Single output record exceeds partition budget.")
+                if (length(buffer) >= state$budgets$partition_rows || 
+                  bytes + n > state$budgets$partition_bytes) 
+                  flush()
+                buffer[[length(buffer) + 1L]] <<- record
+                bytes <<- bytes + n
+            }
+            producer(put)
+            flush()
+        }
+        for (component in c("nodes", "edges", "incidences")) append(component, 
+            function(put) for (record in graph$content[[component]]) put(record))
+        for (component in c("attribute_fields", "attribute_values")) append(component, 
+            function(put) for (scope in c("graph", "node", "edge", 
+                "incidence")) {
+                declarations <- graph$content$attributes[[scope]]
+                for (i in seq_along(declarations)) {
+                  field <- declarations[[i]]
+                  if (component == "attribute_fields") 
+                    put(list(scope = scope, field_ordinal = as.character(i - 
+                      1L), name = field$name, type = field$type, 
+                      nullable = field$nullable))
+                  else for (j in seq_along(field$values)) put(list(scope = scope, 
+                    field_ordinal = as.character(i - 1L), entity_ordinal = as.character(j - 
+                      1L), value = field$values[[j]]))
+                }
+            })
+        append("bindings", function(put) for (i in seq_along(graph$associations)) {
+            binding <- graph$associations[[i]]
+            put(c(list(binding_ordinal = as.character(i - 1L)), 
+                binding[setdiff(names(binding), "mapping")]))
+        })
+        append("binding_mappings", function(put) for (binding in graph$associations) for (j in seq_along(binding$mapping)) put(c(list(binding_id = binding$binding_id, 
+            mapping_ordinal = as.character(j - 1L)), binding$mapping[[j]])))
+        state$content <- .wb_graph_sql_content_hash(state$con, 
+            "staged", state$budgets)
+        succeeded <- TRUE
+        state
+    })
+expression(test_graph_resource_owned_spill_alias_and_fd_metadata_admission_contract <- function() {
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "1048576", 
+        sqlite_cache_kib = 128L, partition_bytes = 1024L, partition_rows = 2L, 
+        collect_bytes = 65536L))
+    before <- scworkbench:::.wb_graph_transient_usage(budgets = policy)$owned_spill_bytes
+    path <- tempfile("scwb_graph_identity_alias_one_")
+    alias <- tempfile("scwb_graph_identity_alias_two_")
+    writeBin(raw(4096L), path)
+    stopifnot(file.link(path, alias))
+    first <- file(path, "rb")
+    second <- file(alias, "rb")
+    on.exit({
+        try(close(first), silent = TRUE)
+        try(close(second), silent = TRUE)
+        unlink(c(path, alias))
+    }, add = TRUE)
+    observed <- scworkbench:::.wb_graph_transient_usage(budgets = policy)
+    stopifnot(observed$owned_spill_bytes == before + 4096, identical(scworkbench:::.wb_graph_file_identity(path), 
+        scworkbench:::.wb_graph_file_identity(alias)))
+    policy$token_bytes <- as.character(before + 4096)
+    scworkbench:::.wb_graph_spill_admit(policy, path)
+    scworkbench:::.wb_graph_spill_admit(policy, alias)
+    close(first)
+    scworkbench:::.wb_graph_spill_admit(policy, alias)
+    close(second)
+    unlink(c(path, alias))
+    scworkbench:::.wb_graph_transient_usage(budgets = policy)
+    paths <- vapply(seq_len(60L), function(i) tempfile("fd_metadata_probe_"), 
+        character(1))
+    handles <- lapply(paths, function(path) file(path, "wb"))
+    on.exit({
+        for (handle in handles) try(close(handle), silent = TRUE)
+        unlink(paths)
+    }, add = TRUE)
+    failed <- tryCatch(scworkbench:::.wb_graph_transient_usage(budgets = policy), 
+        error = identity)
+    stopifnot(inherits(failed, "error"), identical(failed$code, 
+        "GRAPH_RESOURCE_EXCEEDED"))
+    for (handle in handles) close(handle)
+    handles <- list()
+    unlink(paths)
+    scworkbench:::.wb_graph_transient_usage(budgets = policy)
+    TRUE
+}, test_graph_resource_publication_copy_and_temporary_overlap_contract <- function() {
+    con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+    on.exit(DBI::dbDisconnect(con), add = TRUE)
+    baseline <- scworkbench:::.wb_graph_disk_usage(con)
+    policy <- scworkbench:::.wb_graph_budgets(list(token_bytes = "4096"))
+    attr(policy, "wb_graph_session_copy_bytes") <- 4096
+    path <- tempfile("scwb_graph_identity_publication_overlap_")
+    sink <- file(path, "wb")
+    on.exit({
+        try(close(sink), silent = TRUE)
+        unlink(path)
+    }, add = TRUE)
+    writeBin(raw(4096L), sink)
+    flush(sink)
+    failed <- tryCatch(scworkbench:::.wb_graph_disk_admit(con, 
+        policy, baseline), error = identity)
+    stopifnot(inherits(failed, "error"), identical(failed$code, 
+        "GRAPH_RESOURCE_EXCEEDED"))
+    policy$token_bytes <- "8192"
+    scworkbench:::.wb_graph_disk_admit(con, policy, baseline)
+    close(sink)
+    unlink(path)
+    policy$token_bytes <- "4096"
+    scworkbench:::.wb_graph_disk_admit(con, policy, baseline)
+    TRUE
+}, test_graph_resource_live_stage_and_selector_spill_overlap_contract <- function() {
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608", 
+        partition_bytes = 262144L, partition_rows = 256L, collect_bytes = 4194304L, 
+        sqlite_cache_kib = 2048L))
+    stage <- scworkbench:::.wb_graph_stage_new("undirected", 
+        policy)
+    on.exit(scworkbench:::.wb_graph_stage_discard(stage), add = TRUE)
+    DBI::dbExecute(stage$con, "CREATE TABLE admitted_probe(bytes BLOB);")
+    DBI::dbExecute(stage$con, "INSERT INTO admitted_probe VALUES(zeroblob(400000));")
+    stage_bytes <- scworkbench:::.wb_graph_disk_usage(stage$con)$database_bytes
+    copy_bytes <- 131072
+    attr(policy, "wb_graph_session_copy_bytes") <- copy_bytes
+    policy$token_bytes <- as.character(stage_bytes + copy_bytes + 
+        65536)
+    scworkbench:::.wb_graph_disk_admit(stage$con, policy)
+    path <- tempfile("scwb_graph_identity_overlap_", fileext = ".sqlite")
+    selector <- DBI::dbConnect(RSQLite::SQLite(), path, cache_size = -64)
+    on.exit({
+        if (DBI::dbIsValid(selector)) DBI::dbDisconnect(selector)
+        unlink(path)
+    }, add = TRUE)
+    DBI::dbExecute(selector, "PRAGMA journal_mode=DELETE;")
+    DBI::dbExecute(selector, "CREATE TABLE selectors(bytes BLOB);")
+    DBI::dbExecute(selector, "INSERT INTO selectors VALUES(zeroblob(131072));")
+    selector_bytes <- file.info(path)$size
+    actual <- stage_bytes + copy_bytes + selector_bytes
+    stopifnot(actual > as.numeric(policy$token_bytes))
+    failed <- tryCatch(scworkbench:::.wb_graph_spill_admit(policy, 
+        path), error = identity)
+    stopifnot(inherits(failed, "error"), identical(failed$code, 
+        "GRAPH_RESOURCE_EXCEEDED"))
+    policy$token_bytes <- as.character(actual)
+    scworkbench:::.wb_graph_spill_admit(policy, path)
+    scworkbench:::.wb_graph_disk_admit(stage$con, policy)
+    scworkbench:::.wb_graph_transient_admit(policy)
+    second <- scworkbench:::.wb_graph_stage_new("undirected", 
+        scworkbench:::.wb_graph_budgets())
+    on.exit(scworkbench:::.wb_graph_stage_discard(second), add = TRUE)
+    failed <- tryCatch(scworkbench:::.wb_graph_spill_admit(policy, 
+        path), error = identity)
+    stopifnot(inherits(failed, "error"), identical(failed$code, 
+        "GRAPH_RESOURCE_EXCEEDED"))
+    scworkbench:::.wb_graph_stage_discard(second)
+    scworkbench:::.wb_graph_spill_admit(policy, path)
+    DBI::dbDisconnect(selector)
+    unlink(path)
+    policy$token_bytes <- as.character(stage_bytes + copy_bytes)
+    scworkbench:::.wb_graph_disk_admit(stage$con, policy)
+    scworkbench:::.wb_graph_stage_discard(stage)
+    policy$token_bytes <- as.character(copy_bytes)
+    scworkbench:::.wb_graph_transient_admit(policy)
+    TRUE
+}, test_graph_resource_owned_session_copy_admission_contract <- function() {
+    bundle <- wb_init_bundle(tempfile("graph_session_copy_admission_"))
+    session <- wb_session_new()
+    on.exit({
+        wb_session_discard(session)
+        root <- bundle$dir
+        wb_close_bundle(bundle)
+        unlink(root, recursive = TRUE)
+    }, add = TRUE)
+    tree <- file.path(bundle$dir, "operation_pack_v2")
+    dir.create(tree)
+    payload <- file.path(tree, "copy_accounting_probe")
+    writeBin(as.raw(seq_len(128L) - 1L), payload)
+    Sys.chmod(payload, "0600")
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608", 
+        partition_bytes = 262144L, partition_rows = 256L, collect_bytes = 4194304L, 
+        sqlite_cache_kib = 2048L))
+    baseline <- scworkbench:::.wb_graph_disk_usage(bundle$con)$database_bytes
+    bytes <- scworkbench:::.wb_session_graph_copy_bytes(bundle, 
+        policy)
+    stopifnot(bytes >= baseline + 8192)
+    too_small <- policy
+    too_small$token_bytes <- as.character(bytes - 1)
+    restore <- scworkbench:::.wb_graph_scoped_connection_budget(bundle$con, 
+        too_small)
+    failed <- tryCatch(scworkbench:::.wb_session_stage_bundle(bundle, 
+        session), error = identity)
+    restore()
+    stopifnot(inherits(failed, "error"), identical(failed$code, 
+        "GRAPH_RESOURCE_EXCEEDED"), is.null(session$staging_bundle), 
+        file.exists(payload), identical(readBin(payload, "raw", 
+            128L), as.raw(seq_len(128L) - 1L)))
+    budgets <- policy
+    attr(budgets, "wb_graph_session_copy_bytes") <- bytes
+    budgets <- scworkbench:::.wb_graph_budgets(budgets)
+    stopifnot(identical(scworkbench:::.wb_graph_session_copy_reservation(budgets), 
+        bytes))
+    scratch <- tempfile("graph_session_copy_spill_")
+    on.exit(unlink(scratch), add = TRUE)
+    writeBin(raw(4096L), scratch)
+    budgets$token_bytes <- as.character(bytes + 4095)
+    failed <- tryCatch(scworkbench:::.wb_graph_spill_admit(budgets, 
+        scratch), error = identity)
+    stopifnot(inherits(failed, "error"), identical(failed$code, 
+        "GRAPH_RESOURCE_EXCEEDED"))
+    budgets$token_bytes <- as.character(bytes + 4096)
+    scworkbench:::.wb_graph_spill_admit(budgets, scratch)
+    restore <- scworkbench:::.wb_graph_scoped_connection_budget(bundle$con, 
+        policy)
+    staged <- scworkbench:::.wb_session_stage_bundle(bundle, 
+        session)
+    restore()
+    session <- staged$session
+    copied <- file.path(staged$bundle$dir, "operation_pack_v2", 
+        "copy_accounting_probe")
+    stopifnot(!nzchar(Sys.readlink(copied)), identical(readBin(copied, 
+        "raw", 128L), readBin(payload, "raw", 128L)), identical(file.info(copied)$mode, 
+        file.info(payload)$mode), staged$bundle$con@ref$wb_graph_session_copy_bytes >= 
+        bytes)
+    writeBin(as.raw(255L), copied)
+    stopifnot(identical(readBin(payload, "raw", 128L), as.raw(seq_len(128L) - 
+        1L)))
+    for (source in list(NULL, structure(list(), class = "scworkbench_bundle"))) {
+        reopened <- scworkbench:::.wb_session_stage_open(source, 
+            staged$bundle$dir)
+        stopifnot(inherits(reopened, "scworkbench_bundle"), DBI::dbIsValid(reopened$con))
+        wb_close_bundle(reopened)
+    }
+    TRUE
+}, test_graph_resource_unstaged_direct_transaction_restoration_contract <- function() {
+    bundle <- wb_init_bundle(tempfile("graph_owned_direct_"))
+    on.exit({
+        root <- bundle$dir
+        wb_close_bundle(bundle)
+        unlink(root, recursive = TRUE)
+    }, add = TRUE)
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608", 
+        partition_bytes = 262144L, partition_rows = 256L, collect_bytes = 4194304L, 
+        sqlite_cache_kib = 2048L))
+    restore <- scworkbench:::.wb_graph_scoped_connection_budget(bundle$con, 
+        policy)
+    on.exit(restore(), add = TRUE)
+    before <- list(cache = DBI::dbGetQuery(bundle$con, "PRAGMA cache_size;")[[1L]][[1L]], 
+        policy = bundle$con@ref$wb_graph_policy, cap = bundle$con@ref$wb_graph_cache_kib, 
+        temp = DBI::dbGetQuery(bundle$con, "PRAGMA temp_store;")[[1L]][[1L]])
+    graph <- wb_prim_graph(list(list(node_id = "isolated")), 
+        list(), list())
+    run <- wb_new_run("metadata_cell_vector", list(), list(), 
+        list(vector = graph))
+    paths <- character()
+    hook <- options(scworkbench.graph_storage_test_hook = function(event, 
+        state) {
+        if (event == "configured") 
+            paths <<- c(paths, state$path)
+    })
+    on.exit(options(hook), add = TRUE)
+    for (fault in c(TRUE, FALSE)) {
+        options(scworkbench.promotion_transaction_test_hook = if (fault) 
+            function(event, ...) if (event == "graph_component_rows") 
+                stop("direct owned-stage fault")
+            else NULL)
+        DBI::dbBegin(bundle$con)
+        result <- tryCatch(scworkbench:::.wb_promote_graph(bundle, 
+            run, "vector", graph), error = identity)
+        DBI::dbRollback(bundle$con)
+        stopifnot(if (fault) 
+            inherits(result, "error") && grepl("direct owned-stage fault", 
+                conditionMessage(result), fixed = TRUE)
+        else is.character(result), identical(before, list(cache = DBI::dbGetQuery(bundle$con, 
+            "PRAGMA cache_size;")[[1L]][[1L]], policy = bundle$con@ref$wb_graph_policy, 
+            cap = bundle$con@ref$wb_graph_cache_kib, temp = DBI::dbGetQuery(bundle$con, 
+                "PRAGMA temp_store;")[[1L]][[1L]])), !any(file.exists(paths)))
+    }
+    options(scworkbench.promotion_transaction_test_hook = NULL)
+    stopifnot(length(paths) == 2L)
+    TRUE
+}, test_graph_resource_unstaged_public_promotion_cache_contract <- function() {
+    bundle <- wb_init_bundle(tempfile("graph_unstaged_admission_"))
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608", 
+        partition_bytes = 262144L, partition_rows = 256L, collect_bytes = 4194304L, 
+        sqlite_cache_kib = 2048L))
+    on.exit({
+        root <- bundle$dir
+        wb_close_bundle(bundle)
+        unlink(root, recursive = TRUE)
+    }, add = TRUE)
+    initial <- DBI::dbGetQuery(bundle$con, "PRAGMA cache_size;")[[1L]][[1L]]
+    restore <- scworkbench:::.wb_graph_scoped_connection_budget(bundle$con, 
+        policy)
+    on.exit(restore(), add = TRUE)
+    graph <- wb_prim_graph(list(list(node_id = "isolated")), 
+        list(), list())
+    stopifnot(is.null(attr(graph, "graph_stage", exact = TRUE)))
+    run <- wb_new_run("metadata_cell_vector", list(), list(), 
+        list(vector = graph))
+    configured <- 0L
+    paths <- character()
+    hook <- options(scworkbench.graph_storage_test_hook = function(event, 
+        state) {
+        if (event == "configured") {
+            configured <<- configured + 1L
+            paths <<- c(paths, state$path)
+            source <- -DBI::dbGetQuery(bundle$con, "PRAGMA cache_size;")[[1L]][[1L]]
+            stage <- -DBI::dbGetQuery(state$con, "PRAGMA cache_size;")[[1L]][[1L]]
+            stopifnot(source + stage + 128L <= policy$sqlite_cache_kib, 
+                state$budgets$memory_bytes == policy$memory_bytes)
+        }
+    }, scworkbench.promotion_transaction_test_hook = function(event, 
+        ...) if (event == "graph_component_rows") 
+        stop("owned-stage rollback fixture"))
+    on.exit(options(hook), add = TRUE)
+    before <- DBI::dbGetQuery(bundle$con, "SELECT COUNT(*) n FROM artifacts;")$n[[1L]]
+    failed <- tryCatch(wb_promote_analysis(bundle, stats::setNames(list(run), 
+        run$run_id), head_run_id = run$run_id, outputs = "vector"), 
+        error = identity)
+    stopifnot(inherits(failed, "error"), grepl("owned-stage rollback", 
+        conditionMessage(failed), fixed = TRUE), DBI::dbGetQuery(bundle$con, 
+        "SELECT COUNT(*) n FROM artifacts;")$n[[1L]] == before, 
+        !any(file.exists(paths)), DBI::dbGetQuery(bundle$con, 
+            "PRAGMA cache_size;")[[1L]][[1L]] == -2048)
+    options(scworkbench.promotion_transaction_test_hook = NULL)
+    promoted <- wb_promote_analysis(bundle, stats::setNames(list(run), 
+        run$run_id), head_run_id = run$run_id, outputs = "vector")
+    stopifnot(configured == 2L, !any(file.exists(paths)), DBI::dbGetQuery(bundle$con, 
+        "PRAGMA cache_size;")[[1L]][[1L]] == -2048, identical(wb_art_graph_info(bundle, 
+        promoted$promoted$artifact_id[[1L]], policy)$content_identity, 
+        wb_graph_identity(graph)$content_identity))
+    restore()
+    stopifnot(DBI::dbGetQuery(bundle$con, "PRAGMA cache_size;")[[1L]][[1L]] == 
+        initial)
+    TRUE
+}, test_graph_resource_aggregate_cache_and_nested_policy_contract <- function() {
+    bundle <- wb_init_bundle(tempfile("graph_aggregate_budget_"))
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608", 
+        partition_bytes = 262144L, partition_rows = 256L, collect_bytes = 4194304L, 
+        sqlite_cache_kib = 2048L))
+    graph <- wb_prim_graph(list(list(node_id = "isolated")), 
+        list(), list())
+    stages <- lapply(1:2, function(i) scworkbench:::.wb_graph_stage_small(graph, 
+        policy))
+    connections <- c(list(bundle$con), lapply(stages, function(stage) stage$con))
+    on.exit({
+        for (stage in stages) scworkbench:::.wb_graph_stage_discard(stage)
+        root <- bundle$dir
+        wb_close_bundle(bundle)
+        unlink(root, recursive = TRUE)
+    }, add = TRUE)
+    cache <- function() vapply(connections, function(con) DBI::dbGetQuery(con, 
+        "PRAGMA cache_size;")[[1L]][[1L]], numeric(1))
+    before <- cache()
+    restore <- scworkbench:::.wb_graph_aggregate_connection_budget(connections, 
+        policy)
+    on.exit(restore(), add = TRUE)
+    admitted <- cache()
+    stopifnot(all(admitted < 0), sum(-admitted) * 1024 + 65536 <= 
+        2048 * 1024)
+    inner <- scworkbench:::.wb_graph_scoped_connection_budget(bundle$con, 
+        scworkbench:::.wb_graph_budgets())
+    stopifnot(identical(cache(), admitted), identical(scworkbench:::.wb_operation_pack_canonical_json(scworkbench:::.wb_graph_effective_budgets(bundle$con)), 
+        scworkbench:::.wb_operation_pack_canonical_json(policy)))
+    inner()
+    branches <- character()
+    hook <- options(scworkbench.graph_storage_test_hook = function(event, 
+        evidence) {
+        if (event != "identity_budget") 
+            return(invisible(NULL))
+        calls <- vapply(sys.calls(), function(call) paste(deparse(call), 
+            collapse = " "), character(1))
+        if (!any(grepl("wb_prov_payload_identity|wb_prov_write_snapshot", 
+            calls))) 
+            return(invisible(NULL))
+        stopifnot(evidence$budgets$memory_bytes == "8388608", 
+            evidence$budgets$partition_bytes == 262144, evidence$budgets$sqlite_cache_kib == 
+                2048, -DBI::dbGetQuery(evidence$con, "PRAGMA cache_size;")[[1L]][[1L]] <= 
+                max(-admitted))
+        branches <<- c(branches, if (any(grepl("wb_graph_retained_identities", 
+            calls))) "retained_reference" else if (identical(evidence$artifact_id, 
+            "staged")) "stage_payload" else "published_certificate")
+    })
+    on.exit(options(hook), add = TRUE)
+    attr(graph, "graph_stage") <- stages[[1L]]
+    run <- wb_new_run("metadata_cell_vector", inputs = list(), 
+        params = list(), outputs = list(vector = graph))
+    promoted <- wb_promote_analysis(bundle, stats::setNames(list(run), 
+        run$run_id), head_run_id = run$run_id, outputs = "vector")
+    id <- promoted$promoted$artifact_id[[1L]]
+    retained <- scworkbench:::.wb_graph_load_reference(bundle, 
+        id)
+    observed <- scworkbench:::.wb_prov_payload_identity(bundle, 
+        retained)
+    stopifnot(identical(observed$content_sha256, wb_graph_identity(graph)$content_identity$sha256), 
+        identical(cache(), admitted), identical(bundle$con@ref$wb_graph_policy, 
+            policy), all(c("stage_payload", "published_certificate", 
+            "retained_reference") %in% branches))
+    restore()
+    stopifnot(identical(cache(), before), is.null(bundle$con@ref$wb_graph_policy))
+    TRUE
+}, test_graph_resource_late_transaction_admission_rejects_contract <- function() {
+    con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+    on.exit(DBI::dbDisconnect(con), add = TRUE)
+    before <- DBI::dbGetQuery(con, "PRAGMA temp_store;")[[1L]][[1L]]
+    DBI::dbBegin(con)
+    error <- tryCatch(scworkbench:::.wb_graph_scoped_connection_budget(con, 
+        scworkbench:::.wb_graph_budgets()), error = identity)
+    stopifnot(inherits(error, "wb_graph_error"), error$code == 
+        "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", RSQLite::sqliteIsTransacting(con), 
+        DBI::dbGetQuery(con, "PRAGMA temp_store;")[[1L]][[1L]] == 
+            before, is.null(con@ref$wb_graph_policy))
+    DBI::dbRollback(con)
+    TRUE
+}, test_graph_resource_stage_and_journal_rollback_contract <- function() {
+    ns <- asNamespace("scworkbench")
+    paths <- character()
+    old <- options(scworkbench.graph_storage_test_hook = function(event, 
+        state) {
+        if (event == "connected") 
+            paths <<- c(paths, state$path)
+    })
+    on.exit(options(old), add = TRUE)
+    bad <- tryCatch(scworkbench:::.wb_graph_stage_new("mixed", 
+        list(storage_bytes = "1")), error = identity)
+    stopifnot(inherits(bad, "wb_graph_error"), bad$code == "GRAPH_RESOURCE_EXCEEDED", 
+        !any(file.exists(paths)))
+    bad <- tryCatch(scworkbench:::.wb_graph_budgets(list(memory_bytes = "1")), 
+        error = identity)
+    stopifnot(inherits(bad, "wb_graph_error"), bad$code == "GRAPH_RESOURCE_POLICY_INVALID")
+    stage <- scworkbench:::.wb_graph_stage_new("mixed", list(wal_bytes = "1"))
+    on.exit(scworkbench:::.wb_graph_stage_discard(stage), add = TRUE)
+    bad <- tryCatch(scworkbench:::.wb_graph_append(stage, "nodes", 
+        list(list(node_id = "n1"))), error = identity)
+    stopifnot(inherits(bad, "wb_graph_error"), bad$code == "GRAPH_RESOURCE_EXCEEDED", 
+        !RSQLite::sqliteIsTransacting(stage$con), DBI::dbGetQuery(stage$con, 
+            "SELECT COUNT(*) n FROM artifact_graph_rows;")$n == 
+            0L, stage$counts[["nodes"]] == "0")
+    stage$budgets$wal_bytes <- "1048576"
+    scworkbench:::.wb_graph_append(stage, "nodes", list(list(node_id = "n1")))
+    stopifnot(stage$counts[["nodes"]] == "1")
+    scworkbench:::.wb_graph_stage_discard(stage)
+    stopifnot(!any(file.exists(paths)))
+    TRUE
+}, test_graph_resource_unlinked_sqlite_spill_contract <- function() {
+    if (!dir.exists("/proc/self/fd")) 
+        return(contract_test_skip("SQLite transient spill accounting requires Linux procfs"))
+    path <- tempfile("graph_sort_accounting_", fileext = ".sqlite")
+    con <- DBI::dbConnect(RSQLite::SQLite(), path)
+    cursor <- NULL
+    on.exit({
+        if (!is.null(cursor)) try(DBI::dbClearResult(cursor), 
+            silent = TRUE)
+        DBI::dbDisconnect(con)
+        unlink(path)
+    }, add = TRUE)
+    DBI::dbExecute(con, "PRAGMA temp_store=FILE;")
+    DBI::dbExecute(con, "PRAGMA cache_size=-16;")
+    DBI::dbExecute(con, "CREATE TABLE sample(value TEXT);")
+    DBI::dbExecute(con, paste0("WITH RECURSIVE source(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM source WHERE n<4096) ", 
+        "INSERT INTO sample SELECT hex(randomblob(8192)) FROM source;"))
+    cursor <- DBI::dbSendQuery(con, "SELECT value FROM sample ORDER BY value DESC;")
+    stopifnot(nrow(DBI::dbFetch(cursor, n = 1L)) == 1L)
+    usage <- scworkbench:::.wb_graph_transient_usage(path)
+    stopifnot(usage$temporary_accounting == "procfs_open_descriptors", 
+        usage$temporary_bytes > 1048576)
+    budgets <- scworkbench:::.wb_graph_budgets(list(token_bytes = "1048576"))
+    bad <- tryCatch(scworkbench:::.wb_graph_transient_admit(budgets, 
+        path), error = identity)
+    stopifnot(inherits(bad, "wb_graph_error"), bad$code == "GRAPH_RESOURCE_EXCEEDED")
+    metadata_path <- tempfile("graph_metadata_accounting_", fileext = ".sqlite")
+    metadata_con <- DBI::dbConnect(RSQLite::SQLite(), metadata_path)
+    on.exit({
+        DBI::dbDisconnect(metadata_con)
+        unlink(metadata_path)
+    }, add = TRUE)
+    DBI::dbExecute(metadata_con, paste0("CREATE TABLE artifact_object_metadata_chunks(", 
+        "artifact_id TEXT,chunk_ordinal INTEGER,chunk BLOB);"))
+    DBI::dbExecute(metadata_con, "INSERT INTO artifact_object_metadata_chunks VALUES('source',0,?);", 
+        params = list(list(as.raw(rep(65L, 65536L)))))
+    budgets$token_bytes <- format(usage$temporary_bytes + 32768, 
+        scientific = FALSE, trim = TRUE)
+    before_scratch <- list.files(tempdir(), pattern = "^scwb_object_meta_", 
+        full.names = TRUE)
+    bad <- tryCatch(scworkbench:::.wb_graph_object_metadata_hash(metadata_con, 
+        "source", budgets), error = identity)
+    stopifnot(inherits(bad, "wb_graph_error"), bad$code == "GRAPH_RESOURCE_EXCEEDED", 
+        identical(list.files(tempdir(), pattern = "^scwb_object_meta_", 
+            full.names = TRUE), before_scratch), scworkbench:::.wb_graph_transient_usage(path)$temporary_bytes == 
+            usage$temporary_bytes)
+    DBI::dbClearResult(cursor)
+    cursor <- NULL
+    stopifnot(scworkbench:::.wb_graph_transient_usage(path)$temporary_bytes == 
+        0)
+    stopifnot(scworkbench:::.wb_graph_object_metadata_hash(metadata_con, 
+        "source", budgets)$bytes == "65536")
+    TRUE
+}, test_graph_resource_publication_budget_rollback_contract <- function() {
+    root <- tempfile("graph_budget_publication_")
+    bundle <- wb_init_bundle(root)
+    graph <- wb_prim_graph(list(list(node_id = "isolated")), 
+        list(), list())
+    stage <- scworkbench:::.wb_graph_stage_small(graph)
+    attr(graph, "graph_stage") <- stage
+    on.exit({
+        scworkbench:::.wb_graph_stage_discard(stage)
+        wb_close_bundle(bundle)
+        unlink(root, recursive = TRUE)
+    }, add = TRUE)
+    run <- wb_new_run("metadata_cell_vector", inputs = list(), 
+        params = list(), outputs = list(result = graph))
+    counts <- function() vapply(c("artifacts", "artifact_graph_meta", 
+        "artifact_graph_rows", "prov_commits", "prov_runs", "prov_run_outputs", 
+        "prov_run_entity_bindings"), function(table) as.numeric(DBI::dbGetQuery(bundle$con, 
+        paste0("SELECT COUNT(*) n FROM ", table))$n[[1L]]), numeric(1))
+    before <- counts()
+    restore_budget <- scworkbench:::.wb_graph_aggregate_connection_budget(list(bundle$con, 
+        stage$con), stage$budgets)
+    on.exit(restore_budget(), add = TRUE)
+    stage$budgets$published_bytes <- "1"
+    bad <- tryCatch(DBI::dbWithTransaction(bundle$con, scworkbench:::.wb_promote_graph(bundle, 
+        run, "result", graph)), error = identity)
+    stopifnot(inherits(bad, "wb_graph_error"), bad$code == "GRAPH_RESOURCE_EXCEEDED", 
+        identical(counts(), before))
+    stage$budgets$published_bytes <- "1048576"
+    id <- DBI::dbWithTransaction(bundle$con, scworkbench:::.wb_promote_graph(bundle, 
+        run, "result", graph))
+    stopifnot(length(id) == 1L, counts()[["artifacts"]] == 1L)
+    TRUE
+}, test_graph_resource_padded_mapping_cursor_contract <- function() {
+    id <- function(scheme) list(scheme = scheme, sha256 = paste(rep("1", 
+        64L), collapse = ""))
+    binding <- list(binding_id = "view", axis_kind = "cell", 
+        source_ref = list(kind = "retained_cell_axis", source_id = "synthetic"), 
+        source_snapshot_identity = id("scworkbench.provenance.snapshot_head.v1"), 
+        axis_content_identity = id("scworkbench.graph.source-axis-content.canonical-json.v1"), 
+        axis_order_identity = id("scworkbench.cell_order.v1"), 
+        mapping = list(list(node_id = "n2", axis_id = "c2"), 
+            list(node_id = "n1", axis_id = "c1")))
+    graph <- wb_prim_graph(list(list(node_id = "n2"), list(node_id = "n1")), 
+        list(), list(), associations = list(binding))
+    stage <- scworkbench:::.wb_graph_stage_small(graph, list(partition_bytes = 2048))
+    on.exit(scworkbench:::.wb_graph_stage_discard(stage), add = TRUE)
+    rows <- DBI::dbGetQuery(stage$con, "SELECT row_ordinal,record_json FROM artifact_graph_rows WHERE component='binding_mappings';")
+    for (i in seq_len(nrow(rows))) DBI::dbExecute(stage$con, 
+        "UPDATE artifact_graph_rows SET record_json=? WHERE component='binding_mappings' AND row_ordinal=?;", 
+        params = list(paste0(rows$record_json[[i]], paste(rep(" ", 
+            1800L), collapse = "")), rows$row_ordinal[[i]]))
+    batches <- 0L
+    old <- options(scworkbench.graph_storage_test_hook = function(event, 
+        evidence) {
+        if (event == "binding_mapping_batch") {
+            stopifnot(evidence$rows == 1L, evidence$encoded_bytes <= 
+                2048)
+            batches <<- batches + 1L
+        }
+    })
+    on.exit(options(old), add = TRUE)
+    stopifnot(identical(scworkbench:::.wb_graph_sql_identities(stage$con, 
+        "staged", stage$budgets)$descriptor_identity, wb_graph_identity(graph)$descriptor_identity), 
+        batches == 2L)
+    TRUE
+}, test_graph_resource_import_connection_reservation_contract <- function() {
+    graph <- wb_prim_graph(nodes = list(list(node_id = "n1")), 
+        edges = list(), incidences = list())
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "1048576", 
+        sqlite_cache_kib = 256L, partition_bytes = 4096L, partition_rows = 2L, 
+        collect_bytes = 8192L))
+    seed <- scworkbench:::.wb_graph_stage_small(graph)
+    token <- tempfile("graph_import_reservation_")
+    source <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+    durable <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+    connections <- list(source, durable)
+    stages <- list()
+    restore <- NULL
+    old <- options("scworkbench.graph_storage_test_hook")
+    on.exit({
+        options(old)
+        for (stage in stages) scworkbench:::.wb_graph_stage_discard(stage)
+        scworkbench:::.wb_graph_stage_discard(seed)
+        if (!is.null(restore)) restore()
+        DBI::dbDisconnect(source)
+        DBI::dbDisconnect(durable)
+        unlink(token)
+    }, add = TRUE)
+    snapshot <- function(con) list(cache = DBI::dbGetQuery(con, 
+        "PRAGMA cache_size;")[[1L]][[1L]], temp = DBI::dbGetQuery(con, 
+        "PRAGMA temp_store;")[[1L]][[1L]], policy = con@ref$wb_graph_policy, 
+        cap = con@ref$wb_graph_cache_kib)
+    before <- lapply(connections, snapshot)
+    scworkbench:::.wb_graph_export_parts(seed$con, "staged", 
+        token, policy)
+    restore <- scworkbench:::.wb_graph_aggregate_connection_budget(connections, 
+        policy, extra = 2L)
+    observed <- numeric()
+    options(scworkbench.graph_storage_test_hook = function(event, 
+        state) if (event == "configured") {
+        all <- c(connections, lapply(stages, function(stage) stage$con), 
+            list(state$con))
+        reservation <- 128 + sum(vapply(all, function(con) -DBI::dbGetQuery(con, 
+            "PRAGMA cache_size;")[[1L]][[1L]], numeric(1)))
+        stopifnot(reservation <= 256L)
+        observed <<- c(observed, reservation)
+    })
+    stages[[1L]] <- scworkbench:::.wb_graph_import_parts(token, 
+        policy, connections = connections, cache_slots = 2L)
+    stages[[2L]] <- scworkbench:::.wb_graph_import_parts(token, 
+        policy, connections = c(connections, list(stages[[1L]]$con)), 
+        cache_slots = 1L)
+    stopifnot(identical(observed, c(224, 256)))
+    for (stage in stages) scworkbench:::.wb_graph_stage_discard(stage)
+    stages <- list()
+    restore()
+    restore <- NULL
+    stopifnot(identical(before, lapply(connections, snapshot)))
+    paths <- character()
+    options(scworkbench.graph_storage_test_hook = function(event, 
+        state) {
+        if (event == "connected") 
+            paths <<- c(paths, state$path)
+        if (event == "configured") 
+            stop("import-configured-fault")
+    })
+    failed <- tryCatch(scworkbench:::.wb_graph_import_parts(token, 
+        policy, connections = connections), error = identity)
+    stopifnot(inherits(failed, "error"), grepl("import-configured-fault", 
+        conditionMessage(failed)), !any(file.exists(paths)), 
+        identical(before, lapply(connections, snapshot)), scworkbench:::.wb_graph_budgets()$sqlite_cache_kib == 
+            8192L)
+    options(scworkbench.graph_storage_test_hook = NULL)
+    too_small <- policy
+    too_small$sqlite_cache_kib <- 128L
+    failed <- tryCatch(scworkbench:::.wb_graph_import_parts(token, 
+        too_small, connections = connections), error = identity)
+    stopifnot(inherits(failed, "wb_graph_error"), failed$code == 
+        "GRAPH_RESOURCE_EXCEEDED", identical(before, lapply(connections, 
+        snapshot)))
+    TRUE
+}, test_graph_resource_unrelated_descriptor_slot_contract <- function() {
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "1048576", 
+        sqlite_cache_kib = 256L, partition_bytes = 4096L, partition_rows = 2L, 
+        collect_bytes = 8192L))
+    root <- tempfile("graph_fd_live_slots_")
+    dir.create(root)
+    paths <- file.path(root, paste0(sprintf("%02d", seq_len(12L)), 
+        strrep("p", 220L)))
+    handles <- list()
+    owned <- NULL
+    spill <- tempfile("scwb_graph_identity_live_slot_")
+    on.exit({
+        for (handle in handles) try(close(handle), silent = TRUE)
+        if (!is.null(owned)) try(close(owned), silent = TRUE)
+        unlink(c(root, spill), recursive = TRUE)
+    }, add = TRUE)
+    before <- scworkbench:::.wb_graph_transient_usage(budgets = policy)$owned_spill_bytes
+    handles <- lapply(paths, function(path) file(path, "wb"))
+    writeBin(raw(4096), spill)
+    owned <- file(spill, "rb")
+    usage <- scworkbench:::.wb_graph_transient_usage(budgets = policy)
+    stopifnot(usage$owned_spill_bytes == before + 4096)
+    unlink(spill)
+    usage <- scworkbench:::.wb_graph_transient_usage(budgets = policy)
+    stopifnot(usage$owned_spill_bytes == before + 4096)
+    close(owned)
+    owned <- NULL
+    stopifnot(scworkbench:::.wb_graph_transient_usage(budgets = policy)$owned_spill_bytes == 
+        before)
+    TRUE
+})
+parse PASS

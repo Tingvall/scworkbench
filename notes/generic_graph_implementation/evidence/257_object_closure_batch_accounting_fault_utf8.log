@@ -1,0 +1,9 @@
+[1] 0
+[1] 0
+[1] 0
+[1] 0
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.29
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.22
+[1] 1
+[1] 1
+OBJECT_CLOSURE_BATCH_PROTOTYPE empty/boundaries/long_ids/UTF8/control/null/finite_f64/tiny/late_growth=PASS qualification=FALSE installed=UNCHANGED

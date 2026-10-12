@@ -1,0 +1,4 @@
+PROMOTION475_ORIGINAL_LIFECYCLE loaded VmHWM:	   70688 kB VmRSS:	   70688 kB 
+GRAPH_SCALE_EXACT_RUNTIME source_closure_function_sha256=846f70d1460ef7a730dd87282281ad12264695b956c838740dc5aa39b9e8e9d9 installed_package=/tmp/scwb-graph-forge-promotion-metadata-476.ld91mtp4/library/scworkbench
+GRAPH_SCALE_REOPEN process_replaced=TRUE pack_free=TRUE source_verified=TRUE descriptor_unchanged=TRUE bounded_components=PASS filesystem_fingerprint_unchanged=TRUE
+GRAPH_SCALE_DISK sampled_peak_logical_bytes=4829033590 sampled_peak_allocated_bytes=4829118464 sample_interval_seconds=0.5 unlinked_open_fds_included=TRUE short_lived_between_samples_may_be_missed=TRUE

@@ -1,0 +1,22 @@
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION direct decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION positive decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_value decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_attribute decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_alias decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION coercion decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+COMPACT_PUBLIC_ADMITTED small certificate_and_oldgetter_identity=PASS
+COMPACT_PUBLIC_ADMITTED nested certificate_and_oldgetter_identity=PASS
+COMPACT_PUBLIC_ADMITTED inert_alias certificate_and_oldgetter_identity=PASS
+PUBLIC_PROTOTYPE425 R_PROCESS_PRIVATE_FUNCTION_REPLACEMENT=TRUE production_source_unchanged=TRUE qualification=FALSE PASS

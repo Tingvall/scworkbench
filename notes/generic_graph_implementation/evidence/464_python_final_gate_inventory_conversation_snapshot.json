@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"schemaVersion\":1,\"thread\":{\"id\":\"019e92db-7783-7b03-90e8-223d65d11c70\",\"status\":{\"type\":\"active\",\"activeFlags\":[]}},\"page\":{\"order\":\"newest_first\",\"limit\":1,\"hasMore\":true,\"nextCursor\":\"{\\\"turnId\\\":\\\"01a12cc1-95fc-7d30-8c76-db86e2b079e0\\\",\\\"includeAnchor\\\":false}\"},\"turns\":[{\"id\":\"01a12cc1-95fc-7d30-8c76-db86e2b079e0\",\"status\":\"inProgress\",\"error\":null,\"items\":[{\"type\":\"agentMessage\",\"id\":\"item-1\",\"text\":\"I’ll inventory the existing Python qualification commands and evidence without running anything or changing files, then send Forge the exact clean commit and remaining gate gaps.\",\"phase\":\"commentary\"}],\"truncated\":true}],\"truncated\":true}"
+    }
+  ],
+  "isError": false
+}

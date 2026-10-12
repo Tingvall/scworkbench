@@ -1,0 +1,11 @@
+EXACT_CORE_COMMIT=9a11d1fe988780041daa258eff987e9a1c7b2276
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector_family SEARCH artifact_pseudotime USING INDEX artifact_pseudotime_payload_order (artifact_id=?) 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_RECIPIENT_PROCESS pack_free=TRUE read_only=TRUE relocated=TRUE descriptor_unchanged=TRUE sources_verified=TRUE missing_pack_rejected=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+EXACT_CURSOR_AFFECTED_CONTRACTS passed=3 skipped=0 failed=0

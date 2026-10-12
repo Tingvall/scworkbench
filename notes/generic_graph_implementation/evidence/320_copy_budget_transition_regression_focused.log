@@ -1,0 +1,4 @@
+Error in bundle$con@ref : 
+  no applicable method for `@` applied to an object of class "NULL"
+Calls: stopifnot ... wb_session_open -> .wb_session_stage_bundle -> .wb_session_stage_open
+Execution halted

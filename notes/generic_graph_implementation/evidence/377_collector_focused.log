@@ -1,0 +1,5 @@
+COLLECTOR_TEST START test_graph_bounded_legacy_metadata_fault_cleanup_contract
+COLLECTOR_TEST PASS test_graph_bounded_legacy_metadata_fault_cleanup_contract
+COLLECTOR_TEST START test_graph_bounded_legacy_public_certificate_parity_and_cache_contract
+Error: GRAPH_SOURCE_PAYLOAD_INVALID: object 'pointer' not found
+Execution halted

@@ -71,12 +71,16 @@ absence fails closed, not a claimed cross-platform execution pass. Logical
 representation and canonical identity remain language-neutral.
 `max_memory_bytes` bounds framework cache/partition reservations and decoded
 part admission; it is not an arbitrary-pack-code RSS sandbox. Measured process
-RSS includes the predeclared loaded-runtime baseline and fixed working budget.
+RSS includes the loaded R or Python runtime as well as framework and pack allocations.
+Report runtime baseline and observed RSS separately from working admission.
 The current conservative native defaults are 8 GiB storage/spill/publication/
 journal, 64 MiB framework working admission, 8 MiB SQLite cache, 1 MiB decoded
 parts, 512 rows and 16 MiB collection; lower declared grants may reject without
-declaring a structurally valid graph invalid. Beyond-RAM qualification uses
-separate frozen lower cache/partition/collect settings and the total RSS budget.
+declaring a structurally valid graph invalid. Small-case infrastructure qualification
+uses deliberately low cache, partition and collect settings, observes actual disk
+and cursor mechanisms, and verifies cleanup and exact identities. Large physical
+stress and 8x scaling measurements are deferred; small cases do not establish
+constant memory for arbitrary graph algorithms or support above host RAM.
 
 ## Optional retained-axis associations
 
@@ -90,9 +94,16 @@ Named empty mappings retain their source and differ from no bindings.
 
 Retained cell_vector and cell_vector_family source authority is independently
 verified against actual ordered values/types/metadata and promotion evidence.
-Matrix-bound authority is fail-closed pending the separate bounded source
-certificate decision; matrix → **unbound** graph is executable. No path, SQL
-connection, bundle, state-authority handle or author-generated receipt crosses
+Promoted native matrices reuse their existing authenticated producer output,
+MATERIALIZES binding, retained snapshot and exact fragment-tree.v2 identity.
+Pending session matrix bindings are deferred: promote a terminal output that
+retains the matrix before binding a graph; a materialized matrix output may not
+itself be promotable. No separate certificate, new persisted anchor or identity scheme
+is required. Declare `retained_matrix_axis` with a matrix input, `axis_kind`
+equal to `cell` or `feature`, and a null `source_binding_selector`. Core verifies
+the complete retained source axis separately from the selected input projection.
+The promoted native route is under focused development qualification. No path,
+SQL connection, bundle, state-authority handle or author-generated receipt crosses
 to a runner. Availability is not authenticity: unavailable associations remain
 inspectable but cannot authorize new bound execution/publication.
 

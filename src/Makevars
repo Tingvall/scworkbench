@@ -1,0 +1,1 @@
+# Native SQLite I/O uses RSQLite's extension API table, not a second library.

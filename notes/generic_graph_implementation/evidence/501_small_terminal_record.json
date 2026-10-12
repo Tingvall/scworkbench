@@ -1,0 +1,57 @@
+{
+  "run": 500,
+  "installed_candidate": 499,
+  "numeric_exit": 0,
+  "focused_executed": 5,
+  "focused_passed": 5,
+  "focused_skipped": 0,
+  "elapsed": "10:15.52",
+  "max_rss_kib": 638420,
+  "max_rss_bytes": 653742080,
+  "runtime_baseline_rss_bytes": 642469888,
+  "framework_memory_policy_bytes": 1048576,
+  "rss_delta_claim": "NONE",
+  "working_cache_max_observed_kib": 254,
+  "cache_policy_kib": 256,
+  "partition_max_rows": 2,
+  "partition_max_bytes": 1439,
+  "partition_policy_bytes": 4096,
+  "collect_rejection_bytes": 8192,
+  "canonical_content_bytes": 22564,
+  "token_transport_bytes": 71907,
+  "observed_canonical_token_files": 80,
+  "observed_disk_peak_bytes": 237568,
+  "identities": {
+    "content_identity": {
+      "scheme": "scworkbench.graph.content.canonical-json.v1",
+      "sha256": "d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24"
+    },
+    "binding_identity": {
+      "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+      "sha256": "c84975af63c2cef24cba0ba84a8a2caec8af973c94eee4fb774d2649bee63148"
+    },
+    "descriptor": {
+      "schema": "scworkbench.graph.retained-descriptor.v1",
+      "content_identity": {
+        "scheme": "scworkbench.graph.content.canonical-json.v1",
+        "sha256": "d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24"
+      },
+      "binding_identity": {
+        "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+        "sha256": "c84975af63c2cef24cba0ba84a8a2caec8af973c94eee4fb774d2649bee63148"
+      },
+      "binding_count": 3
+    },
+    "descriptor_identity": {
+      "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+      "sha256": "f3acdb903c88692d72486dfd9ff244501ad948b8e5c7e8bd276bcb61cd38698f"
+    }
+  },
+  "source1093_runtime233_posthash": "MATCH",
+  "mixed_promotion_rollback_retry_cleanup_source_purity": "PASS",
+  "relocated_pack_free_read_only_recipient": "PASS",
+  "large_physical_stress": "DEFERRED",
+  "qualification": false,
+  "exports_sha256": "f19c67fe8d2d9c08eea20f3e61c3537ac0d95fa03afcc64572ac3c123abaccef",
+  "remaining": "Remaining focused/scenarios/SDK tutorial/live Python, final once full suites/package checks, independent review"
+}

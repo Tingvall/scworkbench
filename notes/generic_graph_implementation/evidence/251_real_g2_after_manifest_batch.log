@@ -1,0 +1,7 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_NATIVE_REAL_G2 public_normalize=PASS public_matrix_promotion=PASS  exact_run_output=PASS unused_source_authority_cells=3 features=2 native_dispatch=DISABLED
+REAL_G2_AFTER_MANIFEST_BATCH executed=1 passed=1 skipped=0 native_dispatch=DISABLED qualification=FALSE

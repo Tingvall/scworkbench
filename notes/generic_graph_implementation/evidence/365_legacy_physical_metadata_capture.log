@@ -1,0 +1,6 @@
+  load_extension(?,?)
+1                  NA
+LEGACY_PHYSICAL_METADATA case=1 kind=cell_vector bytes=450 whole_old_getter_sha=PASS prototype_only=TRUE
+LEGACY_PHYSICAL_METADATA case=2 kind=cell_vector bytes=300152 whole_old_getter_sha=PASS prototype_only=TRUE
+Error: CAPTURED legacy metadata mismatch
+Execution halted

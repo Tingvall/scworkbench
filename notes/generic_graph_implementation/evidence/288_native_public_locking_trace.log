@@ -1,0 +1,114 @@
+Tracing function ".wb_graph_source_snapshot" in package
+"namespace:scworkbench"
+[1] ".wb_graph_source_snapshot"
+Tracing function ".wb_graph_native_matrix_source_authorize" in
+package "namespace:scworkbench"
+[1] ".wb_graph_native_matrix_source_authorize"
+PUBLIC_PHASE catalog_before_pack 
+PUBLIC_PHASE catalog_pack_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_before_commit 
+PUBLIC_PHASE catalog_before_pack 
+PUBLIC_PHASE catalog_pack_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_before_commit 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PUBLIC_PHASE resolved 
+PUBLIC_PHASE preflighted 
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PUBLIC_PHASE staged 
+PUBLIC_PHASE before_dispatch 
+PUBLIC_PHASE receipt_received 
+PUBLIC_PHASE audited 
+PUBLIC_PHASE before_publication 
+PUBLIC_PHASE published 
+PUBLIC_PHASE before_reopened 
+PUBLIC_PHASE reopened 
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=prov_20261011_115125_jt76u7gw
+PUBLIC_PHASE resolved 
+PUBLIC_PHASE preflighted 
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=prov_20261011_115125_jt76u7gw
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=prov_20261011_115125_jt76u7gw
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=prov_20261011_115125_jt76u7gw
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=prov_20261011_115125_jt76u7gw
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE staged 
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE before_dispatch 
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE receipt_received 
+PUBLIC_PHASE audited 
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/scworkbench_sessions/session_fyvl3u0u8jbn_5443d49f08be durable=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE before_publication 
+PUBLIC_PHASE published 
+PUBLIC_PHASE before_reopened 
+PUBLIC_PHASE reopened 
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/RtmpbwtY8M/graph_native_public_bundle_5443d3b90d50c durable=NONE source=RNA_log snapshot=NONE
+LOCKING_PROTOCOL_STACK
+withCallingHandlers(stopifnot(isTRUE(test_graph_native_matrix_public_promotion_first_lifecycle_contract())),      error = function(error) {         if (grepl("locking protocol", conditionMessage(error),              fixed = TRUE)) {             cat("LOCKING_PROTOCOL_STACK\n")             for (call in tail(sys.calls(), 24L)) cat(paste(deparse(call),                  collapse = " "), "\n")             str(error)         }     }) 
+stopifnot(isTRUE(test_graph_native_matrix_public_promotion_first_lifecycle_contract())) 
+isTRUE(test_graph_native_matrix_public_promotion_first_lifecycle_contract()) 
+test_graph_native_matrix_public_promotion_first_lifecycle_contract() 
+wb_session_promote_current(bundle, reused$session, outputs = "result") 
+wb_promote_analysis(bundle = bundle, runs = session$runs, head_run_id = output_heads,      name_prefix = name_prefix, description = description, created_by = created_by,      fail_fast = fail_fast, outputs = unique(unlist(selected_by_run,          use.names = FALSE)), selected_by_run = selected_by_run,      staging_bundle = session$staging_bundle %||% NULL) 
+.wb_with_bundle_writer_lock(bundle, operation = "analysis promotion",      code = {         .wb_promote_analysis_locked(bundle = bundle, runs = runs,              head_run_id = head_run_id, name_prefix = name_prefix,              description = description, created_by = created_by,              fail_fast = fail_fast, allow_detached = allow_detached,              outputs = outputs, selected_by_run = selected_by_run,              staging_bundle = staging_bundle)     }) 
+force(code) 
+.wb_promote_analysis_locked(bundle = bundle, runs = runs, head_run_id = head_run_id,      name_prefix = name_prefix, description = description, created_by = created_by,      fail_fast = fail_fast, allow_detached = allow_detached, outputs = outputs,      selected_by_run = selected_by_run, staging_bundle = staging_bundle) 
+tryCatch({     DBI::dbExecute(bundle$con, "INSERT INTO prov_commits(commit_id, created_at, created_by, state, selected_outputs_json, runtime_fingerprint_json, error_message)\n       VALUES(?, ?, ?, ?, ?, ?, ?);",          params = list(commit_id, format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),              created_by %||% NA_character_, "pending", jsonlite::toJSON(selected_outputs,                  auto_unbox = FALSE), jsonlite::toJSON(runtime_fingerprint,                  auto_unbox = TRUE, null = "null"), NA_character_))     if (!is.null(staging_bundle)) {         committed_space_ids <- if (.wb_table_exists(bundle$con,              "spaces")) {             as.character(DBI::dbGetQuery(bundle$con, "SELECT space_id FROM spaces;")$space_id)         }         else character(0)         copied_new_space_ids <- character(0)         for (rid in topo) {             if (.wb_run_is_committed(bundle, rid))                  next             for (prim in unname(runs[[rid]]$outputs %||% list())) {                 if (.wb_is_primitive(prim) && identical(prim$kind,                    "matrix"))                    .wb_stage_commit_matrix(staging_bundle, bundle,                      prim$matrix_id, prim = prim, workspace = workspace)                 if (.wb_is_primitive(prim) && prim$kind %in%                    c("space", "space_2d")) {                   space_id <- as.character(prim$space_id)[1]                   if (space_id %in% committed_space_ids || !space_id %in%                      copied_new_space_ids) {                     .wb_stage_commit_space(staging_bundle, bundle,                        space_id, prim = prim, workspace = workspace)                     if (!space_id %in% committed_space_ids)                        copied_new_space_ids <- c(copied_new_space_ids,                          space_id)                   }                 }             }         }         registry_events <- .wb_replay_registry_mutations(staging_bundle,              bundle, topo, commit_id)         if (is.data.frame(registry_events) && nrow(registry_events) &&              any(as.character(registry_events$registry_type) ==                  "operation_pack_cell_set_family")) {             .wb_operation_pack_registry_fault("after_sqlite_writes_before_commit",                  commit_id = commit_id)         }     }     artifact_pool <- list()     promoted_by_run <- list()     rows <- list()     row_i <- 0L     for (rid in topo) {         run <- runs[[rid]]         op <- .wb_get_op(run$op_name)         desired <- if (!is.null(selected_by_run))              selected_by_run[[rid]] %||% character(0)         else selected_outputs         promotable <- if (rid %in% heads)              intersect(op$promotable %||% character(0), desired)         else character(0)         promoted_ids <- list()         err <- NULL         parent_artifacts <- list()         for (parent_run_id in unique(as.character(run$inputs$parents %||%              character(0)))) {             parent_artifacts <- c(parent_artifacts, promoted_by_run[[parent_run_id]] %||%                  list())         }         tryCatch({             for (out_name in promotable) {                 if (!out_name %in% names(run$outputs))                    next                 prim <- run$outputs[[out_name]]                 .wb_assert(.wb_is_primitive(prim), paste0("Run output '",                    out_name, "' is not a wb_primitive (kind missing)."))                 nm <- .wb_default_artifact_name(run = run, out_name = out_name,                    prim = prim, name_prefix = name_prefix)                 promoter <- .wb_get_promoter_for_kind(prim$kind)                 promoter_args <- list(bundle = bundle, run = run,                    out_name = out_name, prim = prim, name = nm,                    description = description, created_by = created_by,                    parent_artifacts = parent_artifacts, workspace = workspace)                 if (identical(as.character(prim$kind)[1L], "relation_family")) {                   promoter_args$sealed_content_identity <- !is.null(staging_bundle) &&                      .wb_operation_pack_v3_rf_promotion_sealed(staging_bundle,                        run, out_name)                 }                 artifact_id <- do.call(promoter, promoter_args)                 if (!length(promoted_ids))                    .wb_promotion_transaction_fault("after_first_private_terminal_write",                      commit_id = commit_id, artifact_id = artifact_id,                      output = out_name)                 if (identical(as.character(prim$kind)[1], "relation_family") &&                    !is.null(staging_bundle)) {                   .wb_operation_pack_v2_fault("relation_family_promoted",                      output = out_name, artifact_id = artifact_id)                   .wb_operation_pack_v3_rf_promoted_assert(bundle,                      staging_bundle, run, out_name, artifact_id)                 }                 promoted_ids[[out_name]] <- artifact_id             }         }, error = function(e) {             err <<- conditionMessage(e)             if (isTRUE(fail_fast))                  stop(e)         })         if (length(promoted_ids)) {             for (k in names(promoted_ids)) {                 if (is.null(artifact_pool[[k]]) || !nzchar(artifact_pool[[k]])) {                   artifact_pool[[k]] <- promoted_ids[[k]]                 }             }             promoted_by_run[[rid]] <- promoted_ids             for (out_name in names(promoted_ids)) {                 row_i <- row_i + 1L                 rows[[row_i]] <- data.frame(run_id = run$run_id,                    op_name = run$op_name, output = out_name, artifact_id = as.character(promoted_ids[[out_name]]),                    status = "ok", error = NA_character_, stringsAsFactors = FALSE)             }         }         else {             row_i <- row_i + 1L             rows[[row_i]] <- data.frame(run_id = run$run_id,                  op_name = run$op_name, output = "", artifact_id = NA_character_,                  status = if (is.null(err))                    "skipped"                 else "error", error = if (is.null(err))                    NA_character_                 else err, stringsAsFactors = FALSE)         }     }     promoted_df <- do.call(rbind, rows)     snapshot_id <- .wb_prov_write_snapshot(bundle = bundle, runs = runs,          topo = topo, heads = heads, promoted_df = promoted_df,          name_prefix = name_prefix, description = description,          created_by = created_by, commit_id = commit_id, materializations = materializations,          runtime_fingerprint = runtime_fingerprint, workspace = workspace,          staging_bundle = staging_bundle, transaction_open = TRUE)     DBI::dbExecute(bundle$con, "UPDATE prov_commits SET state = ? WHERE commit_id = ?;",          params = list("complete", commit_id))     promoted_df$snapshot_id <- snapshot_id     lineage_df <- .wb_artifact_lineage_statuses(bundle, promoted_df = promoted_df,          snapshot_id = snapshot_id)     .wb_artifacts_apply_lineage_status(bundle, lineage_df = lineage_df,          snapshot_id = snapshot_id)     if (nrow(lineage_df)) {         promoted_df$..row_ix_tmp <- seq_len(nrow(promoted_df))         promoted_df <- merge(promoted_df, lineage_df, by = "artifact_id",              all.x = TRUE, sort = FALSE)         promoted_df <- promoted_df[order(promoted_df$..row_ix_tmp),              , drop = FALSE]         promoted_df$..row_ix_tmp <- NULL         rownames(promoted_df) <- NULL     }     if (!isTRUE(allow_detached)) {         bad <- promoted_df[as.character(promoted_df$status %||%              "") == "ok" & as.character(promoted_df$lineage_status %||%              "") == "detached", , drop = FALSE]         if (nrow(bad)) {             labs <- paste0(as.character(bad$artifact_id), " (run=",                  as.character(bad$run_id %||% ""), ", output=",                  as.character(bad$output %||% ""), ")")             stop("Promotion blocked: detached artifact lineage detected for ",                  nrow(bad), " artifact(s): ", paste(utils::head(labs,                    10L), collapse = "; "), if (nrow(bad) > 10L)                    " ..."                 else "", ". This indicates unreconstructable lineage. Set allow_detached=TRUE only for expert/dev debugging.",                  call. = FALSE)         }     }     atomic_verification <- NULL     if (!is.null(target_reproduction_receipts)) {         atomic_verification <- .wb_target_reproduction_receipts_persist(bundle = bundle,              receipts = target_reproduction_receipts, promoted_df = promoted_df,              snapshot_id = snapshot_id)     }     .wb_promotion_workspace_publish(workspace)     .wb_promotion_transaction_fault("after_payload_move_before_database_commit",          commit_id = commit_id, workspace = workspace)     if (!is.null(target_reproduction_receipts)) {         .wb_target_reproduction_atomicity_hook("after_receipt_insertions_before_sqlite_commit",              snapshot_id = snapshot_id, workspace = workspace)     }     DBI::dbCommit(bundle$con)     transaction_open <- FALSE     .wb_promotion_workspace_retire(workspace)     if (dir.exists(workspace$pending_root))          unlink(workspace$pending_root, recursive = TRUE, force = TRUE)     .wb_refresh_manifest_committed(bundle)     list(artifact_pool = artifact_pool, promoted = promoted_df,          provenance_snapshot_id = snapshot_id, target_reproduction_verification = atomic_verification) }, error = function(e) {     promotion_error <<- e     stop(e) }) 
+tryCatchList(expr, classes, parentenv, handlers) 
+tryCatchOne(expr, names, parentenv, handlers[[1L]]) 
+value[[3L]](cond) 
+stop(e) 
+(function (error)  {     if (grepl("locking protocol", conditionMessage(error), fixed = TRUE)) {         cat("LOCKING_PROTOCOL_STACK\n")         for (call in tail(sys.calls(), 24L)) cat(paste(deparse(call),              collapse = " "), "\n")         str(error)     } })(structure(list(message = "locking protocol", call = NULL), class = c("simpleError",  "error", "condition"))) 
+List of 2
+ $ message: chr "locking protocol"
+ $ call   : NULL
+ - attr(*, "class")= chr [1:3] "simpleError" "error" "condition"
+Error: locking protocol
+No traceback available 

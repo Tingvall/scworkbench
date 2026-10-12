@@ -1,0 +1,10 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Error: In function write_matrix_dir: "original + 10" must have class IterableMatrix, or dgCMatrix
+    ▆
+ 1. ├─base::stopifnot(...)
+ 2. └─global test_graph_native_matrix_overlapping_fragment_getter_parity_contract()
+ 3.   └─BPCells::write_matrix_dir(...)
+ 4.     └─BPCells:::assert_is(mat, c("IterableMatrix", "dgCMatrix"))
+Execution halted

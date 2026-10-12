@@ -1,0 +1,15 @@
+{
+  "candidate": 376,
+  "parent_candidate": 341,
+  "source_count": 73,
+  "source_ledger_sha256": "9fba9680bf25c4d9db82cafa6fd2707f6fbc5b7fbeacf02f6c1fd17d0869ffb1",
+  "install_root": "/tmp/scwb-graph-forge-bounded-legacy-collector-376.lkl9_jq_",
+  "public_formals_changed": false,
+  "schema_changed": false,
+  "identity_scheme_changed": false,
+  "qualification": false,
+  "prototype_proof": 372,
+  "dependencies_tested": {
+    "jsonlite": "1.8.8"
+  }
+}

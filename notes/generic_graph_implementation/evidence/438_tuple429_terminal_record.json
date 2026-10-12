@@ -1,0 +1,78 @@
+{
+  "candidate": 428,
+  "tuple": 429,
+  "install_root": "/tmp/scwb-graph-forge-compact-row-admission-428.wwmjo8v8",
+  "runtime_change_files": [
+    "R/getters_artifact_metadata.R"
+  ],
+  "public_formals_changed": false,
+  "protocol_schema_changed": false,
+  "source_axes_reduced": false,
+  "resource_limits_increased": false,
+  "parent400_preserved": true,
+  "parent400_review_disposition": "REJECTED; Sable partial service interrupted; Meridian final scoped rejection",
+  "current_review_release": "PENDING",
+  "qualification": false,
+  "current_focus": {
+    "430_collector_contracts": {
+      "executed": 6,
+      "passed": 6,
+      "skipped": 0,
+      "exit": 0
+    },
+    "431_codec53": {
+      "executed": 53,
+      "passed": 53,
+      "skipped": 0,
+      "exit": 0
+    },
+    "432_original90000_fullcertificate": {
+      "exact_saved269_object": true,
+      "source_db_unchanged": true,
+      "elapsed_seconds": 82.678,
+      "hwm_before_kib": 238368,
+      "hwm_after_kib": 238368,
+      "bundle_open_before_profile": true,
+      "exit": 0,
+      "allocations_at_least_1MiB": [
+        {
+          "bytes": 2097200,
+          "stack_head": "row_collapse_object .local asJSON",
+          "cause": "UNPROVEN; not a zero-large-allocation claim"
+        }
+      ]
+    },
+    "433_affected_core": {
+      "executed": 5,
+      "passed": 5,
+      "skipped": 0,
+      "exit": 0
+    },
+    "434_installed_bodies_formals": "MATCH",
+    "436_source_posthash83": "PASS",
+    "437_terminal_source_posthash83": "PASS"
+  },
+  "direct_rejects": {
+    "count": 14,
+    "decoder_calls_each": 0,
+    "max_single_allocation_bytes": 312,
+    "carrier_reservation": "8*partition_bytes;4096 partition case also bounded"
+  },
+  "public_rejects": {
+    "count": 7,
+    "decoder_calls_each": 0,
+    "max_single_allocation_bytes": 524336,
+    "carrier_reservation_bytes": 2097152,
+    "not_a_partition256KiB_or_aggregate_memory_claim": true
+  },
+  "public_admitted": {
+    "count": 3,
+    "full_certificate_and_old_getter_content_identity": "MATCH"
+  },
+  "whole_lifecycle_rss": "NOT_RUN",
+  "source_ledger_sha256": "e2bd548149a03570f5e0b1075adf8c9103b6eff3e024828fd9233da934472f8a",
+  "terminal_evidence_count": 24,
+  "terminal_evidence_ledger_sha256": "2d8a14ec7e90ce482c28fda12e57375b6411e4a837232cf2475f644f33d2a6c3",
+  "all_exit_codes": 0,
+  "skips": 0
+}

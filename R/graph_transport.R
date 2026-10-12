@@ -91,8 +91,19 @@
   list(next_line = next_line, close = retire)
 }
 
-.wb_graph_import_parts <- function(path, budgets = list(), expected = NULL) {
+.wb_graph_import_parts <- function(path, budgets = list(), expected = NULL,
+  connections = list(), cache_slots = 1L) {
   budgets <- .wb_graph_budgets(budgets)
+  for (con in Filter(function(con) !is.null(con) && DBI::dbIsValid(con), connections))
+    budgets <- .wb_graph_effective_budgets(con, budgets)
+  .wb_graph_require(is.numeric(cache_slots) && length(cache_slots) == 1L &&
+    is.finite(cache_slots) && cache_slots >= 1L && cache_slots == floor(cache_slots),
+    "GRAPH_RESOURCE_POLICY_INVALID", "Invalid imported-stage cache reservation.")
+  # Reserve every surviving output slot before SQLite creates the new stage.
+  # The private connection context is never serialized into a request or grant.
+  restore <- .wb_graph_aggregate_connection_budget(connections, budgets, extra = cache_slots)
+  on.exit(restore(), add = TRUE)
+  cache_kib <- attr(restore, "wb_graph_cache_kib", exact = TRUE)
   reader <- .wb_graph_ndjson_reader(path, budgets$partition_bytes)
   state <- NULL; succeeded <- FALSE
   on.exit({reader$close(); if (!succeeded && !is.null(state)) .wb_graph_stage_discard(state)}, add = TRUE)
@@ -111,7 +122,7 @@
       .wb_graph_closed(header, c("schema", "direction_mode"), "graph header")
       .wb_graph_require(identical(header$schema, "scworkbench.graph.content.v1"),
         "GRAPH_VERSION_UNSUPPORTED", "Unsupported graph content header.")
-      state <- .wb_graph_stage_new(header$direction_mode, budgets)
+      state <- .wb_graph_stage_new(header$direction_mode, budgets, cache_kib)
       first <- FALSE
     } else {
       .wb_graph_require(part$component != "header", "GRAPH_PART_ORDER_INVALID", "Repeated header.")

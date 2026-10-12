@@ -1,0 +1,15 @@
+{
+  "run": 463,
+  "utc": "2026-10-11T21:44:42.565975+00:00",
+  "pid": 454550,
+  "observed_hwm_bytes": 788553728,
+  "rss_ceilings_bytes": [
+    700235776,
+    699392000
+  ],
+  "resource_verdict": "FAIL",
+  "functional_verdict": "PENDING",
+  "last_reported_phase": "reopened",
+  "cause": "UNPROVEN",
+  "note": "Permanent observed ceiling violation; no successful functional exit can override it."
+}

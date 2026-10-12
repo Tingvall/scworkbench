@@ -1,0 +1,8 @@
+[1] 0
+[1] 5001
+Error: Invalid result set
+In addition: Warning message:
+Closing open result set, pending rows 
+Execution halted
+Warning message:
+Expired, result set already closed 

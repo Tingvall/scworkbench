@@ -1,0 +1,13 @@
+notes/generic_graph_implementation/run_small_remaining_focused_495.R: OK
+inst/tests/contract_test_runner.R: OK
+tests/test_graph_resource_accounting_contract.R: OK
+tests/test_graph_primitive_contract.R: OK
+tests/test_graph_strict_json_unicode_contract.R: OK
+tests/test_graph_abi4_admission_contract.R: OK
+tests/test_graph_abi4_public_execution_contract.R: OK
+tests/test_graph_scenario_roundtrip_contract.R: OK
+tests/test_graph_binding_read_selection_contract.R: OK
+tests/test_graph_sdk_authoring_contract.R: OK
+tests/test_graph_abi4_retained_count_contract.R: OK
+tests/test_graph_abi4_runtime_sidecar_contract.R: OK
+tests/test_graph_abi4_broker_publication_contract.R: OK

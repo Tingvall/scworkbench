@@ -1,0 +1,6 @@
+GRAPH_NATIVE_TREE_PARITY C 12 entries
+GRAPH_NATIVE_TREE_PARITY C.UTF-8 12 entries
+Error in test_graph_native_matrix_streaming_text_identity_contract() : 
+  identical(paste0(tokens, collapse = ""), enc2utf8(jsonlite::serializeJSON(value,  .... is not TRUE
+Calls: test_graph_native_matrix_streaming_text_identity_contract -> stopifnot
+Execution halted

@@ -1,0 +1,6 @@
+BOUNDED_METADATA case=1 bytes=15 exact_old_roundtrip_hash=TRUE elapsed=0.307 PASS
+BOUNDED_METADATA case=2 bytes=42 exact_old_roundtrip_hash=TRUE elapsed=0.017 PASS
+BOUNDED_METADATA case=3 bytes=60 exact_old_roundtrip_hash=TRUE elapsed=0.006 PASS
+BOUNDED_METADATA case=4 bytes=51 exact_old_roundtrip_hash=TRUE elapsed=0.006 PASS
+Error: identical(actual$sha256, digest::digest(expected, algo = "sha256",  .... is not TRUE
+Execution halted

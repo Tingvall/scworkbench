@@ -1,0 +1,4 @@
+Error in t.default(BPCells::convert_matrix_type(values, "double")) : 
+  argument is not a matrix
+Calls: stopifnot -> <Anonymous> -> t -> t.default
+Execution halted

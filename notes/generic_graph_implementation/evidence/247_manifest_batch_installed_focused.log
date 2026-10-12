@@ -1,0 +1,10 @@
+test_manifest_stream_extended_types_and_mixed_blob_contract PASS
+test_manifest_stream_huge_single_text_contract PASS
+test_manifest_stream_late_mutation_and_transaction_contract PASS
+test_manifest_stream_logical_chunk_boundary_contract PASS
+test_manifest_stream_scalar_and_sql_type_parity_contract PASS
+test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract PASS
+Warning messages:
+1: Closing open result set, pending rows 
+2: Expired, result set already closed 
+MANIFEST_BATCH_INSTALLED_FOCUSED executed=6 skipped=0 qualification=FALSE

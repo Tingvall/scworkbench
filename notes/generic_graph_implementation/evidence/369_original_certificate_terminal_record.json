@@ -1,0 +1,17 @@
+{
+  "gate": 369,
+  "prototype_only": true,
+  "qualification": false,
+  "whole_certificate_identical": true,
+  "rows": 90000,
+  "metadata_bytes": 183,
+  "elapsed_seconds": 48.157,
+  "hwm_before_kib": 239884,
+  "hwm_after_kib": 239884,
+  "rss_after_kib": 214936,
+  "allocations_at_least_1mib": [
+    "2097200 :\"as.character.integer64\" \"as.character\" \"tryCatchList\" \"tryCatch\" \"emitter\" \"tryCatchList\" \"tryCatch\" \".wb_graph_token_hash\" \"<Anonymous>\" \"prototype_legacy_descriptor\" \"prototype_artifact_identity\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \".wb_certificate_identity\" \"certificate_fun\" \"system.time\" "
+  ],
+  "allocation_cause": "Unattributed: trace is as.character.integer64 in existing bounded closure emitter; do not claim zero >=1MiB allocations.",
+  "original_source_db_unchanged": true
+}

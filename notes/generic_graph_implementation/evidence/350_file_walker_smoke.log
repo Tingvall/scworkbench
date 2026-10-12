@@ -1,0 +1,3 @@
+Error in prototype_json_file_walk(p, function(...) n <<- n + 1, scworkbench:::.wb_graph_budgets()) : 
+  object '.wb_graph_budgets' not found
+Execution halted

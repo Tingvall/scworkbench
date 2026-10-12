@@ -569,13 +569,14 @@
   )))
 }
 
-.wb_prov_payload_identity <- function(bundle, prim, workspace = NULL, staging_bundle = NULL) {
+.wb_prov_payload_identity <- function(bundle, prim, workspace = NULL, staging_bundle = NULL,
+                                      graph_budgets = list()) {
   structural <- .wb_prov_structural_fingerprint(prim)
   if (!.wb_is_primitive(prim)) return(list(structural_fingerprint = structural, content_sha256 = NA_character_, content_identity_scheme = NA_character_, verification_level = "structural", verification_status = "unavailable"))
   kind <- as.character(prim$kind)[1]
   if (kind == "graph") {
     identity <- if (!is.null(prim$artifact_id)) {
-      .wb_graph_retained_identities(bundle, prim$artifact_id)
+      .wb_graph_retained_identities(bundle, prim$artifact_id, graph_budgets)
     } else if (!is.null(attr(prim, "graph_stage", exact = TRUE))) {
       state <- attr(prim, "graph_stage", exact = TRUE)
       .wb_graph_sql_identities(state$con, "staged", state$budgets)
@@ -1592,7 +1593,11 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
         for (nm in names(outs)) {
           prim <- outs[[nm]]
           kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
-          identity <- .wb_prov_payload_identity(bundle, prim, workspace = workspace, staging_bundle = staging_bundle)
+          graph_stage <- attr(prim, "graph_stage", exact = TRUE)
+          graph_policy <- if (kind == "graph") .wb_graph_effective_budgets(con,
+            if (is.null(graph_stage)) list() else graph_stage$budgets) else list()
+          identity <- .wb_prov_payload_identity(bundle, prim, workspace = workspace,
+            staging_bundle = staging_bundle, graph_budgets = graph_policy)
           replay_decl <- .wb_replay_equivalence_declaration(
             run$op_name, nm, prim, identity, bundle = bundle,
             workspace = workspace, staging_bundle = staging_bundle
@@ -1620,7 +1625,7 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           if (!is.na(art_id) && nzchar(art_id) && kind %in%
               c("cell_vector", "cell_vector_family", "graph")) {
             retained <- if (kind == "graph") {
-              graph_identity <- .wb_graph_sql_identities(con, art_id)
+              graph_identity <- .wb_graph_sql_identities(con, art_id, graph_policy)
               graph_identity[c("content_identity", "binding_identity", "descriptor_identity")]
             } else .wb_graph_object_verify(con, art_id, require_certificate = FALSE)
             DBI::dbExecute(con, paste0("UPDATE prov_run_outputs SET retained_payload_identity_json=? ",

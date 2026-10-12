@@ -1,0 +1,10 @@
+args <- commandArgs(TRUE)
+.libPaths(c(file.path(args[[1L]],"library"),.libPaths()))
+library(scworkbench)
+tests <- new.env(parent=asNamespace("scworkbench"))
+sys.source("inst/tests/contract_test_runner.R",tests)
+tests$contract_test_skip <- function(reason)stop(paste("UNEXPECTED_SKIP",reason))
+for(file in c("test_graph_resource_accounting_contract.R","test_graph_abi4_public_execution_contract.R")) sys.source(file.path("tests",file),tests)
+names <- ls(tests,pattern="^test_graph_(resource_|abi4_public_r_execution)")
+for(name in names){cat("START",name,"\n");flush.console();stopifnot(isTRUE(tests[[name]]()));cat(name,"PASS\n");flush.console()}
+cat("OWNED_SPILL_FOCUSED executed=",length(names)," passed=",length(names)," skipped=0 qualification=FALSE\n",sep="")

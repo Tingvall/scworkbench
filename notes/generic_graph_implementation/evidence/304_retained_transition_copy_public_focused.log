@@ -1,0 +1,14 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+test_graph_matrix_native_existing_source_authority_contract PASS
+test_graph_matrix_existing_producer_selection_contract PASS
+test_graph_matrix_promotion_first_precheck_contract PASS
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_NATIVE_RECIPIENT pack_free=TRUE read_only=TRUE relocated=TRUE native_source_verified=TRUE  descriptor_unchanged=TRUE selected_mappings_preserved=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+GRAPH_NATIVE_PUBLIC_G2 normalized=TRUE unpromoted_pre_stage_rejected=TRUE no_residue=TRUE  promoted_matrix=TRUE direct_binding=TRUE selected_mappings_cells=2 features=1  complete_source_cells=3 features=2 graph_read_run=TRUE graph_promote=TRUE recipient=PASS
+test_graph_native_matrix_public_promotion_first_lifecycle_contract PASS
+Warning message:
+In connection_release(conn@ptr) : Already disconnected
+NATIVE_MATRIX_PUBLIC_FOCUSED executed=4 passed=4 skipped=0 qualification=FALSE

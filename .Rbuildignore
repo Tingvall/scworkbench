@@ -22,3 +22,4 @@
 ^\.gitlab$
 ^\.gitlab-ci\.yml$
 ^release-evidence$
+^notes/generic_graph_implementation($|/)

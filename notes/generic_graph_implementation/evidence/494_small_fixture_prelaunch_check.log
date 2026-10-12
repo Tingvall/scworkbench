@@ -1,0 +1,6 @@
+tests/test_graph_small_out_of_core_contract.R: OK
+tests/fixtures/graph_small_out_of_core_manifest.json: OK
+tests/fixtures/graph_small_out_of_core_pack_register.R: OK
+tests/fixtures/graph_small_out_of_core_support.R: OK
+tests/fixtures/graph_small_out_of_core_recipient.R: OK
+notes/generic_graph_implementation/bounded_small_case.json: OK

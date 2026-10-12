@@ -374,7 +374,8 @@ wb_operation_pack_transition_registry_reads <- function(bundle, transition_id) {
   transition_id <- .wb_operation_pack_v2_safe_component(
     transition_id, "transition_id")
   path <- file.path(.wb_operation_pack_v2_store(bundle), transition_id)
-  result <- .wb_operation_pack_v2_record_validate(path, load_payloads = TRUE)
+  result <- .wb_operation_pack_v2_record_validate(path, load_payloads = TRUE,
+    graph_connections = .wb_graph_bundle_connections(bundle))
   .wb_operation_pack_assert(
     isTRUE(result$ok) && identical(result$state$state, "reopened"),
     "PYBENCH_REOPEN_VALIDATION_FAILED",

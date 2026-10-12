@@ -1,0 +1,6 @@
+[1] 0
+[1] 5001
+Warning messages:
+1: Closing open result set, pending rows 
+2: Expired, result set already closed 
+MANIFEST_BATCH_ACCOUNTING_PROTOTYPE partitions=128,4096,262144 working_memory=8388608 auxiliary_cache=128KiB source_cache=SCOPED logical5000_digest=UNCHANGED tiny_partition=SCALAR_FALLBACK success_restoration=EXACT batches=279 max_reservation_bytes=269136 installed_candidate=UNCHANGED qualification=FALSE

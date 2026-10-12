@@ -121,7 +121,7 @@ test_graph_abi4_public_r_execution_contract <- function() {
   recipient_log <- tempfile("graph_recipient_process_")
   status <- system2(file.path(R.home("bin"), "Rscript"), c(
     shQuote(file.path(normalizePath("."), "tests", "fixtures", "graph_recipient_process.R")),
-    shQuote(normalizePath(".")), shQuote(relocated), shQuote(bound_id), shQuote(descriptor)),
+    shQuote(system.file(package = "scworkbench")), shQuote(relocated), shQuote(bound_id), shQuote(descriptor)),
     stdout = recipient_log, stderr = recipient_log)
   cat(paste(readLines(recipient_log, warn = FALSE), collapse = "\n"), "\n")
   stopifnot(status == 0L)

@@ -1,0 +1,4 @@
+  load_extension(?,?)
+1                  NA
+Error: Requested outputs are not promotable terminal outputs: axis
+Execution halted

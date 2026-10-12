@@ -70,6 +70,9 @@
       if (source$selection_mode == "retained_input_axis") {
         .wb_operation_pack_assert(input$kind %in% c("cell_vector", "cell_vector_family"),
           "OPERATION_PACK_MANIFEST_SCHEMA_INVALID", "Retained graph axis requires a declared cell vector input.")
+      } else if (source$selection_mode == "retained_matrix_axis") {
+        .wb_operation_pack_assert(input$kind == "matrix",
+          "OPERATION_PACK_MANIFEST_SCHEMA_INVALID", "Retained matrix axis requires a declared matrix input.")
       } else {
         .wb_operation_pack_assert(input$kind == "graph", "OPERATION_PACK_MANIFEST_SCHEMA_INVALID",
           "Selected graph binding requires a graph input.")

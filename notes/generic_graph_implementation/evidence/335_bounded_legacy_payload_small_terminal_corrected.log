@@ -1,0 +1,7 @@
+  load_extension(?,?)
+1                  NA
+BOUNDED_LEGACY_PAYLOAD_SMALL case=1 exact_old_loader_hash=TRUE PASS
+BOUNDED_LEGACY_PAYLOAD_SMALL case=2 exact_old_loader_hash=TRUE PASS
+BOUNDED_LEGACY_PAYLOAD_SMALL case=3 exact_old_loader_hash=TRUE PASS
+BOUNDED_LEGACY_PAYLOAD_SMALL case=4 exact_old_loader_hash=TRUE PASS
+BOUNDED_LEGACY_PAYLOAD_SMALL executed=4 passed=4 skipped=0 prototype_only=TRUE

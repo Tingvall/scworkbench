@@ -1,0 +1,5 @@
+[1] 0
+         type provenance_bytes meta_present chunks metadata_bytes
+1 cell_vector         35179179            1      1            183
+2       graph             1268           NA      0              0
+3   obs_table             1268           NA      0              0

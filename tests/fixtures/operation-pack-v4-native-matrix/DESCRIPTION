@@ -1,0 +1,9 @@
+Package: scwbNativeGraphFixture
+Type: Package
+Title: Native Matrix Graph Source Contract Fixture
+Version: 0.1.0
+Authors@R: person("Test", "Fixture", email = "fixture@example.invalid", role = c("aut", "cre"))
+Description: Public SDK author fixture for promoted matrix axis binding and read lifecycle.
+License: MIT
+Encoding: UTF-8
+Imports: scworkbench

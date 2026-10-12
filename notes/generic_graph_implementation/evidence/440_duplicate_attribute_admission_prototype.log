@@ -1,0 +1,29 @@
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_PROTOTYPE duplicate_last_large decoder_calls=0 max_allocation= 8240 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_PROTOTYPE duplicate_first_large decoder_calls=0 max_allocation= 224 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_PROTOTYPE escaped_dot decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_PROTOTYPE nested_duplicate decoder_calls=0 max_allocation= 264 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_PROTOTYPE duplicate_native_class decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_PROTOTYPE mixed_class_alias decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_PROTOTYPE later_class_alias decoder_calls=0 max_allocation= 232 PASS
+DUPLICATE_ATTRIBUTE_VALID duplicate_small exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID escaped_small exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID inert_alias_large exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID ordinary_duplicate_class exact_oldcodec=PASS
+Error in attributes(.Data) <- c(attributes(.Data), attrib) : 
+  'names' attribute [1] must be the same length as the vector [0]
+Calls: <Anonymous> ... is -> <Anonymous> -> unpack -> do.call -> structure
+Execution halted

@@ -1,0 +1,5 @@
+GRAPH_NATIVE_TREE_PARITY C 12 entries
+GRAPH_NATIVE_TREE_PARITY C.UTF-8 12 entries
+GRAPH_ONLY_RECIPIENT cells=0 matrices=0 nodes=3 bindings=0 pack_free=TRUE read_only=TRUE recipient=PASS filesystem_pure=TRUE 
+[1] TRUE
+PASS 5/5 native and budget/graph-only tests; skips=0 failures=0

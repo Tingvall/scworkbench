@@ -329,6 +329,31 @@ wb_promote_analysis <- function(bundle,
         paste(required, collapse = ", "), "."))
   }
 
+  graph_outputs <- Filter(function(prim) .wb_is_primitive(prim) && identical(prim$kind, "graph"),
+    unlist(lapply(runs[topo], function(run) unname(run$outputs %||% list())), recursive = FALSE))
+  graph_connections <- list()
+  if (length(graph_outputs)) {
+    # Configure the caller's source connection before BEGIN. Native source
+    # observations inside publication then never switch temp_store in a txn.
+    # This is primitive-generic, not operation/pack-specific authority.
+    policies <- lapply(graph_outputs, function(prim) {
+      stage <- attr(prim, "graph_stage", exact = TRUE)
+      if (is.null(stage)) .wb_graph_budgets() else stage$budgets
+    })
+    policy <- policies[[1L]]
+    for (name in names(policy)) {
+      lowest <- min(vapply(policies, function(x) as.numeric(x[[name]]), numeric(1)))
+      policy[[name]] <- if (is.character(policy[[name]])) format(lowest, scientific = FALSE, trim = TRUE) else lowest
+    }
+    stages <- lapply(graph_outputs, function(prim) attr(prim, "graph_stage", exact = TRUE))
+    connections <- c(list(bundle$con),
+      if (!is.null(staging_bundle)) list(staging_bundle$con),
+      lapply(Filter(Negate(is.null), stages), function(stage) stage$con))
+    graph_connections <- connections
+    restore_graph_budget <- .wb_graph_aggregate_connection_budget(connections,
+      .wb_graph_budgets(policy), extra = 1L)
+    on.exit(restore_graph_budget(), add = TRUE)
+  }
   commit_id <- .wb_promotion_commit_id(bundle$con)
   runtime_fingerprint <- .wb_promotion_runtime_fingerprint()
   .wb_migrate_provenance_tables(bundle$con)
@@ -338,7 +363,7 @@ wb_promote_analysis <- function(bundle,
   materializations <- tryCatch({
     if (!is.null(staging_bundle)) {
       .wb_operation_pack_v2_prepare_transition_payloads(
-        staging_bundle, bundle, workspace, runs, topo)
+        staging_bundle, bundle, workspace, runs, topo, graph_connections = graph_connections)
       prepared_materializations <- .wb_stage_prepare_materializations(
         staging_bundle, bundle, workspace, runs, topo, commit_id)
       prepared_materializations
@@ -355,7 +380,7 @@ wb_promote_analysis <- function(bundle,
   on.exit({
     if (transaction_open) try(DBI::dbRollback(bundle$con), silent = TRUE)
     if (!is.null(promotion_error)) .wb_promotion_workspace_cleanup(workspace)
-  }, add = TRUE)
+  }, add = TRUE, after = FALSE)
   DBI::dbBegin(bundle$con)
   transaction_open <- TRUE
   tryCatch({

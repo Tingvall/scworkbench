@@ -1,0 +1,5 @@
+  load_extension(?,?)
+1                  NA
+Error in close.connection(guard) : invalid connection
+Calls: fun ... prototype_physical_metadata_stream -> close -> close.connection
+Execution halted

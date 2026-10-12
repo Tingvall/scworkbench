@@ -1,0 +1,12 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+test_graph_source_snapshot_unrelated_head_scope_contract PASS
+test_graph_matrix_native_existing_source_authority_contract PASS
+test_graph_matrix_existing_producer_selection_contract PASS
+test_graph_matrix_promotion_first_precheck_contract PASS
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+GRAPH_RECIPIENT_PROCESS pack_free=TRUE read_only=TRUE relocated=TRUE descriptor_unchanged=TRUE sources_verified=TRUE missing_pack_rejected=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+test_graph_abi4_public_r_execution_contract PASS
+SOURCE_SNAPSHOT_SCOPE_FOCUSED executed=5 passed=5 skipped=0 native_dispatch=DISABLED qualification=FALSE

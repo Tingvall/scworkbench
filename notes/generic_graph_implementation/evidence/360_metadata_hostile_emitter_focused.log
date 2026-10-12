@@ -1,0 +1,7 @@
+METADATA_EMITTER small_names_padding bytes= 106 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_null_attribute_removed bytes= 67 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_structure_alias bytes= 105 old_hash=PASS cleanup=PASS
+Error in attributes(.Data) <- c(attributes(.Data), attrib) : 
+  attempt to set invalid 'class' attribute
+Calls: check
+Execution halted

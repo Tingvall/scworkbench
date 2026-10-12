@@ -348,11 +348,16 @@
         row <- .wb_certificate_query(con, "artifact_model_ref", "SELECT model_path FROM artifact_model_ref WHERE artifact_id = ?;", list(id))
         path <- .wb_bundle_path_require(bundle, as.character(row$model_path[[1L]]), expected_type = "either", must_exist = TRUE, purpose = "certificate artifact model payload")
         .wb_prov_path_identity(path)
+      } else if(atype %in% c("cell_vector","cell_vector_family") && !is.null(con@ref$wb_graph_policy)) {
+        .wb_getter_legacy_object_identity(bundle,id)
       } else {
         .wb_prov_payload_identity(bundle, wb_art_load(bundle, id))
       }
     } else NULL
-  }, error = function(e) structure(list(message = conditionMessage(e)), class = "wb_certificate_verification_error"))
+  }, error = function(e) {
+    if(!is.null(e$code) && startsWith(e$code,"GRAPH_RESOURCE_"))stop(e)
+    structure(list(message = conditionMessage(e)), class = "wb_certificate_verification_error")
+  })
   if (inherits(observed, "wb_certificate_verification_error") || is.null(observed)) {
     out$verification_status <- "failed"
     out$observed <- .wb_certificate_state("corrupt", "payload_verification_failed")

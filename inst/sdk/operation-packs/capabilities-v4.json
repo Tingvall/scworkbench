@@ -1,7 +1,7 @@
 {
   "sdk_version": "1.1.0",
   "pack_abi_version": "4",
-  "schema_sha256": "9a994504e03c847bbc876c23f7bf06171da4ce8b2a5bc11f5e69d12084af71d7",
+  "schema_sha256": "0c38f16eb811dd40111c0b82ebcb519d9e8bd06bccaaf13f1aa366a94cc6b13f",
   "primitive_kinds": [
     "matrix",
     "space",
@@ -4293,6 +4293,23 @@
       "schema_path": "#/$defs/graph_axis_source/oneOf/1/properties/selection_mode",
       "values": [
         "selected_graph_binding"
+      ],
+      "capability_id": "graph",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/graph_axis_source/oneOf/2/properties/axis_kind",
+      "values": [
+        "cell",
+        "feature"
+      ],
+      "capability_id": "graph",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/graph_axis_source/oneOf/2/properties/selection_mode",
+      "values": [
+        "retained_matrix_axis"
       ],
       "capability_id": "graph",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"

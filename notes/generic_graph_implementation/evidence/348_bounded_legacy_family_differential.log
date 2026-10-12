@@ -1,0 +1,4 @@
+  load_extension(?,?)
+1                  NA
+Error: identical(expected, payload$sha256) is not TRUE
+Execution halted

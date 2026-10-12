@@ -1,0 +1,9 @@
+{
+  "tuple": 475,
+  "source_count": 90,
+  "source_ledger_sha256": "4e804356310a00cad69c01fbe82f68e90564fb8a36e0db7aa2267a87e7b86e16",
+  "parent_tuple": 445,
+  "parent_library": "/tmp/scwb-graph-forge-duplicate-sensitive-444.ps0av2oi/library",
+  "qualification": false,
+  "scope": "Promotion package-version metadata inventory only; controller narrow freeze release, preserves all445 inputs and legacy normal fingerprint values. Installed but unloadable now records metadata version; operation preflight loadability remains separate."
+}

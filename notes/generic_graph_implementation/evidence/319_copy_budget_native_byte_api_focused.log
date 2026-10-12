@@ -1,0 +1,1 @@
+NATIVE_BYTE_API_FOCUSED same_RSQLite_engine=PASS caller_cursor=PASS caller_extension_disabled=PASS WAL_writer_spill_commit=PASS rollback=PASS late_mutation=PASS error_cleanup=PASS reopened_integrity=PASS skipped=0

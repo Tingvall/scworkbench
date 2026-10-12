@@ -29,3 +29,6 @@ scworkbench_*.tar.gz
 /src/*.so
 /src/*.dll
 /src/*.dylib
+
+# Local graph development compiler objects; preserve them outside Git artifacts.
+/notes/generic_graph_implementation/*.o

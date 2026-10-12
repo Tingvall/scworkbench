@@ -1,0 +1,18 @@
+{
+  "run": 485,
+  "tuple": 475,
+  "installed": 476,
+  "utc": "2026-10-12T08:15:17.650370+00:00",
+  "pid": 532476,
+  "observed_hwm_bytes": 704479232,
+  "rss_ceilings_bytes": [
+    700235776,
+    699392000
+  ],
+  "resource_verdict": "FAIL",
+  "functional_verdict": "PENDING",
+  "last_phase": "promotion_returned",
+  "cause": "UNPROVEN",
+  "notification_event_key": "graph-lifecycle-485-terminal",
+  "note": "Observed breach irrevocably fails the memory gate. Functional completion cannot override it; no cap/source changes."
+}

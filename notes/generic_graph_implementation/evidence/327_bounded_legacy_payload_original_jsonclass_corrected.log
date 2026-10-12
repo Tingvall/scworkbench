@@ -1,0 +1,6 @@
+  load_extension(?,?)
+1                  NA
+[1] 0
+BOUNDED_LEGACY_DESCRIPTOR_ORIGINALVmHWM:	  200552 kB VmRSS:	  185908 kB rows=90000 metadata_bytes=183 elapsed=53.129 prototype_only=TRUE qualification=FALSE
+BOUNDED_LEGACY_PAYLOAD original_rows=90000 exact_saved_certificate_SHA=b78524fc47460da8d90b06541f7114fd31ce60fd63d598374d4a4ad3d0b5d044 batch_rows=64 elapsed=2.6 prototype_only=TRUE PASS
+BOUNDED_LEGACY_DESCRIPTOR original_isolated_copy_primary_DB=UNCHANGED PASS

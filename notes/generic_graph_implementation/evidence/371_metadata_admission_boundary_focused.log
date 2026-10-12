@@ -1,0 +1,8 @@
+NULL
+METADATA_CODEC_BOUNDARY tokens=215 bytes=244 partition_exact=7002 exactPASS below1ResourcePASS
+METADATA_RETAINED_CLASS global_carrier_rejection=PASS
+Warning message:
+In makeExtends(class1, coerce, test, replace, by, classDef1 = classDef,  :
+  there is no automatic definition for 'as(object, "NativeSymbolInfo") <- value' when object has class “scwb_metadata_decoder_test” and no 'replace' argument was supplied; replacement will be an error
+METADATA_PREDICATE before_arbitrary_test=PASS no_execution=PASS
+METADATA_ADMISSION_BOUNDARY executed=4 passed=4 prototype_only=TRUE qualification=FALSE PASS

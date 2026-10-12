@@ -1,0 +1,13 @@
+{
+  "candidate": 399,
+  "parent_candidate": 390,
+  "source_count": 73,
+  "source_ledger_sha256": "d0c55ab431372fde7cc37dc186a462c16b2a372dce38d0e5066cf3fedac48be0",
+  "install_root": "/tmp/scwb-graph-forge-bounded-legacy-review-399.qgqe6cr5",
+  "qualification": false,
+  "runtime_changes_since_390": [],
+  "test_changes_since_390": [
+    "tests/test_graph_source_authority_contract.R"
+  ],
+  "test_correction": "Explicit existing ABI4 resource tuple supplied to output and publication grant; no runtime fallback."
+}

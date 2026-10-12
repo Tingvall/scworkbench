@@ -1,0 +1,15 @@
+GRAPH_NATIVE_STORAGE_AXIS named_col col packed-uint-matrix-v2 PASS
+GRAPH_NATIVE_STORAGE_AXIS named_row row unpacked-double-matrix-v2 PASS
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+GRAPH_NATIVE_STORAGE_AXIS unnamed col packed-double-matrix-v2 PASS
+test_graph_native_matrix_bounded_storage_axis_contract PASS
+test_graph_native_matrix_fragment_identity_contract PASS
+test_graph_native_matrix_incremental_text_and_axis_contract FAIL inherits(error, "wb_graph_error") is not TRUE 
+test_graph_native_matrix_physical_and_membership_verification_contract PASS
+test_graph_native_matrix_streaming_text_identity_contract PASS
+GRAPH_NATIVE_TREE_PARITY C 12 entries
+GRAPH_NATIVE_TREE_PARITY C.UTF-8 12 entries
+test_graph_native_matrix_tree_identity_contract PASS
+native byte/axis development failures= 1  qualification=FALSE

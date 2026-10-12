@@ -1,0 +1,494 @@
+# Private operational admission for the existing codec, including opaque decoder cost.
+# JSON carrier bounds do not establish an arbitrary S4 constructor/package
+# loader's memory bound. These operations fail operational admission first.
+.wb_getter_metadata_admitted_codec <- function(text,budgets) {
+  bytes <- nchar(text,type="bytes")
+  fail <- function(message).wb_graph_error("GRAPH_RESOURCE_EXCEEDED",message)
+  if(bytes>budgets$partition_bytes)fail("Metadata old-codec input exceeds decoded partition.")
+  usage <- .wb_graph_transient_usage(budgets=budgets)
+  if(usage$owned_spill_bytes+.wb_graph_session_copy_reservation(budgets)+bytes>
+      as.numeric(budgets$token_bytes))fail("Metadata old-codec temporary copy exceeds combined spill admission.")
+  path <- tempfile("scwb_object_meta_codec_admission_")
+  writeBin(charToRaw(enc2utf8(text)),path);on.exit(unlink(path),add=TRUE)
+  pointer <- .Call(C_scwb_graph_json_file_open,path,as.numeric(budgets$token_bytes))
+  on.exit(.Call(C_scwb_graph_json_close,pointer),add=TRUE,after=FALSE)
+  .wb_graph_spill_admit(budgets,path)
+  count <- 0
+  tryCatch(repeat {
+    token <- .Call(C_scwb_graph_json_next,pointer);count <- count+1
+    if(4*bytes+256*count>8*budgets$partition_bytes)
+      fail("Metadata old-codec JSON carriers exceed decoded admission.")
+    if(token$type=="end")break
+  },finally=.Call(C_scwb_graph_json_close,pointer))
+  parsed <- jsonlite::fromJSON(text,simplifyVector=FALSE)
+  code_bytes <- 0
+  # Compact row.names expands in attributes()/pack() even when its input is two
+  # scalars. Reserve all nested expansions before unpack(), including integer
+  # coercion to NA. Each expanded value uses the existing256-byte carrier bound;
+  # the canonical-output bound includes every integer delimiter/digit.
+  expansion_rows <- 0
+  expansion_bytes <- 0
+  admit_compact_rows <- function(attribute) {
+    if(!is.list(attribute) || !is.character(attribute$type) || length(attribute$type)!=1L ||
+        !attribute$type %in% c("integer","numeric","double"))return(invisible(NULL))
+    values <- attribute$value
+    if(!is.list(values) || length(values)!=2L)return(invisible(NULL))
+    if(any(vapply(values,function(value)!is.null(value) && (!is.atomic(value) || length(value)!=1L),logical(1))))
+      fail("Compact row-name coercion has no bounded predecode proof.")
+    number <- function(value) {
+      if(is.null(value))return(NA_real_)
+      suppressWarnings(if(attribute$type=="integer")as.integer(value) else as.numeric(value))
+    }
+    first <- number(values[[1L]])
+    second <- number(values[[2L]])
+    if(!is.na(first))return(invisible(NULL))
+    if(!is.finite(second) || abs(second)>.Machine$integer.max)
+      fail("Compact row-name expansion has no finite bounded predecode proof.")
+    rows <- abs(trunc(second))
+    if(rows==0)return(invisible(NULL))
+    remaining <- 8*budgets$partition_bytes-4*bytes-256*count-1024*code_bytes
+    if(rows>(remaining-256*expansion_rows)/256)
+      fail("Compact row-name expansion exceeds metadata decoded admission before decoding.")
+    digits <- max(1,nchar(sprintf("%.0f",rows),type="bytes"))
+    if(rows>(budgets$partition_bytes-bytes-expansion_bytes)/(digits+1))
+      fail("Compact row-name canonical expansion exceeds partition admission before decoding.")
+    expansion_rows <<- expansion_rows+rows
+    expansion_bytes <<- expansion_bytes+rows*(digits+1)
+    invisible(NULL)
+  }
+  primitive_binary <- function(value,type) {
+    if(!is.character(value) || length(value)!=1L || nchar(value)>2048L)
+      fail("Opaque R primitive decoder cannot be admitted.")
+    raw <- tryCatch(jsonlite::base64_dec(value),error=function(e)NULL)
+    if(is.null(raw) || length(raw)<22L || !identical(raw[1:2],charToRaw("X\n")))
+      fail("Opaque R serialization format has no bounded decoder proof.")
+    uint <- function(at) {
+      if(at+3L>length(raw))fail("Opaque R serialization header cannot be admitted.")
+      sum(as.integer(raw[at+0:3])*c(16777216,65536,256,1))
+    }
+    version <- uint(3L);at <- 15L
+    if(version==3L) {
+      encoding_bytes <- uint(at);at <- at+4L+encoding_bytes
+      if(encoding_bytes>128L)fail("Opaque R serialization encoding exceeds admission.")
+    } else if(version!=2L)fail("Opaque R serialization version has no decoder proof.")
+    if(uint(at)!=if(type=="builtin")8L else 7L)
+      fail("Opaque R primitive root/attributes require an unadmitted decoder.")
+    name_bytes <- uint(at+4L)
+    if(name_bytes>128L || at+7L+name_bytes!=length(raw))
+      fail("Opaque R primitive payload exceeds bounded name-only admission.")
+  }
+  audit <- function(object,depth=1L) {
+    if(depth>min(256L,floor(budgets$partition_bytes/2048)))fail("Metadata decoder stack exceeds admission.")
+    if(!is.list(object))return(invisible(NULL))
+    type <- object$type
+    if(!is.character(type) || length(type)!=1L)return(invisible(NULL))
+    if(type=="NULL")return(invisible(NULL))
+    # structure() applies later duplicate attributes. Audit every candidate
+    # conservatively before unpack(); first-field lookup can miss expansions.
+    if(is.list(object$attributes))for(index in which(names(object$attributes)=="row.names"))
+      admit_compact_rows(object$attributes[[index]])
+    if(type=="S4")fail("S4 constructor memory cannot be admitted from its encoded metadata size.")
+    if(type=="namespace") {
+      name <- object$value$name
+      if(!is.character(name) || length(name)!=1L || !isNamespaceLoaded(name))
+        fail("Namespace loading memory cannot be admitted from encoded metadata size.")
+    }
+    if(type %in% c("builtin","special"))primitive_binary(object$value,type)
+    for(index in which(names(object$attributes) %in% c("class",".Class"))) {
+      class <- object$attributes[[index]]
+      if(is.list(class) && identical(class$type,"character") &&
+          "NativeSymbolInfo" %in% unlist(class$value,use.names=FALSE))
+        fail("Native symbol loading memory cannot be admitted from encoded metadata size.")
+    }
+    if(type %in% c("language","expression","name","symbol")) {
+      source <- unlist(object$value,recursive=FALSE,use.names=FALSE)
+      code_bytes <<- code_bytes+sum(nchar(as.character(source),type="bytes"))
+      if(4*bytes+256*count+1024*code_bytes+256*expansion_rows>8*budgets$partition_bytes)
+        fail("R code parser carriers exceed metadata decoded admission.")
+    }
+    if(is.list(object$attributes))for(attribute in object$attributes)audit(attribute,depth+1L)
+    if(type %in% c("list","pairlist","closure") && is.list(object$value))
+      for(child in object$value)audit(child,depth+1L)
+    invisible(NULL)
+  }
+  if(!is.null(methods::getClassDef("NativeSymbolInfo")))
+    fail("Registered native-symbol class predicates have no bounded decoder proof.")
+  audit(parsed)
+  decoded <- jsonlite::unserializeJSON(text)
+  canonical <- as.character(jsonlite::serializeJSON(decoded,digits=NA))
+  if(nchar(canonical,type="bytes")>budgets$partition_bytes)
+    fail("Metadata old-codec encoded result exceeds decoded admission.")
+  list(text=canonical,type=typeof(decoded),length=length(decoded),
+    attribute_count=length(attributes(decoded)))
+}
+
+# Private canonical R.serializeJSON re-encoding. All strings/arrays stream.
+# Unhandled R representations are decoded only after explicit byte/carrier
+# admission; exceeding that admission is a resource error, never acceptance.
+.wb_getter_metadata_canonical_work <- function(path,budgets,external_emit=NULL) {
+  .wb_graph_fd_metadata_reservation(budgets) # fixed64KiB native + bounded FD metadata reserved first
+  # Read the admitted small representation through one native snapshot. Lexical
+  # reconstruction preserves scalar spelling and JSON semantics across chunks.
+  if(file.info(path)$size<=budgets$partition_bytes) {
+    probe <- .Call(C_scwb_graph_json_file_open,path,as.numeric(budgets$token_bytes))
+    on.exit(.Call(C_scwb_graph_json_close,probe),add=TRUE)
+    pieces <- list();size <- 0;inside <- FALSE
+    append <- function(text) {
+      size <<- size+nchar(text,type="bytes")
+      if(size>budgets$partition_bytes || size+1024*(length(pieces)+1L)>8*budgets$partition_bytes)
+        .wb_graph_error("GRAPH_RESOURCE_EXCEEDED","Metadata lexical carriers exceed admission.")
+      pieces[[length(pieces)+1L]] <<- text
+    }
+    repeat {
+      token <- .Call(C_scwb_graph_json_next,probe)
+      if(token$type=="end")break
+      if(token$type %in% c("string_part","string_end")) {
+        if(!inside){append('"');inside<-TRUE}
+        escaped <- as.character(jsonlite::toJSON(token$value,auto_unbox=TRUE))
+        append(substr(escaped,2L,nchar(escaped)-1L))
+        if(token$type=="string_end"){append('"');inside<-FALSE}
+      } else append(token$value)
+    }
+    canonical <- .wb_getter_metadata_admitted_codec(paste0(pieces,collapse=""),budgets)
+    sha <- if(is.null(external_emit)).wb_graph_token_hash(function(emit)emit(canonical$text),budgets) else {external_emit(canonical$text);NULL}
+    return(list(sha256=sha,
+      descriptor=NULL,partition_bytes=budgets$partition_bytes,admitted_old_codec=TRUE))
+  }
+  pointer <- .Call(C_scwb_graph_json_file_open,path,as.numeric(budgets$token_bytes))
+  on.exit(.Call(C_scwb_graph_json_close,pointer),add=TRUE)
+  token <- .Call(C_scwb_graph_json_next,pointer)
+  advance <- function() token <<- .Call(C_scwb_graph_json_next,pointer)
+  invalid <- function(ok) if(!isTRUE(ok)).wb_graph_error(
+    "GRAPH_RESOURCE_EXCEEDED","Metadata transformation lacks a streaming proof within old-codec admission.")
+  admit <- function(ok) if(!isTRUE(ok)).wb_graph_error(
+    "GRAPH_RESOURCE_EXCEEDED","Metadata decode/carrier exceeds admitted partition.")
+  expect <- function(value,emit) {
+    invalid(token$type=="punctuation" && identical(token$value,value))
+    emit(value);advance()
+  }
+  quote_part <- function(text) {
+    encoded <- as.character(jsonlite::toJSON(text,auto_unbox=TRUE))
+    substr(encoded,2L,nchar(encoded)-1L)
+  }
+  string <- function(emit,collect=FALSE,limit=budgets$partition_bytes) {
+    invalid(token$type %in% c("string_part","string_end"))
+    text <- "";bytes <- 0;emit('"')
+    repeat {
+      part <- token$value;final <- token$type=="string_end"
+      if(collect) {
+        bytes <- bytes+nchar(part,type="bytes");admit(bytes<=limit)
+        text <- paste0(text,part)
+      }
+      emit(quote_part(part));advance()
+      if(final)break
+      invalid(token$type %in% c("string_part","string_end"))
+    }
+    emit('"');text
+  }
+  key <- function(name,emit) {
+    observed <- string(emit,TRUE,256L);invalid(identical(observed,name));expect(":",emit)
+  }
+  generic <- function(emit,depth) {
+    admit(depth<=min(256L,floor(budgets$partition_bytes/2048)))
+    if(token$type %in% c("string_part","string_end"))return(string(emit))
+    if(token$type=="scalar") {
+      value <- tryCatch(jsonlite::fromJSON(token$value),error=function(e)NULL)
+      invalid(!is.null(value) || identical(token$value,"null"))
+      emit(as.character(jsonlite::toJSON(value,auto_unbox=TRUE,null="null",digits=NA)))
+      advance();return(invisible(NULL))
+    }
+    invalid(token$type=="punctuation" && token$value %in% c("{","["))
+    object <- token$value=="{";expect(token$value,emit);end <- if(object)"}" else "]"
+    first <- TRUE
+    while(!(token$type=="punctuation" && token$value==end)) {
+      if(!first)expect(",",emit)
+      if(object){string(emit);expect(":",emit)}
+      generic(emit,depth+1L);first <- FALSE
+    }
+    expect(end,emit)
+  }
+  normalize <- getFromNamespace("null_to_na","jsonlite")
+  atomic <- function(type,emit,rank,collect=FALSE) {
+    if(type=="character" && token$type %in% c("string_part","string_end")) {
+      if(rank<3L && token$type=="string_end" && token$value %in% c("NA","NaN","Inf","-Inf")) {
+        value <- normalize(list(token$value))[[1L]];advance()
+      } else {value <- string(emit,collect=collect);return(list(value=value,missing=FALSE))}
+    }
+    if(exists("value",inherits=FALSE))NULL else
+    if(token$type %in% c("string_part","string_end")) {
+      value <- string(function(...)NULL,TRUE)
+      if(rank<3L)value <- normalize(list(value))[[1L]]
+    }
+    else {
+      invalid(token$type=="scalar")
+      text <- token$value;advance()
+      value <- tryCatch(jsonlite::fromJSON(text),error=function(e)NULL)
+      invalid(!is.null(value) || identical(text,"null"))
+      if(is.null(value))value <- NA
+    }
+    # list_to_vec first coerces every array element to one common R type.
+    value <- suppressWarnings(switch(as.character(rank),
+      `3`=as.character(value),`2`=as.double(value),`1`=as.integer(value),`0`=as.logical(value)))
+    value <- suppressWarnings(switch(type,character=as.character(value),
+      logical=as.logical(value),integer=as.integer(value),double=as.double(value)))
+    encoded <- as.character(jsonlite::serializeJSON(value,digits=NA))
+    prefix <- paste0('{"type":"',type,'","attributes":{},"value":[')
+    invalid(startsWith(encoded,prefix) && endsWith(encoded,']}'))
+    emit(substr(encoded,nchar(prefix)+1L,nchar(encoded)-2L))
+    list(value=value,missing=is.na(value))
+  }
+  raw_string <- function(emit) {
+    invalid(token$type %in% c("string_part","string_end"))
+    emit('"');carry <- "";bytes <- 0;column <- 0L
+    encode <- function(text) {
+      invalid(grepl('^[A-Za-z0-9+/]*={0,2}$',text))
+      value <- tryCatch(jsonlite::base64_dec(text),error=function(e)NULL)
+      invalid(!is.null(value))
+      canonical <- gsub("\n","",jsonlite::base64_enc(value),fixed=TRUE)
+      while(nchar(canonical)>0L) {
+        take <- min(72L-column,nchar(canonical))
+        emit(quote_part(substr(canonical,1L,take)))
+        canonical <- substring(canonical,take+1L);column <<- column+take
+        if(column==72L) {emit(quote_part("\n"));column <<- 0L}
+      }
+      bytes <<- bytes+length(value)
+    }
+    repeat {
+      carry <- paste0(carry,gsub("[\r\n\t ]","",token$value));final <- token$type=="string_end";advance()
+      if(final) {encode(carry);break}
+      size <- max(0L,4L*floor((nchar(carry)-4L)/4L))
+      if(size>0L) {encode(substr(carry,1L,size));carry <- substring(carry,size+1L)}
+      invalid(token$type %in% c("string_part","string_end"))
+    }
+    emit('"');list(type="raw",length=bytes,missing=FALSE)
+  }
+  scratch <- tempfile("scwb_graph_identity_metadata_keys_",fileext=".sqlite")
+  keys <- DBI::dbConnect(RSQLite::SQLite(),scratch,cache_size=-64)
+  on.exit({DBI::dbDisconnect(keys);unlink(c(scratch,paste0(scratch,c("-wal","-journal","-shm"))))},add=TRUE)
+  DBI::dbExecute(keys,"PRAGMA temp_store=FILE;")
+  .wb_graph_storage_fault("source_metadata_cache",list(con=keys,budgets=budgets,cache_kib=64L))
+  DBI::dbExecute(keys,"CREATE TABLE attributes(object_id INTEGER,name TEXT,PRIMARY KEY(object_id,name));")
+  DBI::dbExecute(keys,"CREATE TABLE vectors(start INTEGER PRIMARY KEY,rank INTEGER);")
+  frames <- list()
+  rank_callback <- function(event,path,value) {
+    n <- length(frames)
+    direct <- n>0L && length(path)==length(frames[[n]]$path)+2L &&
+      identical(head(path,-1L),c(frames[[n]]$path,"value"))
+    if(direct && frames[[n]]$type %in% c("character","integer","logical","double")) {
+      if(event=="string_start") {frames[[n]]$scalar_text <<- "";frames[[n]]$scalar_long <<- FALSE}
+      if(event=="string_part" && !isTRUE(frames[[n]]$scalar_long)) {
+        frames[[n]]$scalar_text <<- paste0(frames[[n]]$scalar_text,value)
+        if(nchar(frames[[n]]$scalar_text,type="bytes")>5L)frames[[n]]$scalar_long <<- TRUE
+      }
+      rank <- if(event=="string_end") {
+        x <- if(isTRUE(frames[[n]]$scalar_long))"ordinary" else normalize(list(frames[[n]]$scalar_text))[[1L]]
+        if(is.character(x))3L else if(is.double(x))2L else if(is.integer(x))1L else 0L
+      } else if(event=="scalar") {
+        x <- jsonlite::fromJSON(value)
+        if(is.character(x))3L else if(is.double(x))2L else if(is.integer(x))1L else 0L
+      } else if(event=="open")4L else -1L
+      frames[[n]]$rank <<- max(frames[[n]]$rank,rank)
+    }
+    if(event=="open" && value=="object") {
+      frames[[n+1L]] <<- list(path=path,type="",rank=0L,text="",
+        start=.Call(C_scwb_graph_json_position,rank_pointer))
+    }
+    if(n>0L && identical(path,c(frames[[n]]$path,"type"))) {
+      if(event=="string_part") {
+        frames[[n]]$text <<- paste0(frames[[n]]$text,value)
+        admit(nchar(frames[[n]]$text,type="bytes")<=64L)
+      }
+      if(event=="string_end")frames[[n]]$type <<- frames[[n]]$text
+    }
+    if(event=="close" && value=="object") {
+      frame <- frames[[n]]
+      if(frame$type %in% c("character","integer","logical","double")) {
+        DBI::dbExecute(keys,"INSERT INTO vectors VALUES(?,?);",params=list(frame$start,frame$rank))
+        .wb_graph_spill_admit(budgets,scratch)
+      }
+      frames[[n]] <<- NULL
+    }
+  }
+  # Explicit reader-lifetime callback shares the exact source byte position;
+  # no body rewriting or lexical dependence on statement order.
+  rank_pointer <- NULL
+  .wb_getter_file_json_walk(path,rank_callback,budgets,
+    opened=function(pointer)rank_pointer <<- pointer)
+  frames <- list()
+  object_id <- 0
+  retained_carriers <- 0
+  retain <- function(bytes) {
+    admit(retained_carriers+bytes<=budgets$partition_bytes)
+    retained_carriers <<- retained_carriers+bytes
+  }
+  object <- function(emit,depth=1L,role="") {
+    admit(depth<=min(256L,floor(budgets$partition_bytes/2048)))
+    start <- .Call(C_scwb_graph_json_position,pointer)
+    vector <- DBI::dbGetQuery(keys,"SELECT rank FROM vectors WHERE start=?;",params=list(start))
+    rank <- if(nrow(vector))vector$rank[[1L]] else 0L
+    object_id <<- object_id+1;id <- object_id
+    header <- character()
+    header_emit <- function(text)header <<- c(header,text)
+    expect("{",header_emit);key("type",header_emit);type <- string(header_emit,TRUE,64L)
+    if(type=="NULL") {emit(paste0(header,collapse=""));expect("}",emit);return(list(type=type,length=0,missing=FALSE,attribute_count=0L))}
+    if(rank>3L || !type %in% c("character","logical","integer","double","list","raw")) {
+      pieces <- list(paste0('{"type":',as.character(jsonlite::toJSON(type,auto_unbox=TRUE))))
+      size <- nchar(pieces[[1L]],type="bytes")
+      collect <- function(text) {
+        size <<- size+nchar(text,type="bytes")
+        admit(size<=budgets$partition_bytes && size+1024*(length(pieces)+1L)<=8*budgets$partition_bytes)
+        pieces[[length(pieces)+1L]] <<- text
+      }
+      while(!(token$type=="punctuation" && token$value=="}")) {
+        expect(",",collect);string(collect);expect(":",collect);generic(collect,depth+1L)
+      }
+      expect("}",collect);text <- paste0(pieces,collapse="")
+      canonical <- .wb_getter_metadata_admitted_codec(text,budgets)
+      emit(canonical$text)
+      return(list(type=canonical$type,length=canonical$length,missing=FALSE,
+        attribute_count=canonical$attribute_count))
+    }
+    emit(paste0(header,collapse=""))
+    expect(",",emit);key("attributes",emit);expect("{",emit)
+    attrs <- list();first <- TRUE;attribute_count <- 0;attribute_order <- character()
+    while(!(token$type=="punctuation" && token$value=="}")) {
+      if(!first)expect(",",emit)
+      name <- string(emit,TRUE);expect(":",emit)
+      admit(!name %in% c(".Data",".Names",".Dim",".Dimnames",".Tsp",".Label",".Class",".row_names"))
+      duplicate <- tryCatch({DBI::dbExecute(keys,"INSERT INTO attributes VALUES(?,?);",params=list(id,name));FALSE},error=function(e)TRUE)
+      invalid(!duplicate);.wb_graph_spill_admit(budgets,scratch)
+      attribute_count <- attribute_count+1
+      attribute <- object(emit,depth+1L,name)
+      admit(attribute$type!="NULL")
+      if(name=="class") {
+        admit(!"NativeSymbolInfo" %in% attribute$values)
+        admit(!(type=="double" && "factor" %in% attribute$values))
+        retained_carriers <<- retained_carriers-(attribute$carrier_bytes %||% 0)
+        attribute$values <- NULL;attribute$carrier_bytes <- 0
+      }
+      if(name %in% c("names","dim","dimnames","class","comment","tsp","row.names")){attrs[[name]] <- attribute;attribute_order <- c(attribute_order,name)}
+      first <- FALSE
+    }
+    expect("}",emit);expect(",",emit);key("value",emit)
+    length <- 0;missing <- FALSE;values <- list();children <- list();carrier_bytes <- 0;prefix_missing <- FALSE
+    if(type=="raw") result <- raw_string(emit)
+    else {
+      expect("[",emit);first <- TRUE
+      while(!(token$type=="punctuation" && token$value=="]")) {
+        if(!first)expect(",",emit)
+        value <- if(type=="list")object(emit,depth+1L) else atomic(type,emit,rank,role=="class")
+        length <- length+1;missing <- missing || isTRUE(value$missing)
+        if(role=="row.names" && length==1L)prefix_missing <- isTRUE(value$missing)
+        if((role %in% c("dim","tsp") && type %in% c("integer","double")) ||
+            (role=="class" && type=="character")) {
+          charge <- 2*(128+if(is.character(value$value))sum(nchar(value$value,type="bytes"),na.rm=TRUE) else 16)
+          retain(charge);carrier_bytes <- carrier_bytes+charge;values[[length]] <- value$value
+        }
+        if(role=="dimnames" && type=="list") {
+          retain(1024);carrier_bytes <- carrier_bytes+1024;children[[length]] <- value
+        }
+        first <- FALSE
+      }
+      expect("]",emit)
+      result <- list(type=type,length=length,missing=missing,values=unlist(values,use.names=FALSE),children=children)
+    }
+    expect("}",emit)
+    result$attribute_count <- attribute_count
+    result$prefix_missing <- prefix_missing
+    result$carrier_bytes <- carrier_bytes
+    if(!is.null(attrs$names))admit(attrs$names$attribute_count==0L)
+    if(!is.null(attrs$names))admit(attrs$names$type=="character" && attrs$names$length==result$length)
+    for(name in c("class","comment"))if(!is.null(attrs[[name]]))
+      admit(attrs[[name]]$type=="character" && attrs[[name]]$length>0 && attrs[[name]]$attribute_count==0L)
+    if(!is.null(attrs$class))admit(!attrs$class$missing)
+    if(!is.null(attrs$row.names))admit(attrs$row.names$type %in% c("integer","character") &&
+      attrs$row.names$attribute_count==0L &&
+      !(attrs$row.names$type=="integer" && attrs$row.names$length==2L && attrs$row.names$prefix_missing))
+    if(!is.null(attrs$dim)) {
+      admit(attrs$dim$attribute_count==0L &&
+        (!"names" %in% attribute_order || match("dim",attribute_order)<match("names",attribute_order)) &&
+        (!"dimnames" %in% attribute_order || match("dim",attribute_order)<match("dimnames",attribute_order)))
+      dims <- attrs$dim$values
+      invalid(attrs$dim$type=="integer" && length(dims)>0 && !anyNA(dims) &&
+        all(dims>=0) && prod(dims)==result$length)
+    }
+    if(!is.null(attrs$dimnames)) {
+      invalid(!is.null(attrs$dim) && attrs$dimnames$type=="list" && attrs$dimnames$length==attrs$dim$length)
+      for(i in seq_along(attrs$dim$values)) {
+        child <- attrs$dimnames$children[[i]]
+        admit(child$type=="NULL" || child$attribute_count==0L)
+        invalid(child$type=="NULL" || (child$type=="character" && child$length==attrs$dim$values[[i]]))
+      }
+    }
+    if(!is.null(attrs$tsp)) {
+      tsp <- attrs$tsp$values;n <- if(!is.null(attrs$dim))attrs$dim$values[[1L]] else result$length
+      invalid(attrs$tsp$type=="double" && length(tsp)==3L && all(is.finite(tsp)) &&
+        tsp[[3L]]>0 && abs((tsp[[2L]]-tsp[[1L]])*tsp[[3L]]+1-n)<1e-5)
+    }
+    for(attribute in attrs)retained_carriers <<- retained_carriers-(attribute$carrier_bytes %||% 0)
+    DBI::dbExecute(keys,"DELETE FROM attributes WHERE object_id=?;",params=list(id))
+    result
+  }
+  descriptor <- NULL
+  canonical <- function(emit) {descriptor <<- object(emit);invalid(token$type=="end")}
+  sha <- if(is.null(external_emit)).wb_graph_token_hash(canonical,budgets) else {canonical(external_emit);NULL}
+  list(sha256=sha,descriptor=descriptor,partition_bytes=budgets$partition_bytes)
+}
+
+.wb_getter_metadata_canonical_hash <- function(path,budgets,external_emit=NULL) {
+  tryCatch(.wb_getter_metadata_canonical_work(path,budgets,external_emit),error=function(error) {
+    if(!is.null(error$code))stop(error)
+    message <- conditionMessage(error)
+    code <- if(startsWith(message,"GRAPH_RESOURCE_EXCEEDED:") ||
+        grepl("cannot allocate",message,fixed=TRUE))"GRAPH_RESOURCE_EXCEEDED" else
+      if(grepl("Bounded JSON file",message,fixed=TRUE))"GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE" else
+      "GRAPH_SOURCE_PAYLOAD_INVALID"
+    .wb_graph_error(code,message)
+  })
+}
+
+# Private getter: pre-admit each physical chunk, copy via the owning
+# RSQLite engine's incremental byte API, retain snapshot and file lifetimes.
+.wb_getter_physical_metadata_stream <- function(con,id,budgets,descriptor,callback) {
+  path <- tempfile("scwb_object_meta_stream_")
+  on.exit(unlink(path),add=TRUE)
+  sink <- file(path,"wb")
+  on.exit(if(!is.null(sink))close(sink),add=TRUE)
+  observer <- .wb_matrix_native_byte_observer(con)
+  stopifnot(!is.null(observer))
+  on.exit(observer$close(),add=TRUE)
+  next_row <- "0";bytes <- 0
+  repeat {
+    row <- DBI::dbGetQuery(con,paste0("SELECT CAST(rowid AS TEXT) source_rowid,",
+      "CAST(chunk_ordinal AS TEXT) ordinal,typeof(chunk) type,length(chunk) bytes ",
+      "FROM artifact_object_metadata_chunks WHERE artifact_id=? AND chunk_ordinal>=CAST(? AS INTEGER) ",
+      "ORDER BY chunk_ordinal LIMIT 1;"),params=list(id,next_row))
+    if(!nrow(row))break
+    .wb_graph_require(nrow(row)==1L && identical(row$ordinal[[1L]],next_row) &&
+      row$type[[1L]]=="blob" && row$bytes[[1L]]>0L && row$bytes[[1L]]<=min(65536L,budgets$partition_bytes),
+      "GRAPH_SOURCE_PAYLOAD_INVALID","Physical metadata chunk failed admission.")
+    size <- observer$column(row$source_rowid[[1L]],"chunk","artifact_object_metadata_chunks")
+    .wb_graph_require(identical(attr(size,"wb_sqlite_type"),"blob") && size==row$bytes[[1L]],
+      "GRAPH_SOURCE_PAYLOAD_INVALID","Physical metadata chunk changed before copying.")
+    bytes <- bytes+as.numeric(size)
+    .wb_graph_require(is.finite(bytes) && bytes<=as.numeric(budgets$token_bytes),
+      "GRAPH_RESOURCE_EXCEEDED","Physical metadata file exceeds spill admission.")
+    offset <- 0
+    while(offset<size) {
+      take <- min(4096L,size-offset)
+      writeBin(observer$read(offset,take),sink);offset <- offset+take
+    }
+    flush(sink);.wb_graph_spill_admit(budgets,path)
+    next_row <- .wb_graph_add_count(next_row,1L)
+  }
+  close(sink);sink <- NULL
+  .wb_graph_require(bytes==as.numeric(descriptor$metadata_bytes) &&
+    identical(digest::digest(file=path,algo="sha256",serialize=FALSE),descriptor$metadata_sha256),
+    "GRAPH_SOURCE_PAYLOAD_INVALID","Physical metadata bytes differ from independently verified descriptor.")
+  guard <- file(path,"rb");on.exit(close(guard),add=TRUE)
+  .wb_graph_spill_admit(budgets,path)
+  result <- callback(path)
+  observer$finish()
+  result
+}
+

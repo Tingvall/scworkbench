@@ -1,0 +1,11 @@
+{
+  "utc": "2026-10-11T20:53:20.416108+00:00",
+  "available_bytes": 44891770880,
+  "envelope_bytes": 17179869184,
+  "reserve_bytes": 8589934592,
+  "tuple": 445,
+  "installed": 444,
+  "source_axes": 90000,
+  "nodes": 22000,
+  "qualification": false
+}

@@ -1,0 +1,5 @@
+  load_extension(?,?)
+1                  NA
+[1] 0
+[1] 1
+BOUNDED_JSON_WALK_PROTOTYPE small_jsonlite_leaf_differential=9 invalid_structure_number=12 PASS prototype_only=TRUE

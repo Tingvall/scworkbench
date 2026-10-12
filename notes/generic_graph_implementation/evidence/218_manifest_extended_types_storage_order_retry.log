@@ -1,0 +1,4 @@
+Error in test_manifest_stream_extended_types_and_mixed_blob_contract() : 
+  identical(suppressWarnings(scworkbench:::.wb_manifest_table_identity_materialized(con,  .... is not TRUE
+Calls: stopifnot ... test_manifest_stream_extended_types_and_mixed_blob_contract -> stopifnot
+Execution halted

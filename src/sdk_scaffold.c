@@ -40,8 +40,42 @@ static SEXP scwb_sdk_publish_noreplace(SEXP source, SEXP destination)
 #endif
 }
 
+extern SEXP scwb_graph_source_directory(SEXP, SEXP);
+extern SEXP scwb_graph_file_identity(SEXP);
+extern SEXP scwb_graph_readlink(SEXP, SEXP);
+extern SEXP scwb_graph_bytes_api_ready(void);
+extern SEXP scwb_graph_bytes_api_version(void);
+extern SEXP scwb_graph_bytes_open(SEXP);
+extern SEXP scwb_graph_bytes_column(SEXP, SEXP, SEXP, SEXP);
+extern SEXP scwb_graph_bytes_read(SEXP, SEXP, SEXP);
+extern SEXP scwb_graph_bytes_numeric(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP scwb_graph_bytes_finish(SEXP);
+extern SEXP scwb_graph_bytes_close(SEXP);
+
+extern SEXP scwb_graph_json_open(SEXP);
+extern SEXP scwb_graph_json_file_open(SEXP,SEXP);
+extern SEXP scwb_graph_json_next(SEXP);
+extern SEXP scwb_graph_json_position(SEXP);
+extern SEXP scwb_graph_json_close(SEXP);
+
 static const R_CallMethodDef sdk_calls[] = {
+    {"scwb_graph_json_open", (DL_FUNC) &scwb_graph_json_open, 1},
+    {"scwb_graph_json_file_open", (DL_FUNC) &scwb_graph_json_file_open, 2},
+    {"scwb_graph_json_next", (DL_FUNC) &scwb_graph_json_next, 1},
+    {"scwb_graph_json_position", (DL_FUNC) &scwb_graph_json_position, 1},
+    {"scwb_graph_json_close", (DL_FUNC) &scwb_graph_json_close, 1},
     {"scwb_sdk_publish_noreplace", (DL_FUNC) &scwb_sdk_publish_noreplace, 2},
+    {"scwb_graph_source_directory", (DL_FUNC) &scwb_graph_source_directory, 2},
+    {"scwb_graph_file_identity", (DL_FUNC) &scwb_graph_file_identity, 1},
+    {"scwb_graph_readlink", (DL_FUNC) &scwb_graph_readlink, 2},
+    {"scwb_graph_bytes_api_version", (DL_FUNC) &scwb_graph_bytes_api_version, 0},
+    {"scwb_graph_bytes_api_ready", (DL_FUNC) &scwb_graph_bytes_api_ready, 0},
+    {"scwb_graph_bytes_open", (DL_FUNC) &scwb_graph_bytes_open, 1},
+    {"scwb_graph_bytes_column", (DL_FUNC) &scwb_graph_bytes_column, 4},
+    {"scwb_graph_bytes_read", (DL_FUNC) &scwb_graph_bytes_read, 3},
+    {"scwb_graph_bytes_numeric", (DL_FUNC) &scwb_graph_bytes_numeric, 6},
+    {"scwb_graph_bytes_finish", (DL_FUNC) &scwb_graph_bytes_finish, 1},
+    {"scwb_graph_bytes_close", (DL_FUNC) &scwb_graph_bytes_close, 1},
     {NULL, NULL, 0}
 };
 

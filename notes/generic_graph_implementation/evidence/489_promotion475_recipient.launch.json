@@ -1,0 +1,12 @@
+{
+  "utc": "2026-10-12T08:25:06.999491+00:00",
+  "available_bytes": 37623545856,
+  "tuple": 475,
+  "installed": 476,
+  "source_axes": 90000,
+  "nodes": 22000,
+  "qualification": false,
+  "parent485_resource_verdict": "FAIL",
+  "notification_event_key": "graph-lifecycle-485-terminal",
+  "email_already_accepted": true
+}

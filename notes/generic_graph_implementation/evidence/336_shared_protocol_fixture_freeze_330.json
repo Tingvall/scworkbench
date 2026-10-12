@@ -1,0 +1,54 @@
+{
+  "schema": "scworkbench.coordination.graph.shared_protocol_freeze.v1",
+  "scope": "narrow ABI4/process5 graph protocol, R-issued promoted native matrix authority, and real request/receipt fixtures; full qualification held",
+  "core_head": "9a11d1fe988780041daa258eff987e9a1c7b2276",
+  "source_checkpoint": "330 frozen dirty descendant",
+  "source_ledger": "notes/generic_graph_implementation/evidence/330_review_checkpoint.sha256",
+  "source_ledger_sha256": "235d33841044bd732b932ab756feff67018e29bbba38cf9d61d8ba21831df85e",
+  "source_ledger_files": 61,
+  "installed_library": "/tmp/scwb-graph-forge-missing-connection-recovery.rf_6q6gv/library",
+  "installed_shared_object_sha256": "7a054d35e2335dfe97e139e1e44f9fbc11845097546365056975fc7fa0a313c8",
+  "sample_producer_checkpoint": 330,
+  "sample_producer_gate": 333,
+  "sample_export_method": "public test copies exact request.json and receipt.json using SCWB_NATIVE_GRAPH_SAMPLE_DIR; no manual manufacture or earlier-runtime attribution",
+  "sample_directory": "/tmp/scwb-native-graph-public-samples-330",
+  "shared_assets_sha256": {
+    "inst/protocol/operation-pack-v4.schema.json": "0c38f16eb811dd40111c0b82ebcb519d9e8bd06bccaaf13f1aa366a94cc6b13f",
+    "inst/protocol/operation-pack-transition-request-v4.schema.json": "e95e0dd7e86456edccc3b4097a9d10a9210d3371c64e3ce2e14159053d14bb1c",
+    "inst/protocol/operation-pack-transition-receipt-v4.schema.json": "9eb38dc446aa0791d16868660c10901ad5db933ed73ba6cdf03abfd34173aa2e",
+    "inst/protocol/graph-v1.schema.json": "760e031210948c1194183061472921520037f6dbb34bd1388233ce9476f0a007",
+    "inst/protocol/pybench-op-v5-python-runtime.schema.json": "d8a2c7cc15d276f3d72eeffbb153fa336f4fc6b8b6532907d58abf3920d642b1",
+    "inst/protocol/fixtures/graph-v1/binding-descriptor-identities.json": "75c182556ae1b099ca63ff5505692fbf11bc8602b40d4f0d73f896cc4aeddd2e",
+    "inst/protocol/fixtures/graph-v1/content-identities.json": "5a83d3a8b3abacf826843120861d759a3fa04202c2ff5dca998dc18ca665f9fd",
+    "inst/protocol/fixtures/graph-v1/negative-rehash-identities.csv": "4e51eb802a6b71ad36236aea2bbfea6164c36ed2da278668ec59b91563203bc6",
+    "inst/protocol/fixtures/graph-v1/scenario-roundtrip-vectors.json": "90d6cbc098acee167ede37bfc658e31b7b2cf9681bd840554fe6ed6b0762bb38",
+    "inst/sdk/operation-packs/capabilities-v4.json": "50f69c0d74c0440477ef4a1383a05b135d1873a9882073c48b32c83962cc96e6",
+    "inst/sdk/operation-packs/capabilities-v4.schema.json": "870ecd6de3bfc1bbe054ac2356c1119efa2aca3cc53b78c97326a57d7810718b",
+    "inst/sdk/operation-packs/GRAPH_GUIDE.md": "e383cdfb1644959746f2b58027ca44a6e72259325ff9751e4345b1b6f02f3116",
+    "tests/fixtures/operation-pack-v4-native-matrix/DESCRIPTION": "8c104dff6fd2946a9b6ca8f30e1e04eaaa5ae00a5a9cce7916a2e28cdf8cf547",
+    "tests/fixtures/operation-pack-v4-native-matrix/NAMESPACE": "b1f21ca084303169f23123f59d2ed35079ff820fcd99ab5bbfb906233410e72e",
+    "tests/fixtures/operation-pack-v4-native-matrix/R/register.R": "310bfd511fedb172d861578df84a03f52889e9f04c888ab975fb7a4ef85f0236",
+    "tests/fixtures/operation-pack-v4-native-matrix/inst/scworkbench/operation-pack.json": "123e1a231627012437f19c3e1bd8995df8fd1e8f5ff693806d37fd05913a64b7"
+  },
+  "real_samples_sha256": {
+    "direct_matrix_request.json": "180698fc88889b287c8fc7cd2c49f0e6b1bb1efb38747032e2981e52a86c0837",
+    "direct_matrix_receipt.json": "b32ab4eccbfc15cc0e53deb6ae4dc62a842d519f1a96fe057cff28cd8e24e03c",
+    "selected_graph_receipt.json": "1a4ab848e5ef2cb57c09ddcb91ef5c0c6536ef3beec8571c52b59163b9463a70",
+    "selected_graph_request.json": "511fddb529d982b4490833ce9c042bcdd087b53c82900ab5e085a50a215dbbb8"
+  },
+  "focused_gates": {
+    "recovery": "331 8/8PASS0skip exit0",
+    "resources_mixed_ABI4": "332 3/3PASS0skip exit0",
+    "native_public": "333 4/4PASS0skip exit0"
+  },
+  "backend_limits": [
+    "Matrix sources promotion-first; pending session axes rejected before staging.",
+    "R native matrix identity remains scworkbench.content.matrix.fragment-tree.v2 over exact existing R.serializeJSON preimage; Python does not claim independent R.serializeJSON payload authentication.",
+    "Python may consume audited R-issued opaque native matrix axis authorities only within existing core publication/revalidation contract; independent unsupported backend identity verification remains fail-closed.",
+    "Full source axes remain distinct from ordinary selected matrix descriptors; bindings may map a subset.",
+    "No new certificate, anchor, scheme or adoption authority.",
+    "Legacy certificate/DAG collector memory defect remains unresolved; no broad/full suites or final RSS/disk qualification accepted."
+  ],
+  "review_status": "focused Fresh Sable/Meridian review requested; no whole-candidate acceptance",
+  "qualification": false
+}

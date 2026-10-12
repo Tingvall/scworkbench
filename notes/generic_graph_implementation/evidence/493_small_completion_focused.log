@@ -1,0 +1,10 @@
+SMALL_COMPLETION START test_graph_resource_import_connection_reservation_contract 
+SMALL_COMPLETION PASS test_graph_resource_import_connection_reservation_contract 
+SMALL_COMPLETION START test_graph_small_forced_out_of_core_public_lifecycle_contract 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error: Staged matrix is missing: 
+Execution halted

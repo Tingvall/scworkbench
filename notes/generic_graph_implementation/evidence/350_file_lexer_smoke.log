@@ -1,0 +1,37 @@
+$type
+[1] "punctuation"
+
+$value
+[1] "{"
+
+$type
+[1] "string_end"
+
+$value
+[1] "s"
+
+$type
+[1] "punctuation"
+
+$value
+[1] ":"
+
+$type
+[1] "string_end"
+
+$value
+[1] "é🙂"
+
+$type
+[1] "punctuation"
+
+$value
+[1] "}"
+
+$type
+[1] "end"
+
+$value
+[1] ""
+
+NULL

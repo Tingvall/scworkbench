@@ -1,0 +1,17 @@
+{
+  "source": "/tmp/scwb-graph-native-long-axis-90000-development/source.bundle",
+  "owned_transition_files": 6,
+  "owned_transition_logical_bytes": 30804,
+  "owned_transition_allocated_bytes": 65536,
+  "owned_transition_rounded_copy_charge_bytes": 65536,
+  "source_database_bytes": 400003072,
+  "clone_database_manifest_owned_tree_charge_bytes": 400080896,
+  "filesystem_available_bytes": 47459917824,
+  "reserve_bytes": 8589934592,
+  "fixed_2x_envelope_bytes": 17179869184,
+  "two_clone_reservations_bytes": 800161792,
+  "clone_slot_bytes_each": 1073741824,
+  "original_tree_fits_existing_clone_slots": true,
+  "fixed_2x_envelope_plus_reserve_available": true,
+  "final_8x_forecast_status": "pending_tuple_and_phase_evidence"
+}

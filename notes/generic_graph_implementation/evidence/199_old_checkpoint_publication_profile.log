@@ -1,0 +1,33 @@
+PROFILE_PHASE loaded_baseline VmHWM:	  128672 kB VmRSS:	  128672 kB 
+PROFILE_PHASE staged VmHWM:	  167584 kB VmRSS:	  167584 kB 
+PROFILE_PHASE sealed VmHWM:	  192928 kB VmRSS:	  192928 kB 
+PROFILE_PHASE publish_batch_32 VmHWM:	  649260 kB VmRSS:	  638028 kB 
+PROFILE_PHASE publish_batch_64 VmHWM:	  649260 kB VmRSS:	  644812 kB 
+PROFILE_PHASE publish_batch_96 VmHWM:	  649260 kB VmRSS:	  644812 kB 
+PROFILE_PHASE publish_batch_128 VmHWM:	  649260 kB VmRSS:	  644812 kB 
+PROFILE_PHASE promoted VmHWM:	  671420 kB VmRSS:	  652556 kB 
+PROFILE_RESULT canonical_bytes=33600653 publication=PASS qualification=FALSE
+PROFILE_PHASE closed VmHWM:	  671420 kB VmRSS:	  652556 kB 
+	Command being timed: "Rscript --vanilla notes/generic_graph_implementation/profile_publication_memory.R /tmp/scwb-graph-core-9a11d1f.l6axFK/library /tmp/scwb-graph-resume-old-publication-profile-20261011 2048"
+	User time (seconds): 45.17
+	System time (seconds): 2.12
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:47.41
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 671420
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 174941
+	Voluntary context switches: 598
+	Involuntary context switches: 382
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 685320
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

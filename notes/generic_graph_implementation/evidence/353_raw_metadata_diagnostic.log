@@ -1,0 +1,16 @@
+Error: GRAPH_SOURCE_PAYLOAD_INVALID: Noncanonical R metadata representation.
+6: object(emit)
+5: emitter(emit)
+4: tryCatchList(expr, classes, parentenv, handlers)
+3: tryCatch({
+       emitter(emit)
+       flush(sink)
+       .wb_graph_spill_admit(budgets, scratch_path)
+   }, finally = close(sink))
+2: scworkbench:::.wb_graph_token_hash(function(emit) {
+       descriptor <<- object(emit)
+       invalid(token$type == "end")
+   }, budgets)
+1: prototype_metadata_canonical_hash(p, scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608", 
+       sqlite_cache_kib = 2048L, partition_bytes = 262144L, partition_rows = 256L, 
+       collect_bytes = 4194304L)))

@@ -1,0 +1,35 @@
+{
+  "remaining_focused": {
+    "run": 502,
+    "exit": 0,
+    "executed": 39,
+    "passed": 39,
+    "skipped": 0,
+    "normative_scenarios": 23,
+    "recipient": "PASS"
+  },
+  "sdk_installed_tutorial": {
+    "run": 503,
+    "exit": 0,
+    "discovered": 6,
+    "executed": 6,
+    "passed": 6,
+    "skipped": 0,
+    "failed": 0,
+    "all_command_exits": 0
+  },
+  "installed_python_live": {
+    "run": 504,
+    "exit": 0,
+    "executed": 1,
+    "passed": 1,
+    "skipped": 0,
+    "matrix_graph_and_bound_cv_mixed_broker_recipient_source_purity": "PASS",
+    "interpreter": "/tmp/pybench-graph-small-live-20261012/venv311/bin/python"
+  },
+  "installed_core_candidate": 499,
+  "all_execution_posthash": "MATCH",
+  "qualification": false,
+  "physical_stress_8x": "DEFERRED",
+  "remaining": "Stable clean tuple full suites/package checks and independent review"
+}

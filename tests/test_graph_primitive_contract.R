@@ -115,6 +115,9 @@ test_graph_sql_transaction_roundtrip_contract <- function() {
     outputs = list(graph = graph))
   before <- wb_graph_identity(graph)
   con <- bundle$con
+  restore_budget <- scworkbench:::.wb_graph_scoped_connection_budget(con,
+    scworkbench:::.wb_graph_budgets())
+  on.exit(restore_budget(), add = TRUE)
   options_before <- options(scworkbench.promotion_transaction_test_hook = function(event, ...) {
     if (event == "graph_component_rows") stop("injected graph publication failure")
   })

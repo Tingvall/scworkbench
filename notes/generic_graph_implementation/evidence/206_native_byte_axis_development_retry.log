@@ -1,0 +1,5 @@
+NATIVE_AXIS_NEGATIVE_UNEXPECTED ["\ud800"] NULL 
+Error in test_graph_native_matrix_incremental_text_and_axis_contract() : 
+  inherits(error, "wb_graph_error") is not TRUE
+Calls: stopifnot ... test_graph_native_matrix_incremental_text_and_axis_contract -> stopifnot
+Execution halted

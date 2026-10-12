@@ -1,0 +1,321 @@
+{
+  "backend": "R",
+  "compatibility": {
+    "pack_abi": {
+      "maximum": "4",
+      "minimum": "4"
+    },
+    "scworkbench": {
+      "maximum_exclusive": "0.2.0",
+      "minimum": "0.1.0"
+    }
+  },
+  "entry_point": "scwbGraphSmallFixture::register_operation_pack",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "graphsmallfixture",
+  "operations": [
+    {
+      "dependencies": [],
+      "description": "Small forced out-of-core infrastructure fixture; no scientific claim.",
+      "inputs": [
+        {
+          "alignment": "cell_and_feature_ordered",
+          "kind": "matrix",
+          "name": "matrix",
+          "required": true
+        }
+      ],
+      "name": "emit_small",
+      "outputs": [
+        {
+          "allocated_id_key": "result_id",
+          "axis_sources": [
+            {
+              "input_name": "matrix",
+              "axis_kind": "cell",
+              "selection_mode": "retained_matrix_axis",
+              "source_binding_selector": null
+            },
+            {
+              "input_name": "matrix",
+              "axis_kind": "feature",
+              "selection_mode": "retained_matrix_axis",
+              "source_binding_selector": null
+            }
+          ],
+          "binding_policy": "required",
+          "category": "terminal_artifact",
+          "kind": "graph",
+          "name": "result",
+          "promotion_group": "result",
+          "required": true,
+          "resource_budgets": {
+            "max_attribute_fields": "100000",
+            "max_collect_bytes": "8192",
+            "max_edges": "1000000",
+            "max_incidences": "8000000",
+            "max_memory_bytes": "1048576",
+            "max_nodes": "1000000",
+            "max_published_bytes": "8388608",
+            "max_spill_bytes": "16777216",
+            "max_staged_bytes": "16777216",
+            "max_wal_bytes": "8388608",
+            "partition_limits": {
+              "max_rows": "2",
+              "max_decoded_bytes": "4096"
+            }
+          },
+          "storage_profile": "graph_sqlite_v1"
+        },
+        {
+          "allocated_id_key": "summary_id",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "name": "summary",
+          "promotion_group": "result",
+          "required": true,
+          "storage_profile": "terminal_primitive_v1",
+          "table_type": "graph_summary"
+        }
+      ],
+      "params_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "promotion_closure": {
+        "result": [
+          "result",
+          "summary"
+        ],
+        "summary": [
+          "result",
+          "summary"
+        ]
+      },
+      "qualified_name": "graphsmallfixture::emit_small",
+      "replay_equivalence": {
+        "result": "exact_graph_descriptor",
+        "summary": "exact_canonical_value"
+      },
+      "runner": ".emit_small",
+      "title": "emit_small"
+    },
+    {
+      "dependencies": [],
+      "description": "Small forced out-of-core infrastructure fixture; no scientific claim.",
+      "inputs": [
+        {
+          "alignment": "none",
+          "kind": "graph",
+          "name": "source",
+          "required": true,
+          "binding_policy": "required",
+          "read_mode": "bounded_partitions_v1",
+          "storage_profile": "graph_sqlite_v1"
+        }
+      ],
+      "name": "copy_small",
+      "outputs": [
+        {
+          "allocated_id_key": "result_id",
+          "axis_sources": [
+            {
+              "input_name": "source",
+              "axis_kind": "cell",
+              "selection_mode": "selected_graph_binding",
+              "source_binding_selector": {
+                "kind": "fixed_binding_id_v1",
+                "binding_id": "cells"
+              }
+            },
+            {
+              "input_name": "source",
+              "axis_kind": "feature",
+              "selection_mode": "selected_graph_binding",
+              "source_binding_selector": {
+                "kind": "fixed_binding_id_v1",
+                "binding_id": "features"
+              }
+            },
+            {
+              "input_name": "source",
+              "axis_kind": "feature",
+              "selection_mode": "selected_graph_binding",
+              "source_binding_selector": {
+                "kind": "fixed_binding_id_v1",
+                "binding_id": "empty_features"
+              }
+            }
+          ],
+          "binding_policy": "required",
+          "category": "terminal_artifact",
+          "kind": "graph",
+          "name": "result",
+          "promotion_group": "result",
+          "required": true,
+          "resource_budgets": {
+            "max_attribute_fields": "100000",
+            "max_collect_bytes": "8192",
+            "max_edges": "1000000",
+            "max_incidences": "8000000",
+            "max_memory_bytes": "1048576",
+            "max_nodes": "1000000",
+            "max_published_bytes": "8388608",
+            "max_spill_bytes": "16777216",
+            "max_staged_bytes": "16777216",
+            "max_wal_bytes": "8388608",
+            "partition_limits": {
+              "max_rows": "2",
+              "max_decoded_bytes": "4096"
+            }
+          },
+          "storage_profile": "graph_sqlite_v1"
+        },
+        {
+          "allocated_id_key": "summary_id",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "name": "summary",
+          "promotion_group": "result",
+          "required": true,
+          "storage_profile": "terminal_primitive_v1",
+          "table_type": "graph_summary"
+        }
+      ],
+      "params_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "promotion_closure": {
+        "result": [
+          "result",
+          "summary"
+        ],
+        "summary": [
+          "result",
+          "summary"
+        ]
+      },
+      "qualified_name": "graphsmallfixture::copy_small",
+      "replay_equivalence": {
+        "result": "exact_graph_descriptor",
+        "summary": "exact_canonical_value"
+      },
+      "runner": ".copy_small",
+      "title": "copy_small"
+    },
+    {
+      "dependencies": [],
+      "description": "Small forced out-of-core infrastructure fixture; no scientific claim.",
+      "inputs": [
+        {
+          "alignment": "none",
+          "kind": "graph",
+          "name": "source",
+          "required": true,
+          "binding_policy": "required",
+          "read_mode": "bounded_partitions_v1",
+          "storage_profile": "graph_sqlite_v1"
+        }
+      ],
+      "name": "collect_small",
+      "outputs": [
+        {
+          "allocated_id_key": "result_id",
+          "axis_sources": [
+            {
+              "input_name": "source",
+              "axis_kind": "cell",
+              "selection_mode": "selected_graph_binding",
+              "source_binding_selector": {
+                "kind": "fixed_binding_id_v1",
+                "binding_id": "cells"
+              }
+            },
+            {
+              "input_name": "source",
+              "axis_kind": "feature",
+              "selection_mode": "selected_graph_binding",
+              "source_binding_selector": {
+                "kind": "fixed_binding_id_v1",
+                "binding_id": "features"
+              }
+            },
+            {
+              "input_name": "source",
+              "axis_kind": "feature",
+              "selection_mode": "selected_graph_binding",
+              "source_binding_selector": {
+                "kind": "fixed_binding_id_v1",
+                "binding_id": "empty_features"
+              }
+            }
+          ],
+          "binding_policy": "required",
+          "category": "terminal_artifact",
+          "kind": "graph",
+          "name": "result",
+          "promotion_group": "result",
+          "required": true,
+          "resource_budgets": {
+            "max_attribute_fields": "100000",
+            "max_collect_bytes": "8192",
+            "max_edges": "1000000",
+            "max_incidences": "8000000",
+            "max_memory_bytes": "1048576",
+            "max_nodes": "1000000",
+            "max_published_bytes": "8388608",
+            "max_spill_bytes": "16777216",
+            "max_staged_bytes": "16777216",
+            "max_wal_bytes": "8388608",
+            "partition_limits": {
+              "max_rows": "2",
+              "max_decoded_bytes": "4096"
+            }
+          },
+          "storage_profile": "graph_sqlite_v1"
+        },
+        {
+          "allocated_id_key": "summary_id",
+          "category": "terminal_artifact",
+          "kind": "obs_table",
+          "name": "summary",
+          "promotion_group": "result",
+          "required": true,
+          "storage_profile": "terminal_primitive_v1",
+          "table_type": "graph_summary"
+        }
+      ],
+      "params_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "promotion_closure": {
+        "result": [
+          "result",
+          "summary"
+        ],
+        "summary": [
+          "result",
+          "summary"
+        ]
+      },
+      "qualified_name": "graphsmallfixture::collect_small",
+      "replay_equivalence": {
+        "result": "exact_graph_descriptor",
+        "summary": "exact_canonical_value"
+      },
+      "runner": ".collect_small",
+      "title": "collect_small"
+    }
+  ],
+  "pack_abi_version": "4",
+  "package": {
+    "name": "scwbGraphSmallFixture",
+    "version": "0.1.0"
+  },
+  "schema_version": "scworkbench.operation_pack.v4"
+}

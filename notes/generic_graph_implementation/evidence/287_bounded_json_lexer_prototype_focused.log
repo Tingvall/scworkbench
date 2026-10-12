@@ -1,0 +1,3 @@
+[1] 0
+[1] 1
+BOUNDED_JSON_LEXER_PROTOTYPE utf8_escape_split_empty_positive=4 malformed_unicode_nul_utf8_negative=12 buffer_max_bytes=4096 prototype_only=TRUE PASS

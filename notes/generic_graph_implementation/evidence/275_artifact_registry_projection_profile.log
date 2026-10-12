@@ -1,0 +1,26 @@
+Error: Timed out after 10 seconds waiting for exclusive bundle-writer lock for /tmp/scwb-graph-original-artifact-certificate-copy-263/source.bundle. lock_path=/tmp/scwb-graph-original-artifact-certificate-copy-263/.source.bundle.scworkbench-writer-lock; owner_status=live; pid=341979; host=pop-os; operation=analysis capsule publication recovery; created_at=2026-10-11T11:34:03.238564+0200; age_seconds=11.154. Inspect with wb_bundle_writer_lock_info(). Stale locks are never stolen automatically; recover explicitly with wb_recover_bundle_writer_lock().
+Execution halted
+Command exited with non-zero status 1
+	Command being timed: "Rscript --vanilla notes/generic_graph_implementation/profile_artifact_registry_projection.R /tmp/scwb-graph-forge-snapshot-scope-corrected.uy2injsn projection"
+	User time (seconds): 6.13
+	System time (seconds): 0.25
+	Percent of CPU this job got: 39%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:16.34
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 127812
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 31145
+	Voluntary context switches: 233
+	Involuntary context switches: 137
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1

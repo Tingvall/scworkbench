@@ -1,0 +1,18 @@
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+[1] "unserializeJSON"
+COMPACT_ROW_PREADMISSION direct2m bytes= 110 decoder_calls= 0 max_allocation= 10272 PASS
+COMPACT_ROW_PREADMISSION positive2m bytes= 109 decoder_calls= 0 max_allocation= 0 PASS
+COMPACT_ROW_PREADMISSION double2m bytes= 109 decoder_calls= 0 max_allocation= 0 PASS
+COMPACT_ROW_PREADMISSION integer_inf_first bytes= 111 decoder_calls= 0 max_allocation= 0 PASS
+COMPACT_ROW_PREADMISSION integer_bad_first bytes= 115 decoder_calls= 0 max_allocation= 0 PASS
+COMPACT_ROW_PREADMISSION nested_value bytes= 152 decoder_calls= 0 max_allocation= 200 PASS
+COMPACT_ROW_PREADMISSION nested_attribute bytes= 165 decoder_calls= 0 max_allocation= 216 PASS
+COMPACT_ROW_PREADMISSION nested_alias bytes= 169 decoder_calls= 0 max_allocation= 224 PASS
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_ROW_ADMITTED -5 exact_oldcodec=PASS
+COMPACT_ROW_ADMITTED -1000 exact_oldcodec=PASS
+COMPACT_ROW_ADMITTED 5 exact_oldcodec=PASS
+COMPACT_ROW_ADMITTED 1000 exact_oldcodec=PASS
+COMPACT_ROW_INERT_ALIAS exact_oldcodec=PASS
+COMPACT_ROW_SMALL_PARTITION Resource_beforedecode=PASS
+PROTOTYPE422 passed=14 qualification=FALSE production_unchanged=TRUE

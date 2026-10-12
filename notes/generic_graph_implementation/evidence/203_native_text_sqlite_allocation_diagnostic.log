@@ -1,0 +1,15 @@
+[1] 0
+          used (Mb) gc trigger (Mb) max used (Mb)
+Ncells  749496 40.1    1480141 79.1  1480141 79.1
+Vcells 1306667 10.0    8388608 64.0  2094187 16.0
+BASELINE VmHWM:	  126656 kB VmRSS:	  126656 kB 
+  rowid    bytes
+1     1 18528619
+BYTE_LENGTH_SCALAR VmHWM:	  126784 kB VmRSS:	  126784 kB 
+         n
+1 18528619
+TEXT_LENGTH_SCALAR VmHWM:	  144832 kB VmRSS:	  126796 kB 
+                                                             chunk
+1 ["cell_2","cell_10","cell_1","cell_104_aaaaaaaaaaaaaaaaaaaaaaaaa
+TEXT_SUBSTRING_64 VmHWM:	  144844 kB VmRSS:	  144844 kB 
+DIAGNOSTIC_ONLY qualification=FALSE

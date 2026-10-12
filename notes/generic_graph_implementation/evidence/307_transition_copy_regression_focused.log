@@ -1,0 +1,13 @@
+test_durable_session_generation_recovery_contract PASS
+Error in contract_test_activate_phase5_conformance_pack() : 
+  could not find function "contract_test_activate_phase5_conformance_pack"
+Calls: stopifnot -> isTRUE -> <Anonymous>
+In addition: Warning messages:
+1: call dbDisconnect() when finished working with a connection 
+2: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpbyzJbw/scwb_durable_generation_root_554825247206/generation_case/checkpoints/g_20261011121818.719762_349314-20261011121818.719788-XSH5kdwU1rPwSUPo6g2fPrMe/session.json': No such file or directory
+3: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpbyzJbw/scwb_durable_generation_root_554825247206/generation_case/checkpoints/g_20261011121824.455350_349314-20261011121824.455387-Hf0bAMaJlAjhWIhPY1dQaeRd/session.json': No such file or directory
+4: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpbyzJbw/scwb_durable_generation_root_554825247206/generation_case/checkpoints/g_partial/session.json': No such file or directory
+Execution halted

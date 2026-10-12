@@ -1,0 +1,18 @@
+START test_graph_retained_cell_source_payload_contract 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector_family SEARCH artifact_pseudotime USING INDEX artifact_pseudotime_payload_order (artifact_id=?) 
+test_graph_retained_cell_source_payload_contract PASS
+START test_graph_object_source_batch_identity_admission_restoration_contract 
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.284
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.273
+test_graph_object_source_batch_identity_admission_restoration_contract PASS
+START test_graph_source_snapshot_unrelated_head_scope_contract 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+test_graph_source_snapshot_unrelated_head_scope_contract PASS
+START test_generic_entity_certificate_corruption_contract 
+test_generic_entity_certificate_corruption_contract PASS
+test_provenance_bundle_dag_contract PASS
+COLLECTOR_AFFECTED_SOURCE_FOCUSED executed=5 passed=5 skipped=0 qualification=FALSE PASS

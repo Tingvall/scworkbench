@@ -1,0 +1,10 @@
+[1] 0
+[1] 0
+[1] 0
+[1] 0
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.238
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.23
+[1] 1
+[1] 1
+Error: GRAPH_RESOURCE_EXCEEDED: Source record exceeds decoded byte admission.
+Execution halted

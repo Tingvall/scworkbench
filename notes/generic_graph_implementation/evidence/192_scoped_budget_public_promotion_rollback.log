@@ -1,0 +1,9 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error in utils::packageVersion("scworkbench") : 
+  there is no package called ‘scworkbench’
+Calls: stopifnot ... tryCatch -> tryCatchList -> tryCatchOne -> <Anonymous>
+Execution halted

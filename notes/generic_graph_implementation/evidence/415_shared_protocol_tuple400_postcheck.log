@@ -1,0 +1,16 @@
+inst/protocol/operation-pack-v4.schema.json: OK
+inst/protocol/operation-pack-transition-request-v4.schema.json: OK
+inst/protocol/operation-pack-transition-receipt-v4.schema.json: OK
+inst/protocol/graph-v1.schema.json: OK
+inst/protocol/pybench-op-v5-python-runtime.schema.json: OK
+inst/protocol/fixtures/graph-v1/binding-descriptor-identities.json: OK
+inst/protocol/fixtures/graph-v1/content-identities.json: OK
+inst/protocol/fixtures/graph-v1/negative-rehash-identities.csv: OK
+inst/protocol/fixtures/graph-v1/scenario-roundtrip-vectors.json: OK
+inst/sdk/operation-packs/capabilities-v4.json: OK
+inst/sdk/operation-packs/capabilities-v4.schema.json: OK
+inst/sdk/operation-packs/GRAPH_GUIDE.md: OK
+tests/fixtures/operation-pack-v4-native-matrix/DESCRIPTION: OK
+tests/fixtures/operation-pack-v4-native-matrix/NAMESPACE: OK
+tests/fixtures/operation-pack-v4-native-matrix/R/register.R: OK
+tests/fixtures/operation-pack-v4-native-matrix/inst/scworkbench/operation-pack.json: OK

@@ -5956,6 +5956,34 @@
               "$ref": "#/$defs/graph_axis_source_selector"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input_name",
+            "axis_kind",
+            "selection_mode",
+            "source_binding_selector"
+          ],
+          "properties": {
+            "input_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "axis_kind": {
+              "enum": [
+                "cell",
+                "feature"
+              ]
+            },
+            "selection_mode": {
+              "const": "retained_matrix_axis"
+            },
+            "source_binding_selector": {
+              "type": "null"
+            }
+          }
         }
       ]
     }

@@ -1,0 +1,7 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error: Output 'matrix' is a durability_role=materialization, not a terminal artifact. It is materialized when promoting terminal output(s): summary. Request one or more of those terminal outputs.
+Execution halted

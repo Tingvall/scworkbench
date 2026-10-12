@@ -1,0 +1,6 @@
+  load_extension(?,?)
+1                  NA
+[1] 0
+[1] 1
+Error: GRAPH_SOURCE_PAYLOAD_INVALID: GRAPH_SOURCE_PAYLOAD_INVALID: native byte reader is closed.
+Execution halted

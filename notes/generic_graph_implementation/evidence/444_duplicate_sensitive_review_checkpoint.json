@@ -1,0 +1,17 @@
+{
+  "candidate": 444,
+  "parent_tuple": 429,
+  "source_count": 83,
+  "source_ledger_sha256": "51d53b594bd5cbd80c5ba98652ef401e406661830459b6ec9508f790837baf9c",
+  "install_root": "/tmp/scwb-graph-forge-duplicate-sensitive-444.ps0av2oi",
+  "qualification": false,
+  "runtime_changes": [
+    "R/getters_artifact_metadata.R"
+  ],
+  "test_changes": [
+    "tests/test_graph_legacy_metadata_expansion_admission_contract.R"
+  ],
+  "scope": "Audit every candidate row.names/class/.Class attribute by position before decoding; preserve admitted legacy duplicate ordering and inert aliases.",
+  "parent_disposition": "REJECTED duplicate row.names selection gap, direct and public",
+  "release": "Meridian final83posthash; Controller independently83posthash/formal narrow release; no final Sable429 report/posthash claimed."
+}

@@ -1,0 +1,42 @@
+{
+  "candidate": 444,
+  "tuple": 445,
+  "source_count": 84,
+  "source_ledger_sha256": "86d447800453ac16eebae9ad6322fdea848a914801b851120fe963c777ee90db",
+  "install_root": "/tmp/scwb-graph-forge-duplicate-sensitive-444.ps0av2oi",
+  "dll_sha256": "ead7462807fb7920e924aa8995ec3ddb26ecbf87dd2c2d4b6ccf21f3b7a1bd56",
+  "qualification": false,
+  "review_release": "PENDING",
+  "all_exit_codes": 0,
+  "skips": 0,
+  "focused_contracts": {
+    "collector": 8,
+    "codec": 53,
+    "affected": 5
+  },
+  "direct_and_public_resource_rejections_decoder_calls": 0,
+  "public_max_single_allocation_bytes": 524336,
+  "public_carrier_reservation_bytes": 2097152,
+  "public_admitted_duplicate_certificate_and_oldgetter_identity": "MATCH",
+  "fresh_original90000_certificate": {
+    "entire_saved269_object_identical": true,
+    "content_sha256": "b78524fc47460da8d90b06541f7114fd31ce60fd63d598374d4a4ad3d0b5d044",
+    "source_db_unchanged": true,
+    "elapsed_seconds": 80.952,
+    "hwm_before_kib": 240312,
+    "hwm_after_kib": 240312,
+    "bundle_open_before_profile": true,
+    "allocations_at_least_1MiB": [
+      {
+        "bytes": 2097200,
+        "stack_head": "result_fetch .local",
+        "cause": "UNPROVEN"
+      }
+    ]
+  },
+  "whole_lifecycle_rss": "NOT_RUN",
+  "final_qualification": "NOT_RUN",
+  "terminal_evidence_count": 23,
+  "terminal_evidence_ledger_sha256": "6dec8a02f512158ed28587e0888a435b236a4f71b1fd51c4cbf3ea809e5fbfa3",
+  "parent429_disposition": "REJECTED duplicate sensitive attributes; Meridian final83posthash; Controller explicit release; Sable final429 report/posthash not claimed"
+}

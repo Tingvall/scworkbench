@@ -1,0 +1,6 @@
+  load_extension(?,?)
+1                  NA
+ARTIFACT_REGISTRY_BEFORE_DAG VmHWM:	  239156 kB VmRSS:	  205132 kB 
+ARTIFACT_REGISTRY_PROFILE mode=projection elapsed=4.353 dag_sha256=7c35edd6513671df9ec18e81e50376c6333530c6526671682b88653b94fa6ec6
+VmHWM:	  239436 kB VmRSS:	  205080 kB 
+ARTIFACT_REGISTRY_PROFILE original_sourceDB=UNCHANGED source_axes=90000 prototype_only=TRUE qualification=FALSE

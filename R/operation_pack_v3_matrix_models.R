@@ -75,7 +75,7 @@
   for (path in paths) {
     if (startsWith(basename(path), ".")) next
     result <- .wb_operation_pack_v2_record_validate(path,
-      load_payloads = TRUE)
+      load_payloads = TRUE, graph_connections = .wb_graph_bundle_connections(bundle))
     if (!isTRUE(result$ok) || !identical(result$state$state, "reopened"))
       next
     bound <- bindings$output_name[bindings$run_id ==

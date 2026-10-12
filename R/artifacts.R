@@ -789,7 +789,8 @@ wb_art_get_labels <- function(bundle, artifact_id) {
 }
 
 .wb_art_dependency_edges <- function(bundle) {
-  arts <- wb_art_list(bundle, include_history = TRUE)
+  arts <- .wb_getter_artifact_dependency_registry(bundle)
+  budgets <- .wb_graph_effective_budgets(bundle$con)
   if (!is.data.frame(arts) || nrow(arts) == 0) {
     return(data.frame(
       parent_artifact_id = character(0),
@@ -802,7 +803,8 @@ wb_art_get_labels <- function(bundle, artifact_id) {
   k <- 0L
   for (i in seq_len(nrow(arts))) {
     child <- as.character(arts$artifact_id[i])
-    parents <- .wb_art_refs_from_prov_json(arts$provenance_json[i] %||% "")
+    if(is.na(arts$provenance_length[i]) || arts$provenance_length[i]==0 || arts$source_type[i]!="text")next
+    parents <- .wb_getter_artifact_provenance_refs(bundle$con,arts$source_rowid[i],budgets)
     if (!length(parents)) next
     for (p in parents) {
       k <- k + 1L

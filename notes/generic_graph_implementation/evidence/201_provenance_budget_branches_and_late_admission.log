@@ -1,0 +1,5 @@
+test_graph_resource_aggregate_cache_and_nested_policy_contract PASS
+test_graph_resource_late_transaction_admission_rejects_contract PASS
+test_graph_sql_transaction_roundtrip_contract PASS
+test_graph_source_connection_budget_purity_contract PASS
+PASS 4/4; skipped=0 failed=0; installed200

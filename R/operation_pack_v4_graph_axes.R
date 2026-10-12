@@ -23,7 +23,12 @@
 
 .wb_operation_pack_v4_graph_axis_authorities <- function(bundle, output, inputs,
     params, source_refs, transition_identity) {
-  budgets <- .wb_graph_budgets()
+  budgets <- .wb_operation_pack_v4_graph_budgets(output$resource_budgets)
+  durable <- bundle$staging_source_bundle %||% bundle
+  budgets <- .wb_graph_effective_budgets(bundle$con, budgets)
+  budgets <- .wb_graph_effective_budgets(durable$con, budgets)
+  restore <- .wb_graph_aggregate_connection_budget(list(bundle$con, durable$con), budgets)
+  on.exit(restore(), add = TRUE)
   lapply(output$axis_sources %||% list(), function(source) {
     name <- source$input_name
     value <- inputs[[name]]
@@ -36,6 +41,22 @@
       binding <- .wb_operation_pack_v4_graph_binding(bundle, value$artifact_id, binding_id, budgets)
       .wb_graph_require(identical(binding$axis_kind, source$axis_kind),
         "GRAPH_BINDING_SELECTION_INVALID", "Selected binding axis kind differs from declaration.")
+    } else if (source$selection_mode == "retained_matrix_axis") {
+      selected <- attr(inputs, "operation_pack_v4_matrix_source_selections", exact = TRUE)[[name]]
+      .wb_graph_require(!is.null(selected) && identical(value$kind, "matrix") &&
+        identical(value$matrix_id, selected$matrix_id), "GRAPH_SOURCE_AUTHORITY_REQUIRED",
+        "Matrix source lacks exact pre-staging promoted producer selection.")
+      durable <- bundle$staging_source_bundle %||% bundle
+      selection <- .wb_graph_matrix_retained_selector(durable, value$matrix_id,
+        budgets, selected$producer_ref)
+      .wb_graph_require(identical(selection, selected$selection), "GRAPH_SOURCE_AUTHORITY_INVALID",
+        "Matrix producer selection changed after pre-staging admission.")
+      retained <- .wb_graph_matrix_retained_snapshot(durable, selection, budgets)
+      reference <- list(kind = "matrix", source_id = value$matrix_id)
+      axes <- .wb_graph_source_axis_hash(durable, reference, source$axis_kind, budgets)
+      binding <- c(list(binding_id = "source_admission", axis_kind = source$axis_kind,
+        source_ref = reference, source_snapshot_identity = retained$source_snapshot_identity),
+        axes[c("axis_content_identity", "axis_order_identity")])
     } else {
       ref <- .wb_operation_pack_v3_artifact_ref(source_refs[[name]])
       .wb_graph_require(!is.null(ref), "GRAPH_SOURCE_AUTHORITY_REQUIRED", "Cell-axis source must name a retained artifact.")
@@ -77,7 +98,8 @@
       "scworkbench.operation_pack.graph_source_axis_authority.v1", "authority excluding authority_identity")
     binding <- c(list(binding_id = "source_admission"),
       authority[c("axis_kind", "source_ref", "source_snapshot_identity", "axis_content_identity", "axis_order_identity")])
-    actual <- .wb_graph_source_authorize(bundle, binding, .wb_graph_budgets())
+    actual <- .wb_graph_source_authorize(bundle, binding,
+      .wb_operation_pack_v4_graph_budgets(grant$resource_budgets))
     for (field in c("source_payload_closure_identity", "axis_count"))
       .wb_graph_require(identical(actual[[field]], authority[[field]]),
         "GRAPH_SOURCE_AUTHORITY_INVALID", "Admitted source changed before publication.")

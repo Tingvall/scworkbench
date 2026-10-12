@@ -123,7 +123,11 @@ test_graph_retained_cell_source_payload_contract <- function() {
     stopifnot(identical(admitted$source_payload_closure_identity, expected))
     # Explicit CV/CVF source declarations grant the full independently
     # certified retained axis, not an incidental in-memory cell-id array.
-    declaration <- list(name = "result", axis_sources = list(list(input_name = "signal",
+    declaration <- list(name = "result", resource_budgets=list(
+      max_spill_bytes="8589934592",max_published_bytes="8589934592",max_wal_bytes="8589934592",
+      max_memory_bytes="8388608",max_collect_bytes="4194304",
+      partition_limits=list(max_decoded_bytes="262144",max_rows="256")),
+      axis_sources = list(list(input_name = "signal",
       axis_kind = "cell", selection_mode = "retained_input_axis", source_binding_selector = NULL)))
     authorities <- scworkbench:::.wb_operation_pack_v4_graph_axis_authorities(bundle,
       declaration, list(signal = loaded), list(), list(signal = wb_ref_artifact(artifact, "vector")),
@@ -132,7 +136,7 @@ test_graph_retained_cell_source_payload_contract <- function() {
     stopifnot(length(authorities) == 1L, authorities[[1L]]$axis_count == as.character(length(unique(value$cell_id))),
       identical(authorities[[1L]]$source_payload_closure_identity, expected))
     scworkbench:::.wb_operation_pack_v4_graph_authorities_assert(bundle,
-      list(authorized_source_axes = authorities))
+      list(authorized_source_axes = authorities, resource_budgets=declaration$resource_budgets))
     reordered <- loaded; reordered$cell_id <- rev(reordered$cell_id)
     stopifnot(inherits(tryCatch(scworkbench:::.wb_operation_pack_v4_graph_axis_authorities(bundle,
       declaration, list(signal = reordered), list(), list(signal = wb_ref_artifact(artifact, "vector")),

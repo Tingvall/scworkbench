@@ -1,0 +1,111 @@
+Tracing function ".wb_graph_source_snapshot" in package
+"namespace:scworkbench"
+[1] ".wb_graph_source_snapshot"
+Tracing function ".wb_graph_native_matrix_source_authorize" in
+package "namespace:scworkbench"
+[1] ".wb_graph_native_matrix_source_authorize"
+Tracing function "wb_session_promote_current" in package
+"namespace:scworkbench"
+[1] "wb_session_promote_current"
+Tracing function "wb_art_graph_info" in package
+"namespace:scworkbench"
+[1] "wb_art_graph_info"
+PUBLIC_PHASE catalog_before_pack 
+PUBLIC_PHASE catalog_pack_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_before_commit 
+PUBLIC_PHASE catalog_before_pack 
+PUBLIC_PHASE catalog_pack_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_before_commit 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PUBLIC_PHASE resolved 
+PUBLIC_PHASE preflighted 
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PUBLIC_PHASE staged 
+PUBLIC_PHASE before_dispatch 
+PUBLIC_PHASE receipt_received 
+PUBLIC_PHASE audited 
+PUBLIC_PHASE before_publication 
+PUBLIC_PHASE published 
+PUBLIC_PHASE before_reopened 
+PUBLIC_PHASE reopened 
+PROMOTION_EXIT source=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 paths=operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000001|operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000002 exists=TRUE|TRUE
+PUBLIC_PROMOTION_RETURN source=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 paths=operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000001|operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000002 exists=TRUE|TRUE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=prov_20261011_120722_ve3dvt0r
+PUBLIC_PHASE resolved 
+PUBLIC_PHASE preflighted 
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=prov_20261011_120722_ve3dvt0r
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=prov_20261011_120722_ve3dvt0r
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=prov_20261011_120722_ve3dvt0r
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=prov_20261011_120722_ve3dvt0r
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE staged 
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE before_dispatch 
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE receipt_received 
+PUBLIC_PHASE audited 
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/scworkbench_sessions/session_e8garuxg5pjm_54e4524a01631 durable=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+PUBLIC_PHASE before_publication 
+PUBLIC_PHASE published 
+PUBLIC_PHASE before_reopened 
+PUBLIC_PHASE reopened 
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+PROMOTION_EXIT source=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 paths=operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000001|operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000002 exists=TRUE|TRUE
+PUBLIC_PROMOTION_RETURN source=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 paths=operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000001|operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000002 exists=TRUE|TRUE
+PUBLIC_GRAPH_INFO bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 artifact=graph_20261011_120731_lff7can9
+GRAPH_INFO_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 artifact=graph_20261011_120731_lff7can9
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+NATIVE_AUTH_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=NONE
+SNAPSHOT_TRACE bundle=/tmp/Rtmpo1rN5Y/graph_native_public_bundle_54e457e8800d8 durable=NONE source=RNA_log snapshot=prov_20261011_120722_ve3dvt0r
+Error: PAYLOAD_MISSING: invalid matrix fragment mf_RNA_log_20261011_120719_szrjrm6h path 'operation_pack_v2/transition_mlvfxr4z45c1orgl/outputs/matrix/fragments/part_000001' (missing).
+No traceback available 

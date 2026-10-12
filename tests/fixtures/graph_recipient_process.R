@@ -1,6 +1,9 @@
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 4L)
-devtools::load_all(args[[1L]], quiet = TRUE)
+if (file.exists(file.path(args[[1L]], "Meta", "package.rds"))) {
+  .libPaths(c(dirname(args[[1L]]), .libPaths()))
+  library(scworkbench)
+} else devtools::load_all(args[[1L]], quiet = TRUE)
 bundle_dir <- args[[2L]]
 artifact_id <- args[[3L]]
 descriptor_sha256 <- args[[4L]]

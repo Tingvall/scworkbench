@@ -1,0 +1,37 @@
+Tracing function ".wb_graph_source_snapshot" in package
+"namespace:scworkbench"
+[1] ".wb_graph_source_snapshot"
+PUBLIC_PHASE catalog_before_pack 
+PUBLIC_PHASE catalog_pack_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_before_commit 
+PUBLIC_PHASE catalog_before_pack 
+PUBLIC_PHASE catalog_pack_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_operation_installed 
+PUBLIC_PHASE catalog_before_commit 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PUBLIC_PHASE resolved 
+PUBLIC_PHASE preflighted 
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PUBLIC_PHASE staged 
+PUBLIC_PHASE before_dispatch 
+PUBLIC_PHASE receipt_received 
+PUBLIC_PHASE audited 
+PUBLIC_PHASE before_publication 
+PUBLIC_PHASE published 
+PUBLIC_PHASE before_reopened 
+PUBLIC_PHASE reopened 
+SNAPSHOT_TRACE bundle=/tmp/RtmpVz06p5/graph_native_public_bundle_5412d626a4f3 durable=NONE source=RNA_log snapshot=prov_20261011_114701_l2fcsux6
+PUBLIC_PHASE resolved 
+PUBLIC_PHASE preflighted 
+SNAPSHOT_TRACE bundle=/tmp/RtmpVz06p5/graph_native_public_bundle_5412d626a4f3 durable=NONE source=RNA_log snapshot=prov_20261011_114701_l2fcsux6
+SNAPSHOT_TRACE bundle=/tmp/RtmpVz06p5/scworkbench_sessions/session_gavahq5zlmm6_5412d3ba59673 durable=/tmp/RtmpVz06p5/graph_native_public_bundle_5412d626a4f3 source=RNA_log snapshot=NONE
+Error: GRAPH_SOURCE_UNAVAILABLE: Exact retained source snapshot is unavailable under admitted limits or changed.
+No traceback available 

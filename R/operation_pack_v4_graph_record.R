@@ -1,6 +1,7 @@
 # Reopen is independent of pack installation and never trusts a compact seal
 # in place of the actual contained partitions.
-.wb_operation_pack_v4_graph_payload <- function(root, name, observation, grant) {
+.wb_operation_pack_v4_graph_payload <- function(root, name, observation, grant,
+  connections = list(), cache_slots = 1L) {
   path <- file.path(root, "outputs", name, "payload.json")
   parts <- file.path(root, "outputs", name, "graph.parts.ndjson")
   for (target in c(path, parts)) .wb_graph_require(file.exists(target) &&
@@ -18,7 +19,8 @@
   .wb_graph_require(sum(file.info(c(parts, path))$size) <= as.numeric(grant$resource_budgets$max_staged_bytes),
     "GRAPH_RESOURCE_EXCEEDED", "Complete graph stage including descriptor exceeds admitted storage budget.")
   staged <- .wb_graph_import_parts(parts,
-    .wb_operation_pack_v4_graph_budgets(grant$resource_budgets), expected = observation)
+    .wb_operation_pack_v4_graph_budgets(grant$resource_budgets), expected = observation,
+    connections = connections, cache_slots = cache_slots)
   succeeded <- FALSE
   on.exit(if (!succeeded) .wb_graph_stage_discard(staged), add = TRUE)
   # Independently enforce the manifest-issued ceilings for Python admission
@@ -31,7 +33,8 @@
   staged
 }
 
-.wb_operation_pack_v4_graph_record_assert <- function(request, receipt, path, load_payloads = FALSE) {
+.wb_operation_pack_v4_graph_record_assert <- function(request, receipt, path, load_payloads = FALSE,
+  connections = list()) {
   reads <- request$graph_read_grants %||% list()
   usage <- receipt$graph_read_usage %||% list()
   .wb_graph_require(identical(vapply(reads, `[[`, character(1), "input_name"),
@@ -78,7 +81,8 @@
     .wb_graph_require(identical(descriptor$retained_descriptor_identity, seal$descriptor_identity),
       "GRAPH_SEAL_MISMATCH", "Retained graph root differs from seal.")
     if (load_payloads) {
-      staged <- .wb_operation_pack_v4_graph_payload(path, grant$output_name, seal, grant)
+      staged <- .wb_operation_pack_v4_graph_payload(path, grant$output_name, seal, grant,
+        connections = connections, cache_slots = length(grants))
       on.exit(.wb_graph_stage_discard(staged), add = TRUE)
       .wb_operation_pack_v4_graph_output_bindings_assert(staged, grant)
       .wb_graph_stage_discard(staged)
@@ -87,11 +91,13 @@
   invisible(TRUE)
 }
 
-.wb_operation_pack_v4_graph_output_value <- function(path, item, receipt, request) {
+.wb_operation_pack_v4_graph_output_value <- function(path, item, receipt, request,
+  connections = list(), cache_slots = length(request$graph_write_grants)) {
   name <- item$name
   grant <- Filter(function(x) identical(x$output_name, name), request$graph_write_grants)[[1L]]
   seal <- Filter(function(x) identical(x$output_name, name), receipt$graph_write_observations)[[1L]]
-  staged <- .wb_operation_pack_v4_graph_payload(path, name, seal, grant)
+  staged <- .wb_operation_pack_v4_graph_payload(path, name, seal, grant,
+    connections = connections, cache_slots = cache_slots)
   value <- structure(list(kind = "graph", content_identity = staged$seal$content_identity,
     binding_identity = staged$seal$binding_identity, descriptor_identity = staged$seal$descriptor_identity),
     class = "wb_primitive")

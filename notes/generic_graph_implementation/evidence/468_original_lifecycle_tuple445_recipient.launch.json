@@ -1,0 +1,12 @@
+{
+  "utc": "2026-10-11T22:26:33.154906+00:00",
+  "available_bytes": 41091584000,
+  "envelope_bytes": 17179869184,
+  "reserve_bytes": 8589934592,
+  "tuple": 445,
+  "installed": 444,
+  "source_axes": 90000,
+  "nodes": 22000,
+  "qualification": false,
+  "parent_resource_verdict": "FAIL"
+}

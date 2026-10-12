@@ -1,0 +1,6 @@
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.261
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.246
+Error in tests$test_graph_object_source_batch_identity_admission_restoration_contract() : 
+  grepl("OPERATION_PACK_CANONICAL_STRING_INVALID", conditionMessage(error),  .... is not TRUE
+Calls: stopifnot -> isTRUE -> <Anonymous> -> stopifnot
+Execution halted

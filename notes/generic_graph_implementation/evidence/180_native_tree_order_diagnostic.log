@@ -1,0 +1,31 @@
+NATIVE_TREE_ORDER_MISMATCH C 
+                                                                         actual
+1              /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/A
+2              /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/a
+3          /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/empty
+4              /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/é
+5  /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/internal_leaf
+6    /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/line\nbreak
+7           /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/loop
+8   /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/quote"back\\
+9            /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/sub
+10         /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/sub/x
+11             /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/z
+12             /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/é
+                                                                       expected
+1              /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/A
+2              /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/a
+3          /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/empty
+4              /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/é
+5  /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/internal_leaf
+6    /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/line\nbreak
+7           /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/loop
+8     /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/quote"back
+9            /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/sub
+10         /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/sub/x
+11             /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/z
+12             /tmp/Rtmpn0fJIJ/graph_native_matrix_tree_4405870b3b75d/payload/é
+Error in test_graph_native_matrix_tree_identity_contract() : 
+  identical(actual, expected) is not TRUE
+Calls: test_graph_native_matrix_tree_identity_contract -> stopifnot
+Execution halted

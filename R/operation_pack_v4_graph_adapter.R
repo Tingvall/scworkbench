@@ -11,15 +11,32 @@
     collect_bytes = as.numeric(resource$max_collect_bytes)))
 }
 
+.wb_operation_pack_v4_lowest_graph_budgets <- function(resources) {
+  if (!length(resources)) return(.wb_graph_budgets())
+  policies <- lapply(resources, .wb_operation_pack_v4_graph_budgets)
+  budgets <- policies[[1L]]
+  for (name in names(budgets)) {
+    value <- min(vapply(policies, function(policy)as.numeric(policy[[name]]), numeric(1)))
+    budgets[[name]] <- if(is.character(budgets[[name]])) format(value,scientific=FALSE,trim=TRUE) else value
+  }
+  .wb_graph_budgets(budgets)
+}
+
+.wb_operation_pack_v4_scoped_graph_budgets <- function(bundle, budgets) {
+  connections <- .wb_graph_bundle_connections(bundle)
+  for(con in connections) budgets <- .wb_graph_effective_budgets(con,budgets)
+  .wb_graph_aggregate_connection_budget(connections,budgets)
+}
+
 .wb_operation_pack_v4_graph_cursor <- function(bundle, grant) {
   components <- c("header", .wb_graph_components())
   state <- new.env(parent = emptyenv())
   state$component <- 1L; state$offset <- "0"; state$complete <- FALSE
   state$observations <- .wb_graph_observations_new()
   state$counts <- grant$component_counts
-  state$limits <- .wb_graph_budgets(list(
+  state$limits <- .wb_graph_effective_budgets(bundle$con, .wb_graph_budgets(list(
     partition_rows = as.numeric(grant$partition_limits$max_rows),
-    partition_bytes = as.numeric(grant$partition_limits$max_decoded_bytes)))
+    partition_bytes = as.numeric(grant$partition_limits$max_decoded_bytes))))
   state$expected <- function() {
     while (state$component <= length(components) &&
       state$offset == state$counts[[components[[state$component]]]]) {
@@ -73,6 +90,13 @@
 
 .wb_operation_pack_v4_graph_adapter <- function(base, request, bundle, stage_root) {
   state <- base$state; state$graph_cursors <- list(); state$graph_opened <- list()
+  invocation_budgets <- .wb_operation_pack_v4_lowest_graph_budgets(lapply(
+    request$graph_write_grants %||% list(), `[[`, "resource_budgets"))
+  restore_invocation <- .wb_operation_pack_v4_scoped_graph_budgets(bundle, invocation_budgets)
+  initialized <- FALSE
+  on.exit(if(!initialized) restore_invocation(),add=TRUE)
+  state$graph_budget_restores <- list()
+  state$graph_temporary <- list()
   grants <- stats::setNames(request$graph_read_grants %||% list(),
     vapply(request$graph_read_grants %||% list(), `[[`, character(1), "input_name"))
   for (name in names(grants)) local({
@@ -99,7 +123,14 @@
     .wb_graph_closed(header, c("schema", "direction_mode"), "writer header")
     .wb_graph_require(header$schema == "scworkbench.graph.content.v1", "GRAPH_VERSION_UNSUPPORTED", "Writer schema.")
     grant <- write_grants[[name]]
-    staged <- .wb_graph_stage_new(header$direction_mode, .wb_operation_pack_v4_graph_budgets(grant$resource_budgets))
+    budgets <- .wb_graph_effective_budgets(bundle$con,
+      .wb_operation_pack_v4_graph_budgets(grant$resource_budgets))
+    connections <- c(.wb_graph_bundle_connections(bundle), lapply(c(state$graph_opened, state$graph_temporary),
+      function(stage) stage$con))
+    state$graph_budget_restores[[length(state$graph_budget_restores) + 1L]] <-
+      .wb_graph_aggregate_connection_budget(connections, budgets, extra = 1L)
+    staged <- .wb_graph_stage_new(header$direction_mode, budgets,
+      cache_kib = bundle$con@ref$wb_graph_cache_kib)
     state$graph_opened[[name]] <- staged
     finished <- FALSE
     list(write_part = function(component, rows) {
@@ -152,8 +183,13 @@
   base$writers$write_graph <- function(name, value) {
     grant <- write_grants[[name]]
     .wb_graph_require(!is.null(grant), "GRAPH_WRITER_REQUIRED", "No graph output grant.")
-    budgets <- .wb_operation_pack_v4_graph_budgets(grant$resource_budgets)
-    staged <- .wb_graph_stage_small(value, budgets)
+    budgets <- .wb_graph_effective_budgets(bundle$con,
+      .wb_operation_pack_v4_graph_budgets(grant$resource_budgets))
+    connections <- c(.wb_graph_bundle_connections(bundle), lapply(state$graph_opened, function(stage) stage$con))
+    state$graph_budget_restores[[length(state$graph_budget_restores) + 1L]] <-
+      .wb_graph_aggregate_connection_budget(connections, budgets, extra = 2L)
+    staged <- .wb_graph_stage_small(value, budgets, bundle$con@ref$wb_graph_cache_kib)
+    state$graph_temporary <- c(state$graph_temporary, list(staged))
     on.exit(.wb_graph_stage_discard(staged), add = TRUE)
     writer <- open(name, list(schema = "scworkbench.graph.content.v1", direction_mode = value$content$direction_mode))
     for (component in .wb_graph_components()) .wb_graph_scan(staged$con, "staged", component,
@@ -162,9 +198,16 @@
     writer$finish()
   }
   original_consume <- base$consume
+  graph_consumed <- FALSE
   base$consume <- function() {
+    if (graph_consumed) return(invisible(TRUE))
+    graph_consumed <<- TRUE
+    on.exit(restore_invocation(),add=TRUE)
     for (staged in state$graph_opened) .wb_graph_stage_discard(staged)
+    for (staged in state$graph_temporary) .wb_graph_stage_discard(staged)
+    for (restore in rev(state$graph_budget_restores)) restore()
     original_consume()
   }
+  initialized <- TRUE
   base
 }

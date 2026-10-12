@@ -1,0 +1,9 @@
+  load_extension(?,?)
+1                  NA
+LEGACY_PHYSICAL_METADATA case=1 kind=cell_vector bytes=450 whole_old_getter_sha=PASS prototype_only=TRUE
+LEGACY_PHYSICAL_METADATA case=2 kind=cell_vector bytes=300152 whole_old_getter_sha=PASS prototype_only=TRUE
+LEGACY_PHYSICAL_METADATA case=3 kind=cell_vector bytes=300152 whole_old_getter_sha=PASS prototype_only=TRUE
+LEGACY_PHYSICAL_METADATA case=4 kind=cell_vector_family bytes=450 whole_old_getter_sha=PASS prototype_only=TRUE
+LEGACY_PHYSICAL_METADATA case=5 kind=cell_vector_family bytes=300152 whole_old_getter_sha=PASS prototype_only=TRUE
+LEGACY_PHYSICAL_METADATA case=6 kind=cell_vector_family bytes=300152 whole_old_getter_sha=PASS prototype_only=TRUE
+LEGACY_PHYSICAL_METADATA_FOCUSED executed=6 passed=6 skipped=0 qualification=FALSE PASS

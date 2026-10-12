@@ -1,0 +1,22 @@
+test_durable_session_generation_recovery_contract PASS
+test_durable_session_source_payload_corruption_contract PASS
+test_durable_session_subprocess_recovery_contract PASS
+test_operation_pack_v3_durable_model_tree_contract PASS
+test_operation_pack_v3_matrix_model_protocol_fixture_contract PASS
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+test_operation_pack_v3_matrix_model_boundary_lifecycle_contract PASS
+test_operation_pack_v3_matrix_model_boundary_rollback_contract PASS
+test_operation_pack_v3_matrix_model_source_reopen_authentication_contract PASS
+Warning messages:
+1: call dbDisconnect() when finished working with a connection 
+2: In open.connection(con, "rb") :
+  cannot open file '/tmp/Rtmpdxe9b8/scwb_durable_generation_root_56f533de33f7d/generation_case/checkpoints/g_20261011125058.317690_356179-20261011125058.317736-UdM1dOjGPKSCC9aPWRtegl2z/session.json': No such file or directory
+3: In open.connection(con, "rb") :
+  cannot open file '/tmp/Rtmpdxe9b8/scwb_durable_generation_root_56f533de33f7d/generation_case/checkpoints/g_20261011125105.959602_356179-20261011125105.959649-plxDrhJf7pDKX3Jcl86qCDpQ/session.json': No such file or directory
+4: In open.connection(con, "rb") :
+  cannot open file '/tmp/Rtmpdxe9b8/scwb_durable_generation_root_56f533de33f7d/generation_case/checkpoints/g_partial/session.json': No such file or directory
+TRANSITION_COPY_REGRESSION_FOCUSED executed=8 passed=8 skipped=0 qualification=FALSE

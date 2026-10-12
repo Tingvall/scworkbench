@@ -1,0 +1,36 @@
+{
+  "tuple": 475,
+  "source_count": 90,
+  "source_ledger_sha256": "4e804356310a00cad69c01fbe82f68e90564fb8a36e0db7aa2267a87e7b86e16",
+  "install": 476,
+  "library": "/tmp/scwb-graph-forge-promotion-metadata-476.ld91mtp4/library",
+  "dll_sha256": "ead7462807fb7920e924aa8995ec3ddb26ecbf87dd2c2d4b6ccf21f3b7a1bd56",
+  "focused_executed": 5,
+  "focused_passed": 5,
+  "focused_skipped": 0,
+  "all_numeric_exits": 0,
+  "installed_metadata_profile": {
+    "legacy_value_identical": true,
+    "new_namespaces": 0,
+    "rss_before_kib": 71176,
+    "rss_after_kib": 72200,
+    "time_v_max_rss_kib": 72968,
+    "elapsed": "0:00.13",
+    "observed_allocations_at_least_1MiB": 0,
+    "aggregate_rss_qualification": false
+  },
+  "parent_463": {
+    "functional": "PASS",
+    "canonical_bytes": 1453459757,
+    "max_rss_bytes": 942051328,
+    "resource_verdict": "FAIL",
+    "recipient_468": "PASS"
+  },
+  "review_release": "PENDING",
+  "new_original_lifecycle": "NOT_RUN",
+  "full_suite": "NOT_RUN",
+  "final_8x": "NOT_RUN",
+  "qualification": false,
+  "scope": "Metadata inventory uses installed version rather than package loadability; operation preflight authority unchanged. Installed-but-unloadable now records its version instead of legacy NA.",
+  "cause_limit": "Cold helper namespace-loading contribution measured; sole whole-lifecycle cause not proven; new complete original-source RSS required after scoped review."
+}

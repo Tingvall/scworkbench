@@ -1,0 +1,16 @@
+METADATA_EMITTER small_names_padding bytes= 106 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_null_attribute_removed bytes= 67 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_structure_alias bytes= 105 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_list bytes= 300152 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_factor bytes= 400171 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_matrix bytes= 348996 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_data.frame bytes= 398108 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_invalid_class code= GRAPH_SOURCE_PAYLOAD_INVALID cleanup=PASS
+METADATA_EMITTER large_names_transform code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_null_transform code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_structure_alias code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_class_transform code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_native_symbol_predecode code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER late_file_change code= GRAPH_SOURCE_PAYLOAD_INVALID cleanup=PASS
+METADATA_EMITTER small_old_codec_carrier_bound code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER_HOSTILE executed=15 passed=15 prototype_only=TRUE qualification=FALSE PASS

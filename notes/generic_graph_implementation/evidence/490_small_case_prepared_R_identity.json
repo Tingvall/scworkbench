@@ -1,0 +1,33 @@
+{
+  "fixture_id": "bounded_mixed_small_v1",
+  "fixture_sha256": "60741a7915721fb6c8872ad58a656dce3fb1c1de42bad52ab756cacd4ea703d2",
+  "identity": {
+    "content_identity": {
+      "scheme": "scworkbench.graph.content.canonical-json.v1",
+      "sha256": "d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24"
+    },
+    "binding_identity": {
+      "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+      "sha256": "838792edabb090bb90fa9ffab1dffd165bf1c2840db0dc26f9c1a47fac19cfa7"
+    },
+    "descriptor": {
+      "schema": "scworkbench.graph.retained-descriptor.v1",
+      "content_identity": {
+        "scheme": "scworkbench.graph.content.canonical-json.v1",
+        "sha256": "d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24"
+      },
+      "binding_identity": {
+        "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+        "sha256": "838792edabb090bb90fa9ffab1dffd165bf1c2840db0dc26f9c1a47fac19cfa7"
+      },
+      "binding_count": 0
+    },
+    "descriptor_identity": {
+      "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+      "sha256": "272d622fffd3d7c8f2107b6523073d596d926bc3eaa455e265367e9afe50f71c"
+    }
+  },
+  "canonical_content_bytes": 22564,
+  "qualification": false,
+  "purpose": "Fixture preparation only, before gate/freeze"
+}

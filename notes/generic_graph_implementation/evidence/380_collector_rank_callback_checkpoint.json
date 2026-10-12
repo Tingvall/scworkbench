@@ -1,0 +1,9 @@
+{
+  "candidate": 380,
+  "parent_candidate": 376,
+  "source_count": 73,
+  "source_ledger_sha256": "1b07d117912bf720292772c9e7e9a17147f1081ac3a619f6686f5a64acc66f5d",
+  "install_root": "/tmp/scwb-graph-forge-bounded-legacy-callback-380.fzqbbpt3",
+  "qualification": false,
+  "correction": "Explicit private reader-lifetime callback replaces prototype AST pointer exposure;376 large metadata parity failure preserved."
+}

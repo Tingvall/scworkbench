@@ -1,0 +1,11 @@
+args <- commandArgs(TRUE)
+stopifnot(length(args)==1L)
+.libPaths(c(file.path(args[[1L]],'library'),.libPaths()))
+library(scworkbench,lib.loc=file.path(args[[1L]],'library'))
+stopifnot(identical(normalizePath(find.package('scworkbench')),normalizePath(file.path(args[[1L]],'library','scworkbench'))))
+tests <- new.env(parent=asNamespace('scworkbench'))
+for(path in c('tests/test_graph_bounded_legacy_collector_contract.R','tests/test_graph_legacy_metadata_expansion_admission_contract.R'))sys.source(path,tests)
+names <- ls(tests,pattern='^test_graph_bounded_legacy_')
+for(name in names){cat('COMPACT_COLLECTOR START',name,'\n');flush.console();stopifnot(isTRUE(tests[[name]]()));cat('COMPACT_COLLECTOR PASS',name,'\n');flush.console()}
+cat('COMPACT_COLLECTOR_FOCUSED executed=',length(names),' passed=',length(names),' skipped=0 installed_production=TRUE qualification=FALSE\n',sep='')
+cat('COMPACT_COLLECTOR_RUNTIME package=',find.package('scworkbench'),' DLL_SHA=',digest::digest(file=getLoadedDLLs()[['scworkbench']][['path']],algo='sha256'),' jsonlite=',as.character(packageVersion('jsonlite')),'\n',sep='')

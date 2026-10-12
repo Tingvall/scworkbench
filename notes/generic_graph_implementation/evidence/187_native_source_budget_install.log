@@ -1,0 +1,17 @@
+* installing *source* package ‘scworkbench’ ...
+** using staged installation
+** libs
+using C compiler: ‘gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0’
+make: Nothing to be done for 'all'.
+installing to /tmp/scwb-graph-native-matrix-dev.f6xrW7/library/00LOCK-generic-graph-implementation-forge-20261010/00new/scworkbench/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (scworkbench)

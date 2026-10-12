@@ -1,18 +1,45 @@
 # Only core uses these SQL selectors. Packs receive identities and scoped
 # readers, never a connection, path, query or state-authority handle.
-.wb_graph_source_snapshot <- function(bundle, identity, budgets) {
+.wb_graph_source_snapshot <- function(bundle, identity, budgets, source_ref = NULL,
+                                      snapshot_id = NULL, artifact_id = NULL) {
   con <- bundle$con
+  budgets <- .wb_graph_effective_budgets(con, budgets)
+  # Restrict production lookup to the independently retained source/producer.
+  # These private selectors do not add fields or authority to a public binding.
+  scope <- ""; scope_params <- list()
+  if (!is.null(snapshot_id)) {
+    .wb_graph_require(.wb_graph_string(snapshot_id), "GRAPH_SOURCE_AUTHORITY_INVALID", "Invalid snapshot selector.")
+    scope <- paste0(scope, " AND h.snapshot_id=?")
+    scope_params <- c(scope_params, list(snapshot_id))
+  }
+  if (!is.null(source_ref)) {
+    .wb_graph_require(source_ref$kind %in% c("matrix", "retained_cell_axis") &&
+      .wb_graph_string(source_ref$source_id), "GRAPH_SOURCE_AUTHORITY_INVALID", "Invalid source selector.")
+    if (source_ref$kind == "matrix") {
+      scope <- paste0(scope, " AND h.snapshot_id IN(SELECT o.snapshot_id ",
+        .wb_graph_matrix_producer_query(), "AND octet_length(o.snapshot_id)<=256)")
+      scope_params <- c(scope_params, list(source_ref$source_id))
+    } else artifact_id <- source_ref$source_id
+  }
+  if (!is.null(artifact_id)) {
+    .wb_graph_require(.wb_graph_string(artifact_id), "GRAPH_SOURCE_AUTHORITY_INVALID", "Invalid artifact selector.")
+    scope <- paste0(scope, " AND h.snapshot_id IN(SELECT snapshot_id FROM prov_run_outputs ",
+      "WHERE artifact_id=? AND octet_length(snapshot_id)<=256)")
+    scope_params <- c(scope_params, list(artifact_id))
+  }
   .wb_graph_identity_assert(identity, "scworkbench.provenance.snapshot_head.v1")
   after <- ""; matched <- NULL
   # Finish each tiny selector query before reading the complete admitted head.
   repeat {
-    row <- DBI::dbGetQuery(con, paste0("SELECT snapshot_id FROM prov_heads ",
-      "WHERE snapshot_id>? AND octet_length(snapshot_id)<=256 ",
-      "ORDER BY snapshot_id LIMIT 1;"), params = list(after))
+    row <- DBI::dbGetQuery(con, paste0("SELECT h.snapshot_id FROM prov_heads h ",
+      "WHERE h.snapshot_id>? AND octet_length(h.snapshot_id)<=256", scope,
+      " ORDER BY h.snapshot_id LIMIT 1;"), params = c(list(after), scope_params))
     if (!nrow(row)) break
     # Head count is typically tiny; keep only the selector while the cursor is
     # open, not a whole graph/source axis. Each query is closed before the next.
     after <- row$snapshot_id[[1]]
+    .wb_graph_storage_fault("source_snapshot_candidate", list(con = con, budgets = budgets,
+      snapshot_id = after, source_ref = source_ref, artifact_id = artifact_id))
     header <- DBI::dbGetQuery(con, paste0("SELECT snapshot_id,schema_version,",
       "head_run_ids_json,n_runs,n_artifacts,commit_id,replay_status FROM prov_heads ",
       "WHERE snapshot_id=? AND COALESCE(octet_length(head_run_ids_json),0)+",
@@ -20,9 +47,12 @@
       "COALESCE(octet_length(schema_version),0)+COALESCE(octet_length(snapshot_id),0)<=? ",
       "AND typeof(n_runs)='integer' AND n_runs>=0 AND typeof(n_artifacts)='integer' AND n_artifacts>=0;"), params = list(
         row$snapshot_id[[1]], budgets$partition_bytes))
-    .wb_graph_require(nrow(header) == 1L, "GRAPH_RESOURCE_EXCEEDED",
-      "Source snapshot header exceeds decoded partition admission.")
-    actual <- .wb_operation_pack_v3_head_snapshot(header)$source_snapshot_identity
+    # An unadmitted or malformed candidate cannot authenticate this identity;
+    # it must not prevent a different exact retained source from resolving.
+    if (!nrow(header)) next
+    actual <- tryCatch(.wb_operation_pack_v3_head_snapshot(header)$source_snapshot_identity,
+      wb_operation_pack_error = function(error) NULL)
+    if (is.null(actual)) next
     actual$scope <- NULL
     if (identical(actual, identity)) {
       .wb_graph_require(is.null(matched), "GRAPH_SOURCE_AUTHORITY_INVALID",
@@ -49,7 +79,7 @@
     }
   }
   .wb_graph_require(!is.null(matched), "GRAPH_SOURCE_UNAVAILABLE",
-    "Exact retained source snapshot is unavailable or changed.")
+    "Exact retained source snapshot is unavailable under admitted limits or changed.")
   matched
 }
 
@@ -71,14 +101,21 @@
   if (axis_kind == "feature") return(list(sql = paste0(
     "SELECT feature_id axis_id,rowid axis_ordinal FROM features WHERE matrix_id=?"),
     params = list(source_ref$source_id)))
+  # matrix_cells is an optional ingestion index and is not populated by all
+  # lawful promoted materializations. The getter's logical universe is the
+  # complete fragment membership intersected with canonical bundle cell order.
   list(sql = paste0("SELECT c.cell_id axis_id,c.rowid axis_ordinal FROM cells c ",
-    "JOIN matrix_cells m ON m.cell_id=c.cell_id WHERE m.matrix_id=?"),
+    "WHERE EXISTS(SELECT 1 FROM matrix_fragment_cells m JOIN matrix_fragments f ",
+    "ON f.fragment_id=m.fragment_id WHERE f.matrix_id=? AND m.cell_id=c.cell_id)"),
     params = list(source_ref$source_id))
 }
 
 .wb_graph_source_axis_hash <- function(bundle, source_ref, axis_kind, budgets) {
   query <- .wb_graph_source_axis_query(bundle, source_ref, axis_kind)
   con <- bundle$con
+  budgets <- .wb_graph_effective_budgets(con, budgets)
+  restore_budget <- .wb_graph_scoped_connection_budget(con, budgets)
+  on.exit(restore_budget(), add = TRUE)
   database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
   database_path <- database$file[database$name == "main"][[1L]]
   oversized <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM (", query$sql,
@@ -122,8 +159,11 @@
 
 .wb_graph_source_authorize <- function(bundle, binding, budgets) {
   .wb_graph_binding_header_validate(binding)
-  snapshot <- .wb_graph_source_snapshot(bundle, binding$source_snapshot_identity, budgets)
   source <- binding$source_ref
+  if (source$kind == "matrix")
+    return(.wb_graph_native_matrix_source_authorize(bundle, binding, budgets))
+  snapshot <- .wb_graph_source_snapshot(bundle, binding$source_snapshot_identity, budgets,
+    source_ref = source)
   if (source$kind == "retained_cell_axis") {
     matches <- DBI::dbGetQuery(bundle$con, paste0("SELECT COUNT(*) n,",
       "COALESCE(MAX(octet_length(primitive_kind)),0) bytes FROM prov_run_outputs ",
@@ -145,9 +185,6 @@
       identical(kinds$closure_kind[[1]], output$primitive_kind[[1]]),
       "GRAPH_SOURCE_AUTHORITY_INVALID", "Source artifact, payload and snapshot primitive kinds disagree.")
     payload <- .wb_graph_object_verify(bundle$con, source$source_id, budgets)
-  } else {
-    .wb_graph_error("GRAPH_SOURCE_AUTHORITY_REQUIRED",
-      "Bounded matrix payload authority requires the pending generic source-closure amendment.")
   }
   axes <- .wb_graph_source_axis_hash(bundle, source, binding$axis_kind, budgets)
   for (field in c("axis_content_identity", "axis_order_identity"))

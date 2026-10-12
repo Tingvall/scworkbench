@@ -1,0 +1,16 @@
+{
+  "candidate": 399,
+  "parent_candidate": 390,
+  "source_count": 77,
+  "source_ledger_sha256": "f2f4ef55493fc3d93bb88819f1de4010f7a900fb27641cb175e30b314d90eb20",
+  "install_root": "/tmp/scwb-graph-forge-bounded-legacy-review-399.qgqe6cr5",
+  "qualification": false,
+  "runtime_changes_since_390": [],
+  "test_changes_since_390": [
+    "tests/test_graph_source_authority_contract.R"
+  ],
+  "test_correction": "Explicit existing ABI4 resource tuple supplied to output and publication grant; no runtime fallback.",
+  "tuple": 400,
+  "runtime_candidate": 399,
+  "note": "399 runtime73 ledger identical390;400 adds previously unbound affected-test inputs including corrected authority fixture BEFORE focused test execution at399 installation.399 initial evidence retained."
+}

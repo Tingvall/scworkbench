@@ -3,7 +3,7 @@
 .wb_operation_pack_v4_graph_input <- function(bundle, name, value, declaration, selected_binding_ids = list()) {
   .wb_graph_require(!is.null(value$artifact_id), "GRAPH_SOURCE_AUTHORITY_REQUIRED",
     "Graph readers currently require an independently promoted retained artifact.")
-  budgets <- .wb_graph_budgets()
+  budgets <- .wb_graph_effective_budgets(bundle$con)
   identity <- .wb_graph_retained_identities(bundle, value$artifact_id, budgets)
   .wb_graph_sources_assert(bundle, bundle$con, value$artifact_id, budgets, selected_binding_ids)
   snapshot <- DBI::dbGetQuery(bundle$con, paste0("SELECT h.snapshot_id,h.schema_version,",
@@ -18,7 +18,8 @@
     "Graph input has no admitted retained source snapshot.")
   source <- .wb_operation_pack_v3_head_snapshot(snapshot)$source_snapshot_identity
   source$scope <- NULL
-  .wb_graph_source_snapshot(bundle, source, budgets)
+  .wb_graph_source_snapshot(bundle, source, budgets,
+    snapshot_id = snapshot$snapshot_id[[1L]], artifact_id = value$artifact_id)
   counts <- c(list(header = "1"), stats::setNames(lapply(.wb_graph_components(),
     function(component) .wb_graph_count(bundle$con, value$artifact_id, component)),
     .wb_graph_components()))
@@ -68,6 +69,10 @@
 .wb_operation_pack_v4_request <- function(bundle, registration, operation,
     inputs, params, transition_id, session_id, run_id, generation, preflight,
     stage_root, effective_cells = NULL, source_refs = list()) {
+  budgets <- .wb_operation_pack_v4_lowest_graph_budgets(lapply(Filter(
+    function(output)identical(output$kind,"graph"),operation$outputs), `[[`, "resource_budgets"))
+  restore <- .wb_operation_pack_v4_scoped_graph_budgets(bundle,budgets)
+  on.exit(restore(),add=TRUE)
   request <- .wb_operation_pack_v3_request(bundle, registration, operation,
     inputs, params, transition_id, session_id, run_id, generation, preflight,
     stage_root, effective_cells, source_refs)
@@ -118,21 +123,34 @@
 }
 
 .wb_operation_pack_v4_sources_assert_current <- function(bundle, request) {
+  budgets <- .wb_operation_pack_v4_lowest_graph_budgets(lapply(
+    request$graph_write_grants %||% list(), `[[`, "resource_budgets"))
+  restore <- .wb_operation_pack_v4_scoped_graph_budgets(bundle,budgets)
+  on.exit(restore(),add=TRUE)
+  budgets <- .wb_graph_effective_budgets(bundle$con,budgets)
   for (grant in request$graph_write_grants %||% list())
     .wb_operation_pack_v4_graph_authorities_assert(bundle, grant)
   for (grant in request$graph_read_grants %||% list()) {
-    .wb_graph_source_snapshot(bundle, grant$source_snapshot_identity, .wb_graph_budgets())
-    actual <- .wb_graph_retained_identities(bundle, grant$source_artifact_id)
+    read_budgets <- budgets
+    read_budgets$partition_rows <- min(read_budgets$partition_rows,as.numeric(grant$partition_limits$max_rows))
+    read_budgets$partition_bytes <- min(read_budgets$partition_bytes,as.numeric(grant$partition_limits$max_decoded_bytes))
+    .wb_graph_source_snapshot(bundle, grant$source_snapshot_identity, read_budgets,
+      artifact_id = grant$source_artifact_id)
+    actual <- .wb_graph_retained_identities(bundle, grant$source_artifact_id,read_budgets)
     for (field in c("content_identity", "binding_identity", "descriptor_identity"))
       .wb_graph_require(identical(actual[[field]], grant[[field]]),
         "GRAPH_SOURCE_AUTHORITY_INVALID", "Graph source changed after grant issuance.")
-    .wb_graph_sources_assert(bundle, bundle$con, grant$source_artifact_id, .wb_graph_budgets(), grant$selected_binding_ids)
+    .wb_graph_sources_assert(bundle, bundle$con, grant$source_artifact_id, read_budgets, grant$selected_binding_ids)
   }
   invisible(TRUE)
 }
 
 .wb_operation_pack_v4_request_audit <- function(request, registration, operation,
     bundle, inputs, params) {
+  budgets <- .wb_operation_pack_v4_lowest_graph_budgets(lapply(Filter(
+    function(output)identical(output$kind,"graph"),operation$outputs), `[[`, "resource_budgets"))
+  restore <- .wb_operation_pack_v4_scoped_graph_budgets(bundle,budgets)
+  on.exit(restore(),add=TRUE)
   .wb_operation_pack_v4_schema_assert(request, "request", "PYBENCH_CAPABILITY_MISMATCH")
   .wb_operation_pack_v3_request_audit(request, registration, operation, bundle, inputs, params)
   read_names <- vapply(request$graph_read_grants %||% list(), `[[`, character(1), "input_name")

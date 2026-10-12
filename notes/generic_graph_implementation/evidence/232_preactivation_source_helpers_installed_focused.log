@@ -1,0 +1,12 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+test_graph_matrix_existing_producer_selection_contract PASS
+test_graph_matrix_native_existing_source_authority_contract PASS
+test_graph_matrix_promotion_first_precheck_contract PASS
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+test_graph_native_matrix_overlapping_fragment_getter_parity_contract PASS
+test_graph_native_matrix_producer_run_frame_parity_contract PASS
+test_graph_resource_unstaged_direct_transaction_restoration_contract PASS
+RESUME_BUDGET_FOCUSED discovered=6 executed=6 passed=6 failed=0 skipped=0

@@ -1093,7 +1093,7 @@
   invisible(TRUE)
 }
 
-.wb_operation_pack_v2_record_validate <- function(path, load_payloads = FALSE) {
+.wb_operation_pack_v2_record_validate <- function(path, load_payloads = FALSE, graph_connections = list()) {
   receipt_path <- file.path(path, "receipt.json")
   request_path <- file.path(path, "request.json")
   state_path <- file.path(path, "state.json")
@@ -1111,7 +1111,7 @@
     request$request_identity <- request_id
     receipt$receipt_identity <- receipt_id
     v3 <- .wb_operation_pack_v3_record_validate(request, receipt, path,
-      load_payloads = load_payloads)
+      load_payloads = load_payloads, graph_connections = graph_connections)
     if (!isTRUE(v3$ok)) return(v3)
     request$request_identity <- NULL
     receipt$receipt_identity <- NULL
@@ -1331,7 +1331,8 @@
     result <- .wb_operation_pack_v2_record_validate(record, load_payloads = FALSE)
     state <- as.character(result$state$state %||% "")[1]
     if (isTRUE(result$ok) && identical(state, "published")) {
-      complete <- .wb_operation_pack_v2_record_validate(record, load_payloads = TRUE)
+      complete <- .wb_operation_pack_v2_record_validate(record, load_payloads = TRUE,
+        graph_connections = .wb_graph_bundle_connections(bundle))
       if (isTRUE(complete$ok)) {
         .wb_operation_pack_v2_atomic_json(list(
           schema = "scworkbench.operation_pack.transition_state.v2", state = "reopened",
@@ -1462,6 +1463,14 @@
       "PYBENCH_CAPABILITY_MISMATCH")
     .wb_operation_pack_v2_request_audit(request, registration, operation)
   }
+  graph_connections <- if (abi_v4) .wb_graph_bundle_connections(bundle) else list()
+  if (abi_v4 && length(request$graph_write_grants)) {
+    graph_policy <- .wb_operation_pack_v4_lowest_graph_budgets(lapply(
+      request$graph_write_grants, `[[`, "resource_budgets"))
+    restore_graph <- .wb_graph_aggregate_connection_budget(graph_connections, graph_policy,
+      extra = length(request$graph_write_grants))
+    on.exit(restore_graph(), add = TRUE)
+  }
   .wb_operation_pack_v2_atomic_json(request, file.path(stage, "request.json"))
   if (python_backend) {
     staged_inputs <- attr(request, "operation_pack_v2_transport_inputs") %||%
@@ -1529,7 +1538,7 @@
         stage, bundle = bundle, registry_read_values = attr(request,
           "operation_pack_v2_registry_read_values") %||% list())
     if (abi_v4) adapter <- .wb_operation_pack_v4_graph_adapter(adapter, request, bundle, stage)
-    if (abi_v4) on.exit(adapter$consume(), add = TRUE)
+    if (abi_v4) on.exit(adapter$consume(), add = TRUE, after = FALSE)
     runner <- registration$runners[[op_name]]
     result <- tryCatch(runner(readers = adapter$readers, writers = adapter$writers,
       params = .wb_operation_pack_v2_deep_copy(params),
@@ -1668,7 +1677,7 @@
     state = "audited", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("audited", transition_id = transition_id)
   if (python_backend) {
-    if (abi_v3) .wb_operation_pack_v3_python_audit(stage, request, receipt) else
+    if (abi_v3) .wb_operation_pack_v3_python_audit(stage, request, receipt, graph_connections) else
       .wb_operation_pack_v2_python_audit(stage, request, receipt)
   } else {
     inventory <- list.files(stage, recursive = TRUE, all.files = TRUE,
@@ -1785,7 +1794,8 @@
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "published", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(final, "state.json"))
   .wb_operation_pack_v2_fault("published", transition_id = transition_id)
-  reopen <- .wb_operation_pack_v2_record_validate(final, load_payloads = TRUE)
+  reopen <- .wb_operation_pack_v2_record_validate(final, load_payloads = TRUE,
+    graph_connections = graph_connections)
   if (!isTRUE(reopen$ok)) .wb_operation_pack_v2_error("PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Fresh transition reopen failed: ", reopen$code,
       if (!is.null(reopen$output)) paste0(" (", reopen$output, ")") else ""), "reopen")
@@ -1798,7 +1808,9 @@
     .wb_graph_stage_discard(owned_stage), add = TRUE)
   values <- stats::setNames(lapply(receipt$outputs %||% list(), function(item) {
     if (abi_v4 && identical(item$descriptor$kind, "graph")) {
-      value <- .wb_operation_pack_v4_graph_output_value(final, item, receipt, request)
+      value <- .wb_operation_pack_v4_graph_output_value(final, item, receipt, request,
+        connections = c(graph_connections, lapply(graph_return_stages, function(stage) stage$con)),
+        cache_slots = length(request$graph_write_grants) - length(graph_return_stages))
       graph_return_stages[[length(graph_return_stages) + 1L]] <<-
         attr(value, "graph_stage", exact = TRUE)
       return(value)

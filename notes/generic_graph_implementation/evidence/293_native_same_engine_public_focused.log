@@ -1,0 +1,14 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+test_graph_matrix_native_existing_source_authority_contract PASS
+test_graph_matrix_existing_producer_selection_contract PASS
+test_graph_matrix_promotion_first_precheck_contract PASS
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error in tests[[name]]() : 
+  nrow(reused_promotion$promoted) == 1L is not TRUE
+Calls: stopifnot -> isTRUE -> <Anonymous> -> stopifnot
+Execution halted
+Warning message:
+In connection_release(conn@ptr) : Already disconnected

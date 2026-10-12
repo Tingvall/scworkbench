@@ -1,0 +1,18 @@
+{
+  "checkpoint": 341,
+  "scope": "aggregate owned spill/copy accounting and actual recovery child identity only",
+  "reports": [
+    {
+      "path": "/home/dirk/Projects/.scworkbench-worktrees/meridian9-graph-memory-accounting-20261011/notes/generic_graph_memory_admission_meridian9_review_20261011.md",
+      "sha256": "19cf7b1629f9c161028824e1cea839b8ba6457c5781114e9365fd3f3415935e8"
+    },
+    {
+      "path": "/home/dirk/Projects/lymphocyte_trajectory/coordination/evidence/2026-10-11_sable341_correction_review/review.json",
+      "sha256": "7b0334d4a8cb8acab9e4a4aea583be69734f5f582f8851948d7a80bca676296d"
+    }
+  ],
+  "both_posthash_release": true,
+  "whole_candidate_accepted": false,
+  "final_qualification": false,
+  "original250_RSS_failure_still_open": true
+}

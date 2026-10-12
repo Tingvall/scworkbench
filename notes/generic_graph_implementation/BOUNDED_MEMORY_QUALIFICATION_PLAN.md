@@ -1,3 +1,11 @@
+# Superseded physical-stress development plan
+
+The user revised qualification on 2026-10-12. See
+[SMALL_COMPLETION_GATE.md](SMALL_COMPLETION_GATE.md) for current small-case
+working-memory, disk/cursor and semantic qualification. Physical-RAM/8x stress
+is deferred; failed measurements remain failures. The older plan follows as
+history and does not set the current gate.
+
 # Frozen-before-measurement graph working-memory procedure
 
 Development plan; no performance acceptance is claimed yet. The exact candidate,

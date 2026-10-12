@@ -1,0 +1,3 @@
+using C compiler: ‘gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0’
+gcc -I"/usr/share/R/include" -DNDEBUG       -fpic  -g -O2 -ffile-prefix-map=/build/r-base-avGvPq/r-base-4.4.1=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2  -c notes/generic_graph_implementation/prototype_bounded_json_lexer.c -o notes/generic_graph_implementation/prototype_bounded_json_lexer.o
+gcc -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -flto=auto -Wl,-z,relro -o /tmp/scwb-bounded-json-lexer-prototype-284.so notes/generic_graph_implementation/prototype_bounded_json_lexer.o -lsqlite3 -L/usr/lib/R/lib -lR

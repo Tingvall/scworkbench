@@ -1,0 +1,60 @@
+BOUNDED_METADATA case=1 bytes=15 exact_old_roundtrip_hash=TRUE elapsed=0.047 PASS
+BOUNDED_METADATA case=2 bytes=42 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=3 bytes=60 exact_old_roundtrip_hash=TRUE elapsed=0.003 PASS
+BOUNDED_METADATA case=4 bytes=51 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=5 bytes=100 exact_old_roundtrip_hash=TRUE elapsed=0.005 PASS
+BOUNDED_METADATA case=6 bytes=93 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=7 bytes=600 exact_old_roundtrip_hash=TRUE elapsed=0.012 PASS
+BOUNDED_METADATA case=8 bytes=269 exact_old_roundtrip_hash=TRUE elapsed=0.007 PASS
+BOUNDED_METADATA case=9 bytes=181 exact_old_roundtrip_hash=TRUE elapsed=0.006 PASS
+BOUNDED_METADATA case=10 bytes=344 exact_old_roundtrip_hash=TRUE elapsed=0.008 PASS
+BOUNDED_METADATA case=11 bytes=214 exact_old_roundtrip_hash=TRUE elapsed=0.006 PASS
+BOUNDED_METADATA case=12 bytes=393 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=13 bytes=204 exact_old_roundtrip_hash=TRUE elapsed=0.006 PASS
+BOUNDED_METADATA case=14 bytes=74 exact_old_roundtrip_hash=TRUE elapsed=0.005 PASS
+BOUNDED_METADATA case=15 bytes=55 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=16 bytes=2400152 exact_old_roundtrip_hash=TRUE elapsed=0.701 PASS
+BOUNDED_METADATA case=17 bytes=1180100 exact_old_roundtrip_hash=TRUE elapsed=80.061 PASS
+BOUNDED_METADATA case=18 bytes=499038 exact_old_roundtrip_hash=TRUE elapsed=41.443 PASS
+BOUNDED_METADATA case=19 bytes=1754115 exact_old_roundtrip_hash=TRUE elapsed=7.493 PASS
+BOUNDED_METADATA_FOCUSED executed=19 passed=19 skipped=0 installed_production=TRUE qualification=FALSE
+METADATA_EDGE large_common_coercion_double bytes= 600043 old_hash=PASS
+METADATA_EDGE large_common_coercion_integer bytes= 570044 old_hash=PASS
+METADATA_EDGE large_common_coercion_logical bytes= 690044 old_hash=PASS
+METADATA_EDGE large_common_coercion_character bytes= 450046 old_hash=PASS
+METADATA_EDGE large_common_coercion_double bytes= 300043 old_hash=PASS
+METADATA_EDGE admitted_builtin bytes= 93 old_hash=PASS
+METADATA_EDGE admitted_special bytes= 89 old_hash=PASS
+METADATA_EDGE admitted_environment bytes= 85 old_hash=PASS
+METADATA_EDGE admitted_expression bytes= 108 old_hash=PASS
+METADATA_EDGE admitted_closure bytes= 286 old_hash=PASS
+METADATA_EDGE opaque_constructor_before_decode typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE namespace_before_load typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE native_symbol_before_load typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE opaque_serialization_before_decode typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE malformed_json typed_failure= GRAPH_SOURCE_PAYLOAD_INVALID cleanup=PASS
+METADATA_EDGE_FOCUSED old_coercion=5 admitted_decoder=5 typed_failure_cleanup=5 installed_production=TRUE qualification=FALSE PASS
+METADATA_EMITTER small_names_padding bytes= 106 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_null_attribute_removed bytes= 67 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_structure_alias bytes= 105 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_list bytes= 300152 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_factor bytes= 400171 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_matrix bytes= 348996 old_hash=PASS cleanup=PASS
+METADATA_EMITTER large_canonical_data.frame bytes= 398108 old_hash=PASS cleanup=PASS
+METADATA_EMITTER small_invalid_class code= GRAPH_SOURCE_PAYLOAD_INVALID cleanup=PASS
+METADATA_EMITTER large_names_transform code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_null_transform code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_structure_alias code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_class_transform code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER large_native_symbol_predecode code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER late_file_change code= GRAPH_SOURCE_PAYLOAD_INVALID cleanup=PASS
+METADATA_EMITTER small_old_codec_carrier_bound code= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EMITTER_HOSTILE executed=15 passed=15 installed_production=TRUE qualification=FALSE PASS
+NULL
+METADATA_CODEC_BOUNDARY tokens=215 bytes=244 partition_exact=7002 exactPASS below1ResourcePASS
+METADATA_RETAINED_CLASS global_carrier_rejection=PASS
+Warning message:
+In makeExtends(class1, coerce, test, replace, by, classDef1 = classDef,  :
+  there is no automatic definition for 'as(object, "NativeSymbolInfo") <- value' when object has class “scwb_metadata_decoder_test” and no 'replace' argument was supplied; replacement will be an error
+METADATA_PREDICATE before_arbitrary_test=PASS no_execution=PASS
+METADATA_ADMISSION_BOUNDARY executed=4 passed=4 installed_production=TRUE qualification=FALSE PASS

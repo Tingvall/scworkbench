@@ -1,3 +1,10 @@
+# Current qualification authority
+
+The 2026-10-12 revised small out-of-core completion matrix is in
+[SMALL_COMPLETION_GATE.md](SMALL_COMPLETION_GATE.md). The inventory below is
+historical; its physical-RAM/8x and earlier reviewer requirements are superseded.
+It is preserved as development history, not current acceptance.
+
 # Graph implementation requirements and next gate inventory
 
 Development inventory, not an acceptance certificate. Normative authority is

@@ -1,0 +1,87 @@
+[1] 0
+$n
+[1] 1
+
+$old
+$old$row_count
+[1] 6
+
+$old$content_sha256
+[1] "2ed66e44002074076d8de5236022d6a29a551f8e642ddecc6677489631f95279"
+
+
+$new
+$new$row_count
+[1] 6
+
+$new$content_sha256
+[1] "2ed66e44002074076d8de5236022d6a29a551f8e642ddecc6677489631f95279"
+
+
+$n
+[1] 2
+
+$old
+$old$row_count
+[1] 6
+
+$old$content_sha256
+[1] "83452c23a344208f13d5a8597416915609a41541cc085a55b35f74278877018c"
+
+
+$new
+$new$row_count
+[1] 6
+
+$new$content_sha256
+[1] "83452c23a344208f13d5a8597416915609a41541cc085a55b35f74278877018c"
+
+
+$n
+[1] 5
+
+$old
+$old$row_count
+[1] 6
+
+$old$content_sha256
+[1] "13707b20800f1c8d746914fb9f89ae011a11b03d1d2095cabbe21429d9fedf04"
+
+
+$new
+$new$row_count
+[1] 6
+
+$new$content_sha256
+[1] "13707b20800f1c8d746914fb9f89ae011a11b03d1d2095cabbe21429d9fedf04"
+
+
+$n
+[1] 5000
+
+$old
+$old$row_count
+[1] 6
+
+$old$content_sha256
+[1] "306fcaf13b62bc673c3ed3b1babb005de13e49098efdd174191327862406e4ce"
+
+
+$new
+$new$row_count
+[1] 6
+
+$new$content_sha256
+[1] "306fcaf13b62bc673c3ed3b1babb005de13e49098efdd174191327862406e4ce"
+
+
+Warning messages:
+1: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+2: Column `CASE typeof(`a`) WHEN 'text' THEN '' WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+3: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+4: Column `CASE typeof(`a`) WHEN 'text' THEN '' WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+5: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+6: Column `CASE typeof(`a`) WHEN 'text' THEN '' WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+7: Column `a`: mixed type, first seen values of type integer64, coercing other values of type real 
+8: Column `CASE typeof(`a`) WHEN 'text' THEN '' WHEN 'blob' THEN zeroblob(0) ELSE `a` END`: mixed type, first seen values of type integer64, coercing other values of type real 
+development parity PASS qualification=FALSE

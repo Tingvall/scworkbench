@@ -1,0 +1,5 @@
+test_manifest_stream_huge_single_text_contract PASS
+test_manifest_stream_late_mutation_and_transaction_contract PASS
+test_manifest_stream_logical_chunk_boundary_contract PASS
+test_manifest_stream_scalar_and_sql_type_parity_contract PASS
+manifest differential executed= 4  failed= 0  skipped=0 qualification=FALSE

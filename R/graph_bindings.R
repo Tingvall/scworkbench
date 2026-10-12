@@ -146,6 +146,11 @@ wb_graph_identity <- function(graph) {
 }
 
 .wb_graph_sql_identities <- function(con, artifact_id, budgets = .wb_graph_budgets()) {
+  budgets <- .wb_graph_effective_budgets(con, budgets)
+  restore_budget <- .wb_graph_scoped_connection_budget(con, budgets)
+  on.exit(restore_budget(), add = TRUE)
+  .wb_graph_storage_fault("identity_budget", list(con = con, budgets = budgets,
+    artifact_id = artifact_id))
   content <- .wb_graph_sql_content_hash(con, artifact_id, budgets)
   .wb_graph_validate_sql_bindings(con, artifact_id, budgets)
   binding_count <- .wb_graph_count(con, artifact_id, "bindings")

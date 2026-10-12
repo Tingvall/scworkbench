@@ -1,0 +1,50 @@
+GRAPH_SCALE_EXACT_RUNTIME source_closure_function_sha256=01f55b8ee114512cf773a25769b04c531f3c6d74ec4b9724561022f360c5cc6b installed_package=/tmp/scwb-graph-core-9a11d1f.l6axFK/library/scworkbench
+GRAPH_SCALE_LIFECYCLE canonical_bytes=363 nodes=0 mixed_closure=2 promote_finalize_relocate=PASS reopen=pending_separate_process
+	Command being timed: "Rscript --vanilla notes/generic_graph_implementation/scale_worker.R /tmp/scwb-graph-native-small-axis-8cc56e8-warmup/measurement-9a11d1f.rds /tmp/scwb-graph-small-baseline-9a11d1f-two 0 baseline"
+	User time (seconds): 15.35
+	System time (seconds): 0.49
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:15.98
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 670712
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 164639
+	Voluntary context switches: 106
+	Involuntary context switches: 224
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8960
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+GRAPH_SCALE_EXACT_RUNTIME source_closure_function_sha256=01f55b8ee114512cf773a25769b04c531f3c6d74ec4b9724561022f360c5cc6b installed_package=/tmp/scwb-graph-core-9a11d1f.l6axFK/library/scworkbench
+GRAPH_SCALE_REOPEN process_replaced=TRUE pack_free=TRUE source_verified=TRUE descriptor_unchanged=TRUE bounded_components=PASS filesystem_fingerprint_unchanged=TRUE
+	Command being timed: "Rscript --vanilla notes/generic_graph_implementation/scale_worker.R /tmp/scwb-graph-native-small-axis-8cc56e8-warmup/measurement-9a11d1f.rds /tmp/scwb-graph-small-baseline-9a11d1f-two 0 inspect"
+	User time (seconds): 4.48
+	System time (seconds): 0.12
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:04.61
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 123804
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 29404
+	Voluntary context switches: 34
+	Involuntary context switches: 25
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 48
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,11 @@
+  journal_mode
+1          wal
+[1] 0
+[1] 1
+[1] 0
+[1] 0
+[1] 1
+[1] 0
+[1] 400
+[1] 1
+NATIVE_BYTE_WRITER_LOCK commit=PASS rollback=PASS reopened_integrity=PASS

@@ -1,0 +1,12 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+test_graph_matrix_native_existing_source_authority_contract PASS
+test_graph_matrix_existing_producer_selection_contract PASS
+test_graph_matrix_promotion_first_precheck_contract PASS
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+Error: PAYLOAD_MISSING: invalid matrix fragment mf_RNA_log_20261011_120212_q185eq95 path 'operation_pack_v2/transition_b01clw9a5dsnlzfm/outputs/matrix/fragments/part_000001' (missing).
+Execution halted
+Warning message:
+In connection_release(conn@ptr) : Already disconnected

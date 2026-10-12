@@ -395,7 +395,7 @@
 }
 
 .wb_operation_pack_v2_prepare_transition_payloads <- function(
-    staging_bundle, bundle, workspace, runs, topo) {
+    staging_bundle, bundle, workspace, runs, topo, graph_connections = list()) {
   if (is.null(staging_bundle)) return(invisible(workspace))
   for (rid in topo) {
     if (.wb_run_is_committed(bundle, rid)) next
@@ -406,7 +406,7 @@
     source <- file.path(.wb_operation_pack_v2_store(staging_bundle),
       transition_id)
     record <- .wb_operation_pack_v2_record_validate(source,
-      load_payloads = TRUE)
+      load_payloads = TRUE, graph_connections = graph_connections)
     .wb_operation_pack_assert(
       isTRUE(record$ok) && identical(record$state$state, "reopened") &&
         identical(as.character(record$receipt$run_id)[1],
@@ -562,7 +562,7 @@ wb_operation_pack_registry_receipts <- function(bundle, transition_id = NULL) {
       .wb_operation_pack_v2_safe_component(payload$transition_id,
         "transition_id"))
     record <- .wb_operation_pack_v2_record_validate(transition,
-      load_payloads = TRUE)
+      load_payloads = TRUE, graph_connections = .wb_graph_bundle_connections(bundle))
     request_names <- vapply(record$receipt$registry_requests %||% list(),
       `[[`, character(1), "name")
     index <- match(as.character(payload$output_name)[1], request_names)

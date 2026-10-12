@@ -1,0 +1,29 @@
+{
+  "tuple": 400,
+  "run_started": false,
+  "review_release": "PENDING",
+  "qualification": false,
+  "source": "/tmp/scwb-graph-native-long-axis-90000-development/source.bundle",
+  "source_axes": 90000,
+  "nodes": 22000,
+  "original_axis_utf8_bytes": 18258618,
+  "canonical_floor_bytes": 1400471552,
+  "rss_ceilings_bytes": [
+    700235776,
+    699392000
+  ],
+  "source_database_bytes": 400003072,
+  "transition_files": 6,
+  "transition_copy_rounded_bytes": 65536,
+  "manifest_rounded_bytes": 12288,
+  "clone_copy_charge_bytes": 400080896,
+  "clone_slot_bytes": 1073741824,
+  "fixed_development_phase_envelope_bytes": 17179869184,
+  "free_space_reserve_bytes": 8589934592,
+  "current_available_bytes": 44869718016,
+  "preparation_available_above_envelope_plus_reserve": true,
+  "clone_fits_slot": true,
+  "note": "Preparatory reading only; fresh available-space check required immediately before launch after both reviews close. Final8x forecast remains separate.",
+  "transition_entries_including_directories": 11,
+  "source_database_header_image_bytes": 400003072
+}

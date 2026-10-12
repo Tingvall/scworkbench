@@ -1,0 +1,68 @@
+# Promotion-first checks belong before new private session/transition state.
+# This helper is wired only for explicit ABI4 retained_matrix_axis declarations.
+.wb_operation_pack_v4_matrix_sources_precheck <- function(session, bundle, op_name, inputs) {
+  record <- .wb_operation_pack_registry$operations[[op_name]]
+  operation <- if (is.null(record)) NULL else record$definition$v4_definition
+  if (is.null(operation)) return(list())
+  declarations <- list()
+  policies <- list()
+  for (output in operation$outputs) {
+    sources <- Filter(function(source) identical(source$selection_mode,
+      "retained_matrix_axis"), output$axis_sources %||% list())
+    if (!length(sources)) next
+    policies[[length(policies) + 1L]] <- .wb_operation_pack_v4_graph_budgets(output$resource_budgets)
+    declarations <- c(declarations, sources)
+  }
+  if (!length(declarations)) return(list())
+  budgets <- policies[[1L]]
+  if (length(policies) > 1L) for (policy in policies[-1L]) for (name in names(budgets)) {
+    value <- min(as.numeric(budgets[[name]]), as.numeric(policy[[name]]))
+    budgets[[name]] <- if (is.character(budgets[[name]])) format(value, scientific = FALSE,
+      trim = TRUE) else value
+  }
+  connections <- list(bundle$con)
+  if (!is.null(session$staging_bundle)) connections <- c(connections, list(session$staging_bundle$con))
+  for (con in connections) budgets <- .wb_graph_effective_budgets(con, budgets)
+  restore <- .wb_graph_aggregate_connection_budget(connections, budgets)
+  on.exit(restore(), add = TRUE)
+  selected <- list()
+  for (source in declarations) {
+    name <- source$input_name
+    if (!is.null(selected[[name]])) next
+    resolved <- .wb_resolve_input(bundle, session, name, "matrix", inputs)
+    value <- resolved$value
+    .wb_graph_require(identical(value$kind, "matrix") && is.null(value$values) &&
+      .wb_graph_string(value$matrix_id), "GRAPH_SOURCE_AUTHORITY_REQUIRED",
+      "Graph matrix binding requires a durable promoted matrix source; promote pending matrices first.")
+    producer_ref <- NULL
+    if (length(resolved$parents)) {
+      .wb_graph_require(length(resolved$parents) == 1L, "GRAPH_SOURCE_AUTHORITY_REQUIRED",
+        "Graph matrix source has ambiguous session producers.")
+      run <- .wb_get_run(session, resolved$parents[[1L]])
+      output_names <- names(run$outputs)[vapply(run$outputs, function(output)
+        identical(output$kind, "matrix") && identical(output$matrix_id, value$matrix_id), logical(1))]
+      explicit <- inputs[[name]] %||% inputs[[paste0(name, "_ref")]]
+      if (is.list(explicit) && identical(explicit$ref_type, "run"))
+        output_names <- intersect(output_names, explicit$output)
+      .wb_graph_require(length(output_names) == 1L, "GRAPH_SOURCE_AUTHORITY_REQUIRED",
+        "Graph matrix source must identify one exact producer output.")
+      producer_ref <- wb_ref_run(run$run_id, output_names[[1L]])
+    } else {
+      # A direct primitive cannot bypass the promotion-first rule for an
+      # otherwise known pending session output with the same logical ID.
+      candidates <- .wb_session_output_refs_by_id(session, "matrix", value$matrix_id)
+      .wb_graph_require(length(candidates) <= 1L, "GRAPH_SOURCE_AUTHORITY_REQUIRED",
+        "Graph matrix source has ambiguous session producers.")
+      if (length(candidates)) producer_ref <- candidates[[1L]]
+    }
+    selection <- .wb_graph_matrix_retained_selector(bundle, value$matrix_id, budgets, producer_ref)
+    retained <- .wb_graph_matrix_retained_snapshot(bundle, selection, budgets)
+    .wb_matrix_bounded_source_verify(bundle, value$matrix_id, budgets)
+    actual <- .wb_graph_native_matrix_identity(bundle, value$matrix_id, budgets)
+    .wb_graph_require(identical(actual, retained$source_payload_closure_identity),
+      "GRAPH_SOURCE_AUTHORITY_INVALID", "Actual matrix differs from its retained producer before staging.")
+    selected[[name]] <- list(matrix_id = value$matrix_id, producer_ref = producer_ref,
+      selection = selection)
+  }
+  selected
+}

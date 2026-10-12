@@ -1,0 +1,6 @@
+Controller explicitly authorized diagnostic SIGINT; no RSS qualification.
+UTC=2026-10-11T08:07:58.062904+00:00
+PID=327271 PPID=327269
+command=/usr/lib/R/bin/exec/R --no-echo --no-restore --vanilla --file=notes/generic_graph_implementation/profile_corrected_source_lifecycle.R --args /tmp/scwb-graph-resume-corrected-original-source-profile-231.rds /tmp/scwb-graph-resume-corrected-original-source-small-lifecycle-231 256 run 
+start_ticks=17587065
+signal=SIGINT

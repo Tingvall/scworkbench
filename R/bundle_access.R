@@ -15,6 +15,11 @@
 # contract-note: manifest.json + manifest$storage$sqlite$path resolution must stay aligned
 #' @export
 wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
+  .wb_open_bundle(bundle_dir,validate,read_only)
+}
+
+.wb_open_bundle <- function(bundle_dir,validate=FALSE,read_only=FALSE,
+    graph_budgets=NULL,graph_cache_kib=NULL) {
   if (!dir.exists(bundle_dir)) stop("Bundle directory does not exist: ", bundle_dir)
 
   if (isTRUE(read_only)) {
@@ -38,6 +43,7 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
   db_path <- .wb_bundle_path_require(bundle_dir, db_rel, expected_type = "file",
                                      must_exist = TRUE, purpose = "manifest SQLite database")
 
+  cache_kib <- graph_cache_kib %||% 2000L
   con <- if (isTRUE(read_only)) {
     # SQLite WAL readers may create -shm/-wal even with SQLITE_RO.  An
     # immutable URI is the only direct :ro-mount mode that forbids that I/O.
@@ -46,10 +52,14 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
     if (file.exists(paste0(db_path, "-wal")) || file.exists(paste0(db_path, "-shm"))) {
       stop("Bundle is not recipient-finalized: unresolved SQLite WAL sidecars are present. Open writable and run wb_finalize_recipient_bundle() before read-only transfer.", call.=FALSE)
     }
-    DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db_path, winslash="/", mustWork=TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO)
-  } else DBI::dbConnect(RSQLite::SQLite(), db_path)
+    DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db_path, winslash="/", mustWork=TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO,cache_size=-cache_kib)
+  } else DBI::dbConnect(RSQLite::SQLite(), db_path,cache_size=-cache_kib)
   opened <- FALSE
   on.exit(if (!opened && DBI::dbIsValid(con)) try(DBI::dbDisconnect(con), silent = TRUE), add = TRUE)
+  if(!is.null(graph_budgets)) {
+    restore_graph <- .wb_graph_scoped_connection_budget(con,graph_budgets,cache_kib=cache_kib)
+    on.exit(restore_graph(),add=TRUE)
+  }
   # Foreign-key enforcement is connection-local and is verified immediately.
   # Durable journal-mode coordination remains inside the writer-locked
   # migration scope below.

@@ -1,0 +1,23 @@
+{
+  "prototype_only": true,
+  "qualification": false,
+  "saved269_full_certificate_identical": true,
+  "source_rows": 90000,
+  "actual_metadata_bytes": 183,
+  "content_sha256": "b78524fc47460da8d90b06541f7114fd31ce60fd63d598374d4a4ad3d0b5d044",
+  "elapsed_seconds": 50.42,
+  "before_hwm_kib": 239748,
+  "after_hwm_kib": 239748,
+  "after_rss_kib": 213928,
+  "profile_threshold_bytes": 1048576,
+  "allocations_at_or_above_threshold": 0,
+  "largest_profiled_allocation_bytes": null,
+  "original_source_primary_DB_unchanged": true,
+  "limitations": [
+    "diagnostic AST substitutions only",
+    "wb_open_bundle before profiling retained existing behavior",
+    "canonical actual metadata admitted within partition before collection",
+    "arbitrary large metadata canonicalization unresolved",
+    "not final lifecycle RSS qualification"
+  ]
+}

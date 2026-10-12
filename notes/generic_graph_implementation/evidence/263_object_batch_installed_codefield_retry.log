@@ -1,0 +1,3 @@
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.249
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.241
+OBJECT_SOURCE_BATCH_INSTALLED_FOCUSED executed=1 passed=1 skipped=0 qualification=FALSE

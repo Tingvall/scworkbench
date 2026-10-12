@@ -1,0 +1,21 @@
+BOUNDED_METADATA case=1 bytes=15 exact_old_roundtrip_hash=TRUE elapsed=0.151 PASS
+BOUNDED_METADATA case=2 bytes=42 exact_old_roundtrip_hash=TRUE elapsed=0.001 PASS
+BOUNDED_METADATA case=3 bytes=60 exact_old_roundtrip_hash=TRUE elapsed=0.001 PASS
+BOUNDED_METADATA case=4 bytes=51 exact_old_roundtrip_hash=TRUE elapsed=0.002 PASS
+BOUNDED_METADATA case=5 bytes=100 exact_old_roundtrip_hash=TRUE elapsed=0.002 PASS
+BOUNDED_METADATA case=6 bytes=93 exact_old_roundtrip_hash=TRUE elapsed=0.002 PASS
+BOUNDED_METADATA case=7 bytes=600 exact_old_roundtrip_hash=TRUE elapsed=0.007 PASS
+BOUNDED_METADATA case=8 bytes=269 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=9 bytes=181 exact_old_roundtrip_hash=TRUE elapsed=0.003 PASS
+BOUNDED_METADATA case=10 bytes=344 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=11 bytes=214 exact_old_roundtrip_hash=TRUE elapsed=0.004 PASS
+BOUNDED_METADATA case=12 bytes=393 exact_old_roundtrip_hash=TRUE elapsed=0.001 PASS
+BOUNDED_METADATA case=13 bytes=204 exact_old_roundtrip_hash=TRUE elapsed=0.003 PASS
+BOUNDED_METADATA case=14 bytes=74 exact_old_roundtrip_hash=TRUE elapsed=0.001 PASS
+BOUNDED_METADATA case=15 bytes=55 exact_old_roundtrip_hash=TRUE elapsed=0.002 PASS
+BOUNDED_METADATA case=16 bytes=2400152 exact_old_roundtrip_hash=TRUE elapsed=0.377 PASS
+BOUNDED_METADATA case=17 bytes=1180100 exact_old_roundtrip_hash=TRUE elapsed=50.145 PASS
+BOUNDED_METADATA case=18 bytes=499038 exact_old_roundtrip_hash=TRUE elapsed=47.236 PASS
+Error: GRAPH_SOURCE_PAYLOAD_INVALID: Noncanonical R metadata representation.
+Timing stopped at: 0.015 0 0.015
+Execution halted

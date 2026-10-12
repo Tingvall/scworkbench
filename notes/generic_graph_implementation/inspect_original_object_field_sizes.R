@@ -1,0 +1,7 @@
+args <- commandArgs(TRUE)
+.libPaths(c(file.path(args[[1L]],"library"),.libPaths()))
+library(scworkbench)
+con <- DBI::dbConnect(RSQLite::SQLite(),"/tmp/scwb-graph-native-long-axis-90000-development/source.bundle/db/app.sqlite",flags=RSQLite::SQLITE_RO)
+DBI::dbExecute(con,"PRAGMA cache_size=-64;")
+print(DBI::dbGetQuery(con,"SELECT a.type,octet_length(a.provenance_json) provenance_bytes,m.meta_present,(SELECT COUNT(*) FROM artifact_object_metadata_chunks c WHERE c.artifact_id=a.artifact_id) chunks,(SELECT COALESCE(SUM(length(chunk)),0) FROM artifact_object_metadata_chunks c WHERE c.artifact_id=a.artifact_id) metadata_bytes FROM artifacts a LEFT JOIN artifact_object_payload_meta m ON m.artifact_id=a.artifact_id;"))
+DBI::dbDisconnect(con)

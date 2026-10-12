@@ -1,0 +1,6 @@
+  load_extension(?,?)
+1                  NA
+BOUNDED_FULL_CERTIFICATE before VmHWM:	  239884 kB VmRSS:	  200360 kB 
+BOUNDED_FULL_CERTIFICATE after VmHWM:	  239884 kB VmRSS:	  214936 kB 
+BOUNDED_FULL_CERTIFICATE exact_saved269_object=TRUE source_rows=90000 metadata_bytes=183 content_sha256=b78524fc47460da8d90b06541f7114fd31ce60fd63d598374d4a4ad3d0b5d044 elapsed=48.157 prototype_only=TRUE qualification=FALSE PASS
+BOUNDED_FULL_CERTIFICATE original_sourceDB=UNCHANGED PASS

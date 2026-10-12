@@ -1,0 +1,29 @@
+{
+  "run": 463,
+  "tuple": 445,
+  "installed": 444,
+  "qualification": false,
+  "numeric_exit": 0,
+  "functional_parent": "promote_finalize_relocate=PASS",
+  "recipient": "PENDING",
+  "canonical_bytes": 1453459757,
+  "canonical_2x_floor_bytes": 1400471552,
+  "canonical_floor_verdict": "PASS",
+  "source_axes": 90000,
+  "nodes": 22000,
+  "max_rss_kib": 919972,
+  "max_rss_bytes": 942051328,
+  "rss_ceilings_bytes": [
+    700235776,
+    699392000
+  ],
+  "resource_verdict": "FAIL",
+  "elapsed": "1:30:47",
+  "sampled_peak_logical_disk_bytes": 8327576272,
+  "sampled_peak_allocated_disk_bytes": 8327700480,
+  "minimum_observed_free_bytes": 36134350848,
+  "free_reserve_bytes": 8589934592,
+  "source_and_assets_posthash": "PASS",
+  "cause": "UNPROVEN",
+  "sampling_caveat": "0.5 second sampling includes open unlinked descriptors; short-lived allocations between samples may be missed"
+}

@@ -2803,7 +2803,8 @@
 }
 
 .wb_operation_pack_v3_record_validate <- function(request, receipt, path,
-                                                    load_payloads = FALSE) {
+                                                    load_payloads = FALSE,
+                                                    graph_connections = list()) {
   fail <- function(code, output = NULL) list(ok = FALSE, code = code,
     output = output)
   checked <- tryCatch({
@@ -2814,7 +2815,8 @@
     schema_assert(receipt, "receipt",
       "PYBENCH_REOPEN_VALIDATION_FAILED")
     if (identical(request$pack_abi_version, "4"))
-      .wb_operation_pack_v4_graph_record_assert(request, receipt, path, load_payloads)
+      .wb_operation_pack_v4_graph_record_assert(request, receipt, path, load_payloads,
+        connections = graph_connections)
     .wb_operation_pack_v3_assert_self_identity(request, "request_identity",
       "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
     .wb_operation_pack_v3_assert_self_identity(receipt, "receipt_identity",
@@ -3759,6 +3761,8 @@
       out
     }), names(resolved))
     attr(bound, "operation_pack_v3_source_refs") <- source_refs
+    attr(bound, "operation_pack_v4_matrix_source_selections") <-
+      attr(resolved, "operation_pack_v4_matrix_source_selections", exact = TRUE)
     all_inputs <- inputs
     params <- inputs[setdiff(names(inputs), c(names(resolved),
       names(.wb_op_engine_input_specs())))]

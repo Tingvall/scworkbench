@@ -1,0 +1,4 @@
+GRAPH_NATIVE_TREE_PARITY C 12 entries
+GRAPH_NATIVE_TREE_PARITY C.UTF-8 12 entries
+Error: GRAPH_SOURCE_UNAVAILABLE: Matrix has no retained fragments.
+Execution halted

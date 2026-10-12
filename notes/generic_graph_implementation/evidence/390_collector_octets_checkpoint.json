@@ -1,0 +1,9 @@
+{
+  "candidate": 390,
+  "parent_candidate": 384,
+  "source_count": 73,
+  "source_ledger_sha256": "d0c55ab431372fde7cc37dc186a462c16b2a372dce38d0e5066cf3fedac48be0",
+  "install_root": "/tmp/scwb-graph-forge-bounded-legacy-octets-390.7qwy_rut",
+  "qualification": false,
+  "correction": "Use octet_length for provenance TEXT inspection to avoid SQLite TEXT materialization; invalid-class regression corrected to double fixture where old codec actually errors."
+}

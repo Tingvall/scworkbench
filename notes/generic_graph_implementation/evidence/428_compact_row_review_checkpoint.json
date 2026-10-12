@@ -1,0 +1,16 @@
+{
+  "candidate": 428,
+  "parent_tuple": 400,
+  "source_count": 79,
+  "source_ledger_sha256": "26f2f9d95f40239c7130979fb65d01ff9529ed57fafd5e3829dca0f666968c2c",
+  "install_root": "/tmp/scwb-graph-forge-compact-row-admission-428.wwmjo8v8",
+  "qualification": false,
+  "changes": [
+    "R/getters_artifact_metadata.R",
+    "tests/test_graph_legacy_metadata_expansion_admission_contract.R",
+    "notes/generic_graph_implementation/resume_compact_collector_focused.R"
+  ],
+  "scope": "recursive global compact row.names predecode semantic expansion admission, allocation and public parity regressions",
+  "parent_disposition": "REJECTED resource predecode expansion; immutable installation retained",
+  "parent_release": "Controller independently77posthash; Meridian final77posthash; Sable partial evidence/service interruption, no final report/release claimed"
+}

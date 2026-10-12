@@ -1,0 +1,133 @@
+COMPACT_COLLECTOR START test_graph_bounded_legacy_compact_rows_direct_admission_contract 
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION direct2m decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION positive2m decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION double2m decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION integer_inf_first decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION integer_missing_first decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION nested_value decoder_calls=0 max_allocation= 200 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION nested_attribute decoder_calls=0 max_allocation= 216 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION nested_alias decoder_calls=0 max_allocation= 224 carrier_budget= 2097152 PASS
+COMPACT_DIRECT_ADMITTED 0 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED -5 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED -1000 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED 5 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED 1000 exact_oldcodec=PASS
+COMPACT_DIRECT_INERT_ALIAS exact_oldcodec=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION small_partition decoder_calls=0 max_allocation= 0 carrier_budget= 32768 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION aggregate_siblings decoder_calls=0 max_allocation= 312 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION one_below_carrier_boundary decoder_calls=0 max_allocation= 0 carrier_budget= 265648 PASS
+COMPACT_DIRECT_BOUNDARY exact_partition= 33207 accepted_one_below_rejected=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION overflow_-1e308 decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION overflow_1e308 decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION overflow_2147483648 decoder_calls=0 max_allocation= 0 carrier_budget= 2097152 PASS
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_compact_rows_direct_admission_contract 
+COMPACT_COLLECTOR START test_graph_bounded_legacy_compact_rows_public_predecode_admission_contract 
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION direct decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION data_frame decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION positive decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_value decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_attribute decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_alias decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION coercion decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+COMPACT_PUBLIC_ADMITTED small certificate_and_oldgetter_identity=PASS
+COMPACT_PUBLIC_ADMITTED nested certificate_and_oldgetter_identity=PASS
+COMPACT_PUBLIC_ADMITTED inert_alias certificate_and_oldgetter_identity=PASS
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_compact_rows_public_predecode_admission_contract 
+COMPACT_COLLECTOR START test_graph_bounded_legacy_duplicate_attribute_predecode_contract 
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT duplicate_last_large decoder_calls=0 max_allocation= 224 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT duplicate_first_large decoder_calls=0 max_allocation= 224 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT escaped_dot decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT nested_duplicate decoder_calls=0 max_allocation= 264 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT duplicate_native_class decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT mixed_class_alias decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT later_class_alias decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT escaped_class decoder_calls=0 max_allocation= 232 PASS
+DUPLICATE_ATTRIBUTE_VALID duplicate_small exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID escaped_small exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID inert_alias_large exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID ordinary_duplicate_class exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID marker_in_names exact_oldcodec=PASS
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_duplicate_attribute_predecode_contract 
+COMPACT_COLLECTOR START test_graph_bounded_legacy_duplicate_rows_public_predecode_contract 
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT direct bytes= 174 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT escaped bytes= 179 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT nested bytes= 216 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT native_class bytes= 179 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+DUPLICATE_PUBLIC_VALID complete_certificate_and_oldgetter_identity=PASS
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_duplicate_rows_public_predecode_contract 
+COMPACT_COLLECTOR START test_graph_bounded_legacy_metadata_fault_cleanup_contract 
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_metadata_fault_cleanup_contract 
+COMPACT_COLLECTOR START test_graph_bounded_legacy_public_certificate_parity_and_cache_contract 
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_public_certificate_parity_and_cache_contract 
+COMPACT_COLLECTOR START test_graph_bounded_legacy_refs_parser_and_fileless_contract 
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_refs_parser_and_fileless_contract 
+COMPACT_COLLECTOR START test_graph_bounded_legacy_structure_transformation_admission_contract 
+COMPACT_COLLECTOR PASS test_graph_bounded_legacy_structure_transformation_admission_contract 
+COMPACT_COLLECTOR_FOCUSED executed=8 passed=8 skipped=0 installed_production=TRUE qualification=FALSE
+COMPACT_COLLECTOR_RUNTIME package=/tmp/scwb-graph-forge-duplicate-sensitive-444.ps0av2oi/library/scworkbench DLL_SHA=ead7462807fb7920e924aa8995ec3ddb26ecbf87dd2c2d4b6ccf21f3b7a1bd56 jsonlite=1.8.8

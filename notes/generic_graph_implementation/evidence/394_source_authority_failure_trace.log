@@ -1,0 +1,63 @@
+Tracing function ".wb_graph_budgets" in package
+"namespace:scworkbench"
+[1] ".wb_graph_budgets"
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+INVALID_STORAGE_OVERRIDE
+List of 9
+ $ storage_bytes   : NULL
+ $ token_bytes     : NULL
+ $ published_bytes : NULL
+ $ wal_bytes       : NULL
+ $ memory_bytes    : NULL
+ $ sqlite_cache_kib: int 8192
+ $ partition_bytes : num(0) 
+ $ partition_rows  : num(0) 
+ $ collect_bytes   : num(0) 
+[[1]]
+stopifnot(isTRUE(test_graph_retained_cell_source_payload_contract()))
+
+[[2]]
+isTRUE(test_graph_retained_cell_source_payload_contract())
+
+[[3]]
+test_graph_retained_cell_source_payload_contract()
+
+[[4]]
+scworkbench:::.wb_operation_pack_v4_graph_axis_authorities(bundle, 
+    declaration, list(signal = loaded), list(), list(signal = wb_ref_artifact(artifact, 
+        "vector")), list(scheme = "scworkbench.operation_pack.transition.v2", 
+        scope = "transition excluding transition_identity", sha256 = strrep("a", 
+            64L)))
+
+[[5]]
+.wb_operation_pack_v4_graph_budgets(output$resource_budgets)
+
+[[6]]
+.wb_graph_budgets(list(storage_bytes = resource$max_spill_bytes, 
+    token_bytes = resource$max_spill_bytes, published_bytes = resource$max_published_bytes, 
+    wal_bytes = resource$max_wal_bytes, memory_bytes = resource$max_memory_bytes, 
+    sqlite_cache_kib = max(1L, as.integer(min(8192, as.numeric(resource$max_memory_bytes)/4096))), 
+    partition_bytes = as.numeric(resource$partition_limits$max_decoded_bytes), 
+    partition_rows = as.numeric(resource$partition_limits$max_rows), 
+    collect_bytes = as.numeric(resource$max_collect_bytes)))
+
+[[7]]
+.doTrace({
+    if ("storage_bytes" %in% names(overrides) && !isTRUE(.wb_graph_int64(overrides$storage_bytes))) {
+        cat("INVALID_STORAGE_OVERRIDE\n")
+        str(overrides)
+        print(sys.calls())
+    }
+})
+
+[[8]]
+eval.parent(exprObj)
+
+[[9]]
+eval(expr, p)
+
+[[10]]
+eval(expr, p)
+
+Error: GRAPH_RESOURCE_POLICY_INVALID: storage_bytes
+No traceback available 

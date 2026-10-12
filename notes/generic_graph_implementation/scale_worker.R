@@ -6,6 +6,20 @@ main <- function(args) {
 fixture <- readRDS(args[[1L]])
 .libPaths(c(fixture$core_library, .libPaths()))
 library(scworkbench)
+expected_library <- Sys.getenv("SCWB_SCALE_EXPECTED_CORE_LIBRARY", "")
+if (nzchar(expected_library)) stopifnot(
+  identical(normalizePath(fixture$core_library), normalizePath(expected_library)),
+  identical(normalizePath(find.package("scworkbench")),
+    normalizePath(file.path(expected_library, "scworkbench"))))
+expected_runtime_hash <- Sys.getenv("SCWB_SCALE_EXPECTED_SOURCE_CLOSURE_SHA256", "")
+if (nzchar(expected_runtime_hash)) {
+  actual_runtime_hash <- digest::digest(paste(deparse(body(getFromNamespace(
+    ".wb_graph_object_closure", "scworkbench"))), collapse = "\n"),
+    algo = "sha256", serialize = FALSE)
+  stopifnot(identical(actual_runtime_hash, expected_runtime_hash))
+  cat("GRAPH_SCALE_EXACT_RUNTIME source_closure_function_sha256=", actual_runtime_hash,
+    " installed_package=", find.package("scworkbench"), "\n", sep = "")
+}
 output <- args[[2L]]; count <- as.integer(args[[3L]]); mode <- args[[4L]]
 stopifnot(mode %in% c("baseline", "run", "fault", "inspect"))
 cells <- function(i) if (i == 1L) "cell_2" else if (i == 2L) "cell_10" else

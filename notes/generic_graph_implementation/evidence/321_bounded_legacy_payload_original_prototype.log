@@ -1,0 +1,9 @@
+  load_extension(?,?)
+1                  NA
+[1] 0
+BOUNDED_LEGACY_DESCRIPTOR_ORIGINALVmHWM:	  198080 kB VmRSS:	  185472 kB rows=90000 metadata_bytes=183 elapsed=35.108 prototype_only=TRUE qualification=FALSE
+Error in prototype_legacy_cell_vector_hash(con, selector, fixture$source_axis_artifact_id,  : 
+  identical(jsonlite::serializeJSON(jsonlite::unserializeJSON(metadata),  .... is not TRUE
+Calls: system.time -> prototype_legacy_cell_vector_hash -> stopifnot
+Timing stopped at: 0.029 0 0.029
+Execution halted

@@ -1,0 +1,35 @@
+{
+  "tuple": 400,
+  "runtime_candidate": 399,
+  "qualification": false,
+  "source_count": 77,
+  "source_ledger_sha256": "f2f4ef55493fc3d93bb88819f1de4010f7a900fb27641cb175e30b314d90eb20",
+  "dll_sha256": "ead7462807fb7920e924aa8995ec3ddb26ecbf87dd2c2d4b6ccf21f3b7a1bd56",
+  "terminal_evidence_count": 38,
+  "terminal_evidence_ledger_sha256": "b142fa700df717588211937b791146661cff0621f43ec213bc7c2e57d53d0065",
+  "gate_counts": {
+    "401": 53,
+    "402": 4,
+    "403": 5,
+    "404": 1,
+    "406": 1,
+    "408": 13,
+    "409": 4,
+    "410": null,
+    "412": 8,
+    "416": null,
+    "419": 1
+  },
+  "all_exit_codes": 0,
+  "skips": 0,
+  "full_lifecycle_rss": "NOT_RUN",
+  "final_qualification": "NOT_RUN",
+  "review_release": "PENDING",
+  "original_certificate_scope": "full90000 saved269 object identical; bundle open before allocation profile; actual metadata183B",
+  "dependency_scope": {
+    "jsonlite": "1.8.8",
+    "RSQLite": "2.3.7",
+    "BPCells": "0.3.1"
+  },
+  "historical_archived397": "unavailable scwbrna activation prerequisite; retained failure, not current pass/skip"
+}

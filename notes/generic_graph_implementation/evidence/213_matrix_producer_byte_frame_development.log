@@ -1,0 +1,4 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS2/2 exact retained ingestion producer/native payload + framed run hash including>8MiB source; qualification=FALSE

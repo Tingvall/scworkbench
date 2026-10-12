@@ -1,0 +1,28 @@
+{
+  "tuple": 445,
+  "installed_checkpoint": 444,
+  "qualification": false,
+  "run_started": false,
+  "source": "/tmp/scwb-graph-native-long-axis-90000-development/source.bundle",
+  "source_axes": 90000,
+  "nodes": 22000,
+  "original_axis_utf8_bytes": 18258618,
+  "canonical_floor_bytes": 1400471552,
+  "rss_ceilings_bytes": [
+    700235776,
+    699392000
+  ],
+  "source_database_bytes": 400003072,
+  "source_database_header_image_bytes": 400003072,
+  "transition_files": 6,
+  "transition_entries_including_directories": 11,
+  "transition_copy_rounded_bytes": 65536,
+  "manifest_rounded_bytes": 12288,
+  "clone_copy_charge_bytes": 400080896,
+  "clone_slot_bytes": 1073741824,
+  "fixed_development_phase_envelope_bytes": 17179869184,
+  "free_space_reserve_bytes": 8589934592,
+  "current_available_bytes": 44891901952,
+  "forecast_utc": "2026-10-11T20:52:38.067426+00:00",
+  "note": "Original-source 2x development forecast only; fresh immediate launch free-space check required. Final8x needs separate forecast."
+}

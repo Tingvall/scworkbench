@@ -1,0 +1,11 @@
+METADATA_EDGE admitted_builtin bytes= 93 old_hash=PASS
+METADATA_EDGE admitted_special bytes= 89 old_hash=PASS
+METADATA_EDGE admitted_environment bytes= 85 old_hash=PASS
+METADATA_EDGE admitted_expression bytes= 108 old_hash=PASS
+METADATA_EDGE admitted_closure bytes= 286 old_hash=PASS
+METADATA_EDGE opaque_constructor_before_decode typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE namespace_before_load typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE native_symbol_before_load typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE opaque_serialization_before_decode typed_failure= GRAPH_RESOURCE_EXCEEDED cleanup=PASS
+METADATA_EDGE malformed_json typed_failure= GRAPH_SOURCE_PAYLOAD_INVALID cleanup=PASS
+METADATA_DECODER_ONLY admitted_decoder=5 typed_failure_cleanup=5 prototype_only=TRUE qualification=FALSE PASS

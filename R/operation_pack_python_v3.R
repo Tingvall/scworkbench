@@ -155,9 +155,10 @@
   invisible(TRUE)
 }
 
-.wb_operation_pack_v3_python_audit <- function(stage, request, receipt) {
+.wb_operation_pack_v3_python_audit <- function(stage, request, receipt, graph_connections = list()) {
   abi_v4 <- identical(request$pack_abi_version, "4")
-  if (abi_v4) .wb_operation_pack_v4_graph_record_assert(request, receipt, stage, TRUE)
+  if (abi_v4) .wb_operation_pack_v4_graph_record_assert(request, receipt, stage, TRUE,
+    connections = graph_connections)
   observed <- c(receipt$outputs %||% list(),
     receipt$registry_requests %||% list())
   names_observed <- vapply(observed, `[[`, character(1), "name")
@@ -236,7 +237,7 @@
       unexpected = setdiff(inventory, expected_inventory),
       missing = setdiff(expected_inventory, inventory))
   retained <- .wb_operation_pack_v2_record_validate(stage,
-    load_payloads = TRUE)
+    load_payloads = TRUE, graph_connections = graph_connections)
   if (!isTRUE(retained$ok)) .wb_operation_pack_v3_error(
     "PYBENCH_RECEIPT_MISMATCH",
     paste0("Python v4 retained transition audit failed: ", retained$code,

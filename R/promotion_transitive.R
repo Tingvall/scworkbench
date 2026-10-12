@@ -8,16 +8,21 @@
   )
 }
 
+.wb_promotion_package_version <- function(pkg) {
+  # This inventory records installed versions, not dependency loadability.
+  # Loading unrelated scientific namespaces here can exceed graph admission.
+  suppressWarnings(tryCatch(as.character(utils::packageVersion(pkg)),
+    error = function(error) NA_character_))
+}
+
 .wb_promotion_runtime_fingerprint <- function() {
   list(
     scworkbench_version = as.character(utils::packageVersion("scworkbench")),
     r_version = R.version.string,
     source_revision = Sys.getenv("SCWORKBENCH_SOURCE_REVISION", unset = NA_character_),
     container_digest = Sys.getenv("SCWORKBENCH_CONTAINER_DIGEST", unset = NA_character_),
-    packages = vapply(c("BPCells", "Matrix", "irlba", "uwot", "igraph"), function(pkg) {
-      if (!requireNamespace(pkg, quietly = TRUE)) return(NA_character_)
-      as.character(utils::packageVersion(pkg))
-    }, character(1))
+    packages = vapply(c("BPCells", "Matrix", "irlba", "uwot", "igraph"),
+      .wb_promotion_package_version, character(1))
   )
 }
 

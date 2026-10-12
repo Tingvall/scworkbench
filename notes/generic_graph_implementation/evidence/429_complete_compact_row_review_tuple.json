@@ -1,0 +1,19 @@
+{
+  "candidate": 428,
+  "parent_tuple": 400,
+  "source_count": 83,
+  "source_ledger_sha256": "e2bd548149a03570f5e0b1075adf8c9103b6eff3e024828fd9233da934472f8a",
+  "install_root": "/tmp/scwb-graph-forge-compact-row-admission-428.wwmjo8v8",
+  "qualification": false,
+  "changes": [
+    "R/getters_artifact_metadata.R",
+    "tests/test_graph_legacy_metadata_expansion_admission_contract.R",
+    "notes/generic_graph_implementation/resume_compact_collector_focused.R"
+  ],
+  "scope": "recursive global compact row.names predecode semantic expansion admission, allocation and public parity regressions",
+  "parent_disposition": "REJECTED resource predecode expansion; immutable installation retained",
+  "parent_release": "Controller independently77posthash; Meridian final77posthash; Sable partial evidence/service interruption, no final report/release claimed",
+  "tuple": 429,
+  "runtime_candidate": 428,
+  "note": "Complete execution-input freeze before ANY focused gate at installed428; all79 original428 assets unchanged, four additional existing/new gate drivers bound."
+}

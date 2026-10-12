@@ -1,0 +1,45 @@
+{
+  "profile_bytes": 13684443,
+  "new_page_records": 36414,
+  "large_allocation_records": 10,
+  "sum_large_allocation_bytes": 12530528,
+  "largest_allocations": [
+    [
+      1276920,
+      "1276920 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".addToMetaTable\" \"setMethod\" \"setAs\" \"callback\" \"<Anonymous>\" \"fun\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"runHook\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ],
+    [
+      1276920,
+      "1276920 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".addToMetaTable\" \"setMethod\" \"setAs\" \"callback\" \"<Anonymous>\" \"fun\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"runHook\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ],
+    [
+      1276920,
+      "1276920 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".addToMetaTable\" \"setMethod\" \"setAs\" \"callback\" \"<Anonymous>\" \"fun\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"runHook\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ],
+    [
+      1276920,
+      "1276920 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".addToMetaTable\" \"setMethod\" \"setAs\" \"callback\" \"<Anonymous>\" \"fun\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"runHook\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ],
+    [
+      1257176,
+      "1257176 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".updateMethodsInTable\" \"<Anonymous>\" \"loadNamespace\" \"asNamespace\" \"namespaceImportFrom\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ],
+    [
+      1257176,
+      "1257176 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".updateMethodsInTable\" \"<Anonymous>\" \"loadNamespace\" \"asNamespace\" \"namespaceImportFrom\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ],
+    [
+      1257176,
+      "1257176 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".updateMethodsInTable\" \"<Anonymous>\" \"loadNamespace\" \"asNamespace\" \"namespaceImportFrom\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ],
+    [
+      1257176,
+      "1257176 :\"<Anonymous>\" \"<Anonymous>\" \"<Anonymous>\" \".updateMethodsInTable\" \"<Anonymous>\" \"loadNamespace\" \"asNamespace\" \"namespaceImportFrom\" \"loadNamespace\" \"doTryCatch\" \"tryCatchOne\" \"tryCatchList\" \"tryCatch\" \"requireNamespace\" \"FUN\" \"vapply\" \"fn\""
+    ]
+  ],
+  "standalone_rss_before_kib": 61824,
+  "standalone_rss_after_kib": 421032,
+  "standalone_rss_increase_bytes": 367828992,
+  "whole_lifecycle_cause": "NOT_ESTABLISHED",
+  "contribution": "Cold fingerprint helper loads scientific namespaces; direct invocation has measured RSS growth"
+}

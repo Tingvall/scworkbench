@@ -1,0 +1,19 @@
+FINGERPRINT_ONLY_BEFORE VmHWM:	   61824 kB VmRSS:	   61824 kB 
+FINGERPRINT_ONLY_AFTER VmHWM:	  421032 kB VmRSS:	  421032 kB 
+FINGERPRINT_ONLY_NEW_NAMESPACES vctrs,httr,cli,rlang,BPCells,UCSC.utils,jsonlite,S4Vectors,stats4,MatrixGenerics,uwot,grid,IRanges,lifecycle,GenomeInfoDb,igraph,irlba,pkgconfig,Rcpp,XVector,lattice,R6,GenomeInfoDbData,GenomicRanges,magrittr,Matrix,tools,matrixStats,zlibbioc,BiocGenerics 
+$scworkbench_version
+[1] "0.1.0"
+
+$r_version
+[1] "R version 4.4.1 (2024-06-14)"
+
+$source_revision
+[1] NA
+
+$container_digest
+[1] NA
+
+$packages
+  BPCells    Matrix     irlba      uwot    igraph 
+  "0.3.1"   "1.7.0" "2.3.5.1"   "0.2.2"   "2.2.2" 
+

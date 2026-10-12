@@ -1,0 +1,4 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS3/3 existing native producer/physical/axis authority, exact selector and huge runhash under scoped budgets; native_dispatch=DISABLED qualification=FALSE

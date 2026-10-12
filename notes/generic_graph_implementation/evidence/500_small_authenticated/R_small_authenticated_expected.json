@@ -1,0 +1,1052 @@
+{
+  "fixture_sha256": "60741a7915721fb6c8872ad58a656dce3fb1c1de42bad52ab756cacd4ea703d2",
+  "identity": {
+    "content_identity": {
+      "scheme": "scworkbench.graph.content.canonical-json.v1",
+      "sha256": "d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24"
+    },
+    "binding_identity": {
+      "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+      "sha256": "c84975af63c2cef24cba0ba84a8a2caec8af973c94eee4fb774d2649bee63148"
+    },
+    "descriptor": {
+      "schema": "scworkbench.graph.retained-descriptor.v1",
+      "content_identity": {
+        "scheme": "scworkbench.graph.content.canonical-json.v1",
+        "sha256": "d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24"
+      },
+      "binding_identity": {
+        "scheme": "scworkbench.graph.axis-bindings.canonical-json.v1",
+        "sha256": "c84975af63c2cef24cba0ba84a8a2caec8af973c94eee4fb774d2649bee63148"
+      },
+      "binding_count": 3
+    },
+    "descriptor_identity": {
+      "scheme": "scworkbench.graph.retained-descriptor.canonical-json.v1",
+      "sha256": "f3acdb903c88692d72486dfd9ff244501ad948b8e5c7e8bd276bcb61cd38698f"
+    }
+  },
+  "content": {
+    "schema": "scworkbench.graph.content.v1",
+    "direction_mode": "mixed",
+    "nodes": [
+      {
+        "node_id": "n2"
+      },
+      {
+        "node_id": "n10"
+      },
+      {
+        "node_id": "n1"
+      },
+      {
+        "node_id": "n04x"
+      },
+      {
+        "node_id": "n05x"
+      },
+      {
+        "node_id": "n06x"
+      },
+      {
+        "node_id": "n07x"
+      },
+      {
+        "node_id": "n08x"
+      },
+      {
+        "node_id": "n09x"
+      },
+      {
+        "node_id": "n10x"
+      },
+      {
+        "node_id": "n11x"
+      },
+      {
+        "node_id": "n12x"
+      },
+      {
+        "node_id": "n13x"
+      },
+      {
+        "node_id": "n14x"
+      },
+      {
+        "node_id": "n15x"
+      },
+      {
+        "node_id": "n16x"
+      },
+      {
+        "node_id": "n17x"
+      },
+      {
+        "node_id": "n18x"
+      },
+      {
+        "node_id": "n19x"
+      },
+      {
+        "node_id": "n20x"
+      },
+      {
+        "node_id": "n21x"
+      },
+      {
+        "node_id": "n22x"
+      },
+      {
+        "node_id": "n23x"
+      },
+      {
+        "node_id": "n24x"
+      },
+      {
+        "node_id": "n25x"
+      },
+      {
+        "node_id": "n26x"
+      },
+      {
+        "node_id": "n27x"
+      },
+      {
+        "node_id": "n28x"
+      },
+      {
+        "node_id": "n29x"
+      },
+      {
+        "node_id": "n30x"
+      },
+      {
+        "node_id": "n31x"
+      },
+      {
+        "node_id": "n32x"
+      }
+    ],
+    "edges": [
+      {
+        "edge_id": "loop",
+        "kind": "ordinary",
+        "direction": "directed"
+      },
+      {
+        "edge_id": "parallel_b",
+        "kind": "ordinary",
+        "direction": "undirected"
+      },
+      {
+        "edge_id": "parallel_a",
+        "kind": "ordinary",
+        "direction": "undirected"
+      },
+      {
+        "edge_id": "hyper",
+        "kind": "hyper",
+        "direction": "undirected"
+      }
+    ],
+    "incidences": [
+      {
+        "incidence_id": "i01",
+        "edge_id": "loop",
+        "node_id": "n2",
+        "role": "tail",
+        "ordinal": 0
+      },
+      {
+        "incidence_id": "i02",
+        "edge_id": "loop",
+        "node_id": "n2",
+        "role": "head",
+        "ordinal": 1
+      },
+      {
+        "incidence_id": "i03",
+        "edge_id": "parallel_b",
+        "node_id": "n2",
+        "role": "member",
+        "ordinal": 0
+      },
+      {
+        "incidence_id": "i04",
+        "edge_id": "parallel_b",
+        "node_id": "n10",
+        "role": "member",
+        "ordinal": 1
+      },
+      {
+        "incidence_id": "i05",
+        "edge_id": "parallel_a",
+        "node_id": "n2",
+        "role": "member",
+        "ordinal": 0
+      },
+      {
+        "incidence_id": "i06",
+        "edge_id": "parallel_a",
+        "node_id": "n10",
+        "role": "member",
+        "ordinal": 1
+      },
+      {
+        "incidence_id": "i07",
+        "edge_id": "hyper",
+        "node_id": "n2",
+        "role": "member",
+        "ordinal": 0
+      },
+      {
+        "incidence_id": "i08",
+        "edge_id": "hyper",
+        "node_id": "n10",
+        "role": "member",
+        "ordinal": 1
+      },
+      {
+        "incidence_id": "i09",
+        "edge_id": "hyper",
+        "node_id": "n1",
+        "role": "member",
+        "ordinal": 2
+      },
+      {
+        "incidence_id": "i10",
+        "edge_id": "hyper",
+        "node_id": "n04x",
+        "role": "member",
+        "ordinal": 3
+      },
+      {
+        "incidence_id": "i11",
+        "edge_id": "hyper",
+        "node_id": "n05x",
+        "role": "member",
+        "ordinal": 4
+      },
+      {
+        "incidence_id": "i12",
+        "edge_id": "hyper",
+        "node_id": "n06x",
+        "role": "member",
+        "ordinal": 5
+      },
+      {
+        "incidence_id": "i13",
+        "edge_id": "hyper",
+        "node_id": "n07x",
+        "role": "member",
+        "ordinal": 6
+      },
+      {
+        "incidence_id": "i14",
+        "edge_id": "hyper",
+        "node_id": "n08x",
+        "role": "member",
+        "ordinal": 7
+      },
+      {
+        "incidence_id": "i15",
+        "edge_id": "hyper",
+        "node_id": "n09x",
+        "role": "member",
+        "ordinal": 8
+      },
+      {
+        "incidence_id": "i16",
+        "edge_id": "hyper",
+        "node_id": "n10x",
+        "role": "member",
+        "ordinal": 9
+      },
+      {
+        "incidence_id": "i17",
+        "edge_id": "hyper",
+        "node_id": "n11x",
+        "role": "member",
+        "ordinal": 10
+      },
+      {
+        "incidence_id": "i18",
+        "edge_id": "hyper",
+        "node_id": "n12x",
+        "role": "member",
+        "ordinal": 11
+      },
+      {
+        "incidence_id": "i19",
+        "edge_id": "hyper",
+        "node_id": "n13x",
+        "role": "member",
+        "ordinal": 12
+      },
+      {
+        "incidence_id": "i20",
+        "edge_id": "hyper",
+        "node_id": "n14x",
+        "role": "member",
+        "ordinal": 13
+      },
+      {
+        "incidence_id": "i21",
+        "edge_id": "hyper",
+        "node_id": "n15x",
+        "role": "member",
+        "ordinal": 14
+      },
+      {
+        "incidence_id": "i22",
+        "edge_id": "hyper",
+        "node_id": "n16x",
+        "role": "member",
+        "ordinal": 15
+      },
+      {
+        "incidence_id": "i23",
+        "edge_id": "hyper",
+        "node_id": "n17x",
+        "role": "member",
+        "ordinal": 16
+      },
+      {
+        "incidence_id": "i24",
+        "edge_id": "hyper",
+        "node_id": "n18x",
+        "role": "member",
+        "ordinal": 17
+      },
+      {
+        "incidence_id": "i25",
+        "edge_id": "hyper",
+        "node_id": "n19x",
+        "role": "member",
+        "ordinal": 18
+      },
+      {
+        "incidence_id": "i26",
+        "edge_id": "hyper",
+        "node_id": "n20x",
+        "role": "member",
+        "ordinal": 19
+      },
+      {
+        "incidence_id": "i27",
+        "edge_id": "hyper",
+        "node_id": "n21x",
+        "role": "member",
+        "ordinal": 20
+      },
+      {
+        "incidence_id": "i28",
+        "edge_id": "hyper",
+        "node_id": "n22x",
+        "role": "member",
+        "ordinal": 21
+      },
+      {
+        "incidence_id": "i29",
+        "edge_id": "hyper",
+        "node_id": "n23x",
+        "role": "member",
+        "ordinal": 22
+      },
+      {
+        "incidence_id": "i30",
+        "edge_id": "hyper",
+        "node_id": "n24x",
+        "role": "member",
+        "ordinal": 23
+      },
+      {
+        "incidence_id": "i31",
+        "edge_id": "hyper",
+        "node_id": "n25x",
+        "role": "member",
+        "ordinal": 24
+      },
+      {
+        "incidence_id": "i32",
+        "edge_id": "hyper",
+        "node_id": "n26x",
+        "role": "member",
+        "ordinal": 25
+      },
+      {
+        "incidence_id": "i33",
+        "edge_id": "hyper",
+        "node_id": "n27x",
+        "role": "member",
+        "ordinal": 26
+      },
+      {
+        "incidence_id": "i34",
+        "edge_id": "hyper",
+        "node_id": "n28x",
+        "role": "member",
+        "ordinal": 27
+      },
+      {
+        "incidence_id": "i35",
+        "edge_id": "hyper",
+        "node_id": "n29x",
+        "role": "member",
+        "ordinal": 28
+      },
+      {
+        "incidence_id": "i36",
+        "edge_id": "hyper",
+        "node_id": "n30x",
+        "role": "member",
+        "ordinal": 29
+      },
+      {
+        "incidence_id": "i37",
+        "edge_id": "hyper",
+        "node_id": "n31x",
+        "role": "member",
+        "ordinal": 30
+      },
+      {
+        "incidence_id": "i38",
+        "edge_id": "hyper",
+        "node_id": "n2",
+        "role": "member",
+        "ordinal": 31
+      },
+      {
+        "incidence_id": "i39",
+        "edge_id": "hyper",
+        "node_id": "n2",
+        "role": "member",
+        "ordinal": 32
+      }
+    ],
+    "attributes": {
+      "graph": [
+        {
+          "name": "title",
+          "type": "utf8",
+          "nullable": false,
+          "values": [
+            "small bounded mixed infrastructure"
+          ]
+        }
+      ],
+      "node": [
+        {
+          "name": "label",
+          "type": "utf8",
+          "nullable": false,
+          "values": [
+            "label:0:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:1:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:2:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:3:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:4:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:5:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:6:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:7:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:8:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:9:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:10:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:11:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:12:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:13:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:14:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:15:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:16:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:17:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:18:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:19:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:20:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:21:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:22:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:23:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:24:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:25:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:26:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:27:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:28:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:29:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:30:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "label:31:βxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          ]
+        },
+        {
+          "name": "flag",
+          "type": "bool",
+          "nullable": true,
+          "values": [
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null,
+            false,
+            true,
+            null
+          ]
+        },
+        {
+          "name": "count",
+          "type": "int64_decimal_string",
+          "nullable": false,
+          "values": [
+            "-9223372036854775808",
+            "9223372036854775807",
+            "9007199254740993",
+            "9007199254740994",
+            "9007199254740995",
+            "9007199254740996",
+            "9007199254740997",
+            "9007199254740998",
+            "9007199254740999",
+            "9007199254741000",
+            "9007199254741001",
+            "9007199254741002",
+            "9007199254741003",
+            "9007199254741004",
+            "9007199254741005",
+            "9007199254741006",
+            "9007199254741007",
+            "9007199254741008",
+            "9007199254741009",
+            "9007199254741010",
+            "9007199254741011",
+            "9007199254741012",
+            "9007199254741013",
+            "9007199254741014",
+            "9007199254741015",
+            "9007199254741016",
+            "9007199254741017",
+            "9007199254741018",
+            "9007199254741019",
+            "9007199254741020",
+            "9007199254741021",
+            "9007199254741022"
+          ]
+        }
+      ],
+      "edge": [
+        {
+          "name": "weight",
+          "type": "float64_le_hex",
+          "nullable": true,
+          "values": [
+            "000000000000f03f",
+            "0000000000000080",
+            "0100000000000000",
+            null
+          ]
+        }
+      ],
+      "incidence": [
+        {
+          "name": "note",
+          "type": "utf8",
+          "nullable": false,
+          "values": [
+            "tail",
+            "head",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member",
+            "member"
+          ]
+        }
+      ]
+    }
+  },
+  "bindings": [
+    {
+      "binding_id": "cells",
+      "axis_kind": "cell",
+      "source_ref": {
+        "kind": "matrix",
+        "source_id": "small_native"
+      },
+      "source_snapshot_identity": {
+        "scheme": "scworkbench.provenance.snapshot_head.v1",
+        "sha256": "c2462332420b91db85b24748d0fbae3e6229198e184f1c7e5978437db3b4d00c"
+      },
+      "axis_content_identity": {
+        "scheme": "scworkbench.graph.source-axis-content.canonical-json.v1",
+        "sha256": "d4442fe6842268c35725d37129b11db54e62d53b8ad0b0cb12976bf7a90d0bd7"
+      },
+      "axis_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "7cba82f29ecf2381e4441f70e021bdd73faef617b7382acedf72d6da41c920f2"
+      },
+      "mapping": [
+        {
+          "node_id": "n2",
+          "axis_id": "n2"
+        },
+        {
+          "node_id": "n10",
+          "axis_id": "n10"
+        },
+        {
+          "node_id": "n1",
+          "axis_id": "n1"
+        },
+        {
+          "node_id": "n04x",
+          "axis_id": "n04x"
+        },
+        {
+          "node_id": "n05x",
+          "axis_id": "n05x"
+        },
+        {
+          "node_id": "n06x",
+          "axis_id": "n06x"
+        },
+        {
+          "node_id": "n07x",
+          "axis_id": "n07x"
+        },
+        {
+          "node_id": "n08x",
+          "axis_id": "n08x"
+        },
+        {
+          "node_id": "n09x",
+          "axis_id": "n09x"
+        },
+        {
+          "node_id": "n10x",
+          "axis_id": "n10x"
+        },
+        {
+          "node_id": "n11x",
+          "axis_id": "n11x"
+        },
+        {
+          "node_id": "n12x",
+          "axis_id": "n12x"
+        },
+        {
+          "node_id": "n13x",
+          "axis_id": "n13x"
+        },
+        {
+          "node_id": "n14x",
+          "axis_id": "n14x"
+        },
+        {
+          "node_id": "n15x",
+          "axis_id": "n15x"
+        },
+        {
+          "node_id": "n16x",
+          "axis_id": "n16x"
+        },
+        {
+          "node_id": "n17x",
+          "axis_id": "n17x"
+        },
+        {
+          "node_id": "n18x",
+          "axis_id": "n18x"
+        },
+        {
+          "node_id": "n19x",
+          "axis_id": "n19x"
+        },
+        {
+          "node_id": "n20x",
+          "axis_id": "n20x"
+        },
+        {
+          "node_id": "n21x",
+          "axis_id": "n21x"
+        },
+        {
+          "node_id": "n22x",
+          "axis_id": "n22x"
+        },
+        {
+          "node_id": "n23x",
+          "axis_id": "n23x"
+        },
+        {
+          "node_id": "n24x",
+          "axis_id": "n24x"
+        },
+        {
+          "node_id": "n25x",
+          "axis_id": "n25x"
+        },
+        {
+          "node_id": "n26x",
+          "axis_id": "n26x"
+        },
+        {
+          "node_id": "n27x",
+          "axis_id": "n27x"
+        },
+        {
+          "node_id": "n28x",
+          "axis_id": "n28x"
+        },
+        {
+          "node_id": "n29x",
+          "axis_id": "n29x"
+        },
+        {
+          "node_id": "n30x",
+          "axis_id": "n30x"
+        },
+        {
+          "node_id": "n31x",
+          "axis_id": "n31x"
+        },
+        {
+          "node_id": "n32x",
+          "axis_id": "n32x"
+        }
+      ]
+    },
+    {
+      "binding_id": "features",
+      "axis_kind": "feature",
+      "source_ref": {
+        "kind": "matrix",
+        "source_id": "small_native"
+      },
+      "source_snapshot_identity": {
+        "scheme": "scworkbench.provenance.snapshot_head.v1",
+        "sha256": "c2462332420b91db85b24748d0fbae3e6229198e184f1c7e5978437db3b4d00c"
+      },
+      "axis_content_identity": {
+        "scheme": "scworkbench.graph.source-axis-content.canonical-json.v1",
+        "sha256": "9be09a77f736ad6121d75857bec5df9cc5da4e8e8317d35636043da2a11b11ea"
+      },
+      "axis_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "3cf6f80e5f8317443be7249e2886db34159d2d3620636492dc8cdf99fe748539"
+      },
+      "mapping": [
+        {
+          "node_id": "n2",
+          "axis_id": "f2"
+        },
+        {
+          "node_id": "n10",
+          "axis_id": "f1"
+        }
+      ]
+    },
+    {
+      "binding_id": "empty_features",
+      "axis_kind": "feature",
+      "source_ref": {
+        "kind": "matrix",
+        "source_id": "small_native"
+      },
+      "source_snapshot_identity": {
+        "scheme": "scworkbench.provenance.snapshot_head.v1",
+        "sha256": "c2462332420b91db85b24748d0fbae3e6229198e184f1c7e5978437db3b4d00c"
+      },
+      "axis_content_identity": {
+        "scheme": "scworkbench.graph.source-axis-content.canonical-json.v1",
+        "sha256": "9be09a77f736ad6121d75857bec5df9cc5da4e8e8317d35636043da2a11b11ea"
+      },
+      "axis_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "3cf6f80e5f8317443be7249e2886db34159d2d3620636492dc8cdf99fe748539"
+      },
+      "mapping": []
+    }
+  ],
+  "axes": [
+    {
+      "schema": "scworkbench.graph.source_axis_authority.v1",
+      "output_name": "result",
+      "input_name": "matrix",
+      "source_binding_id": null,
+      "axis_kind": "cell",
+      "source_ref": {
+        "kind": "matrix",
+        "source_id": "small_native"
+      },
+      "source_snapshot_identity": {
+        "scheme": "scworkbench.provenance.snapshot_head.v1",
+        "sha256": "c2462332420b91db85b24748d0fbae3e6229198e184f1c7e5978437db3b4d00c"
+      },
+      "source_payload_closure_identity": {
+        "scheme": "scworkbench.content.matrix.fragment-tree.v2",
+        "sha256": "81ef87dd686e6db6b5401d8c10d7fac6772ce70807d3642097120c5e3ca09cd4"
+      },
+      "axis_content_identity": {
+        "scheme": "scworkbench.graph.source-axis-content.canonical-json.v1",
+        "sha256": "d4442fe6842268c35725d37129b11db54e62d53b8ad0b0cb12976bf7a90d0bd7"
+      },
+      "axis_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "7cba82f29ecf2381e4441f70e021bdd73faef617b7382acedf72d6da41c920f2"
+      },
+      "axis_count": "32",
+      "transition_identity": {
+        "scheme": "scworkbench.operation_pack.transition.v2",
+        "scope": "transition excluding transition_identity",
+        "sha256": "660b94c063bdf866f3340dd9633f83b24c4eaac5f5812965584398dd5d3209e4"
+      },
+      "authority_identity": {
+        "scheme": "scworkbench.operation_pack.graph_source_axis_authority.v1",
+        "scope": "authority excluding authority_identity",
+        "sha256": "cf87a05dd5af74f41df7b5c03346f8425b225fe21d635f50a9349083c7f3223c"
+      }
+    },
+    {
+      "schema": "scworkbench.graph.source_axis_authority.v1",
+      "output_name": "result",
+      "input_name": "matrix",
+      "source_binding_id": null,
+      "axis_kind": "feature",
+      "source_ref": {
+        "kind": "matrix",
+        "source_id": "small_native"
+      },
+      "source_snapshot_identity": {
+        "scheme": "scworkbench.provenance.snapshot_head.v1",
+        "sha256": "c2462332420b91db85b24748d0fbae3e6229198e184f1c7e5978437db3b4d00c"
+      },
+      "source_payload_closure_identity": {
+        "scheme": "scworkbench.content.matrix.fragment-tree.v2",
+        "sha256": "81ef87dd686e6db6b5401d8c10d7fac6772ce70807d3642097120c5e3ca09cd4"
+      },
+      "axis_content_identity": {
+        "scheme": "scworkbench.graph.source-axis-content.canonical-json.v1",
+        "sha256": "9be09a77f736ad6121d75857bec5df9cc5da4e8e8317d35636043da2a11b11ea"
+      },
+      "axis_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "3cf6f80e5f8317443be7249e2886db34159d2d3620636492dc8cdf99fe748539"
+      },
+      "axis_count": "2",
+      "transition_identity": {
+        "scheme": "scworkbench.operation_pack.transition.v2",
+        "scope": "transition excluding transition_identity",
+        "sha256": "660b94c063bdf866f3340dd9633f83b24c4eaac5f5812965584398dd5d3209e4"
+      },
+      "authority_identity": {
+        "scheme": "scworkbench.operation_pack.graph_source_axis_authority.v1",
+        "scope": "authority excluding authority_identity",
+        "sha256": "747e2433b9a6702e5e8e692a0dbaf001c69e2d016e741a583111deb9dd348a38"
+      }
+    }
+  ],
+  "policy": {
+    "memory_bytes": "1048576",
+    "sqlite_cache_kib": 256,
+    "partition_bytes": 4096,
+    "partition_rows": 2,
+    "collect_bytes": 8192,
+    "storage_bytes": "16777216",
+    "token_bytes": "16777216",
+    "published_bytes": "8388608",
+    "wal_bytes": "8388608"
+  },
+  "runtime_baseline": {
+    "stage": "after_native_promotion_before_graph_emit",
+    "pid": 559538,
+    "rss_bytes": 642469888,
+    "high_water_mark_bytes": 642469888,
+    "loaded_packages": {
+      "BPCells": "0.3.1",
+      "BiocGenerics": "0.50.0",
+      "DBI": "1.2.3",
+      "GenomeInfoDb": "1.40.1",
+      "GenomeInfoDbData": "1.2.12",
+      "GenomicRanges": "1.56.1",
+      "IRanges": "2.38.0",
+      "Matrix": "1.7.0",
+      "MatrixGenerics": "1.16.0",
+      "R6": "2.5.1",
+      "RSQLite": "2.3.7",
+      "Rcpp": "1.1.1",
+      "S4Vectors": "0.42.1",
+      "UCSC.utils": "1.0.0",
+      "XVector": "0.44.0",
+      "askpass": "1.2.0",
+      "base": "4.4.1",
+      "bit": "4.0.5",
+      "bit64": "4.0.5",
+      "blob": "1.2.4",
+      "cachem": "1.1.0",
+      "cli": "3.6.3",
+      "compiler": "4.4.1",
+      "datasets": "4.4.1",
+      "digest": "0.6.35",
+      "fansi": "1.0.6",
+      "fastmap": "1.2.0",
+      "fs": "1.6.4",
+      "glue": "1.8.0",
+      "grDevices": "4.4.1",
+      "graphics": "4.4.1",
+      "grid": "4.4.1",
+      "httr": "1.4.7",
+      "jsonlite": "1.8.8",
+      "lattice": "0.22.5",
+      "lifecycle": "1.0.4",
+      "magrittr": "2.0.3",
+      "matrixStats": "1.3.0",
+      "memoise": "2.0.1",
+      "methods": "4.4.1",
+      "openssl": "2.2.0",
+      "pillar": "1.9.0",
+      "pkgconfig": "2.0.3",
+      "rlang": "1.1.4",
+      "scwbGraphSmallFixture": "0.1.0",
+      "scwbRNA": "0.1.0",
+      "scworkbench": "0.1.0",
+      "stats": "4.4.1",
+      "stats4": "4.4.1",
+      "tibble": "3.2.1",
+      "tools": "4.4.1",
+      "utf8": "1.2.4",
+      "utils": "4.4.1",
+      "vctrs": "0.6.5",
+      "zlibbioc": "1.50.0"
+    }
+  },
+  "source_producer": {
+    "operation": "scwbrna::matrix_log_normalize",
+    "pack_commit": "151dd29211b219343dce6247c5e48fc932b4c83d",
+    "seed_values_column_major": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      1
+    ],
+    "transform": "log1p(seed / column_sum * 10000)",
+    "effective_params": {
+      "output_matrix_id": "small_native",
+      "scale_factor": 10000,
+      "overwrite": false,
+      "chunk_size": 2
+    }
+  }
+}

@@ -1,4 +1,5 @@
 .wb_graph_retained_identities <- function(bundle, artifact_id, budgets = list()) {
+  budgets <- .wb_graph_effective_budgets(bundle$con, budgets)
   .wb_assert_observational_schema(bundle,
     c("artifact_graph_meta", "artifact_graph_rows"), "graph inspection")
   observed <- .wb_graph_sql_identities(bundle$con, artifact_id, .wb_graph_budgets(budgets))
@@ -86,8 +87,19 @@ wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", lim
     "GRAPH_PUBLICATION_AUTHORITY_REQUIRED", "Graph publication requires promotion transaction.")
   stage <- attr(prim, "graph_stage", exact = TRUE)
   owned <- is.null(stage)
-  if (owned) stage <- .wb_graph_stage_small(prim)
-  on.exit(if (owned) .wb_graph_stage_discard(stage), add = TRUE)
+  restore_owned <- restore_budget <- NULL
+  on.exit({
+    if (owned && !is.null(stage)) .wb_graph_stage_discard(stage)
+    if (!is.null(restore_budget)) restore_budget()
+    if (!is.null(restore_owned)) restore_owned()
+  }, add = TRUE)
+  if (owned) {
+    policy <- .wb_graph_effective_budgets(bundle$con)
+    restore_owned <- .wb_graph_aggregate_connection_budget(.wb_graph_bundle_connections(bundle), policy, extra = 1L)
+    stage <- .wb_graph_stage_small(prim, policy, bundle$con@ref$wb_graph_cache_kib)
+  }
+  restore_budget <- .wb_graph_aggregate_connection_budget(c(.wb_graph_bundle_connections(bundle), list(stage$con)),
+    .wb_graph_effective_budgets(bundle$con, stage$budgets))
   baseline <- .wb_graph_disk_usage(bundle$con)
   identity <- .wb_graph_sql_identities(stage$con, "staged", stage$budgets)
   .wb_graph_require(.wb_graph_i64(identity$canonical_bytes) <= .wb_graph_i64(stage$budgets$published_bytes),

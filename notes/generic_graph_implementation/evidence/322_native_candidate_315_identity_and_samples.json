@@ -1,0 +1,23 @@
+{
+  "source_ledger_files": 61,
+  "source_ledger_sha256": "b2d1171dfb3f155e8f54a7b1c9927f7df59af420a4358daac840284c41da0080",
+  "all_source_hashes_match": true,
+  "installed_library": "/tmp/scwb-graph-forge-copy-before-recovery.b_x9w8k5/library",
+  "shared_object_sha256": "7a054d35e2335dfe97e139e1e44f9fbc11845097546365056975fc7fa0a313c8",
+  "libsqlite3_dependency": false,
+  "unresolved_sqlite3_calls": false,
+  "sample_directory": "/tmp/scwb-native-graph-public-samples-315",
+  "sample_sha256": {
+    "direct_matrix_request.json": "b89c59aaf81bfe42df9261ad19aeea29a6078e0406e6524be70672155e84971b",
+    "capture.json": "a04bb94848fdcec2632973eb083ac6bf8eb554919468b3694433fd9d47612c9f",
+    "direct_matrix_receipt.json": "22a02b255fde8e0333a7139d1ea673a17ac5668f1c73738777c4cb2a0695a3ca",
+    "selected_graph_receipt.json": "c52c1e2cf06cccfbde82bd4e29197f83a9c77c6e015b7bb83fc4a6642a0914b4",
+    "selected_graph_request.json": "727a0c72c5d2f66810eeb94451ab51b847759ddffcff7ca5a5aa58631fed1956"
+  },
+  "native_public_gate_exit": 0,
+  "selected_read_partition_limits": {
+    "max_rows": "256",
+    "max_decoded_bytes": "262144"
+  },
+  "qualification": false
+}

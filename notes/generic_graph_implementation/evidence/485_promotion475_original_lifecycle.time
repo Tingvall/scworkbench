@@ -1,0 +1,23 @@
+	Command being timed: "Rscript notes/generic_graph_implementation/promotion475_original_lifecycle.R /tmp/scwb-graph-promotion475-original90000-lifecycle.rds /tmp/scwb-graph-promotion475-original90000-2x-development-485 22000 run"
+	User time (seconds): 5020.38
+	System time (seconds): 356.96
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:29:41
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 713092
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 13
+	Minor (reclaiming a frame) page faults: 9190119
+	Voluntary context switches: 16176
+	Involuntary context switches: 37819
+	Swaps: 0
+	File system inputs: 333816
+	File system outputs: 61183320
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

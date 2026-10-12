@@ -23,8 +23,40 @@ test_durable_session_subprocess_recovery_contract <- function() {
   wb_close_bundle(b)
   b <- wb_open_bundle(tmp)
   repo <- normalizePath(".", winslash = "/", mustWork = TRUE)
+  installed_library <- Sys.getenv("SCWB_CONTRACT_INSTALLED_LIBRARY","")
+  identity_files <- character()
+  on.exit(unlink(identity_files),add=TRUE)
+  runtime_identity <- function() {
+    functions <- c("wb_session_open","wb_session_resume","wb_session_run_op",
+      ".wb_session_stage_bundle",".wb_session_stage_open",".wb_graph_disk_admit")
+    list(package=normalizePath(find.package("scworkbench"),winslash="/",mustWork=TRUE),
+      dll=digest::digest(file=system.file("libs",paste0("scworkbench",.Platform$dynlib.ext),package="scworkbench"),algo="sha256",serialize=FALSE),
+      bodies=stats::setNames(vapply(functions,function(name) {
+        fun<-getFromNamespace(name,"scworkbench")
+        digest::digest(list(formals=deparse(formals(fun)),body=deparse(body(fun))),algo="sha256")
+      },character(1)),functions))
+  }
+  parent_identity <- if(nzchar(installed_library))runtime_identity() else NULL
+  child_bootstrap <- function(identity_file) {
+    if(!nzchar(installed_library))return(paste0("devtools::load_all(",encodeString(repo,quote="'"),",quiet=TRUE);"))
+    expected_package <- normalizePath(file.path(installed_library,"scworkbench"),winslash="/",mustWork=TRUE)
+    stopifnot(identical(parent_identity$package,expected_package))
+    identity_files <<- c(identity_files,identity_file)
+    paste0(".libPaths(c(",encodeString(installed_library,quote="'"),",.libPaths()));",
+      "library(scworkbench,lib.loc=",encodeString(installed_library,quote="'"),");",
+      "identity_fun<-",paste(deparse(runtime_identity),collapse="\n"),";",
+      "identity<-identity_fun();stopifnot(identical(identity$package,",encodeString(expected_package,quote="'"),"));",
+      "saveRDS(identity,",encodeString(identity_file,quote="'"),");")
+  }
+  assert_child_identity <- function(path) {
+    if(!nzchar(installed_library))return(invisible(NULL))
+    stopifnot(file.exists(path),identical(readRDS(path),parent_identity))
+    cat("DURABLE_ACTUAL_CHILD_IDENTITY package=",parent_identity$package," dll_sha256=",parent_identity$dll,
+      " bodies=",paste(names(parent_identity$bodies),parent_identity$bodies,sep=":",collapse=",")," MATCH\n",sep="")
+  }
+  first_identity <- tempfile("scwb_durable_child_identity_")
   code <- paste0(
-    "devtools::load_all('", gsub("'", "\\\\'", repo), "',quiet=TRUE);",
+    child_bootstrap(first_identity),
     "b<-wb_open_bundle('", gsub("'", "\\\\'", tmp), "');",
     "s<-wb_session_resume(b,'", gsub("'", "\\\\'", s$durable$workspace), "');",
     "trace(scworkbench:::.wb_runner_metadata_cell_vector,tracer=quote({writeLines('running','", gsub("'", "\\\\'", flag), "');Sys.sleep(60)}),print=FALSE);",
@@ -38,6 +70,7 @@ test_durable_session_subprocess_recovery_contract <- function() {
     child_log <- if (file.exists(log)) paste(readLines(log, warn = FALSE), collapse = "\n") else "<missing child log>"
     stop("child did not enter interrupted operation:\n", child_log, call. = FALSE)
   }
+  assert_child_identity(first_identity)
   tools::pskill(as.integer(pid), signal = 9L)
   Sys.sleep(0.5)
   # SIGKILL cannot execute on.exit handlers.  Recovery is explicit and only
@@ -60,8 +93,9 @@ test_durable_session_subprocess_recovery_contract <- function() {
   race <- wb_session_create(b, root, "generation_race")
   stale_parent <- wb_session_resume(b, race$durable$workspace)
   race_flag <- tempfile("scwb_durable_race_ready_")
+  race_identity <- tempfile("scwb_durable_race_identity_")
   race_code <- paste0(
-    "devtools::load_all('", gsub("'", "\\\\'", repo), "',quiet=TRUE);",
+    child_bootstrap(race_identity),
     "b<-wb_open_bundle('", gsub("'", "\\\\'", tmp), "');",
     "s<-wb_session_resume(b,'", gsub("'", "\\\\'", race$durable$workspace), "');",
     "rr<-wb_session_run_op(s,b,'metadata_cell_vector',inputs=list(source_column='group',vector_name='race_winner',value_type='categorical',missing_policy='error',overwrite=TRUE,cell_set='all',min_cells=1L));",
@@ -72,6 +106,7 @@ test_durable_session_subprocess_recovery_contract <- function() {
   deadline <- Sys.time() + 30
   while (!file.exists(race_flag) && Sys.time() < deadline) Sys.sleep(0.1)
   stopifnot(file.exists(race_flag))
+  assert_child_identity(race_identity)
   winner <- wb_session_resume(b, race$durable$workspace)
   stopifnot(length(winner$runs) == 1L, identical(winner$runs[[1]]$params$vector_name, "race_winner"))
   stale_run <- try(wb_session_run_op(stale_parent, b, "metadata_cell_vector", inputs = list(source_column="group", vector_name="race_loser", value_type="categorical", missing_policy="error", overwrite=TRUE, cell_set="all", min_cells=1L)), silent=TRUE)

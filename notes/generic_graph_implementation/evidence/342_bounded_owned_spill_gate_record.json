@@ -1,0 +1,50 @@
+{
+  "checkpoint": 341,
+  "runtime_ledger_sha256": "34b78e2f69891f4a0308075f61480d7bc810dd35688b1d68598b734de89c840f",
+  "installed_package": "/tmp/scwb-graph-forge-bounded-fd-owned-spill.3vly243i/library/scworkbench",
+  "dll_sha256": "435b639ba0ef18620051159b9612bbeac0215a85c6ac3bc53a94ebd7e2f5a902",
+  "resource_test_runner_sha256": "176b502c6bbc3aead0169d11a86b226de161241ac2194b42241f3061baae3f28",
+  "resource_gate": {
+    "evidence": "notes/generic_graph_implementation/evidence/342_bounded_owned_spill_focused.log",
+    "executed": 13,
+    "passed": 13,
+    "skipped": 0,
+    "exit": 0
+  },
+  "new_exact_boundary_diagnostic": {
+    "evidence": "notes/generic_graph_implementation/evidence/342_new_negative_boundary_diagnostic.log",
+    "passed": 3,
+    "exit": 0
+  },
+  "same_api_gate": {
+    "evidence": "notes/generic_graph_implementation/evidence/344_bounded_fd_same_api_focused.log",
+    "passed": 1,
+    "exit": 0
+  },
+  "shared_assets": "all 16 unchanged from336 (sha256 -c)",
+  "recovery_gate": {
+    "evidence": "notes/generic_graph_implementation/evidence/343_actual_child_transition_regression_focused.log",
+    "passed": 8,
+    "executed": 8,
+    "skipped": 0,
+    "exit": 0,
+    "actual_child_identity_matches": 2,
+    "serialized": true,
+    "deadline_seconds": 30
+  },
+  "native_public_gate": {
+    "log": "notes/generic_graph_implementation/evidence/344_bounded_fd_native_public_focused.log",
+    "exit_sidecar": "notes/generic_graph_implementation/evidence/344_bounded_fd_native_public_focused.exit",
+    "executed": 4,
+    "passed": 4,
+    "skipped": 0,
+    "exit": 0,
+    "sample_dir": "/tmp/scwb-native-graph-public-samples-341"
+  },
+  "qualification": false,
+  "open_work": [
+    "independent review",
+    "large legacy certificate bounded collector",
+    "full final qualification"
+  ]
+}

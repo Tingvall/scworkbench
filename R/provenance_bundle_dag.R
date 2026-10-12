@@ -680,7 +680,7 @@ wb_prov_bundle_dag <- function(bundle,
     run_edges_src <- run_edges_src[as.character(run_edges_src$snapshot_id) %in% sid_filter, , drop = FALSE]
   }
 
-  arts <- wb_art_list(bundle, include_history = TRUE)
+  arts <- .wb_getter_provenance_artifact_registry(bundle)
   if (!is.data.frame(arts)) arts <- data.frame(stringsAsFactors = FALSE)
   if (has_sid_filter && nrow(arts) && "provenance_snapshot_id" %in% names(arts)) {
     keep_sid <- is.na(arts$provenance_snapshot_id) | !nzchar(as.character(arts$provenance_snapshot_id)) |
