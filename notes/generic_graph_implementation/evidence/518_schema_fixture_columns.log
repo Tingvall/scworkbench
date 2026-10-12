@@ -1,0 +1,15 @@
+artifact_labels 
+  cid            name    type notnull dflt_value pk
+1   0     artifact_id    TEXT       1         NA  1
+2   1         cell_id    TEXT       1         NA  2
+3   2           label    TEXT       1         NA  0
+4   3      value_type    TEXT       0         NA  0
+5   4       value_num    REAL       0         NA  0
+6   5 payload_ordinal INTEGER       0         NA  0
+artifact_pseudotime 
+  cid            name    type notnull dflt_value pk
+1   0     artifact_id    TEXT       1         NA  1
+2   1         cell_id    TEXT       1         NA  2
+3   2      lineage_id    TEXT       1         NA  3
+4   3      pseudotime    REAL       0         NA  0
+5   4 payload_ordinal INTEGER       0         NA  0

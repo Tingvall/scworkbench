@@ -1,0 +1,15 @@
+{
+  "run": 516,
+  "core_commit": "b1d9450b42b00c1add693fe9fd60e4dcd4f9f8ed",
+  "exit": 1,
+  "discovered": 39,
+  "passed": 36,
+  "failures": [
+    "FAIL test_central_schema_foreign_key_closure_contract -- identical(as.character(after$name), layouts[[table]]) is not TRUE",
+    "FAIL test_central_schema_migration_foreign_keys_contract -- identical(as.character(after$name), layouts[[table]]) is not TRUE",
+    "FAIL test_generated_document_linked_worktree_revision_contract -- identical(result$status, 0L) is not TRUE"
+  ],
+  "skipped": 0,
+  "qualification": false,
+  "scope": "Two fixture helper assertions plus actual stale generated schema reference; other helper/parser/native identity tests retain narrow PASS attribution"
+}

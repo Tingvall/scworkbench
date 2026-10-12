@@ -2,7 +2,13 @@
 # Preserve every historical payload column, constraint and row; production
 # migrations retain their exact historical-layout guard.
 fixture_restore_pre_graph_payload_layout <- function(con) {
-  layouts <- list(artifact_labels = c("artifact_id", "cell_id", "label"),
+  # artifacts_schema.R historically supports both string-only labels and the
+  # additive typed-scalar value_type/value_num form. Preserve whichever exists.
+  labels <- as.character(DBI::dbGetQuery(con, "PRAGMA table_info(artifact_labels);")$name)
+  labels <- labels[labels != "payload_ordinal"]
+  stopifnot(identical(labels, c("artifact_id", "cell_id", "label")) ||
+    identical(labels, c("artifact_id", "cell_id", "label", "value_type", "value_num")))
+  layouts <- list(artifact_labels = labels,
     artifact_pseudotime = c("artifact_id", "cell_id", "lineage_id", "pseudotime"))
   for (table in names(layouts)) {
     before <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", table, ");"))

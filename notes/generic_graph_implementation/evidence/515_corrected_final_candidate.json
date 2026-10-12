@@ -1,0 +1,9 @@
+{
+  "core_commit": "b1d9450b42b00c1add693fe9fd60e4dcd4f9f8ed",
+  "python_commit": "e724f55f709c5f1f3e99e1afc5cf83301c7a86bd",
+  "candidate": "/tmp/scwb-graph-final-corrected-515.qnyb2b4t",
+  "source": "/tmp/scwb-graph-final-corrected-515.qnyb2b4t/source",
+  "library": "/tmp/scwb-graph-final-corrected-515.qnyb2b4t/library",
+  "archive_sha256": "efcfbf1478e1dfdf69e0034907526485877da8059f54bd6525b5549670384110",
+  "qualification": false
+}

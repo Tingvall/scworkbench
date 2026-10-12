@@ -18,10 +18,19 @@ generate_schema_catalog <- function(root = ".", output = file.path(root, "docs",
     )
   }
   inventory <- do.call(rbind, rows)
-  # Migration-only replacement tables are never part of the durable schema.
-  inventory <- inventory[!startsWith(inventory$table, "__wb_"), , drop = FALSE]
+  # Source files also declare owned scratch tables. Only the actual fresh
+  # bundle schema determines durable membership; every such table must have
+  # one unambiguous source declaration. Never hide a missing durable annotation.
+  scratch <- tempfile("scwb_schema_catalog_")
+  scratch_bundle <- wb_init_bundle(scratch, overwrite = TRUE)
+  on.exit({
+    if (!is.null(scratch_bundle)) try(wb_close_bundle(scratch_bundle), silent = TRUE)
+    unlink(scratch, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+  durable_tables <- sort(DBI::dbListTables(scratch_bundle$con))
+  inventory <- inventory[inventory$table %in% durable_tables, , drop = FALSE]
   inventory <- inventory[order(inventory$table), , drop = FALSE]
-  stopifnot(!anyDuplicated(inventory$table))
+  stopifnot(!anyDuplicated(inventory$table), identical(inventory$table, durable_tables))
   constrained <- names(scworkbench:::.wb_schema_foreign_key_definitions())
   migrations <- scworkbench:::.wb_bundle_schema_migrations()
   migration_lines <- vapply(migrations, function(x) {
@@ -44,14 +53,8 @@ generate_schema_catalog <- function(root = ".", output = file.path(root, "docs",
   # Exhaustively discover identifier-shaped durable columns from the actual
   # current schema. Every child occurrence must be classified above; the only
   # exclusions are the explicit row-owned primary identities below.
-  scratch <- tempfile("scwb_schema_catalog_")
-  scratch_bundle <- wb_init_bundle(scratch, overwrite = TRUE)
-  on.exit({
-    try(wb_close_bundle(scratch_bundle), silent = TRUE)
-    unlink(scratch, recursive = TRUE, force = TRUE)
-  }, add = TRUE)
   candidates <- character()
-  for (table in sort(DBI::dbListTables(scratch_bundle$con))) {
+  for (table in durable_tables) {
     fields <- DBI::dbGetQuery(
       scratch_bundle$con, paste0("PRAGMA table_info(", DBI::dbQuoteIdentifier(scratch_bundle$con, table), ");")
     )$name

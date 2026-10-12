@@ -1,0 +1,106 @@
+CORRECTED_FOCUS discovered=39
+RUN test_central_schema_foreign_key_closure_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+FAIL test_central_schema_foreign_key_closure_contract -- identical(as.character(after$name), layouts[[table]]) is not TRUE
+RUN test_normalized_membership_deep_validation_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS test_normalized_membership_deep_validation_contract (7.338s)
+RUN test_central_schema_migration_foreign_keys_contract [test_central_schema_migration_foreign_keys_contract.R; self_contained]
+FAIL test_central_schema_migration_foreign_keys_contract -- identical(as.character(after$name), layouts[[table]]) is not TRUE
+RUN test_durable_session_generation_recovery_contract [test_durable_session_generation_recovery_contract.R; self_contained]
+PASS test_durable_session_generation_recovery_contract (52.100s)
+RUN test_durable_session_source_payload_corruption_contract [test_durable_session_source_payload_corruption_contract.R; self_contained]
+PASS test_durable_session_source_payload_corruption_contract (43.721s)
+RUN test_generated_document_child_failure_cleanup_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_child_failure_cleanup_contract (3.598s)
+RUN test_generated_document_linked_worktree_revision_contract [test_generated_document_revision_contract.R; self_contained]
+FAIL test_generated_document_linked_worktree_revision_contract -- identical(result$status, 0L) is not TRUE
+RUN test_generated_document_stale_linked_revision_rejected_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_stale_linked_revision_rejected_contract (36.087s)
+RUN test_graph_bounded_legacy_metadata_fault_cleanup_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_metadata_fault_cleanup_contract (8.346s)
+RUN test_graph_bounded_legacy_public_certificate_parity_and_cache_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_public_certificate_parity_and_cache_contract (143.299s)
+RUN test_graph_bounded_legacy_refs_parser_and_fileless_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_refs_parser_and_fileless_contract (0.026s)
+RUN test_graph_bounded_legacy_structure_transformation_admission_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_structure_transformation_admission_contract (29.164s)
+RUN test_graph_native_matrix_bounded_storage_axis_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+GRAPH_NATIVE_STORAGE_AXIS named_col col packed-uint-matrix-v2 PASS
+GRAPH_NATIVE_STORAGE_AXIS named_row row unpacked-double-matrix-v2 PASS
+GRAPH_NATIVE_STORAGE_AXIS unnamed col packed-double-matrix-v2 PASS
+PASS test_graph_native_matrix_bounded_storage_axis_contract (0.024s)
+RUN test_graph_native_matrix_fragment_identity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_fragment_identity_contract (0.398s)
+RUN test_graph_native_matrix_incremental_text_and_axis_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_incremental_text_and_axis_contract (0.327s)
+RUN test_graph_native_matrix_overlapping_fragment_getter_parity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PASS test_graph_native_matrix_overlapping_fragment_getter_parity_contract (6.089s)
+RUN test_graph_native_matrix_physical_and_membership_verification_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_physical_and_membership_verification_contract (6.018s)
+RUN test_graph_native_matrix_streaming_text_identity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_streaming_text_identity_contract (0.028s)
+RUN test_graph_native_matrix_tree_identity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+GRAPH_NATIVE_TREE_PARITY C 12 entries
+GRAPH_NATIVE_TREE_PARITY C.UTF-8 12 entries
+PASS test_graph_native_matrix_tree_identity_contract (0.035s)
+RUN test_graph_source_connection_budget_purity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_source_connection_budget_purity_contract (0.012s)
+RUN test_graph_bounded_transport_seal_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_bounded_transport_seal_contract (0.944s)
+RUN test_graph_content_frozen_identity_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_content_frozen_identity_contract (0.028s)
+RUN test_graph_decoded_partition_budget_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_decoded_partition_budget_contract (0.107s)
+RUN test_graph_factory_failure_cleanup_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_factory_failure_cleanup_contract (0.002s)
+RUN test_graph_hidden_row_closure_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_hidden_row_closure_contract (0.139s)
+RUN test_graph_igraph_lossless_boundary_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_igraph_lossless_boundary_contract (0.348s)
+RUN test_graph_padded_edge_byte_admission_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_padded_edge_byte_admission_contract (0.224s)
+RUN test_graph_sdk_collect_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sdk_collect_contract (0.093s)
+RUN test_graph_sql_binding_descriptor_frozen_identity_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_binding_descriptor_frozen_identity_contract (6.955s)
+RUN test_graph_sql_stream_identity_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_stream_identity_contract (0.782s)
+RUN test_graph_sql_transaction_roundtrip_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_transaction_roundtrip_contract (5.396s)
+RUN test_graph_typed_missing_values_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_typed_missing_values_contract (0.002s)
+RUN test_historical_nullable_schema_unexpected_column_rejects_contract [test_historical_nullable_schema_layout_contract.R; self_contained]
+PASS test_historical_nullable_schema_unexpected_column_rejects_contract (0.007s)
+RUN test_manifest_stream_extended_types_and_mixed_blob_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_extended_types_and_mixed_blob_contract (0.408s)
+RUN test_manifest_stream_huge_single_text_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_huge_single_text_contract (1.162s)
+RUN test_manifest_stream_late_mutation_and_transaction_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_late_mutation_and_transaction_contract (0.021s)
+RUN test_manifest_stream_logical_chunk_boundary_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_logical_chunk_boundary_contract (0.329s)
+RUN test_manifest_stream_scalar_and_sql_type_parity_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_scalar_and_sql_type_parity_contract (0.378s)
+RUN test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract (31.264s)
+CONTRACT TEST SUMMARY files=10 discovered=39 executed=39 passed=36 skipped=0 failed=3 excluded=0 accounted=39
+Warning messages:
+1: In connection_release(conn@ptr) : Already disconnected
+2: call dbDisconnect() when finished working with a connection 
+3: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpOIhkZ1/scwb_durable_generation_root_8d4642879aa57/generation_case/checkpoints/g_20261012125248.931598_578660-20261012125248.931623-RRhARDhQMQmgzA81PfnELuMU/session.json': No such file or directory
+4: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpOIhkZ1/scwb_durable_generation_root_8d4642879aa57/generation_case/checkpoints/g_20261012125253.151124_578660-20261012125253.151150-ymgoVsYkTGFhxY3LQUJJ3xNZ/session.json': No such file or directory
+5: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpOIhkZ1/scwb_durable_generation_root_8d4642879aa57/generation_case/checkpoints/g_partial/session.json': No such file or directory
+6: Closing open result set, pending rows 
+7: Expired, result set already closed 
+Error: Contract suite failed:
+- test_central_schema_foreign_key_closure_contract [test_central_schema_foreign_key_closure_contract.R]: identical(as.character(after$name), layouts[[table]]) is not TRUE
+- test_central_schema_migration_foreign_keys_contract [test_central_schema_migration_foreign_keys_contract.R]: identical(as.character(after$name), layouts[[table]]) is not TRUE
+- test_generated_document_linked_worktree_revision_contract [test_generated_document_revision_contract.R]: identical(result$status, 0L) is not TRUE
+Execution halted
