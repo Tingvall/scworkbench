@@ -1,0 +1,2 @@
+DEPENDENCY_REPRO local predicate require FAIL: the condition has length > 1 
+DEPENDENCY_REPRO same predicate renamed assert_json PASS; no dependency or runtime change

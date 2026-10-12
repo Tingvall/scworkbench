@@ -16,7 +16,7 @@
     n <- length(frames);frame <- frames[[n]]
     if(!frame$first)append(',')
     if(frame$type=='object') {
-      append(as.character(jsonlite::toJSON(tail(path,1L),auto_unbox=TRUE)));append(':')
+      append(as.character(jsonlite::toJSON(utils::tail(path,1L),auto_unbox=TRUE)));append(':')
     }
     frames[[n]]$first <<- FALSE
   }

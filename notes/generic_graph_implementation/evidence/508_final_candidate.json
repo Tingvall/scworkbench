@@ -1,0 +1,11 @@
+{
+  "core_commit": "07882c728c19af4850958c1e89a15aaa491bad29",
+  "python_commit": "bb0e319316fb5585d83936e7846531773a3432f5",
+  "candidate": "/tmp/scwb-graph-final-508.3ude86tr",
+  "source": "/tmp/scwb-graph-final-508.3ude86tr/source",
+  "library": "/tmp/scwb-graph-final-508.3ude86tr/library",
+  "source_files": 1095,
+  "source_ledger_sha256": "13579ed3682c55ce7790d5a52b9d8e0c45349c74a8f863ad8730768feb5b3a4d",
+  "archive_sha256": "118b3dc1ff178b16874189621477e772bf8b5368b96cb4a5936c024ee4964776",
+  "qualification": false
+}

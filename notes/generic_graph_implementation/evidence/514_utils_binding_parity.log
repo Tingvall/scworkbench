@@ -1,0 +1,3 @@
+tail same_utils_binding= TRUE 
+getFromNamespace same_utils_binding= TRUE 
+object.size same_utils_binding= TRUE 

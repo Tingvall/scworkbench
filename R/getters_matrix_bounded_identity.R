@@ -29,7 +29,7 @@
       pending <<- c(pending, chunk)
     }
     # BPCells binaryfile.cpp readLines() removes one trailing CR, including at EOF.
-    if (length(line) && tail(line, 1L) == as.raw(13L)) line <- head(line, -1L)
+    if (length(line) && utils::tail(line, 1L) == as.raw(13L)) line <- head(line, -1L)
     .wb_graph_require(length(line) <= maximum && !any(line == as.raw(0)),
       "GRAPH_SOURCE_PAYLOAD_INVALID", "Matrix storage axis contains oversized/NUL names.")
     value <- rawToChar(line)

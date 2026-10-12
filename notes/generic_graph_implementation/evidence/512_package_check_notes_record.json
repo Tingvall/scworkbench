@@ -1,0 +1,15 @@
+{
+  "build510_exit": 0,
+  "check511_exit": 0,
+  "errors": 0,
+  "warnings": 0,
+  "notes": 3,
+  "note_details": [
+    "installed size12.3MB: protocol4.2MB/R4.4MB/SDK1.1MB",
+    "R tools dependency scanner misclassifies local require predicate;512 minimal repro proves rename fixes scanner",
+    "new helpers omit utils qualification for tail/getFromNamespace/object.size"
+  ],
+  "qualification": false,
+  "full_core509": "RUNNING",
+  "proposed_correction": "After509 terminal: local predicate rename plus explicit utils qualification; affected helpers/parser/package checks, preserve parent full attribution"
+}

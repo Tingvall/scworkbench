@@ -207,7 +207,7 @@
     }
     expect(end,emit)
   }
-  normalize <- getFromNamespace("null_to_na","jsonlite")
+  normalize <- utils::getFromNamespace("null_to_na","jsonlite")
   atomic <- function(type,emit,rank,collect=FALSE) {
     if(type=="character" && token$type %in% c("string_part","string_end")) {
       if(rank<3L && token$type=="string_end" && token$value %in% c("NA","NaN","Inf","-Inf")) {

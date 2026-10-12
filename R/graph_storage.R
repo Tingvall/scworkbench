@@ -467,7 +467,7 @@
   .wb_graph_require(!is.na(index) && index >= state$component,
     "GRAPH_PART_ORDER_INVALID", "Components cannot be repeated or reordered.")
   rows <- .wb_graph_records(rows)
-  .wb_graph_require(as.numeric(object.size(rows)) <= as.numeric(state$budgets$memory_bytes),
+  .wb_graph_require(as.numeric(utils::object.size(rows)) <= as.numeric(state$budgets$memory_bytes),
     "GRAPH_RESOURCE_EXCEEDED", "Decoded graph part exceeds working-memory admission.")
   .wb_graph_require(length(rows) <= state$budgets$partition_rows,
     "GRAPH_RESOURCE_EXCEEDED", "Partition row budget exceeded.")

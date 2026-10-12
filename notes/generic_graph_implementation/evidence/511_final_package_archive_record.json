@@ -1,0 +1,8 @@
+{
+  "tarball": "/tmp/scwb-graph-final-508.3ude86tr/scworkbench_0.1.0.tar.gz",
+  "sha256": "0efe28eaadc634dad684d7e1c155c923a7ff94be1c07ee589f52ba4672e4895a",
+  "development_notes_excluded": true,
+  "sdk_protocol_required_test_assets_included": true,
+  "members": 1267,
+  "qualification": false
+}

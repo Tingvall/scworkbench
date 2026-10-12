@@ -117,7 +117,7 @@
     batch <- DBI::dbFetch(query, n = as.integer(chunk_size))
     if (!nrow(batch)) break
     n <- n + nrow(batch)
-    after <- bit64::as.integer64(tail(batch[[1L]], 1L))
+    after <- bit64::as.integer64(utils::tail(batch[[1L]], 1L))
     rows <- batch[seq.int(2L, nrow(fields) + 1L)]
     names(rows) <- fields$name
     if (!is.null(prototypes)) for (j in seq_len(nrow(fields))) {

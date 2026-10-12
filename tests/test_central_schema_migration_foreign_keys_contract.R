@@ -108,6 +108,8 @@ test_central_schema_migration_foreign_keys_contract <- function() {
   .schema14_copy_bundle(fresh_path, readonly_old)
   old_con <- DBI::dbConnect(RSQLite::SQLite(), file.path(readonly_old, "db", "app.sqlite"))
   DBI::dbExecute(old_con, "PRAGMA journal_mode=DELETE;")
+  source("tests/fixtures/historical_schema_payload_order_support.R", local = TRUE)
+  fixture_restore_pre_graph_payload_layout(old_con)
   DBI::dbExecute(old_con, "DROP TABLE bundle_schema_migrations;")
   DBI::dbDisconnect(old_con)
   before_hash <- digest::digest(file.path(readonly_old, "db", "app.sqlite"), file = TRUE, algo = "sha256")

@@ -1,0 +1,22 @@
+{
+  "run": 509,
+  "core_commit": "07882c728c19af4850958c1e89a15aaa491bad29",
+  "numeric_exit": 1,
+  "status": "STOPPED_INVALID_HARNESS_WITH_DISTINCT_SCHEMA_FAILURES",
+  "partial_started": 50,
+  "partial_passed": 42,
+  "partial_failures": [
+    "FAIL test_central_schema_foreign_key_closure_contract -- Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpiIi6gM/scwb_schema14a_8a98d2b9b5ac8/.historical-v3.bundle.schema-backups/app.sqlite.v3-to-v11.20261012T122724.514342-567693-xivv1zol31af.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns.",
+    "FAIL test_central_schema_migration_foreign_keys_contract -- Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpiIi6gM/scwb_schema14_8a98d5230c6eb/.readonly-old.bundle.schema-backups/app.sqlite.v0-to-v11.20261012T122759.473424-567693-c5yt8l90pqs7.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns.",
+    "FAIL test_durable_session_generation_recovery_contract -- grepl(\"post-publication\", as.character(post), fixed = TRUE) is not TRUE",
+    "FAIL test_durable_session_source_payload_corruption_contract -- could not find function \".wb_session_source_identity\"",
+    "FAIL test_generated_document_child_failure_cleanup_contract -- Command failed with status 128",
+    "FAIL test_generated_document_linked_worktree_revision_contract -- Command failed with status 128",
+    "FAIL test_generated_document_stale_linked_revision_rejected_contract -- Command failed with status 128"
+  ],
+  "private_helper_namespace_error": true,
+  "schema_failure_cause": "Under focused diagnosis; do not blanket classify as harness",
+  "stopped_verified_pid": 567693,
+  "direct_children_at_stop": 0,
+  "qualification": false
+}

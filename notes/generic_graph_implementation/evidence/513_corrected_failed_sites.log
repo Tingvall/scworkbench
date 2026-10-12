@@ -1,0 +1,21 @@
+CORRECTED_SITE START test_central_schema_foreign_key_closure_contract 
+CORRECTED_SITE FAIL test_central_schema_foreign_key_closure_contract Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpTT42lp/scwb_schema14a_8cd133d824e29/.historical-v3.bundle.schema-backups/app.sqlite.v3-to-v11.20261012T124205.691727-576787-fnw4pnsydokw.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns. 
+CORRECTED_SITE START test_central_schema_migration_foreign_keys_contract 
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+CORRECTED_SITE FAIL test_central_schema_migration_foreign_keys_contract Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpTT42lp/scwb_schema14_8cd136c3ffbee/.readonly-old.bundle.schema-backups/app.sqlite.v0-to-v11.20261012T124220.895516-576787-4gszy7b7gqm4.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns. 
+CORRECTED_SITE START test_durable_session_generation_recovery_contract 
+CORRECTED_SITE PASS test_durable_session_generation_recovery_contract  
+CORRECTED_SITE START test_durable_session_source_payload_corruption_contract 
+CORRECTED_SITE PASS test_durable_session_source_payload_corruption_contract  
+Warning messages:
+1: call dbDisconnect() when finished working with a connection 
+2: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpTT42lp/scwb_durable_generation_root_8cd1314855428/generation_case/checkpoints/g_20261012124231.372448_576787-20261012124231.372471-I81VhRAf29BAeL6gDPeDz7ey/session.json': No such file or directory
+3: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpTT42lp/scwb_durable_generation_root_8cd1314855428/generation_case/checkpoints/g_20261012124235.021920_576787-20261012124235.021958-GDxpHC2FQnMsBrO06EGRz89z/session.json': No such file or directory
+4: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpTT42lp/scwb_durable_generation_root_8cd1314855428/generation_case/checkpoints/g_partial/session.json': No such file or directory
+Error: all(vapply(results, function(value) value$pass, logical(1))) is not TRUE
+Execution halted

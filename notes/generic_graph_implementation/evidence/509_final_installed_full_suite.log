@@ -1,0 +1,156 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+golden_bundle=/tmp/scwb-graph-final-508.3ude86tr/golden.bundle
+FINAL_INSTALLED_CORE discovered=332 files=169
+RUN test_analysis_capsule_atomicity_security_contract [test_analysis_capsule_atomicity_security_contract.R; self_contained]
+PASS test_analysis_capsule_atomicity_security_contract (52.746s)
+RUN test_analysis_capsule_documentation_policy_contract [test_analysis_capsule_documentation_policy_contract.R; self_contained]
+PASS test_analysis_capsule_documentation_policy_contract (0.081s)
+RUN test_analysis_capsule_process_death_contract [test_analysis_capsule_process_death_contract.R; self_contained]
+PASS test_analysis_capsule_process_death_contract (49.477s)
+RUN test_analysis_capsule_r_source_review_closure_contract [test_analysis_capsule_r_source_review_closure_contract.R; self_contained]
+PASS test_analysis_capsule_r_source_review_closure_contract (22.744s)
+RUN test_analysis_capsule_recipient_validation_contract [test_analysis_capsule_recipient_validation_contract.R; self_contained]
+PASS test_analysis_capsule_recipient_validation_contract (51.297s)
+RUN test_analysis_capsule_tamper_validation_contract [test_analysis_capsule_recipient_validation_contract.R; self_contained]
+PASS test_analysis_capsule_tamper_validation_contract (127.813s)
+RUN test_analysis_capsule_registration_contract [test_analysis_capsule_registration_contract.R; self_contained]
+PASS test_analysis_capsule_registration_contract (41.164s)
+RUN test_artifact_naming_contract [test_artifact_naming_contract.R; isolated_bundle]
+PASS test_artifact_naming_contract (13.915s)
+RUN test_atomic_authoritative_manifest_contract [test_atomic_authoritative_manifest_contract.R; self_contained]
+PASS test_atomic_authoritative_manifest_contract (40.590s)
+RUN test_attach_adapters_contract [test_attach_adapters_contract.R; isolated_bundle]
+PASS test_attach_adapters_contract (6.701s)
+RUN test_auditable_transformation_onboarding_law_contract [test_auditable_transformation_onboarding_law_contract.R; self_contained]
+PASS test_auditable_transformation_onboarding_law_contract (0.003s)
+RUN test_bundle_ingest_containers_contract [test_bundle_ingest_containers_contract.R; isolated_bundle]
+Registered S3 method overwritten by 'zellkonverter':
+  method                                             from      
+  py_to_r.pandas.core.arrays.categorical.Categorical reticulate
+Skipping H5AD round-trip contract checks; set SCWORKBENCH_TEST_H5AD=1 in a provisioned zellkonverter runtime.
+10x_mtx: initializing staged bundle
+10x_mtx: defining 4 cells
+10x_mtx: cell definition complete
+10x_mtx: initializing matrix registry for RNA_counts
+10x_mtx: feature registry complete
+10x_mtx: importing library 1/2 (R1_Pupa)
+10x_mtx: registered library 1/2 (R1_Pupa)
+10x_mtx: importing library 2/2 (R2_Nurse)
+10x_mtx: registered library 2/2 (R2_Nurse)
+10x_mtx: initializing staged bundle
+10x_mtx: defining 2 cells
+10x_mtx: cell definition complete
+10x_mtx: initializing matrix registry for RNA_counts
+10x_mtx: feature registry complete
+10x_mtx: importing library 1/1 (R1_Pupa)
+10x_mtx: registered library 1/1 (R1_Pupa)
+10x_mtx: initializing staged bundle
+10x_mtx: defining 2 cells
+10x_mtx: cell definition complete
+10x_mtx: initializing matrix registry for RNA_counts
+10x_mtx: feature registry complete
+10x_mtx: importing library 1/1 (sample_dup)
+10x_mtx: registered library 1/1 (sample_dup)
+PASS test_bundle_ingest_containers_contract (124.526s)
+RUN test_bundle_path_containment_trust_boundary_contract [test_bundle_path_containment_trust_boundary_contract.R; self_contained]
+PASS test_bundle_path_containment_trust_boundary_contract (43.811s)
+RUN test_object_primitive_family_durable_roundtrip_contract [test_cell_vector_durable_identity_roundtrip_contract.R; self_contained]
+PASS test_object_primitive_family_durable_roundtrip_contract (11.619s)
+RUN test_central_schema_foreign_key_closure_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+FAIL test_central_schema_foreign_key_closure_contract -- Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpiIi6gM/scwb_schema14a_8a98d2b9b5ac8/.historical-v3.bundle.schema-backups/app.sqlite.v3-to-v11.20261012T122724.514342-567693-xivv1zol31af.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns.
+RUN test_normalized_membership_deep_validation_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+PASS test_normalized_membership_deep_validation_contract (12.299s)
+RUN test_central_schema_migration_foreign_keys_contract [test_central_schema_migration_foreign_keys_contract.R; self_contained]
+FAIL test_central_schema_migration_foreign_keys_contract -- Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpiIi6gM/scwb_schema14_8a98d5230c6eb/.readonly-old.bundle.schema-backups/app.sqlite.v0-to-v11.20261012T122759.473424-567693-c5yt8l90pqs7.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns.
+RUN test_compute_profile_contract [test_compute_profile_contract.R; self_contained]
+PASS test_compute_profile_contract (0.000s)
+RUN test_container_release_hygiene_contract [test_container_release_hygiene_contract.R; self_contained]
+Runtime license inventory: OK (2 components; profile=files-only)
+License evidence digest mismatch for Triton: expected=92640fb97222fd0a698ff28ce0c3782c172623f8d6c609b557636a80f28fb946 observed=bb3642503e0bb5ca22a557574037d623cfb5c9252fc11a9bc2d80db21898d70f path=/tmp/RtmpiIi6gM/container_license_inventory_8a98d710951a/Triton/LICENSE
+Container source hygiene: OK
+Container source tree contains prohibited Git metadata: /tmp/RtmpiIi6gM/container_source_hygiene_8a98d1cbf6f1c/.git
+Container source tree contains prohibited Git metadata: /tmp/RtmpiIi6gM/container_source_hygiene_8a98d1cbf6f1c/nested/.git
+Container source tree contains prohibited Git metadata: /tmp/RtmpiIi6gM/container_source_hygiene_8a98d1cbf6f1c/.git
+PASS test_container_release_hygiene_contract (0.143s)
+RUN test_contract_catalogs_semantic [test_contract_catalogs_semantic.R; self_contained]
+PASS test_contract_catalogs_semantic (0.031s)
+RUN test_contract_runner_discovery_contract [test_contract_runner_discovery_contract.R; self_contained]
+PASS test_contract_runner_discovery_contract (0.110s)
+RUN test_deep_bundle_integrity_validation_closure_contract [test_deep_bundle_integrity_validation_contract.R; self_contained]
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PASS test_deep_bundle_integrity_validation_closure_contract (132.428s)
+RUN test_deep_bundle_integrity_validation_contract [test_deep_bundle_integrity_validation_contract.R; self_contained]
+PASS test_deep_bundle_integrity_validation_contract (105.182s)
+RUN test_derived_cell_set_lifecycle_contract [test_derived_cell_set_lifecycle_contract.R; self_contained]
+PASS test_derived_cell_set_lifecycle_contract (28.434s)
+RUN test_docker_release_engineering_contract [test_docker_release_engineering_contract.R; self_contained]
+PASS test_docker_release_engineering_contract (0.093s)
+RUN test_documentation_source_package_curation_contract [test_documentation_source_package_curation_contract.R; self_contained]
+PASS test_documentation_source_package_curation_contract (0.574s)
+RUN test_durable_resumable_sessions_contract [test_durable_resumable_sessions_contract.R; self_contained]
+PASS test_durable_resumable_sessions_contract (48.897s)
+RUN test_durable_session_dependent_branch_contract [test_durable_session_dependent_branch_contract.R; self_contained]
+PASS test_durable_session_dependent_branch_contract (46.198s)
+RUN test_durable_session_generation_recovery_contract [test_durable_session_generation_recovery_contract.R; self_contained]
+FAIL test_durable_session_generation_recovery_contract -- grepl("post-publication", as.character(post), fixed = TRUE) is not TRUE
+RUN test_durable_session_source_payload_corruption_contract [test_durable_session_source_payload_corruption_contract.R; self_contained]
+FAIL test_durable_session_source_payload_corruption_contract -- could not find function ".wb_session_source_identity"
+RUN test_durable_session_subprocess_recovery_contract [test_durable_session_subprocess_recovery_contract.R; self_contained]
+DURABLE_ACTUAL_CHILD_IDENTITY package=/tmp/scwb-graph-final-508.3ude86tr/library/scworkbench dll_sha256=bf2055612d6dd97335ad59728646c857f18a9828153ffe7ff0af7a426ddee593 bodies=wb_session_open:35a4eb918280c1226e729509c69f250b124dc6565dc068e9b4c58b8e5067697b,wb_session_resume:a3956b9cc7282d018d5a980ce31b965c72635240fef18931c9b85b5ca189553f,wb_session_run_op:c3c891d819bfa395959b1934c5aa853cb9e516abc5a02cfbfb6783436d805c9e,.wb_session_stage_bundle:b5bcf7289ad0c712bb40011524b484596745d92b9bed5fc24992071353dcfd86,.wb_session_stage_open:cd4bd501d50d0e78f1881a102e715efca3a7126d89273553e8c466e0527b28a2,.wb_graph_disk_admit:83ab58c13c2edb421f6c3db73f40f4beb6b32494d895d7e9b8d2b9ae6a1e9cca MATCH
+DURABLE_ACTUAL_CHILD_IDENTITY package=/tmp/scwb-graph-final-508.3ude86tr/library/scworkbench dll_sha256=bf2055612d6dd97335ad59728646c857f18a9828153ffe7ff0af7a426ddee593 bodies=wb_session_open:35a4eb918280c1226e729509c69f250b124dc6565dc068e9b4c58b8e5067697b,wb_session_resume:a3956b9cc7282d018d5a980ce31b965c72635240fef18931c9b85b5ca189553f,wb_session_run_op:c3c891d819bfa395959b1934c5aa853cb9e516abc5a02cfbfb6783436d805c9e,.wb_session_stage_bundle:b5bcf7289ad0c712bb40011524b484596745d92b9bed5fc24992071353dcfd86,.wb_session_stage_open:cd4bd501d50d0e78f1881a102e715efca3a7126d89273553e8c466e0527b28a2,.wb_graph_disk_admit:83ab58c13c2edb421f6c3db73f40f4beb6b32494d895d7e9b8d2b9ae6a1e9cca MATCH
+PASS test_durable_session_subprocess_recovery_contract (53.001s)
+RUN test_exclusive_bundle_writer_lock_safety_closure_contract [test_exclusive_bundle_writer_lock_safety_closure_contract.R; self_contained]
+PASS test_exclusive_bundle_writer_lock_safety_closure_contract (0.006s)
+RUN test_session_wal_snapshot_contract [test_exclusive_bundle_writer_lock_safety_closure_contract.R; isolated_bundle]
+PASS test_session_wal_snapshot_contract (7.267s)
+RUN test_feature_selection_plan_contract [test_feature_selection_plan_contract.R; isolated_bundle]
+PASS test_feature_selection_plan_contract (4.600s)
+RUN test_feature_set_namespace_transfer_contract [test_feature_set_namespace_transfer_contract.R; self_contained]
+PASS test_feature_set_namespace_transfer_contract (22.650s)
+RUN test_feature_set_namespace_transfer_intersect_contract [test_feature_set_namespace_transfer_contract.R; self_contained]
+PASS test_feature_set_namespace_transfer_intersect_contract (9.501s)
+RUN test_feature_sets_contract [test_feature_sets_contract.R; isolated_bundle]
+PASS test_feature_sets_contract (9.334s)
+RUN test_file_backed_dense_space_corruption_contract [test_file_backed_dense_space_corruption_contract.R; self_contained]
+PASS test_file_backed_dense_space_corruption_contract (26.610s)
+RUN test_file_backed_dense_space_storage_contract [test_file_backed_dense_space_storage_contract.R; self_contained]
+PASS test_file_backed_dense_space_storage_contract (25.606s)
+RUN test_foundation_data_getters_selectors [test_foundation_data_getters_selectors.R; isolated_bundle]
+PASS test_foundation_data_getters_selectors (3.363s)
+RUN test_foundation_hardening_1to5 [test_foundation_hardening_1to5.R; isolated_bundle]
+PASS test_foundation_hardening_1to5 (19.626s)
+RUN test_fullstack_monocle3_dependency_closure_contract [test_fullstack_monocle3_dependency_closure_contract.R; self_contained]
+PASS test_fullstack_monocle3_dependency_closure_contract (0.026s)
+RUN test_geneprograms_extraction_contract [test_geneprograms_extraction_contract.R; self_contained]
+PASS test_geneprograms_extraction_contract (0.002s)
+RUN test_generated_document_child_failure_cleanup_contract [test_generated_document_revision_contract.R; self_contained]
+FAIL test_generated_document_child_failure_cleanup_contract -- Command failed with status 128
+fatal: not a git repository (or any of the parent directories): .git
+/usr/bin/git -C /tmp/scwb-graph-final-508.3ude86tr/source rev-parse --verify HEAD
+RUN test_generated_document_linked_worktree_revision_contract [test_generated_document_revision_contract.R; self_contained]
+FAIL test_generated_document_linked_worktree_revision_contract -- Command failed with status 128
+fatal: not a git repository (or any of the parent directories): .git
+/usr/bin/git -C /tmp/scwb-graph-final-508.3ude86tr/source rev-parse --verify HEAD
+RUN test_generated_document_stale_linked_revision_rejected_contract [test_generated_document_revision_contract.R; self_contained]
+FAIL test_generated_document_stale_linked_revision_rejected_contract -- Command failed with status 128
+fatal: not a git repository (or any of the parent directories): .git
+/usr/bin/git -C /tmp/scwb-graph-final-508.3ude86tr/source rev-parse --verify HEAD
+RUN test_getter_catalog_semantic_contract [test_getter_catalog_semantic_contract.R; self_contained]
+PASS test_getter_catalog_semantic_contract (0.026s)
+RUN test_graph_abi4_axis_source_declaration_contract [test_graph_abi4_admission_contract.R; self_contained]
+PASS test_graph_abi4_axis_source_declaration_contract (0.223s)
+RUN test_graph_abi4_closed_admission_contract [test_graph_abi4_admission_contract.R; self_contained]
+PASS test_graph_abi4_closed_admission_contract (0.109s)
+RUN test_graph_abi4_core_issued_request_contract [test_graph_abi4_admission_contract.R; self_contained]
+
+Warning messages:
+1: call dbDisconnect() when finished working with a connection 
+2: In connection_release(conn@ptr) : Already disconnected
+3: In connection_release(conn@ptr) : Already disconnected
+Execution halted
+Warning message:
+In connection_release(conn@ptr) :
+  There are 1 result in use. The connection will be released when they are closed
