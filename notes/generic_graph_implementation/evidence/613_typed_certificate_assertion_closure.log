@@ -1,0 +1,6 @@
+RUN test_typed_effective_cell_coverage_contract [test_typed_effective_cell_coverage_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS test_typed_effective_cell_coverage_contract (64.891s)
+CONTRACT TEST SUMMARY files=1 discovered=1 executed=1 passed=1 skipped=0 failed=0 excluded=0 accounted=1

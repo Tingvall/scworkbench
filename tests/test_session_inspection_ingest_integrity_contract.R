@@ -71,6 +71,7 @@ test_session_inspection_and_ingest_integrity_contract <- function() {
     identical(files_before, .session_inspection_regular_file_inventory(bundle_dir))
   )
 
+  wb_finalize_recipient_bundle(b)
   wb_close_bundle(b)
   b <- wb_open_bundle(bundle_dir, read_only = TRUE, validate = TRUE)
   read_only_state <- .wb_manifest_registry_snapshot(b$con)

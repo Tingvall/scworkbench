@@ -1,0 +1,18 @@
+lib <- "/tmp/scwb-final-585.ki8nvr4e/library"
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+root <- tempfile("recipient_finalized_file_modes_")
+b <- wb_init_bundle(root)
+wb_define_cells(b,paste0("c",1:12),metadata=data.frame(cell_id=paste0("c",1:12),reporter_signal=1:12))
+wb_finalize_recipient_bundle(b);wb_close_bundle(b)
+fingerprint <- function() {f <- sort(list.files(root,recursive=TRUE,all.files=TRUE,full.names=TRUE,no..=TRUE));f <- f[!dir.exists(f)];data.frame(path=substring(f,nchar(root)+2L),mode=as.character(file.info(f)$mode),size=file.info(f)$size,sha256=vapply(f,digest::digest,character(1),file=TRUE,algo="sha256",serialize=FALSE),row.names=NULL)}
+before <- fingerprint()
+b <- wb_open_bundle(root,read_only=TRUE,validate=TRUE)
+stopifnot(identical(before,fingerprint()))
+report <- wb_bundle_validation_report(root,"recipient")
+stopifnot(isTRUE(report$ok),identical(before,fingerprint()))
+wb_close_bundle(b)
+after <- fingerprint()
+stopifnot(identical(before,after))
+saveRDS(list(before=before,after=after,report=report),"notes/generic_graph_implementation/evidence/607_recipient_finalized_file_modes.rds")
+cat("PUBLIC_FINALIZED_RO_VALIDATE byte_size_mode_hashes_before_open_during_open_after_close=UNCHANGED recipient=PASS\n")
+unlink(root,recursive=TRUE)

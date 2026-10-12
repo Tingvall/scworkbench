@@ -1,0 +1,11 @@
+RUN test_session_inspection_and_ingest_integrity_contract [test_session_inspection_ingest_integrity_contract.R; self_contained]
+PASS test_session_inspection_and_ingest_integrity_contract (52.438s)
+RUN test_typed_effective_cell_coverage_contract [test_typed_effective_cell_coverage_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+FAIL test_typed_effective_cell_coverage_contract -- identical(wb_entity_certificate(b, "artifact", artifact_id)$identity$observed$sha256,  .... is not TRUE
+CONTRACT TEST SUMMARY files=2 discovered=2 executed=2 passed=1 skipped=0 failed=1 excluded=0 accounted=2
+Error: Contract suite failed:
+- test_typed_effective_cell_coverage_contract [test_typed_effective_cell_coverage_contract.R]: identical(wb_entity_certificate(b, "artifact", artifact_id)$identity$observed$sha256,  .... is not TRUE
+Execution halted

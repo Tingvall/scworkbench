@@ -1,0 +1,16 @@
+$ready
+[1] TRUE
+
+$journal_mode
+[1] "delete"
+
+$wal_path
+[1] "/tmp/RtmpNqXwst/recipient_finalized_file_modes_6ff91ac861ad/db/app.sqlite-wal"
+
+$shm_path
+[1] "/tmp/RtmpNqXwst/recipient_finalized_file_modes_6ff91ac861ad/db/app.sqlite-shm"
+
+$reason
+[1] "no WAL sidecars"
+
+PUBLIC_FINALIZED_RO_VALIDATE byte_size_mode_hashes_before_open_during_open_after_close=UNCHANGED recipient=PASS

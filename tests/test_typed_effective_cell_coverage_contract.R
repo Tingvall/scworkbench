@@ -146,9 +146,13 @@ test_typed_effective_cell_coverage_contract <- function() {
     identical(rr_run$run$inputs$coverage$per_input$b$overlap_n, 4L)
   )
 
-  artifact_id <- scworkbench:::.wb_promote_cell_vector(
-    bundle = b, run = source_run, out_name = "vector", prim = a, created_by = "test"
+  promoted_source <- wb_promote_analysis(
+    b, stats::setNames(list(source_run), source_run$run_id),
+    head_run_id = source_run$run_id, outputs = "vector", created_by = "test"
   )
+  artifact_id <- promoted_source$promoted$artifact_id[[1L]]
+  stopifnot(identical(wb_entity_certificate(b,"artifact",artifact_id)$identity$observed$content_sha256,
+    scworkbench:::.wb_prov_payload_identity(b,a)$content_sha256))
   rr_art <- wb_session_run_op(
     wb_session_new(), b, "scwbv2reference::two_table_terminal",
     inputs = list(a = wb_ref_artifact(artifact_id, "vector"), b = bvec,
