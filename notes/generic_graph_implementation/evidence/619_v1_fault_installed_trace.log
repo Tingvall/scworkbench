@@ -1,0 +1,15 @@
+Tracing function ".wb_graph_object_restore" in package
+"namespace:scworkbench"
+[1] ".wb_graph_object_restore"
+FAULT_ATTEMPT partial_nonzero 
+FAULT_ATTEMPT timeout 
+FAULT_ATTEMPT signal 
+FAULT_ATTEMPT forged_runtime 
+FAULT_ATTEMPT forged_receipt 
+FAULT_ATTEMPT incomplete_receipt 
+FAULT_ATTEMPT undeclared_file 
+FAULT_ATTEMPT undeclared_symlink 
+FAULT_ATTEMPT normal 
+FAULT_LEGITIMATE_RETRY
+Error: GRAPH_SOURCE_AUTHORITY_REQUIRED: Retained payload lacks independently issued provenance output evidence.
+Execution halted

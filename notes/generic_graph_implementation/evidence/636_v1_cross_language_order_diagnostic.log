@@ -1,0 +1,4 @@
+Error in eval(exprs[i], envir) : 
+  nrow(wb_operation_packs()) == 0L is not TRUE
+Calls: sys.source -> eval -> eval -> stopifnot
+Execution halted

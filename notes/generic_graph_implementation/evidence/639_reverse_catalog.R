@@ -1,0 +1,5 @@
+library(scworkbench)
+invisible(wb_operation_pack_load("scwbV2Reference"))
+invisible(wb_operation_pack_activate("/tmp/scwb-v1-vcs-python-614/lib/python3.11/site-packages/scwbpython/operation-pack.json",python="/tmp/scwb-v1-vcs-python-614/bin/python"))
+invisible(wb_operation_pack_load("scworkbenchOperationPackTemplate"))
+saveRDS(list(packs=wb_operation_packs(),catalog=wb_operation_catalog_identity()$sha256,semantic=wb_semantic_catalog()$catalog_sha256,order=c("v2","py","r")),"notes/generic_graph_implementation/evidence/639_reverse_catalog.rds")

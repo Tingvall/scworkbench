@@ -1,0 +1,335 @@
+diff --git a/R/artifacts_load.R b/R/artifacts_load.R
+index 57c049a..a083f51 100644
+--- a/R/artifacts_load.R
++++ b/R/artifacts_load.R
+@@ -1,64 +1,10 @@
+-# R/artifacts_load.R
+-# Load a promoted artifact back into a wb_primitive (kind-safe),
+-# using the *existing* migrate schema (no payload_json column needed).
+-
+-# ---- Main loader ----
+-#' Load a Promoted Artifact as a Primitive
+-#'
+-#' Reconstructs a typed primitive from the bundle-owned artifact registry and
+-#' payload tables. Consumers should use this function rather than reading
+-#' artifact payload tables directly.
+-#'
+-#' @param bundle Open `scworkbench_bundle`.
+-#' @param artifact_id Promoted artifact identifier.
+-#' @param expected_kind Optional expected primitive kind. When supplied, loading
+-#'   fails if the stored artifact has another kind.
+-#'
+-#' @param allow_untrusted_deserialization Explicitly allow R deserialization of
+-#'   a contained model payload that is not provenance-bound. This never permits
+-#'   an external, traversing, or symlink-escaping path.
+-#' @return A `wb_primitive` reconstructed from the promoted payload.
+-#' @export
+-wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
+-                        allow_untrusted_deserialization = FALSE) {
+-  con <- bundle$con
+-  .wb_assert(!is.null(con), "wb_art_load(): bundle$con is NULL (no DB connection).")
+-  artifact_id <- as.character(artifact_id)
+-  .wb_assert(nzchar(artifact_id), "wb_art_load(): artifact_id must be a non-empty string.")
+-
+-  art <- DBI::dbGetQuery(
+-    con,
+-    "SELECT artifact_id, type, name, source_op, input_space_id, input_matrix_id,
+-            cell_set, provenance_json
+-     FROM artifacts
+-     WHERE artifact_id = ?;",
+-    params = list(artifact_id)
+-  )
+-  if (nrow(art) != 1L) {
+-    # A session overlay is a point-in-time SQLite copy. Resolve only against
+-    # its explicitly recorded source bundle when a promoted artifact was
+-    # created after the overlay began; never search arbitrary paths.
+-    source_dir <- as.character(bundle$staging_source_dir %||% "")[1]
+-    if (nzchar(source_dir) && dir.exists(source_dir) &&
+-        !identical(normalizePath(source_dir, winslash = "/", mustWork = TRUE),
+-                   normalizePath(bundle$dir, winslash = "/", mustWork = TRUE))) {
+-      source_bundle <- wb_open_bundle(source_dir, validate = FALSE)
+-      on.exit(wb_close_bundle(source_bundle), add = TRUE)
+-      return(wb_art_load(source_bundle, artifact_id = artifact_id, expected_kind = expected_kind,
+-                         allow_untrusted_deserialization = allow_untrusted_deserialization))
+-    }
+-  }
+-  .wb_assert(nrow(art) == 1, paste0("wb_art_load(): artifact not found: ", artifact_id))
+-
+-  type <- as.character(art$type[[1]])
++# Shared getter decoding for retained artifacts and receipt-audited private
++# operation outputs. Decoding does not issue provenance or graph authority.
++.wb_artifact_cell_payload_decode <- function(con, art, artifact_id, type) {
++  .wb_assert(type %in% c("cell_vector", "cell_vector_family"),
++    "Cell payload decoder requires a cell primitive kind.")
+   legacy_object_identity_required <- FALSE
+-
+-  # Reconstruct primitive by type
+-  prim <- switch(
+-    type,
+-
+-    "graph" = .wb_graph_load_reference(bundle, artifact_id),
+-
++  prim <- switch(type,
+     # ---- cell_vector stored as artifact_labels (cell_id, label) ----
+     "cell_vector" = {
+       payload_descriptor <- .wb_artifact_object_descriptor(
+@@ -147,6 +93,77 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
+         meta = if (is.null(payload_descriptor)) list() else
+           durable_meta %||% list()
+       )
++    }
++  )
++  list(primitive=prim, legacy_identity_required=legacy_object_identity_required)
++}
++
++# R/artifacts_load.R
++# Load a promoted artifact back into a wb_primitive (kind-safe),
++# using the *existing* migrate schema (no payload_json column needed).
++
++# ---- Main loader ----
++#' Load a Promoted Artifact as a Primitive
++#'
++#' Reconstructs a typed primitive from the bundle-owned artifact registry and
++#' payload tables. Consumers should use this function rather than reading
++#' artifact payload tables directly.
++#'
++#' @param bundle Open `scworkbench_bundle`.
++#' @param artifact_id Promoted artifact identifier.
++#' @param expected_kind Optional expected primitive kind. When supplied, loading
++#'   fails if the stored artifact has another kind.
++#'
++#' @param allow_untrusted_deserialization Explicitly allow R deserialization of
++#'   a contained model payload that is not provenance-bound. This never permits
++#'   an external, traversing, or symlink-escaping path.
++#' @return A `wb_primitive` reconstructed from the promoted payload.
++#' @export
++wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
++                        allow_untrusted_deserialization = FALSE) {
++  con <- bundle$con
++  .wb_assert(!is.null(con), "wb_art_load(): bundle$con is NULL (no DB connection).")
++  artifact_id <- as.character(artifact_id)
++  .wb_assert(nzchar(artifact_id), "wb_art_load(): artifact_id must be a non-empty string.")
++
++  art <- DBI::dbGetQuery(
++    con,
++    "SELECT artifact_id, type, name, source_op, input_space_id, input_matrix_id,
++            cell_set, provenance_json
++     FROM artifacts
++     WHERE artifact_id = ?;",
++    params = list(artifact_id)
++  )
++  if (nrow(art) != 1L) {
++    # A session overlay is a point-in-time SQLite copy. Resolve only against
++    # its explicitly recorded source bundle when a promoted artifact was
++    # created after the overlay began; never search arbitrary paths.
++    source_dir <- as.character(bundle$staging_source_dir %||% "")[1]
++    if (nzchar(source_dir) && dir.exists(source_dir) &&
++        !identical(normalizePath(source_dir, winslash = "/", mustWork = TRUE),
++                   normalizePath(bundle$dir, winslash = "/", mustWork = TRUE))) {
++      source_bundle <- wb_open_bundle(source_dir, validate = FALSE)
++      on.exit(wb_close_bundle(source_bundle), add = TRUE)
++      return(wb_art_load(source_bundle, artifact_id = artifact_id, expected_kind = expected_kind,
++                         allow_untrusted_deserialization = allow_untrusted_deserialization))
++    }
++  }
++  .wb_assert(nrow(art) == 1, paste0("wb_art_load(): artifact not found: ", artifact_id))
++
++  type <- as.character(art$type[[1]])
++  legacy_object_identity_required <- FALSE
++
++  # Reconstruct primitive by type
++  prim <- switch(
++    type,
++
++    "graph" = .wb_graph_load_reference(bundle, artifact_id),
++
++    "cell_vector" =,
++    "cell_vector_family" = {
++      decoded <- .wb_artifact_cell_payload_decode(con,art,artifact_id,type)
++      legacy_object_identity_required <- decoded$legacy_identity_required
++      decoded$primitive
+     },
+ 
+     # ---- relation_family stored as artifact_relation_rows ----
+@@ -524,3 +541,45 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
+ 
+   prim
+ }
++
++# This getter is used only inside the authenticated transition audit callback;
++# its returned primitive carries no retained-source authority. Public loading
++# still requires the producer certificate before hydration.
++.wb_artifact_authenticated_cell_output <- function(bundle,artifact_id,expected_kind,run_id,observed) {
++  art <- DBI::dbGetQuery(bundle$con,
++    "SELECT type,provenance_json FROM artifacts WHERE artifact_id=?;",
++    params=list(artifact_id))
++  .wb_assert(nrow(art)==1L && identical(as.character(art$type[[1L]]),expected_kind),
++    "PYBENCH_RECEIPT_MISMATCH: private cell output registry differs from its grant")
++  provenance <- .wb_art_parse_provenance_json(art$provenance_json[[1L]])
++  .wb_assert(isTRUE(provenance$pybench_pending) &&
++    identical(as.character(provenance$run_id),as.character(run_id)),
++    "PYBENCH_RECEIPT_MISMATCH: private cell output is not owned by the allocated pending run")
++  table <- if(expected_kind=="cell_vector") "artifact_labels" else "artifact_pseudotime"
++  descriptors <- Filter(function(x) identical(as.character(x$mutation_class),"sqlite_rows") &&
++    identical(as.character(x$table),table) &&
++    identical(as.character(x$output_id),as.character(artifact_id)) &&
++    identical(as.character(x$output_kind),expected_kind),observed)
++  .wb_assert(length(descriptors)==1L,
++    "PYBENCH_RECEIPT_MISMATCH: private cell output lacks one audited payload closure")
++  descriptor <- descriptors[[1L]]
++  .wb_assert(identical(as.character(descriptor$key_scope$column),"artifact_id") &&
++    identical(as.character(descriptor$key_scope$values),as.character(artifact_id)),
++    "PYBENCH_RECEIPT_MISMATCH: private output scope differs from its allocation")
++  verify <- function() {
++    actual <- .wb_pybench_table_snapshot(bundle$con,table,descriptor$key_scope)
++    .wb_assert(identical(as.integer(actual$row_count),as.integer(descriptor$row_count)) &&
++      identical(.wb_pybench_rows_sha256(actual$canonical_rows),as.character(descriptor$content_sha256)),
++      "PYBENCH_RECEIPT_MISMATCH: private output bytes differ from the authoritative receipt audit")
++    invisible(TRUE)
++  }
++  verify()
++  decoded <- .wb_artifact_cell_payload_decode(bundle$con,art,artifact_id,expected_kind)
++  verify()
++  # ABI1 writers produce the existing ordinary row carrier, not current graph
++  # attestation. Partial or unexpected current proof cannot select a fallback.
++  .wb_assert(isTRUE(decoded$legacy_identity_required),
++    "PYBENCH_RECEIPT_MISMATCH: private cell output is not the issued ordinary carrier")
++  .wb_assert_kind(decoded$primitive,expected_kind)
++  .wb_trajectory_hydrate_primitive_meta(bundle,artifact_id,decoded$primitive)
++}
+diff --git a/R/operation_pack_python.R b/R/operation_pack_python.R
+index 879da37..32dbc41 100644
+--- a/R/operation_pack_python.R
++++ b/R/operation_pack_python.R
+@@ -348,6 +348,7 @@
+       invisible(TRUE)
+     }
+     runtime <- NULL
++    outputs <- NULL
+     validate <- function(transition, request, result, observed) {
+       .wb_operation_pack_assert(file.exists(runtime_path),
+         "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+@@ -366,6 +367,30 @@
+         "Python interpreter identity changed after operation-pack activation.",
+         operation = op_name, class = "wb_operation_pack_execution_error")
+       runtime <<- value
++      # Only the core-issued output closure of this audited transition may be
++      # decoded before the run receives its independent provenance certificate.
++      .wb_assert(identical(as.character(request$run$run_id),as.character(run_id)) &&
++        setequal(names(request$outputs),names(output_specs)) &&
++        setequal(names(result$receipt$outputs),names(output_specs)),
++        "PYBENCH_RECEIPT_MISMATCH: private output closure differs from the allocated run")
++      for (name in names(output_specs)) {
++        spec <- output_specs[[name]]
++        issued <- request$outputs[[name]]
++        .wb_assert(identical(as.character(issued$artifact_id),as.character(spec$artifact_id)) &&
++          identical(as.character(issued$type),as.character(spec$type)),
++          "PYBENCH_RECEIPT_MISMATCH: private output differs from the core allocation")
++      }
++      .wb_pyproto_validate_receipt(result$receipt,request)
++      .wb_pybench_verify_receipt_audit(result$receipt,observed)
++      outputs <<- stats::setNames(lapply(names(output_specs),function(name) {
++        spec <- output_specs[[name]]
++        if (spec$type %in% c("cell_vector","cell_vector_family")) {
++          decoded <- .wb_artifact_authenticated_cell_output(transition,
++            spec$artifact_id,spec$type,run_id,observed)
++          return(decoded)
++        }
++        wb_art_load(transition,spec$artifact_id,expected_kind=spec$type)
++      }),names(output_specs))
+       invisible(TRUE)
+     }
+     bridge <- tryCatch(.wb_pybench_run_module(
+@@ -375,10 +400,8 @@
+       validate_transition = validate
+     ), wb_pybench_process_error = function(e) .wb_operation_pack_python_process_error(e, op_name))
+     .wb_assert(!is.null(runtime), "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID: runtime audit was not completed")
+-    outputs <- stats::setNames(lapply(names(output_specs), function(name) {
+-      wb_art_load(bundle, output_specs[[name]]$artifact_id,
+-                  expected_kind = output_specs[[name]]$type)
+-    }), names(output_specs))
++    .wb_assert(!is.null(outputs),
++      "PYBENCH_RECEIPT_MISMATCH: audited private outputs were not reconstructed")
+     list(outputs = outputs, params = params, operation_pack_runtime = runtime,
+          operation_pack_receipt = bridge$receipt)
+   }
+diff --git a/R/pybench_transition.R b/R/pybench_transition.R
+index 8dd108b..288bdd1 100644
+--- a/R/pybench_transition.R
++++ b/R/pybench_transition.R
+@@ -22,15 +22,27 @@
+   digest::digest(paste0(stream, collapse = ""), algo = "sha256", serialize = FALSE)
+ }
+ 
+-.wb_pybench_db_snapshot <- function(con) {
+-  schema <- DBI::dbGetQuery(con, "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name;")
+-  tables <- as.character(schema$name[schema$type == "table"])
+-  rows <- stats::setNames(lapply(tables, function(table) {
++.wb_pybench_table_snapshot <- function(con,table,key_scope=NULL) {
++  where <- ""
++  query_params <- NULL
++  if (!is.null(key_scope)) {
++    column <- as.character(key_scope$column)[1L]
++    values <- as.character(key_scope$values)
++    .wb_assert(nzchar(column) && length(values)>0L && !anyNA(values),
++      "PYBENCH_RECEIPT_MISMATCH: invalid scoped output rows")
++    where <- paste0(" WHERE src.",DBI::dbQuoteIdentifier(con,column),
++      " IN (",paste(rep("?",length(values)),collapse=","),")")
++    query_params <- as.list(values)
++  }
++  query <- function(sql) {
++    if (is.null(query_params)) DBI::dbGetQuery(con,sql)
++    else DBI::dbGetQuery(con,sql,params=query_params)
++  }
+     info <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", DBI::dbQuoteIdentifier(con, table), ");"))
+     cols <- as.character(info$name)
+     order <- if (length(cols)) paste(vapply(cols, function(x) paste0("src.", as.character(DBI::dbQuoteIdentifier(con, x))), character(1)), collapse = ",") else "src.rowid"
+     from <- paste0(DBI::dbQuoteIdentifier(con, table), " AS src")
+-    value <- DBI::dbGetQuery(con, paste0("SELECT src.* FROM ", from, " ORDER BY ", order, ";"))
++    value <- query(paste0("SELECT src.* FROM ", from, where," ORDER BY ", order, ";"))
+     type_expr <- vapply(cols, function(column) {
+       quoted <- as.character(DBI::dbQuoteIdentifier(con, column))
+       paste0("typeof(", quoted, ") AS ", quoted)
+@@ -47,12 +59,12 @@
+       )
+     }, character(1))
+     canonical <- if (length(canonical_expr)) {
+-      DBI::dbGetQuery(con, paste0("SELECT ", paste(canonical_expr, collapse = ","), " FROM ",
+-                                  from, " ORDER BY ", order, ";"))
++      query(paste0("SELECT ", paste(canonical_expr, collapse = ","), " FROM ",
++                                  from, where," ORDER BY ", order, ";"))
+     } else data.frame()
+     types <- if (length(type_expr)) {
+-      DBI::dbGetQuery(con, paste0("SELECT ", paste(type_expr, collapse = ","), " FROM ",
+-                                  from, " ORDER BY ", order, ";"))
++      query(paste0("SELECT ", paste(type_expr, collapse = ","), " FROM ",
++                                  from, where," ORDER BY ", order, ";"))
+     } else data.frame()
+     for (column in cols) {
+       real <- identical(nrow(types), nrow(value)) & as.character(types[[column]]) == "real"
+@@ -64,6 +76,13 @@
+     }
+     list(row_count = nrow(value), content_sha256 = .wb_prov_sha256_object(value),
+          rows = value, canonical_rows = canonical)
++}
++
++.wb_pybench_db_snapshot <- function(con) {
++  schema <- DBI::dbGetQuery(con, "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name;")
++  tables <- as.character(schema$name[schema$type == "table"])
++  rows <- stats::setNames(lapply(tables, function(table) {
++    .wb_pybench_table_snapshot(con,table)
+   }), tables)
+   list(schema = schema, schema_sha256 = .wb_prov_sha256_object(schema), tables = rows)
+ }
+diff --git a/tests/test_operation_pack_v2_cell_set_family_admission_contract.R b/tests/test_operation_pack_v2_cell_set_family_admission_contract.R
+index ccb7543..5b1d030 100644
+--- a/tests/test_operation_pack_v2_cell_set_family_admission_contract.R
++++ b/tests/test_operation_pack_v2_cell_set_family_admission_contract.R
+@@ -257,6 +257,7 @@ test_operation_pack_v2_cell_set_family_publication_contract <- function() {
+   wb_close_bundle(missing)
+   restore_pack()
+ 
++  wb_finalize_recipient_bundle(bundle)
+   wb_close_bundle(bundle)
+   bundle <- wb_open_bundle(setup$root, read_only = TRUE)
+   detach_pack()

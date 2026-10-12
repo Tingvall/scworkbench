@@ -257,6 +257,7 @@ test_operation_pack_v2_cell_set_family_publication_contract <- function() {
   wb_close_bundle(missing)
   restore_pack()
 
+  wb_finalize_recipient_bundle(bundle)
   wb_close_bundle(bundle)
   bundle <- wb_open_bundle(setup$root, read_only = TRUE)
   detach_pack()

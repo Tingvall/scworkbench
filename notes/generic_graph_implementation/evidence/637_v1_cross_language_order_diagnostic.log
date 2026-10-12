@@ -1,0 +1,6 @@
+Warning message:
+In system2(file.path(R.home("bin"), "Rscript"), c(shQuote(resume_core_script),  :
+  running command ''/usr/lib/R/bin/Rscript' '/tmp/RtmpmT6bQQ/operation_pack_resume_core_8dd528592ab3.R' '/home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010' '/tmp/RtmpmT6bQQ/operation_pack_cross_language_process_bundle_8dd5513ecca8' '/tmp/RtmpmT6bQQ/operation_pack_cross_language_process_workspace_8dd5684dca02/cross_language_process' '/tmp/scwb-v1-vcs-python-614/bin/python' '/tmp/scwb-v1-vcs-python-614/lib/python3.11/site-packages/scwbpython/operation-pack.json' 'run_bf5xri88f7e9' 'run_oydfo6ndbf4e' 2>&1' had status 1
+Error: Error: Operation 'scwbv2reference::two_table_terminal' requires its exact compatible operation pack.
+Execution halted
+Execution halted

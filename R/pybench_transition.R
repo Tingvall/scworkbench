@@ -22,15 +22,27 @@
   digest::digest(paste0(stream, collapse = ""), algo = "sha256", serialize = FALSE)
 }
 
-.wb_pybench_db_snapshot <- function(con) {
-  schema <- DBI::dbGetQuery(con, "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name;")
-  tables <- as.character(schema$name[schema$type == "table"])
-  rows <- stats::setNames(lapply(tables, function(table) {
+.wb_pybench_table_snapshot <- function(con,table,key_scope=NULL) {
+  where <- ""
+  query_params <- NULL
+  if (!is.null(key_scope)) {
+    column <- as.character(key_scope$column)[1L]
+    values <- as.character(key_scope$values)
+    .wb_assert(nzchar(column) && length(values)>0L && !anyNA(values),
+      "PYBENCH_RECEIPT_MISMATCH: invalid scoped output rows")
+    where <- paste0(" WHERE src.",DBI::dbQuoteIdentifier(con,column),
+      " IN (",paste(rep("?",length(values)),collapse=","),")")
+    query_params <- as.list(values)
+  }
+  query <- function(sql) {
+    if (is.null(query_params)) DBI::dbGetQuery(con,sql)
+    else DBI::dbGetQuery(con,sql,params=query_params)
+  }
     info <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", DBI::dbQuoteIdentifier(con, table), ");"))
     cols <- as.character(info$name)
     order <- if (length(cols)) paste(vapply(cols, function(x) paste0("src.", as.character(DBI::dbQuoteIdentifier(con, x))), character(1)), collapse = ",") else "src.rowid"
     from <- paste0(DBI::dbQuoteIdentifier(con, table), " AS src")
-    value <- DBI::dbGetQuery(con, paste0("SELECT src.* FROM ", from, " ORDER BY ", order, ";"))
+    value <- query(paste0("SELECT src.* FROM ", from, where," ORDER BY ", order, ";"))
     type_expr <- vapply(cols, function(column) {
       quoted <- as.character(DBI::dbQuoteIdentifier(con, column))
       paste0("typeof(", quoted, ") AS ", quoted)
@@ -47,12 +59,12 @@
       )
     }, character(1))
     canonical <- if (length(canonical_expr)) {
-      DBI::dbGetQuery(con, paste0("SELECT ", paste(canonical_expr, collapse = ","), " FROM ",
-                                  from, " ORDER BY ", order, ";"))
+      query(paste0("SELECT ", paste(canonical_expr, collapse = ","), " FROM ",
+                                  from, where," ORDER BY ", order, ";"))
     } else data.frame()
     types <- if (length(type_expr)) {
-      DBI::dbGetQuery(con, paste0("SELECT ", paste(type_expr, collapse = ","), " FROM ",
-                                  from, " ORDER BY ", order, ";"))
+      query(paste0("SELECT ", paste(type_expr, collapse = ","), " FROM ",
+                                  from, where," ORDER BY ", order, ";"))
     } else data.frame()
     for (column in cols) {
       real <- identical(nrow(types), nrow(value)) & as.character(types[[column]]) == "real"
@@ -64,6 +76,13 @@
     }
     list(row_count = nrow(value), content_sha256 = .wb_prov_sha256_object(value),
          rows = value, canonical_rows = canonical)
+}
+
+.wb_pybench_db_snapshot <- function(con) {
+  schema <- DBI::dbGetQuery(con, "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name;")
+  tables <- as.character(schema$name[schema$type == "table"])
+  rows <- stats::setNames(lapply(tables, function(table) {
+    .wb_pybench_table_snapshot(con,table)
   }), tables)
   list(schema = schema, schema_sha256 = .wb_prov_sha256_object(schema), tables = rows)
 }

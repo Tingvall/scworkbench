@@ -1,0 +1,10 @@
+RUN test_operation_pack_v1_cross_language_lifecycle_contract [test_operation_pack_v1_contract.R; self_contained]
+FAIL test_operation_pack_v1_cross_language_lifecycle_contract -- Error: identical(grep("^[0-9a-f]{64}$", trimws(order_log), value = TRUE),  .... is not TRUE
+Execution halted
+RUN test_operation_pack_v1_python_fault_confinement_contract [test_operation_pack_v1_contract.R; self_contained]
+PASS test_operation_pack_v1_python_fault_confinement_contract (144.645s)
+CONTRACT TEST SUMMARY files=1 discovered=2 executed=2 passed=1 skipped=0 failed=1 excluded=0 accounted=2
+Error: Contract suite failed:
+- test_operation_pack_v1_cross_language_lifecycle_contract [test_operation_pack_v1_contract.R]: Error: identical(grep("^[0-9a-f]{64}$", trimws(order_log), value = TRUE),  .... is not TRUE
+Execution halted
+Execution halted

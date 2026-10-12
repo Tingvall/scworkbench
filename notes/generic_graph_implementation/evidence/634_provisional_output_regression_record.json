@@ -1,0 +1,17 @@
+{
+  "base_commit": "70028abe5b4556a0987e81ba7bd753ac1eddd654",
+  "candidate": "625",
+  "actual620_public_failure": "After receipt/runtime/payload audit, runner used public artifact load for new temporary cell output; producer row absent before run publication. Real adapter regression, not fixture.",
+  "correction": "Private getter shares unchanged cell decoding with public loader; callback matches allocated run/request/receipt/output IDs/types; existing pending run metadata; actual scoped canonical payload hash/row_count checked before and after decode; primitives stay in memory until audited atomic publication. Public missing-producer/graph authority checks unchanged.",
+  "positive627": "historical actual editable0e public run+promotion terminal0",
+  "positive630": "current installed e724 wheel actual values+promoted reload+independent content_verified certificate terminal0",
+  "negative_source623": "6/6 on predecessor621 cell SQL/snapshot code same, membership correction only625 requires separate fault run633",
+  "snapshot624": "defaultfullsnapshot identical to original700; scoped canonical int64/real/null/UTF8/blob identity identical",
+  "failed_attempts": [
+    601,
+    619,
+    620,
+    622
+  ],
+  "remaining": "633 full installed historicalv1 lifecycle/faults plus new foreign-output/stale-run/staged-input-mutation;625 required current negatives/final package before commit/review."
+}

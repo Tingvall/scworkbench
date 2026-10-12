@@ -55,6 +55,7 @@ on.exit(unlink(order_script), add = TRUE)
 writeLines(c(
   "a<-commandArgs(trailingOnly=TRUE)",
   "if(identical(Sys.getenv('SCWORKBENCH_TEST_INSTALLED'),'1'))library(scworkbench)else devtools::load_all(a[[1]],quiet=TRUE)",
+  "invisible(wb_operation_pack_load('scwbV2Reference'))",
   "invisible(wb_operation_pack_activate(a[[3]],python=a[[2]],timeout_seconds=60))",
   "invisible(wb_operation_pack_load('scworkbenchOperationPackTemplate'))",
   "cat(wb_operation_catalog_identity()$sha256,'\\n')",
@@ -281,6 +282,7 @@ stopifnot(length(process_python_id) == 1L, nzchar(process_python_id))
 writeLines(c(
   "a<-commandArgs(trailingOnly=TRUE)", load_line,
   "invisible(wb_operation_pack_load('scworkbenchOperationPackTemplate'))",
+  "invisible(wb_operation_pack_load('scwbV2Reference'))",
   "invisible(wb_operation_pack_activate(a[[5]],python=a[[4]],timeout_seconds=60))",
   "b<-wb_open_bundle(a[[2]])", "s<-wb_session_resume(b,a[[3]])",
   "x<-wb_session_run_op(s,b,'scwbv2reference::two_table_terminal',inputs=list(a=wb_ref_run(a[[6]],'vector'),b=wb_ref_run(a[[7]],'vector'),min_cells=1L))",

@@ -1,0 +1,13 @@
+{
+  "base_commit": "70028abe5b4556a0987e81ba7bd753ac1eddd654",
+  "patch_sha256": "718a19a68182991f69b2f0652cc9db1fe119a534cbf9bbe0c18442b76a797a40",
+  "modified_source_sha256": {
+    "R/artifacts_load.R": "833f1494495ddf7728a5b16cc50cdcf2b47fba67499a0508879dbc9c0aa210bc",
+    "R/operation_pack_python.R": "5e52d9b8dfe27f2933c0099161df0206fcdae31eb8007041cf7e69614566c6f7",
+    "R/pybench_transition.R": "ba5d24a40baa2e360e9a83874592a79daef5af0217686340dd6828bc9f2a2d1e",
+    "tests/test_operation_pack_v2_cell_set_family_admission_contract.R": "170a1a2dd87a757ae3920a17d0d2c771f330cc50119db2ca12cc1c9d75aa0f9c"
+  },
+  "source": "/tmp/scwb-provisional-output-625.vcr1ylu6/source",
+  "library": "/tmp/scwb-provisional-output-625.vcr1ylu6/library",
+  "status": "uncommitted isolated candidate, corrected request.run.run_id membership"
+}

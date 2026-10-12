@@ -1,0 +1,17 @@
+lib <- "/tmp/scwb-final-585.ki8nvr4e/library"
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+for(name in c(".wb_graph_object_restore",".wb_graph_legacy_object_identity_assert")) trace(name,where=asNamespace("scworkbench"),tracer=quote({cat("OBJECT_LOAD_TRACE transaction=",RSQLite::sqliteIsTransacting(con)," artifact=",artifact_id," producer_rows=",DBI::dbGetQuery(con,"SELECT COUNT(*) n FROM prov_run_outputs WHERE artifact_id=?;",params=list(artifact_id))$n,"\n",sep="");print(vapply(sys.calls(),function(call)paste(deparse(call[[1L]]),collapse=" "),character(1)))}),print=FALSE)
+manifest <- "/tmp/scwb-v1-vcs-python-614/lib/python3.11/site-packages/scwbpython/operation-pack.json"
+wb_operation_pack_activate(manifest,python="/tmp/scwb-v1-vcs-python-614/bin/python")
+root <- tempfile("v1_public_positive_source_");workspace <- tempfile("v1_public_positive_workspace_")
+b <- wb_init_bundle(root);cells <- paste0("c",1:12)
+wb_define_cells(b,cells,metadata=data.frame(cell_id=cells,signal=1:12))
+s <- wb_session_create(b,workspace,session_id="public_positive")
+source <- wb_session_run_op(s,b,"metadata_cell_vector",inputs=list(source_column="signal",vector_name="signal",value_type="continuous",missing_policy="error",min_cells=1L))
+cat("CORE_SOURCE_RUN PASS\n")
+result <- wb_session_run_op(source$session,b,"scwbpython::affine_cell_vector",inputs=list(signal=wb_ref_run(source$run$run_id,"vector"),scale=2,min_cells=1L))
+cat("PYTHON_PUBLIC_RUN PASS\n")
+promotion <- wb_session_promote_current(b,result$session,outputs=c("vector","summary"))
+stopifnot(sum(promotion$promoted$status=="ok")==2L)
+cat("PUBLIC_PROMOTION PASS\n")
+wb_session_discard(promotion$session);wb_close_bundle(b);unlink(c(root,workspace),recursive=TRUE)

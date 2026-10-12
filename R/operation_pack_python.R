@@ -348,6 +348,7 @@
       invisible(TRUE)
     }
     runtime <- NULL
+    outputs <- NULL
     validate <- function(transition, request, result, observed) {
       .wb_operation_pack_assert(file.exists(runtime_path),
         "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
@@ -366,6 +367,30 @@
         "Python interpreter identity changed after operation-pack activation.",
         operation = op_name, class = "wb_operation_pack_execution_error")
       runtime <<- value
+      # Only the core-issued output closure of this audited transition may be
+      # decoded before the run receives its independent provenance certificate.
+      .wb_assert(identical(as.character(request$run$run_id),as.character(run_id)) &&
+        setequal(names(request$outputs),names(output_specs)) &&
+        setequal(names(result$receipt$outputs),names(output_specs)),
+        "PYBENCH_RECEIPT_MISMATCH: private output closure differs from the allocated run")
+      for (name in names(output_specs)) {
+        spec <- output_specs[[name]]
+        issued <- request$outputs[[name]]
+        .wb_assert(identical(as.character(issued$artifact_id),as.character(spec$artifact_id)) &&
+          identical(as.character(issued$type),as.character(spec$type)),
+          "PYBENCH_RECEIPT_MISMATCH: private output differs from the core allocation")
+      }
+      .wb_pyproto_validate_receipt(result$receipt,request)
+      .wb_pybench_verify_receipt_audit(result$receipt,observed)
+      outputs <<- stats::setNames(lapply(names(output_specs),function(name) {
+        spec <- output_specs[[name]]
+        if (spec$type %in% c("cell_vector","cell_vector_family")) {
+          decoded <- .wb_artifact_authenticated_cell_output(transition,
+            spec$artifact_id,spec$type,run_id,observed)
+          return(decoded)
+        }
+        wb_art_load(transition,spec$artifact_id,expected_kind=spec$type)
+      }),names(output_specs))
       invisible(TRUE)
     }
     bridge <- tryCatch(.wb_pybench_run_module(
@@ -375,10 +400,8 @@
       validate_transition = validate
     ), wb_pybench_process_error = function(e) .wb_operation_pack_python_process_error(e, op_name))
     .wb_assert(!is.null(runtime), "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID: runtime audit was not completed")
-    outputs <- stats::setNames(lapply(names(output_specs), function(name) {
-      wb_art_load(bundle, output_specs[[name]]$artifact_id,
-                  expected_kind = output_specs[[name]]$type)
-    }), names(output_specs))
+    .wb_assert(!is.null(outputs),
+      "PYBENCH_RECEIPT_MISMATCH: audited private outputs were not reconstructed")
     list(outputs = outputs, params = params, operation_pack_runtime = runtime,
          operation_pack_receipt = bridge$receipt)
   }

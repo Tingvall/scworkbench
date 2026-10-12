@@ -78,11 +78,31 @@ test_payload_content_identity_contract <- function() {
   DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET content_sha256 = NULL, verification_level = 'structural', verification_status = 'legacy_structural_only' WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
   detail <- wb_prov_run_details(b, run_id = a$run$run_id, snapshot_id = sid)$outputs
   stopifnot(identical(as.character(detail$verification_status[detail$output_name == "detail"]), "legacy_structural_only"))
-  DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET replay_equivalence_policy = NULL, replay_equivalence_status = NULL WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
-  DBI::dbExecute(b$con, "DROP TABLE bundle_schema_migrations;")
-  wb_migrate_bundle(b)
-  legacy_replay <- DBI::dbGetQuery(b$con, "SELECT replay_equivalence_policy, replay_equivalence_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
-  stopifnot(identical(as.character(legacy_replay$replay_equivalence_policy[1]), "not_comparable"),
-            identical(as.character(legacy_replay$replay_equivalence_status[1]), "legacy_not_comparable"))
+  # Replay-policy backfill uses a genuine pre-policy producer artifact. Resetting
+  # the ledger of current graph storage would describe no historical schema.
+  archive <- "tests/fixtures/provenance_legacy_table_96a37.tar.gz"
+  expected_file <- "tests/fixtures/provenance_legacy_table_96a37_expected.rds"
+  stopifnot(digest::digest(file=archive,algo="sha256",serialize=FALSE)=="8e950dce09deff4cec627ca8e21d4baa9c25fb11beb77e369dc7922ad9499462",
+    digest::digest(file=expected_file,algo="sha256",serialize=FALSE)=="a57c4e0548445ed82da20bd7dc93307f0f860f42bbf0c80d4e6b002a06a34407")
+  legacy_root <- tempfile("authentic_pre_policy_table_");dir.create(legacy_root)
+  on.exit(unlink(legacy_root,recursive=TRUE),add=TRUE)
+  utils::untar(archive,exdir=legacy_root)
+  expected <- readRDS(expected_file)
+  legacy_path <- file.path(legacy_root,"authentic.bundle")
+  old_con <- DBI::dbConnect(RSQLite::SQLite(),file.path(legacy_path,"db/app.sqlite"))
+  old_rows <- DBI::dbGetQuery(old_con,"SELECT * FROM artifact_table_rows ORDER BY artifact_id,row_idx;")
+  stopifnot(!"replay_equivalence_policy" %in% DBI::dbGetQuery(old_con,"PRAGMA table_info(prov_run_outputs);")$name)
+  DBI::dbDisconnect(old_con)
+  legacy <- wb_open_bundle(legacy_path)
+  tryCatch({
+    stopifnot(identical(unclass(wb_art_load(legacy,expected$id)),unclass(expected$primitive)),
+      identical(old_rows,DBI::dbGetQuery(legacy$con,"SELECT * FROM artifact_table_rows ORDER BY artifact_id,row_idx;")))
+    legacy_replay <- DBI::dbGetQuery(legacy$con,
+      "SELECT replay_equivalence_policy,replay_equivalence_status FROM prov_run_outputs WHERE artifact_id=?;",
+      params=list(expected$id))
+    stopifnot(nrow(legacy_replay)==1L,
+      identical(as.character(legacy_replay$replay_equivalence_policy[1]),"not_comparable"),
+      identical(as.character(legacy_replay$replay_equivalence_status[1]),"legacy_not_comparable"))
+  },finally=wb_close_bundle(legacy))
   TRUE
 }

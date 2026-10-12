@@ -1,0 +1,30 @@
+{
+  "candidate": "625",
+  "patch_sha256": "718a19a68182991f69b2f0652cc9db1fe119a534cbf9bbe0c18442b76a797a40",
+  "fault_confinement": {
+    "run": 633,
+    "exit_of_two_case_run": 1,
+    "individual_result": "PASS",
+    "elapsed_seconds": 144.645,
+    "original_negative_modes": [
+      "partial_nonzero",
+      "timeout",
+      "signal",
+      "forged_runtime",
+      "forged_receipt",
+      "incomplete_receipt",
+      "undeclared_file",
+      "undeclared_symlink"
+    ],
+    "publication_fault": "after_receipt_before_publication",
+    "added_negative_modes": [
+      "wrong_output_id",
+      "stale_run",
+      "mutate_input"
+    ],
+    "timeout_seconds": 2,
+    "retry_promotion_and_source_db_payload_no_residue_assertions": "PASS"
+  },
+  "other_case": "cross_language_lifecycle failed same-packset catalog comparison before mixed lifecycle;636 diagnostic prep erroneously preactivatedpack (FAIL) then637 proper freshchild diagnostic pending",
+  "no_fullsuite_claim": true
+}

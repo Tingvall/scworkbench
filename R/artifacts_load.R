@@ -1,64 +1,10 @@
-# R/artifacts_load.R
-# Load a promoted artifact back into a wb_primitive (kind-safe),
-# using the *existing* migrate schema (no payload_json column needed).
-
-# ---- Main loader ----
-#' Load a Promoted Artifact as a Primitive
-#'
-#' Reconstructs a typed primitive from the bundle-owned artifact registry and
-#' payload tables. Consumers should use this function rather than reading
-#' artifact payload tables directly.
-#'
-#' @param bundle Open `scworkbench_bundle`.
-#' @param artifact_id Promoted artifact identifier.
-#' @param expected_kind Optional expected primitive kind. When supplied, loading
-#'   fails if the stored artifact has another kind.
-#'
-#' @param allow_untrusted_deserialization Explicitly allow R deserialization of
-#'   a contained model payload that is not provenance-bound. This never permits
-#'   an external, traversing, or symlink-escaping path.
-#' @return A `wb_primitive` reconstructed from the promoted payload.
-#' @export
-wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
-                        allow_untrusted_deserialization = FALSE) {
-  con <- bundle$con
-  .wb_assert(!is.null(con), "wb_art_load(): bundle$con is NULL (no DB connection).")
-  artifact_id <- as.character(artifact_id)
-  .wb_assert(nzchar(artifact_id), "wb_art_load(): artifact_id must be a non-empty string.")
-
-  art <- DBI::dbGetQuery(
-    con,
-    "SELECT artifact_id, type, name, source_op, input_space_id, input_matrix_id,
-            cell_set, provenance_json
-     FROM artifacts
-     WHERE artifact_id = ?;",
-    params = list(artifact_id)
-  )
-  if (nrow(art) != 1L) {
-    # A session overlay is a point-in-time SQLite copy. Resolve only against
-    # its explicitly recorded source bundle when a promoted artifact was
-    # created after the overlay began; never search arbitrary paths.
-    source_dir <- as.character(bundle$staging_source_dir %||% "")[1]
-    if (nzchar(source_dir) && dir.exists(source_dir) &&
-        !identical(normalizePath(source_dir, winslash = "/", mustWork = TRUE),
-                   normalizePath(bundle$dir, winslash = "/", mustWork = TRUE))) {
-      source_bundle <- wb_open_bundle(source_dir, validate = FALSE)
-      on.exit(wb_close_bundle(source_bundle), add = TRUE)
-      return(wb_art_load(source_bundle, artifact_id = artifact_id, expected_kind = expected_kind,
-                         allow_untrusted_deserialization = allow_untrusted_deserialization))
-    }
-  }
-  .wb_assert(nrow(art) == 1, paste0("wb_art_load(): artifact not found: ", artifact_id))
-
-  type <- as.character(art$type[[1]])
+# Shared getter decoding for retained artifacts and receipt-audited private
+# operation outputs. Decoding does not issue provenance or graph authority.
+.wb_artifact_cell_payload_decode <- function(con, art, artifact_id, type) {
+  .wb_assert(type %in% c("cell_vector", "cell_vector_family"),
+    "Cell payload decoder requires a cell primitive kind.")
   legacy_object_identity_required <- FALSE
-
-  # Reconstruct primitive by type
-  prim <- switch(
-    type,
-
-    "graph" = .wb_graph_load_reference(bundle, artifact_id),
-
+  prim <- switch(type,
     # ---- cell_vector stored as artifact_labels (cell_id, label) ----
     "cell_vector" = {
       payload_descriptor <- .wb_artifact_object_descriptor(
@@ -147,6 +93,77 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         meta = if (is.null(payload_descriptor)) list() else
           durable_meta %||% list()
       )
+    }
+  )
+  list(primitive=prim, legacy_identity_required=legacy_object_identity_required)
+}
+
+# R/artifacts_load.R
+# Load a promoted artifact back into a wb_primitive (kind-safe),
+# using the *existing* migrate schema (no payload_json column needed).
+
+# ---- Main loader ----
+#' Load a Promoted Artifact as a Primitive
+#'
+#' Reconstructs a typed primitive from the bundle-owned artifact registry and
+#' payload tables. Consumers should use this function rather than reading
+#' artifact payload tables directly.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param artifact_id Promoted artifact identifier.
+#' @param expected_kind Optional expected primitive kind. When supplied, loading
+#'   fails if the stored artifact has another kind.
+#'
+#' @param allow_untrusted_deserialization Explicitly allow R deserialization of
+#'   a contained model payload that is not provenance-bound. This never permits
+#'   an external, traversing, or symlink-escaping path.
+#' @return A `wb_primitive` reconstructed from the promoted payload.
+#' @export
+wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
+                        allow_untrusted_deserialization = FALSE) {
+  con <- bundle$con
+  .wb_assert(!is.null(con), "wb_art_load(): bundle$con is NULL (no DB connection).")
+  artifact_id <- as.character(artifact_id)
+  .wb_assert(nzchar(artifact_id), "wb_art_load(): artifact_id must be a non-empty string.")
+
+  art <- DBI::dbGetQuery(
+    con,
+    "SELECT artifact_id, type, name, source_op, input_space_id, input_matrix_id,
+            cell_set, provenance_json
+     FROM artifacts
+     WHERE artifact_id = ?;",
+    params = list(artifact_id)
+  )
+  if (nrow(art) != 1L) {
+    # A session overlay is a point-in-time SQLite copy. Resolve only against
+    # its explicitly recorded source bundle when a promoted artifact was
+    # created after the overlay began; never search arbitrary paths.
+    source_dir <- as.character(bundle$staging_source_dir %||% "")[1]
+    if (nzchar(source_dir) && dir.exists(source_dir) &&
+        !identical(normalizePath(source_dir, winslash = "/", mustWork = TRUE),
+                   normalizePath(bundle$dir, winslash = "/", mustWork = TRUE))) {
+      source_bundle <- wb_open_bundle(source_dir, validate = FALSE)
+      on.exit(wb_close_bundle(source_bundle), add = TRUE)
+      return(wb_art_load(source_bundle, artifact_id = artifact_id, expected_kind = expected_kind,
+                         allow_untrusted_deserialization = allow_untrusted_deserialization))
+    }
+  }
+  .wb_assert(nrow(art) == 1, paste0("wb_art_load(): artifact not found: ", artifact_id))
+
+  type <- as.character(art$type[[1]])
+  legacy_object_identity_required <- FALSE
+
+  # Reconstruct primitive by type
+  prim <- switch(
+    type,
+
+    "graph" = .wb_graph_load_reference(bundle, artifact_id),
+
+    "cell_vector" =,
+    "cell_vector_family" = {
+      decoded <- .wb_artifact_cell_payload_decode(con,art,artifact_id,type)
+      legacy_object_identity_required <- decoded$legacy_identity_required
+      decoded$primitive
     },
 
     # ---- relation_family stored as artifact_relation_rows ----
@@ -523,4 +540,46 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
   }
 
   prim
+}
+
+# This getter is used only inside the authenticated transition audit callback;
+# its returned primitive carries no retained-source authority. Public loading
+# still requires the producer certificate before hydration.
+.wb_artifact_authenticated_cell_output <- function(bundle,artifact_id,expected_kind,run_id,observed) {
+  art <- DBI::dbGetQuery(bundle$con,
+    "SELECT type,provenance_json FROM artifacts WHERE artifact_id=?;",
+    params=list(artifact_id))
+  .wb_assert(nrow(art)==1L && identical(as.character(art$type[[1L]]),expected_kind),
+    "PYBENCH_RECEIPT_MISMATCH: private cell output registry differs from its grant")
+  provenance <- .wb_art_parse_provenance_json(art$provenance_json[[1L]])
+  .wb_assert(isTRUE(provenance$pybench_pending) &&
+    identical(as.character(provenance$run_id),as.character(run_id)),
+    "PYBENCH_RECEIPT_MISMATCH: private cell output is not owned by the allocated pending run")
+  table <- if(expected_kind=="cell_vector") "artifact_labels" else "artifact_pseudotime"
+  descriptors <- Filter(function(x) identical(as.character(x$mutation_class),"sqlite_rows") &&
+    identical(as.character(x$table),table) &&
+    identical(as.character(x$output_id),as.character(artifact_id)) &&
+    identical(as.character(x$output_kind),expected_kind),observed)
+  .wb_assert(length(descriptors)==1L,
+    "PYBENCH_RECEIPT_MISMATCH: private cell output lacks one audited payload closure")
+  descriptor <- descriptors[[1L]]
+  .wb_assert(identical(as.character(descriptor$key_scope$column),"artifact_id") &&
+    identical(as.character(descriptor$key_scope$values),as.character(artifact_id)),
+    "PYBENCH_RECEIPT_MISMATCH: private output scope differs from its allocation")
+  verify <- function() {
+    actual <- .wb_pybench_table_snapshot(bundle$con,table,descriptor$key_scope)
+    .wb_assert(identical(as.integer(actual$row_count),as.integer(descriptor$row_count)) &&
+      identical(.wb_pybench_rows_sha256(actual$canonical_rows),as.character(descriptor$content_sha256)),
+      "PYBENCH_RECEIPT_MISMATCH: private output bytes differ from the authoritative receipt audit")
+    invisible(TRUE)
+  }
+  verify()
+  decoded <- .wb_artifact_cell_payload_decode(bundle$con,art,artifact_id,expected_kind)
+  verify()
+  # ABI1 writers produce the existing ordinary row carrier, not current graph
+  # attestation. Partial or unexpected current proof cannot select a fallback.
+  .wb_assert(isTRUE(decoded$legacy_identity_required),
+    "PYBENCH_RECEIPT_MISMATCH: private cell output is not the issued ordinary carrier")
+  .wb_assert_kind(decoded$primitive,expected_kind)
+  .wb_trajectory_hydrate_primitive_meta(bundle,artifact_id,decoded$primitive)
 }

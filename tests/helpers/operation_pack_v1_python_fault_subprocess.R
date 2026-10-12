@@ -3,7 +3,12 @@ repo <- normalizePath(args[[1]], winslash = "/", mustWork = TRUE)
 real_python <- file.path(normalizePath(dirname(args[[2]]), winslash = "/", mustWork = TRUE),
                          basename(args[[2]]))
 manifest <- normalizePath(args[[3]], winslash = "/", mustWork = TRUE)
-devtools::load_all(repo, quiet = TRUE)
+if (identical(Sys.getenv("SCWORKBENCH_TEST_INSTALLED"),"1")) {
+  library(scworkbench)
+  core_library <- Sys.getenv("SCWB_CONTRACT_INSTALLED_LIBRARY",unset="")
+  if(nzchar(core_library)) stopifnot(identical(normalizePath(find.package("scworkbench")),
+    normalizePath(file.path(core_library,"scworkbench"))))
+} else devtools::load_all(repo, quiet = TRUE)
 
 work <- tempfile("operation_pack_python_faults_")
 dir.create(work, recursive = TRUE)
@@ -42,6 +47,12 @@ writeLines(c(
   "    p = Path(value('--receipt')); x = json.loads(p.read_text()); x.pop('outputs',None); p.write_text(json.dumps(x))",
   "elif mode == 'forged_runtime':",
   "    p = Path(value('--runtime-attestation')); x = json.loads(p.read_text()); x['interpreter']['executable_sha256'] = '0' * 64; p.write_text(json.dumps(x))",
+  "elif mode == 'wrong_output_id':",
+  "    p = Path(value('--receipt')); x = json.loads(p.read_text()); x['outputs']['vector']['artifact_id'] = 'unallocated_foreign_output'; p.write_text(json.dumps(x))",
+  "elif mode == 'stale_run':",
+  "    p = Path(value('--receipt')); x = json.loads(p.read_text()); x['run_id'] = 'stale_unallocated_run'; p.write_text(json.dumps(x))",
+  "elif mode == 'mutate_input':",
+  "    con = sqlite3.connect(root / dbrel); con.execute('UPDATE artifact_labels SET label=?,value_num=? WHERE artifact_id=?',('tampered',999.0,request['inputs']['signal']['artifact_id'])); con.commit(); con.close()",
   "elif mode == 'undeclared_file': (root / 'undeclared-operation-pack-file').write_text('forbidden')",
   "elif mode == 'undeclared_symlink': os.symlink('/etc/passwd', root / 'undeclared-operation-pack-link')",
   "raise SystemExit(0)"
@@ -111,6 +122,9 @@ attempt("forged_receipt", pattern = "PYBENCH_RECEIPT_MISMATCH")
 attempt("incomplete_receipt", pattern = "receipt$outputs")
 attempt("undeclared_file", pattern = "PYBENCH_OUT_OF_SCOPE_MUTATION")
 attempt("undeclared_symlink", pattern = "PYBENCH_OUT_OF_SCOPE_MUTATION")
+attempt("wrong_output_id", pattern = "receipt output artifact_id mismatch")
+attempt("stale_run", pattern = "receipt operation/run binding differs")
+attempt("mutate_input", pattern = "PYBENCH_OUT_OF_SCOPE_MUTATION")
 
 old_hook <- getOption("scworkbench.pybench_transition_fault_hook")
 options(scworkbench.pybench_transition_fault_hook = function(boundary) {

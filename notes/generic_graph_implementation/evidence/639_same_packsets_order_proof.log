@@ -1,0 +1,17 @@
+        namespace                          package  version backend
+1     scwbexample scworkbenchOperationPackTemplate    0.1.0       R
+2      scwbpython          scworkbench-python-pack 1.0.0rc1  Python
+3 scwbv2reference                  scwbV2Reference    0.1.0       R
+                                                   manifest_sha256
+1 d6c5c488e3d7de1506d57c429f5c0bc6ed1e2ea130ca3ecc01d8b7637b5b2d84
+2 9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253
+3 5c792ae3319920a2dcac39e16020de0b184ad5839f655297aec833398db85150
+                                                       pack_sha256
+1 f8abd3c8dcaa78c9f08494d98ce45adec68c05147fc0a01dbb3d11e20038b361
+2 864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab
+3 4a6c4fd564928c051ea496f8c33f7c9c8a571ba1d3354e755362a5ad877cd010
+  operation_count  used
+1               1 FALSE
+2               1 FALSE
+3               9 FALSE
+IDENTICAL_PACK_NAME_MANIFEST_PACKAGE_HASHES_DIFFERENT_LOAD_ORDER_CATALOG_AND_SEMANTIC=PASS

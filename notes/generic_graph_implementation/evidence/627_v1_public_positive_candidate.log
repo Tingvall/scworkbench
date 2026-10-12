@@ -1,0 +1,1482 @@
+$schema_version
+[1] "scworkbench.operation_pack.inspection.v1"
+
+$identity
+$identity$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$identity$schema_version
+[1] "scworkbench.operation_pack.v1"
+
+$identity$protocol_version
+[1] "1"
+
+$identity$manifest_sha256
+[1] "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253"
+
+$identity$namespace
+[1] "scwbpython"
+
+$identity$package
+$identity$package$name
+[1] "scworkbench-python-pack"
+
+$identity$package$version
+[1] "1.0.0rc1"
+
+
+$identity$backend
+[1] "Python"
+
+$identity$compatibility
+$identity$compatibility$scworkbench
+[1] ">=0.1.0 <0.2.0"
+
+$identity$compatibility$protocol
+[1] "1"
+
+
+$identity$entry_point
+[1] "reference-pack"
+
+$identity$operation_definition_sha256
+$identity$operation_definition_sha256$`scwbpython::affine_cell_vector`
+[1] "059d06d5c8710958f3ec56fc0977e773cf30499c9d7396dd57778d6e7bd5487b"
+
+
+$identity$distribution
+$identity$distribution$declared_name
+[1] "scworkbench-python-pack"
+
+$identity$distribution$normalized_name
+[1] "scworkbench-python-pack"
+
+$identity$distribution$version
+[1] "1.0.0rc1"
+
+
+$identity$entry_point_group
+[1] "scworkbench.operation_packs.v1"
+
+$identity$pack_sha256
+[1] "864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab"
+
+
+$manifest
+$manifest$schema_version
+[1] "scworkbench.operation_pack.v1"
+
+$manifest$protocol_version
+[1] "1"
+
+$manifest$namespace
+[1] "scwbpython"
+
+$manifest$package
+$manifest$package$name
+[1] "scworkbench-python-pack"
+
+$manifest$package$version
+[1] "1.0.0rc1"
+
+
+$manifest$backend
+[1] "Python"
+
+$manifest$compatibility
+$manifest$compatibility$scworkbench
+[1] ">=0.1.0 <0.2.0"
+
+$manifest$compatibility$protocol
+[1] "1"
+
+
+$manifest$entry_point
+[1] "reference-pack"
+
+$manifest$operations
+$manifest$operations[[1]]
+$manifest$operations[[1]]$name
+[1] "scwbpython::affine_cell_vector"
+
+$manifest$operations[[1]]$title
+[1] "Python Affine Continuous Cell-Vector Transform"
+
+$manifest$operations[[1]]$description
+[1] "Canonical Python-backend fixture for operation-pack structural admission."
+
+$manifest$operations[[1]]$intent
+[1] "cell_vector"    "transform"      "python_fixture"
+
+$manifest$operations[[1]]$requires
+$manifest$operations[[1]]$requires$signal
+[1] "cell_vector"
+
+
+$manifest$operations[[1]]$optional_requires
+named list()
+
+$manifest$operations[[1]]$inputs
+$manifest$operations[[1]]$inputs$signal
+$manifest$operations[[1]]$inputs$signal$required
+[1] TRUE
+
+$manifest$operations[[1]]$inputs$signal$kind
+[1] "cell_vector"
+
+$manifest$operations[[1]]$inputs$signal$description
+[1] "Continuous input aligned to canonical bundle cells."
+
+
+
+$manifest$operations[[1]]$params
+$manifest$operations[[1]]$params[[1]]
+$manifest$operations[[1]]$params[[1]]$name
+[1] "scale"
+
+$manifest$operations[[1]]$params[[1]]$type
+[1] "dbl"
+
+$manifest$operations[[1]]$params[[1]]$default
+[1] 1
+attr(,"operation_pack_json_number")
+[1] "1"
+attr(,"operation_pack_canonical_number")
+[1] "1e0"
+
+$manifest$operations[[1]]$params[[1]]$min
+[1] -1000000
+attr(,"operation_pack_json_number")
+[1] "-1000000"
+attr(,"operation_pack_canonical_number")
+[1] "-1e6"
+
+$manifest$operations[[1]]$params[[1]]$max
+[1] 1000000
+attr(,"operation_pack_json_number")
+[1] "1000000"
+attr(,"operation_pack_canonical_number")
+[1] "1e6"
+
+$manifest$operations[[1]]$params[[1]]$help
+[1] "Finite multiplicative scale."
+
+
+
+$manifest$operations[[1]]$produces
+$manifest$operations[[1]]$produces$vector
+[1] "cell_vector"
+
+$manifest$operations[[1]]$produces$summary
+[1] "obs_table"
+
+
+$manifest$operations[[1]]$interface_produces
+$manifest$operations[[1]]$interface_produces$vector
+$manifest$operations[[1]]$interface_produces$vector$kind
+[1] "cell_vector"
+
+$manifest$operations[[1]]$interface_produces$vector$value_type
+[1] "continuous"
+
+
+$manifest$operations[[1]]$interface_produces$summary
+$manifest$operations[[1]]$interface_produces$summary$kind
+[1] "obs_table"
+
+$manifest$operations[[1]]$interface_produces$summary$table_type
+[1] "scwbpython_affine_summary"
+
+$manifest$operations[[1]]$interface_produces$summary$entity_kind
+[1] "operation_run"
+
+
+
+$manifest$operations[[1]]$promotable
+[1] "vector"  "summary"
+
+$manifest$operations[[1]]$replay_equivalence
+$manifest$operations[[1]]$replay_equivalence$vector
+[1] "exact_canonical_value"
+
+$manifest$operations[[1]]$replay_equivalence$summary
+[1] "exact_canonical_value"
+
+
+$manifest$operations[[1]]$coverage
+$manifest$operations[[1]]$coverage$signal
+[1] "cell_indexed"
+
+
+$manifest$operations[[1]]$determinism
+$manifest$operations[[1]]$determinism$deterministic
+[1] TRUE
+
+$manifest$operations[[1]]$determinism$seed_parameter
+NULL
+
+
+$manifest$operations[[1]]$resources
+$manifest$operations[[1]]$resources$profile
+[1] "pybench_v2"
+
+
+$manifest$operations[[1]]$software
+$manifest$operations[[1]]$software$runtime
+[1] "Python"
+
+$manifest$operations[[1]]$software$bridge
+[1] "PyBench v2"
+
+
+$manifest$operations[[1]]$op_name
+[1] "scwbpython::affine_cell_vector"
+
+$manifest$operations[[1]]$definition_sha256
+[1] "059d06d5c8710958f3ec56fc0977e773cf30499c9d7396dd57778d6e7bd5487b"
+
+
+
+$manifest$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+
+$operations
+$operations$`scwbpython::affine_cell_vector`
+$operations$`scwbpython::affine_cell_vector`$name
+[1] "scwbpython::affine_cell_vector"
+
+$operations$`scwbpython::affine_cell_vector`$title
+[1] "Python Affine Continuous Cell-Vector Transform"
+
+$operations$`scwbpython::affine_cell_vector`$description
+[1] "Canonical Python-backend fixture for operation-pack structural admission."
+
+$operations$`scwbpython::affine_cell_vector`$intent
+[1] "cell_vector"    "transform"      "python_fixture"
+
+$operations$`scwbpython::affine_cell_vector`$requires
+$operations$`scwbpython::affine_cell_vector`$requires$signal
+[1] "cell_vector"
+
+
+$operations$`scwbpython::affine_cell_vector`$optional_requires
+named list()
+
+$operations$`scwbpython::affine_cell_vector`$inputs
+$operations$`scwbpython::affine_cell_vector`$inputs$signal
+$operations$`scwbpython::affine_cell_vector`$inputs$signal$required
+[1] TRUE
+
+$operations$`scwbpython::affine_cell_vector`$inputs$signal$kind
+[1] "cell_vector"
+
+$operations$`scwbpython::affine_cell_vector`$inputs$signal$description
+[1] "Continuous input aligned to canonical bundle cells."
+
+
+
+$operations$`scwbpython::affine_cell_vector`$params
+$operations$`scwbpython::affine_cell_vector`$params[[1]]
+$operations$`scwbpython::affine_cell_vector`$params[[1]]$name
+[1] "scale"
+
+$operations$`scwbpython::affine_cell_vector`$params[[1]]$type
+[1] "dbl"
+
+$operations$`scwbpython::affine_cell_vector`$params[[1]]$default
+[1] 1
+attr(,"operation_pack_json_number")
+[1] "1"
+attr(,"operation_pack_canonical_number")
+[1] "1e0"
+
+$operations$`scwbpython::affine_cell_vector`$params[[1]]$min
+[1] -1000000
+attr(,"operation_pack_json_number")
+[1] "-1000000"
+attr(,"operation_pack_canonical_number")
+[1] "-1e6"
+
+$operations$`scwbpython::affine_cell_vector`$params[[1]]$max
+[1] 1000000
+attr(,"operation_pack_json_number")
+[1] "1000000"
+attr(,"operation_pack_canonical_number")
+[1] "1e6"
+
+$operations$`scwbpython::affine_cell_vector`$params[[1]]$help
+[1] "Finite multiplicative scale."
+
+
+
+$operations$`scwbpython::affine_cell_vector`$produces
+$operations$`scwbpython::affine_cell_vector`$produces$vector
+[1] "cell_vector"
+
+$operations$`scwbpython::affine_cell_vector`$produces$summary
+[1] "obs_table"
+
+
+$operations$`scwbpython::affine_cell_vector`$interface_produces
+$operations$`scwbpython::affine_cell_vector`$interface_produces$vector
+$operations$`scwbpython::affine_cell_vector`$interface_produces$vector$kind
+[1] "cell_vector"
+
+$operations$`scwbpython::affine_cell_vector`$interface_produces$vector$value_type
+[1] "continuous"
+
+
+$operations$`scwbpython::affine_cell_vector`$interface_produces$summary
+$operations$`scwbpython::affine_cell_vector`$interface_produces$summary$kind
+[1] "obs_table"
+
+$operations$`scwbpython::affine_cell_vector`$interface_produces$summary$table_type
+[1] "scwbpython_affine_summary"
+
+$operations$`scwbpython::affine_cell_vector`$interface_produces$summary$entity_kind
+[1] "operation_run"
+
+
+
+$operations$`scwbpython::affine_cell_vector`$promotable
+[1] "vector"  "summary"
+
+$operations$`scwbpython::affine_cell_vector`$replay_equivalence
+$operations$`scwbpython::affine_cell_vector`$replay_equivalence$vector
+[1] "exact_canonical_value"
+
+$operations$`scwbpython::affine_cell_vector`$replay_equivalence$summary
+[1] "exact_canonical_value"
+
+
+$operations$`scwbpython::affine_cell_vector`$coverage
+$operations$`scwbpython::affine_cell_vector`$coverage$signal
+[1] "cell_indexed"
+
+
+$operations$`scwbpython::affine_cell_vector`$determinism
+$operations$`scwbpython::affine_cell_vector`$determinism$deterministic
+[1] TRUE
+
+$operations$`scwbpython::affine_cell_vector`$determinism$seed_parameter
+NULL
+
+
+$operations$`scwbpython::affine_cell_vector`$resources
+$operations$`scwbpython::affine_cell_vector`$resources$profile
+[1] "pybench_v2"
+
+
+$operations$`scwbpython::affine_cell_vector`$software
+$operations$`scwbpython::affine_cell_vector`$software$runtime
+[1] "Python"
+
+$operations$`scwbpython::affine_cell_vector`$software$bridge
+[1] "PyBench v2"
+
+
+$operations$`scwbpython::affine_cell_vector`$op_name
+[1] "scwbpython::affine_cell_vector"
+
+$operations$`scwbpython::affine_cell_vector`$definition_sha256
+[1] "059d06d5c8710958f3ec56fc0977e773cf30499c9d7396dd57778d6e7bd5487b"
+
+
+
+$runtime_attestation
+$runtime_attestation$backend
+[1] "Python"
+
+$runtime_attestation$dependencies
+$runtime_attestation$dependencies$distributions
+$runtime_attestation$dependencies$distributions[[1]]
+$runtime_attestation$dependencies$distributions[[1]]$name
+[1] "attrs"
+
+$runtime_attestation$dependencies$distributions[[1]]$normalized_name
+[1] "attrs"
+
+$runtime_attestation$dependencies$distributions[[1]]$version
+[1] "26.1.0"
+
+
+$runtime_attestation$dependencies$distributions[[2]]
+$runtime_attestation$dependencies$distributions[[2]]$name
+[1] "h5py"
+
+$runtime_attestation$dependencies$distributions[[2]]$normalized_name
+[1] "h5py"
+
+$runtime_attestation$dependencies$distributions[[2]]$version
+[1] "3.15.1"
+
+
+$runtime_attestation$dependencies$distributions[[3]]
+$runtime_attestation$dependencies$distributions[[3]]$name
+[1] "jsonschema"
+
+$runtime_attestation$dependencies$distributions[[3]]$normalized_name
+[1] "jsonschema"
+
+$runtime_attestation$dependencies$distributions[[3]]$version
+[1] "4.26.0"
+
+
+$runtime_attestation$dependencies$distributions[[4]]
+$runtime_attestation$dependencies$distributions[[4]]$name
+[1] "jsonschema-specifications"
+
+$runtime_attestation$dependencies$distributions[[4]]$normalized_name
+[1] "jsonschema-specifications"
+
+$runtime_attestation$dependencies$distributions[[4]]$version
+[1] "2025.9.1"
+
+
+$runtime_attestation$dependencies$distributions[[5]]
+$runtime_attestation$dependencies$distributions[[5]]$name
+[1] "numpy"
+
+$runtime_attestation$dependencies$distributions[[5]]$normalized_name
+[1] "numpy"
+
+$runtime_attestation$dependencies$distributions[[5]]$version
+[1] "2.4.6"
+
+
+$runtime_attestation$dependencies$distributions[[6]]
+$runtime_attestation$dependencies$distributions[[6]]$name
+[1] "packaging"
+
+$runtime_attestation$dependencies$distributions[[6]]$normalized_name
+[1] "packaging"
+
+$runtime_attestation$dependencies$distributions[[6]]$version
+[1] "26.3"
+
+
+$runtime_attestation$dependencies$distributions[[7]]
+$runtime_attestation$dependencies$distributions[[7]]$name
+[1] "pandas"
+
+$runtime_attestation$dependencies$distributions[[7]]$normalized_name
+[1] "pandas"
+
+$runtime_attestation$dependencies$distributions[[7]]$version
+[1] "3.0.6"
+
+
+$runtime_attestation$dependencies$distributions[[8]]
+$runtime_attestation$dependencies$distributions[[8]]$name
+[1] "pip"
+
+$runtime_attestation$dependencies$distributions[[8]]$normalized_name
+[1] "pip"
+
+$runtime_attestation$dependencies$distributions[[8]]$version
+[1] "22.0.2"
+
+
+$runtime_attestation$dependencies$distributions[[9]]
+$runtime_attestation$dependencies$distributions[[9]]$name
+[1] "pybench"
+
+$runtime_attestation$dependencies$distributions[[9]]$normalized_name
+[1] "pybench"
+
+$runtime_attestation$dependencies$distributions[[9]]$version
+[1] "0.1.0"
+
+
+$runtime_attestation$dependencies$distributions[[10]]
+$runtime_attestation$dependencies$distributions[[10]]$name
+[1] "python-dateutil"
+
+$runtime_attestation$dependencies$distributions[[10]]$normalized_name
+[1] "python-dateutil"
+
+$runtime_attestation$dependencies$distributions[[10]]$version
+[1] "2.9.0.post0"
+
+
+$runtime_attestation$dependencies$distributions[[11]]
+$runtime_attestation$dependencies$distributions[[11]]$name
+[1] "referencing"
+
+$runtime_attestation$dependencies$distributions[[11]]$normalized_name
+[1] "referencing"
+
+$runtime_attestation$dependencies$distributions[[11]]$version
+[1] "0.37.0"
+
+
+$runtime_attestation$dependencies$distributions[[12]]
+$runtime_attestation$dependencies$distributions[[12]]$name
+[1] "rpds-py"
+
+$runtime_attestation$dependencies$distributions[[12]]$normalized_name
+[1] "rpds-py"
+
+$runtime_attestation$dependencies$distributions[[12]]$version
+[1] "2026.9.1"
+
+
+$runtime_attestation$dependencies$distributions[[13]]
+$runtime_attestation$dependencies$distributions[[13]]$name
+[1] "scworkbench-python-pack"
+
+$runtime_attestation$dependencies$distributions[[13]]$normalized_name
+[1] "scworkbench-python-pack"
+
+$runtime_attestation$dependencies$distributions[[13]]$version
+[1] "1.0.0rc1"
+
+
+$runtime_attestation$dependencies$distributions[[14]]
+$runtime_attestation$dependencies$distributions[[14]]$name
+[1] "setuptools"
+
+$runtime_attestation$dependencies$distributions[[14]]$normalized_name
+[1] "setuptools"
+
+$runtime_attestation$dependencies$distributions[[14]]$version
+[1] "59.6.0"
+
+
+$runtime_attestation$dependencies$distributions[[15]]
+$runtime_attestation$dependencies$distributions[[15]]$name
+[1] "six"
+
+$runtime_attestation$dependencies$distributions[[15]]$normalized_name
+[1] "six"
+
+$runtime_attestation$dependencies$distributions[[15]]$version
+[1] "1.17.0"
+
+
+$runtime_attestation$dependencies$distributions[[16]]
+$runtime_attestation$dependencies$distributions[[16]]$name
+[1] "typing_extensions"
+
+$runtime_attestation$dependencies$distributions[[16]]$normalized_name
+[1] "typing-extensions"
+
+$runtime_attestation$dependencies$distributions[[16]]$version
+[1] "4.16.0"
+
+
+
+$runtime_attestation$dependencies$scheme
+[1] "python-distribution-set-v1"
+
+$runtime_attestation$dependencies$sha256
+[1] "251a81f63983232b5c57b2582d46e50e91dad0fd60c29a7c0e0a9959b0f46073"
+
+
+$runtime_attestation$device
+$runtime_attestation$device$descriptor
+[1] "x86_64"
+
+$runtime_attestation$device$type
+[1] "cpu"
+
+
+$runtime_attestation$distribution
+$runtime_attestation$distribution$artifact_identity
+$runtime_attestation$distribution$artifact_identity$kind
+[1] "installed_distribution"
+
+$runtime_attestation$distribution$artifact_identity$scheme
+[1] "python-installed-distribution-tree-sha256-v1"
+
+$runtime_attestation$distribution$artifact_identity$sha256
+[1] "4005bb56c33172d0d1154a8a37f2f7cd0ab2a4d7f55cdfe1866a0bc207ce8854"
+
+
+$runtime_attestation$distribution$declared_name
+[1] "scworkbench-python-pack"
+
+$runtime_attestation$distribution$metadata_name
+[1] "scworkbench-python-pack"
+
+$runtime_attestation$distribution$metadata_normalized_name
+[1] "scworkbench-python-pack"
+
+$runtime_attestation$distribution$metadata_version
+[1] "1.0.0rc1"
+
+$runtime_attestation$distribution$normalized_name
+[1] "scworkbench-python-pack"
+
+$runtime_attestation$distribution$version
+[1] "1.0.0rc1"
+
+
+$runtime_attestation$entry_point
+$runtime_attestation$entry_point$group
+[1] "scworkbench.operation_packs.v1"
+
+$runtime_attestation$entry_point$name
+[1] "reference-pack"
+
+$runtime_attestation$entry_point$value
+[1] "scwbpython.entrypoint:register"
+
+
+$runtime_attestation$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$runtime_attestation$interpreter
+$runtime_attestation$interpreter$abi
+[1] "cpython-311-x86_64-linux-gnu"
+
+$runtime_attestation$interpreter$executable_sha256
+[1] "320707a1d684b043661306d508d1a8655f507c0bb8e827398cb53680054aa7c8"
+
+$runtime_attestation$interpreter$implementation
+[1] "CPython"
+
+$runtime_attestation$interpreter$platform
+[1] "linux-x86_64"
+
+$runtime_attestation$interpreter$version
+[1] "3.11.0rc1"
+
+
+$runtime_attestation$manifest_source
+$runtime_attestation$manifest_source$bytes_sha256
+[1] "1e8986747fd068d1b2518f60435f56d9ef4ce1e067458f4a41f032c8a704722d"
+
+$runtime_attestation$manifest_source$distribution_relative_path
+[1] "scwbpython/operation-pack.json"
+
+$runtime_attestation$manifest_source$manifest_sha256
+[1] "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253"
+
+$runtime_attestation$manifest_source$scheme
+[1] "python-installed-operation-pack-manifest-v1"
+
+
+$runtime_attestation$pybench
+$runtime_attestation$pybench$distribution_name
+[1] "pybench"
+
+$runtime_attestation$pybench$distribution_version
+[1] "0.1.0"
+
+$runtime_attestation$pybench$protocol
+[1] "pybench-op-v2"
+
+$runtime_attestation$pybench$source_revision
+[1] "0e67612a915caf4168a6824084fe5c5446690567"
+
+
+$runtime_attestation$schema
+[1] "scworkbench.operation_pack_runtime.python.v1"
+
+$runtime_attestation$seed
+$runtime_attestation$seed$status
+[1] "not_declared"
+
+$runtime_attestation$seed$value
+NULL
+
+
+
+$used
+[1] FALSE
+
+attr(,"class")
+[1] "wb_operation_pack" "list"             
+CORE_SOURCE_RUN PASS
+PYTHON_PUBLIC_RUN PASS
+PUBLIC_PROMOTION PASS
+$session_id
+[1] "public_positive"
+
+$runs
+$runs$run_x0er8q4li4nh
+$run_id
+[1] "run_x0er8q4li4nh"
+
+$op_name
+[1] "metadata_cell_vector"
+
+$created_at
+[1] "2026-10-12T22:48:36+0200"
+
+$inputs
+$inputs$cell_set
+[1] "all"
+
+$inputs$effective_n
+[1] 12
+
+$inputs$parents
+character(0)
+
+$inputs$provenance_refs
+list()
+
+$inputs$coverage
+$inputs$coverage$schema_version
+[1] "scworkbench.effective_cell_coverage.v1"
+
+$inputs$coverage$requested_source
+[1] "cell_set"
+
+$inputs$coverage$cell_set
+[1] "all"
+
+$inputs$coverage$requested_n
+[1] 12
+
+$inputs$coverage$per_input
+list()
+
+$inputs$coverage$effective_n
+[1] 12
+
+$inputs$coverage$dropped_n
+[1] 0
+
+$inputs$coverage$percent
+[1] 100
+
+
+$inputs$cell_set_resolutions
+list()
+
+$inputs$user_inputs
+$inputs$user_inputs$source_column
+[1] "signal"
+
+$inputs$user_inputs$vector_name
+[1] "signal"
+
+$inputs$user_inputs$value_type
+[1] "continuous"
+
+$inputs$user_inputs$missing_policy
+[1] "error"
+
+$inputs$user_inputs$min_cells
+[1] 1
+
+$inputs$user_inputs$cell_set
+[1] "all"
+
+$inputs$user_inputs$missing_label
+[1] "__MISSING__"
+
+$inputs$user_inputs$overwrite
+[1] FALSE
+
+
+$inputs$symbolic_inputs
+$inputs$symbolic_inputs$cell_set
+[1] "all"
+
+$inputs$symbolic_inputs$min_cells
+[1] 1
+
+$inputs$symbolic_inputs$source_column
+[1] "signal"
+
+$inputs$symbolic_inputs$value_type
+[1] "continuous"
+
+$inputs$symbolic_inputs$missing_policy
+[1] "error"
+
+$inputs$symbolic_inputs$missing_label
+[1] "__MISSING__"
+
+$inputs$symbolic_inputs$vector_name
+[1] "signal"
+
+$inputs$symbolic_inputs$overwrite
+[1] FALSE
+
+
+$inputs$execution_inputs
+$inputs$execution_inputs$effective_n
+[1] 12
+
+$inputs$execution_inputs$resolved
+list()
+
+
+$inputs$operation_pack_registry_requests
+list()
+
+
+$params
+$params$source_column
+[1] "signal"
+
+$params$source_field_id
+[1] "meta:000001"
+
+$params$source_metadata_scope
+[1] "cells"
+
+$params$source_dataset_id
+NULL
+
+$params$vector_name
+[1] "signal"
+
+$params$overwrite
+[1] FALSE
+
+$params$value_type_requested
+[1] "continuous"
+
+$params$value_type
+[1] "continuous"
+
+$params$auto_detected
+[1] FALSE
+
+$params$auto_detection_rule
+NULL
+
+$params$missing_policy
+[1] "error"
+
+$params$missing_label
+[1] "__MISSING__"
+
+$params$n_cells_requested
+[1] 12
+
+$params$n_cells_output
+[1] 12
+
+$params$n_missing
+[1] 0
+
+$params$cell_set
+[1] "all"
+
+
+$outputs
+$outputs$vector
+$kind
+[1] "cell_vector"
+
+$cell_id
+ [1] "c1"  "c2"  "c3"  "c4"  "c5"  "c6"  "c7"  "c8"  "c9"  "c10" "c11" "c12"
+
+$value
+ [1] "1"  "2"  "3"  "4"  "5"  "6"  "7"  "8"  "9"  "10" "11" "12"
+
+$value_type
+[1] "continuous"
+
+attr(,"class")
+[1] "wb_primitive"
+
+
+$notes
+NULL
+
+attr(,"class")
+[1] "wb_run"
+
+$runs$run_0bco76ap346j
+$run_id
+[1] "run_0bco76ap346j"
+
+$op_name
+[1] "scwbpython::affine_cell_vector"
+
+$created_at
+[1] "2026-10-12T22:48:42+0200"
+
+$inputs
+$inputs$cell_set
+[1] "all"
+
+$inputs$effective_n
+[1] 12
+
+$inputs$parents
+[1] "run_x0er8q4li4nh"
+
+$inputs$provenance_refs
+list()
+
+$inputs$coverage
+$inputs$coverage$schema_version
+[1] "scworkbench.effective_cell_coverage.v1"
+
+$inputs$coverage$requested_source
+[1] "cell_set"
+
+$inputs$coverage$cell_set
+[1] "all"
+
+$inputs$coverage$requested_n
+[1] 12
+
+$inputs$coverage$per_input
+$inputs$coverage$per_input$signal
+$inputs$coverage$per_input$signal$kind
+[1] "cell_vector"
+
+$inputs$coverage$per_input$signal$required
+[1] TRUE
+
+$inputs$coverage$per_input$signal$coverage_mode
+[1] "cell_indexed"
+
+$inputs$coverage$per_input$signal$source_id
+NULL
+
+$inputs$coverage$per_input$signal$dims
+NULL
+
+$inputs$coverage$per_input$signal$available_n
+[1] 12
+
+$inputs$coverage$per_input$signal$input_n
+[1] 12
+
+$inputs$coverage$per_input$signal$overlap_n
+[1] 12
+
+$inputs$coverage$per_input$signal$dropped_n
+[1] 0
+
+
+
+$inputs$coverage$effective_n
+[1] 12
+
+$inputs$coverage$dropped_n
+[1] 0
+
+$inputs$coverage$percent
+[1] 100
+
+
+$inputs$cell_set_resolutions
+list()
+
+$inputs$user_inputs
+$inputs$user_inputs$signal
+$inputs$user_inputs$signal$ref_type
+[1] "run"
+
+$inputs$user_inputs$signal$run_id
+[1] "run_x0er8q4li4nh"
+
+$inputs$user_inputs$signal$output
+[1] "vector"
+
+
+$inputs$user_inputs$scale
+[1] 2
+
+$inputs$user_inputs$min_cells
+[1] 1
+
+$inputs$user_inputs$cell_set
+[1] "all"
+
+
+$inputs$symbolic_inputs
+$inputs$symbolic_inputs$cell_set
+[1] "all"
+
+$inputs$symbolic_inputs$min_cells
+[1] 1
+
+$inputs$symbolic_inputs$scale
+[1] 2
+
+$inputs$symbolic_inputs$signal
+$inputs$symbolic_inputs$signal$ref_type
+[1] "run"
+
+$inputs$symbolic_inputs$signal$run_id
+[1] "run_x0er8q4li4nh"
+
+$inputs$symbolic_inputs$signal$output
+[1] "vector"
+
+
+
+$inputs$execution_inputs
+$inputs$execution_inputs$effective_n
+[1] 12
+
+$inputs$execution_inputs$resolved
+$inputs$execution_inputs$resolved$signal
+$inputs$execution_inputs$resolved$signal$kind
+[1] "cell_vector"
+
+$inputs$execution_inputs$resolved$signal$value_type
+[1] "continuous"
+
+$inputs$execution_inputs$resolved$signal$n
+[1] 12
+
+$inputs$execution_inputs$resolved$signal$meta
+NULL
+
+
+
+
+$inputs$operation_pack_registry_requests
+list()
+
+
+$params
+$params$scale
+[1] 2
+
+
+$outputs
+$outputs$vector
+$kind
+[1] "cell_vector"
+
+$cell_id
+ [1] "c1"  "c2"  "c3"  "c4"  "c5"  "c6"  "c7"  "c8"  "c9"  "c10" "c11" "c12"
+
+$value
+ [1] "2"  "4"  "6"  "8"  "10" "12" "14" "16" "18" "20" "22" "24"
+
+$value_type
+[1] "continuous"
+
+attr(,"class")
+[1] "wb_primitive"
+
+$outputs$summary
+$kind
+[1] "obs_table"
+
+$table_type
+[1] "scwbpython_affine_summary"
+
+$entity_kind
+[1] "operation_run"
+
+$table
+  n_cells scale input_min input_max output_min output_max output_mean
+1      12     2         1        12          2         24          13
+
+$meta
+$meta$operation
+[1] "scwbpython::affine_cell_vector"
+
+
+attr(,"class")
+[1] "wb_primitive"
+
+
+$notes
+NULL
+
+$operation_pack
+$operation_pack$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$operation_pack$schema_version
+[1] "scworkbench.operation_pack.v1"
+
+$operation_pack$protocol_version
+[1] "1"
+
+$operation_pack$manifest_sha256
+[1] "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253"
+
+$operation_pack$namespace
+[1] "scwbpython"
+
+$operation_pack$package
+$operation_pack$package$name
+[1] "scworkbench-python-pack"
+
+$operation_pack$package$version
+[1] "1.0.0rc1"
+
+
+$operation_pack$backend
+[1] "Python"
+
+$operation_pack$compatibility
+$operation_pack$compatibility$scworkbench
+[1] ">=0.1.0 <0.2.0"
+
+$operation_pack$compatibility$protocol
+[1] "1"
+
+
+$operation_pack$entry_point
+[1] "reference-pack"
+
+$operation_pack$operation_definition_sha256
+$operation_pack$operation_definition_sha256$`scwbpython::affine_cell_vector`
+[1] "059d06d5c8710958f3ec56fc0977e773cf30499c9d7396dd57778d6e7bd5487b"
+
+
+$operation_pack$distribution
+$operation_pack$distribution$declared_name
+[1] "scworkbench-python-pack"
+
+$operation_pack$distribution$normalized_name
+[1] "scworkbench-python-pack"
+
+$operation_pack$distribution$version
+[1] "1.0.0rc1"
+
+
+$operation_pack$entry_point_group
+[1] "scworkbench.operation_packs.v1"
+
+$operation_pack$pack_sha256
+[1] "864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab"
+
+
+$operation_definition_sha256
+[1] "059d06d5c8710958f3ec56fc0977e773cf30499c9d7396dd57778d6e7bd5487b"
+
+$operation_pack_runtime
+$operation_pack_runtime$backend
+[1] "Python"
+
+$operation_pack_runtime$dependencies
+$operation_pack_runtime$dependencies$distributions
+$operation_pack_runtime$dependencies$distributions[[1]]
+$operation_pack_runtime$dependencies$distributions[[1]]$name
+[1] "attrs"
+
+$operation_pack_runtime$dependencies$distributions[[1]]$normalized_name
+[1] "attrs"
+
+$operation_pack_runtime$dependencies$distributions[[1]]$version
+[1] "26.1.0"
+
+
+$operation_pack_runtime$dependencies$distributions[[2]]
+$operation_pack_runtime$dependencies$distributions[[2]]$name
+[1] "h5py"
+
+$operation_pack_runtime$dependencies$distributions[[2]]$normalized_name
+[1] "h5py"
+
+$operation_pack_runtime$dependencies$distributions[[2]]$version
+[1] "3.15.1"
+
+
+$operation_pack_runtime$dependencies$distributions[[3]]
+$operation_pack_runtime$dependencies$distributions[[3]]$name
+[1] "jsonschema"
+
+$operation_pack_runtime$dependencies$distributions[[3]]$normalized_name
+[1] "jsonschema"
+
+$operation_pack_runtime$dependencies$distributions[[3]]$version
+[1] "4.26.0"
+
+
+$operation_pack_runtime$dependencies$distributions[[4]]
+$operation_pack_runtime$dependencies$distributions[[4]]$name
+[1] "jsonschema-specifications"
+
+$operation_pack_runtime$dependencies$distributions[[4]]$normalized_name
+[1] "jsonschema-specifications"
+
+$operation_pack_runtime$dependencies$distributions[[4]]$version
+[1] "2025.9.1"
+
+
+$operation_pack_runtime$dependencies$distributions[[5]]
+$operation_pack_runtime$dependencies$distributions[[5]]$name
+[1] "numpy"
+
+$operation_pack_runtime$dependencies$distributions[[5]]$normalized_name
+[1] "numpy"
+
+$operation_pack_runtime$dependencies$distributions[[5]]$version
+[1] "2.4.6"
+
+
+$operation_pack_runtime$dependencies$distributions[[6]]
+$operation_pack_runtime$dependencies$distributions[[6]]$name
+[1] "packaging"
+
+$operation_pack_runtime$dependencies$distributions[[6]]$normalized_name
+[1] "packaging"
+
+$operation_pack_runtime$dependencies$distributions[[6]]$version
+[1] "26.3"
+
+
+$operation_pack_runtime$dependencies$distributions[[7]]
+$operation_pack_runtime$dependencies$distributions[[7]]$name
+[1] "pandas"
+
+$operation_pack_runtime$dependencies$distributions[[7]]$normalized_name
+[1] "pandas"
+
+$operation_pack_runtime$dependencies$distributions[[7]]$version
+[1] "3.0.6"
+
+
+$operation_pack_runtime$dependencies$distributions[[8]]
+$operation_pack_runtime$dependencies$distributions[[8]]$name
+[1] "pip"
+
+$operation_pack_runtime$dependencies$distributions[[8]]$normalized_name
+[1] "pip"
+
+$operation_pack_runtime$dependencies$distributions[[8]]$version
+[1] "22.0.2"
+
+
+$operation_pack_runtime$dependencies$distributions[[9]]
+$operation_pack_runtime$dependencies$distributions[[9]]$name
+[1] "pybench"
+
+$operation_pack_runtime$dependencies$distributions[[9]]$normalized_name
+[1] "pybench"
+
+$operation_pack_runtime$dependencies$distributions[[9]]$version
+[1] "0.1.0"
+
+
+$operation_pack_runtime$dependencies$distributions[[10]]
+$operation_pack_runtime$dependencies$distributions[[10]]$name
+[1] "python-dateutil"
+
+$operation_pack_runtime$dependencies$distributions[[10]]$normalized_name
+[1] "python-dateutil"
+
+$operation_pack_runtime$dependencies$distributions[[10]]$version
+[1] "2.9.0.post0"
+
+
+$operation_pack_runtime$dependencies$distributions[[11]]
+$operation_pack_runtime$dependencies$distributions[[11]]$name
+[1] "referencing"
+
+$operation_pack_runtime$dependencies$distributions[[11]]$normalized_name
+[1] "referencing"
+
+$operation_pack_runtime$dependencies$distributions[[11]]$version
+[1] "0.37.0"
+
+
+$operation_pack_runtime$dependencies$distributions[[12]]
+$operation_pack_runtime$dependencies$distributions[[12]]$name
+[1] "rpds-py"
+
+$operation_pack_runtime$dependencies$distributions[[12]]$normalized_name
+[1] "rpds-py"
+
+$operation_pack_runtime$dependencies$distributions[[12]]$version
+[1] "2026.9.1"
+
+
+$operation_pack_runtime$dependencies$distributions[[13]]
+$operation_pack_runtime$dependencies$distributions[[13]]$name
+[1] "scworkbench-python-pack"
+
+$operation_pack_runtime$dependencies$distributions[[13]]$normalized_name
+[1] "scworkbench-python-pack"
+
+$operation_pack_runtime$dependencies$distributions[[13]]$version
+[1] "1.0.0rc1"
+
+
+$operation_pack_runtime$dependencies$distributions[[14]]
+$operation_pack_runtime$dependencies$distributions[[14]]$name
+[1] "setuptools"
+
+$operation_pack_runtime$dependencies$distributions[[14]]$normalized_name
+[1] "setuptools"
+
+$operation_pack_runtime$dependencies$distributions[[14]]$version
+[1] "59.6.0"
+
+
+$operation_pack_runtime$dependencies$distributions[[15]]
+$operation_pack_runtime$dependencies$distributions[[15]]$name
+[1] "six"
+
+$operation_pack_runtime$dependencies$distributions[[15]]$normalized_name
+[1] "six"
+
+$operation_pack_runtime$dependencies$distributions[[15]]$version
+[1] "1.17.0"
+
+
+$operation_pack_runtime$dependencies$distributions[[16]]
+$operation_pack_runtime$dependencies$distributions[[16]]$name
+[1] "typing_extensions"
+
+$operation_pack_runtime$dependencies$distributions[[16]]$normalized_name
+[1] "typing-extensions"
+
+$operation_pack_runtime$dependencies$distributions[[16]]$version
+[1] "4.16.0"
+
+
+
+$operation_pack_runtime$dependencies$scheme
+[1] "python-distribution-set-v1"
+
+$operation_pack_runtime$dependencies$sha256
+[1] "251a81f63983232b5c57b2582d46e50e91dad0fd60c29a7c0e0a9959b0f46073"
+
+
+$operation_pack_runtime$device
+$operation_pack_runtime$device$descriptor
+[1] "x86_64"
+
+$operation_pack_runtime$device$type
+[1] "cpu"
+
+
+$operation_pack_runtime$distribution
+$operation_pack_runtime$distribution$artifact_identity
+$operation_pack_runtime$distribution$artifact_identity$kind
+[1] "installed_distribution"
+
+$operation_pack_runtime$distribution$artifact_identity$scheme
+[1] "python-installed-distribution-tree-sha256-v1"
+
+$operation_pack_runtime$distribution$artifact_identity$sha256
+[1] "4005bb56c33172d0d1154a8a37f2f7cd0ab2a4d7f55cdfe1866a0bc207ce8854"
+
+
+$operation_pack_runtime$distribution$declared_name
+[1] "scworkbench-python-pack"
+
+$operation_pack_runtime$distribution$metadata_name
+[1] "scworkbench-python-pack"
+
+$operation_pack_runtime$distribution$metadata_normalized_name
+[1] "scworkbench-python-pack"
+
+$operation_pack_runtime$distribution$metadata_version
+[1] "1.0.0rc1"
+
+$operation_pack_runtime$distribution$normalized_name
+[1] "scworkbench-python-pack"
+
+$operation_pack_runtime$distribution$version
+[1] "1.0.0rc1"
+
+
+$operation_pack_runtime$entry_point
+$operation_pack_runtime$entry_point$group
+[1] "scworkbench.operation_packs.v1"
+
+$operation_pack_runtime$entry_point$name
+[1] "reference-pack"
+
+$operation_pack_runtime$entry_point$value
+[1] "scwbpython.entrypoint:register"
+
+
+$operation_pack_runtime$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$operation_pack_runtime$interpreter
+$operation_pack_runtime$interpreter$abi
+[1] "cpython-311-x86_64-linux-gnu"
+
+$operation_pack_runtime$interpreter$executable_sha256
+[1] "320707a1d684b043661306d508d1a8655f507c0bb8e827398cb53680054aa7c8"
+
+$operation_pack_runtime$interpreter$implementation
+[1] "CPython"
+
+$operation_pack_runtime$interpreter$platform
+[1] "linux-x86_64"
+
+$operation_pack_runtime$interpreter$version
+[1] "3.11.0rc1"
+
+
+$operation_pack_runtime$manifest_source
+$operation_pack_runtime$manifest_source$bytes_sha256
+[1] "1e8986747fd068d1b2518f60435f56d9ef4ce1e067458f4a41f032c8a704722d"
+
+$operation_pack_runtime$manifest_source$distribution_relative_path
+[1] "scwbpython/operation-pack.json"
+
+$operation_pack_runtime$manifest_source$manifest_sha256
+[1] "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253"
+
+$operation_pack_runtime$manifest_source$scheme
+[1] "python-installed-operation-pack-manifest-v1"
+
+
+$operation_pack_runtime$pybench
+$operation_pack_runtime$pybench$distribution_name
+[1] "pybench"
+
+$operation_pack_runtime$pybench$distribution_version
+[1] "0.1.0"
+
+$operation_pack_runtime$pybench$protocol
+[1] "pybench-op-v2"
+
+$operation_pack_runtime$pybench$source_revision
+[1] "0e67612a915caf4168a6824084fe5c5446690567"
+
+
+$operation_pack_runtime$schema
+[1] "scworkbench.operation_pack_runtime.python.v1"
+
+$operation_pack_runtime$seed
+$operation_pack_runtime$seed$status
+[1] "not_declared"
+
+$operation_pack_runtime$seed$value
+NULL
+
+
+
+attr(,"class")
+[1] "wb_run"
+
+
+$active
+$active$vector
+$active$vector$ref_type
+[1] "run"
+
+$active$vector$run_id
+[1] "run_0bco76ap346j"
+
+$active$vector$output
+[1] "vector"
+
+
+$active$summary
+$active$summary$ref_type
+[1] "run"
+
+$active$summary$run_id
+[1] "run_0bco76ap346j"
+
+$active$summary$output
+[1] "summary"
+
+
+
+$head_run_id
+[1] "run_0bco76ap346j"
+
+attr(,"class")
+[1] "wb_session"

@@ -1,0 +1,12 @@
+lib <- "/tmp/scwb-provisional-output-621.rdo0ps8z/library"
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+scworkbench:::.wb_matrix_native_byte_api_initialize()
+env <- new.env(parent=asNamespace("scworkbench"))
+sys.source("inst/tests/contract_test_runner.R",env)
+inventory <- env$contract_test_discover("tests",exclusions=character(),parent_env=env)
+names <- c("test_graph_authentic_legacy_object_content_load_contract","test_graph_object_proof_removal_content_and_authority_contract","test_operation_pack_v2_cell_set_family_publication_contract","test_pybench_staging_capability_v2_contract","test_graph_retained_cell_source_payload_contract","test_graph_object_source_batch_identity_admission_restoration_contract")
+selected <- lapply(names,function(name){matches <- Filter(function(record)identical(record$name,name),inventory$tests);stopifnot(length(matches)==1L);matches[[1L]]})
+inventory$tests <- selected;inventory$files <- unique(vapply(selected,`[[`,character(1),"file"))
+run <- env$contract_test_execute(inventory,reporter=TRUE)
+saveRDS(run,"notes/generic_graph_implementation/evidence/623_certified_and_receipt_getter_focus.rds")
+env$contract_test_assert_success(run)

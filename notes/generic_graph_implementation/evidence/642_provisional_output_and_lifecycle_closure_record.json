@@ -1,0 +1,28 @@
+{
+  "implementation_candidate": "625",
+  "base_commit": "70028abe5b4556a0987e81ba7bd753ac1eddd654",
+  "patch_sha256": "718a19a68182991f69b2f0652cc9db1fe119a534cbf9bbe0c18442b76a797a40",
+  "implementation_bytes_equal_worktree": true,
+  "positive": {
+    "627_historical_v1_public": "PASS exit0",
+    "630_current_e724_wheel_public": "PASS exact values/promotion/reload/content_verified exit0"
+  },
+  "faults": {
+    "633_individual": "PASS old8+new3 negatives, publication fault, original2second timeout, exact retry/promotion andnoresidue; two-case run remainsFAIL due separatecatalogfixture"
+  },
+  "cross_lifecycle": {
+    "640": "PASS1/1zero skips exit0; differentorder catalogs same3packs, mixedDAG/replay/packfree recipient/freshprocess replacement originalassertions unchanged"
+  },
+  "source_and_guard_regressions": {
+    "623": "6/6 PASS on621 byte-identical getter/snapshot files;625 adapter membership correction independently qualified",
+    "624": "defaultfullsnapshot andscopedcanonical typedhash exactparity",
+    "631": "payload identity authentic historical replay backfill full1/1PASS"
+  },
+  "fixture_fixes": [
+    "public finalize cell family recipient after582terminal",
+    "authentic96a37 publictableproducer replay-policy migration insteadwholeledgerreset",
+    "sameexactV2Reference prerequisites in onlytwo execution children; packfree recipient untouched",
+    "installed-only fault helper bootstrap preserves isolated source-child fallback"
+  ],
+  "limits": "No full336 rerun orcanonicalallpass claim; original525/582/589 andallfailed attempts retained; historical e0feac-vs-current bytecomparison unqualified; aboveRAM stress deferred; no newidentity/grant/schema/publicflags."
+}

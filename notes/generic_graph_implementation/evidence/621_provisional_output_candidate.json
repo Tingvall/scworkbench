@@ -1,0 +1,12 @@
+{
+  "base_commit": "70028abe5b4556a0987e81ba7bd753ac1eddd654",
+  "patch_sha256": "c833e89a6ae7ec573b69c791ccce79283695cb976a5707f91b79a498e45a7a9f",
+  "modified_source_sha256": {
+    "R/artifacts_load.R": "833f1494495ddf7728a5b16cc50cdcf2b47fba67499a0508879dbc9c0aa210bc",
+    "R/operation_pack_python.R": "66952df867a6909cdddff277ecb348713197026a5eb466883c1d92339ad18d2b",
+    "R/pybench_transition.R": "ba5d24a40baa2e360e9a83874592a79daef5af0217686340dd6828bc9f2a2d1e"
+  },
+  "source": "/tmp/scwb-provisional-output-621.rdo0ps8z/source",
+  "library": "/tmp/scwb-provisional-output-621.rdo0ps8z/library",
+  "status": "uncommitted isolated qualification candidate"
+}

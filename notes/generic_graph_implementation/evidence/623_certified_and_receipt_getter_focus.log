@@ -1,0 +1,20 @@
+RUN test_graph_authentic_legacy_object_content_load_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_authentic_legacy_object_content_load_contract (5.707s)
+RUN test_graph_object_proof_removal_content_and_authority_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_object_proof_removal_content_and_authority_contract (23.863s)
+RUN test_operation_pack_v2_cell_set_family_publication_contract [test_operation_pack_v2_cell_set_family_admission_contract.R; self_contained]
+PASS test_operation_pack_v2_cell_set_family_publication_contract (37.139s)
+RUN test_pybench_staging_capability_v2_contract [test_pybench_staging_capability_v2_contract.R; self_contained]
+PASS test_pybench_staging_capability_v2_contract (35.908s)
+RUN test_graph_retained_cell_source_payload_contract [test_graph_source_authority_contract.R; self_contained]
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector_family SEARCH artifact_pseudotime USING INDEX artifact_pseudotime_payload_order (artifact_id=?) 
+PASS test_graph_retained_cell_source_payload_contract (13.723s)
+RUN test_graph_object_source_batch_identity_admission_restoration_contract [test_graph_object_source_batch_contract.R; self_contained]
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.167
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.157
+PASS test_graph_object_source_batch_identity_admission_restoration_contract (8.810s)
+CONTRACT TEST SUMMARY files=5 discovered=6 executed=6 passed=6 skipped=0 failed=0 excluded=0 accounted=6
+Warning message:
+call dbDisconnect() when finished working with a connection 
