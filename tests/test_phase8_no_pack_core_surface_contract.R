@@ -34,11 +34,29 @@ test_phase8_primitive_exchange_inventory_contract <- function() {
     simplifyVector = FALSE)
   schema_kinds <- unlist(schema$`$defs`$primitive_kind$enum,
     use.names = FALSE)
+  graph_schema <- jsonlite::read_json("inst/protocol/operation-pack-v4.schema.json",
+    simplifyVector = FALSE)
+  graph_schema_kinds <- unlist(graph_schema$`$defs`$primitive_kind$enum,
+    use.names = FALSE)
+  legacy_kinds <- c("matrix", "space", "space_2d", "cell_vector",
+    "cell_vector_family", "feature_table", "obs_table", "model_ref",
+    "relation_family", "path_2d_family", "space_path_family")
+  graph <- inventory[inventory$primitive_kind == "graph", , drop = FALSE]
   stopifnot(
-    nrow(inventory) == 11L,
+    nrow(inventory) == 12L,
     !anyDuplicated(inventory$primitive_kind),
+    identical(schema_kinds, legacy_kinds),
+    identical(graph_schema_kinds, c(legacy_kinds, "graph")),
+    !"graph" %in% schema_kinds,
     setequal(inventory$primitive_kind, catalog_kinds),
-    setequal(inventory$primitive_kind, schema_kinds),
+    setequal(inventory$primitive_kind[inventory$minimum_pack_abi_version == 2L], schema_kinds),
+    setequal(inventory$primitive_kind, graph_schema_kinds),
+    nrow(graph) == 1L, graph$minimum_pack_abi_version == 4L,
+    graph$r_read == "issued_bounded_component_cursor",
+    graph$r_write == "granted_open_graph_write_part_finish",
+    grepl("test_graph_small_out_of_core_contract.R", graph$qualification_evidence, fixed = TRUE),
+    grepl("test_graph_small_r_parity.py", graph$python_qualification_evidence, fixed = TRUE),
+    grepl("Beyond-host-RAM and 8x physical stress are deferred", graph$limits, fixed = TRUE),
     all(inventory$classification %in% c("exchangeable_and_qualified",
       "deliberately_core_only", "r_only_python_fail_closed", "actual_gap")),
     !any(inventory$classification == "actual_gap"),
@@ -58,6 +76,8 @@ test_phase8_test_ownership_inventory_contract <- function() {
     stringsAsFactors = FALSE)
   operations <- utils::read.csv("inst/phase8/packed_operation_names.csv",
     stringsAsFactors = FALSE)
+  additions <- utils::read.csv("inst/phase8/graph_and_core_test_additions.csv",
+    stringsAsFactors = FALSE)
   files <- sort(list.files("tests", pattern = "^test_.*\\.R$", full.names = TRUE))
   discovered <- unlist(lapply(files, function(path) {
     parsed <- parse(path)
@@ -74,7 +94,14 @@ test_phase8_test_ownership_inventory_contract <- function() {
     nrow(ownership) == 242L,
     !anyDuplicated(ownership$test_identity),
     all(nzchar(ownership$key_assertions)),
-    nrow(current) == 251L,
+    nrow(current) == 336L,
+    nrow(additions) == 85L,
+    !anyDuplicated(additions$test_identity),
+    all(additions$owner == "core_engine"),
+    all(additions$disposition == "retain_core"),
+    all(nzchar(additions$justification)),
+    all(additions$ownership_decision_commit == "441297513b9a1b41fae23764c9a85c3b129cf0b7"),
+    all(additions$source_checkpoint_commit == "441297513b9a1b41fae23764c9a85c3b129cf0b7"),
     !anyDuplicated(current$test_identity),
     identical(sort(current$test_identity), sort(discovered)),
     all(nzchar(current$key_assertions)),
@@ -93,7 +120,12 @@ test_phase8_test_ownership_inventory_contract <- function() {
       sort(c("test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract",
         "test_phase8_no_pack_core_surface_contract",
         "test_phase8_primitive_exchange_inventory_contract",
-        "test_phase8_test_ownership_inventory_contract", sdk_tests))),
+        "test_phase8_test_ownership_inventory_contract", sdk_tests, additions$test_identity))),
+    identical(current$source_path[match(additions$test_identity, current$test_identity)], additions$source_path),
+    identical(current$new_owner_commit[match(additions$test_identity, current$test_identity)], additions$ownership_decision_commit),
+    all(!nzchar(current$old_owner_commit[current$test_identity %in% additions$test_identity])),
+    all(current$new_owner_commit[!current$test_identity %in% c(sdk_tests, additions$test_identity)] ==
+      "03f5a5bf699ac36ed44fc0a3cc56a2d750e76f7e"),
     all(current$owner[current$test_identity %in% sdk_tests] == "core_engine"),
     all(current$new_owner_commit[current$test_identity %in% sdk_tests] ==
       "baf5cb40650a6a6a0e5219b03785e5bed0c4d2b3"),

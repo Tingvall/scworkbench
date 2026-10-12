@@ -160,6 +160,18 @@ sdk_tests <- c("scaffold_safety", "manifest_negatives", "catalog_coverage",
 sdk_tests <- paste0("test_operation_pack_sdk_", sdk_tests)
 for (name in sdk_tests) introduced[[name]] <- c("",
   "Core-owned installed SDK authoring, admission, capability or lifecycle conformance; synthetic method assertions ship in the author template.")
+# Additions are explicit ownership decisions, separate from the frozen Phase 8
+# baseline. Discovery may validate this ledger but never classify future tests.
+additions <- utils::read.csv("inst/phase8/graph_and_core_test_additions.csv",
+  stringsAsFactors = FALSE)
+stopifnot(nrow(additions) == 85L, !anyDuplicated(additions$test_identity),
+  !any(additions$test_identity %in% c(inventory$test_identity, names(introduced))),
+  all(additions$owner == "core_engine"), all(additions$disposition == "retain_core"),
+  all(nzchar(additions$justification)),
+  all(grepl("^[0-9a-f]{40}$", additions$ownership_decision_commit)),
+  all(grepl("^[0-9a-f]{40}$", additions$source_checkpoint_commit)))
+for (i in seq_len(nrow(additions))) introduced[[additions$test_identity[[i]]]] <-
+  c("", additions$justification[[i]])
 for (path in current_paths) {
   parsed <- parse(path)
   for (expr in parsed) {
@@ -184,6 +196,9 @@ for (path in current_paths) {
     prior <- inventory[inventory$test_identity == name, , drop = FALSE]
     addition <- introduced[[name]]
     if (!nrow(prior) && is.null(addition)) stop("Unclassified current test: ", name)
+    declared_addition <- additions[additions$test_identity == name, , drop = FALSE]
+    if (nrow(declared_addition) && !identical(path, declared_addition$source_path))
+      stop("Current addition source differs from ownership ledger: ", name)
     current_rows[[length(current_rows) + 1L]] <- data.frame(
       test_identity = name, source_path = path,
       assertion_count = length(assertions),
@@ -197,11 +212,12 @@ for (path in current_paths) {
       justification = if (nrow(prior)) prior$justification else addition[[2L]],
       old_owner_commit = if (nrow(prior) || nzchar(addition[[1L]])) baseline else "",
       new_owner_commit = if (name %in% sdk_tests)
-        "baf5cb40650a6a6a0e5219b03785e5bed0c4d2b3" else new_core_commit)
+        "baf5cb40650a6a6a0e5219b03785e5bed0c4d2b3" else if (nrow(declared_addition))
+        declared_addition$ownership_decision_commit else new_core_commit)
   }
 }
 current <- do.call(rbind, current_rows)
-stopifnot(nrow(current) == 251L, !anyDuplicated(current$test_identity),
+stopifnot(nrow(current) == 336L, !anyDuplicated(current$test_identity),
   identical(sort(setdiff(current$test_identity, inventory$test_identity)),
     sort(names(introduced))),
   identical(sort(setdiff(inventory$test_identity, current$test_identity)),
