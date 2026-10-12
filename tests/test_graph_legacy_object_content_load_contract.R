@@ -1,11 +1,19 @@
 # Ordinary legacy content is distinct from authority to bind a graph source.
-.graph_legacy_fixture <- function(root) {
+.graph_legacy_fixture <- function(root, pre_descriptor = FALSE) {
   archive <- "tests/fixtures/graph_legacy_object_fa929.tar.gz"
   expected <- "tests/fixtures/graph_legacy_object_fa929_expected.rds"
   stopifnot(digest::digest(file=archive,algo="sha256",serialize=FALSE)==
     "9e569729324d17575273245d05964fb361d83ac467e462e2e0864e4966ce11bc",
     digest::digest(file=expected,algo="sha256",serialize=FALSE)==
     "07227a46a348215f8301070897da62b7d14e7062dee62b552382f4a8a153fae3")
+  if (pre_descriptor) {
+    archive <- "tests/fixtures/graph_legacy_object_fa47.tar.gz"
+    expected <- "tests/fixtures/graph_legacy_object_fa47_expected.rds"
+    stopifnot(digest::digest(file=archive,algo="sha256",serialize=FALSE)==
+      "9e3d0723a1ca9baa489ae446e7e14785b9b14fd6b0f6134d27aef668bf174d5d",
+      digest::digest(file=expected,algo="sha256",serialize=FALSE)==
+      "2c6fcc01501909577d2137d8cae556a5cc9636d2c74510551bf622dfd948e0d2")
+  }
   utils::untar(archive,exdir=root)
   list(path=file.path(root,"authentic.bundle"),expected=readRDS(expected))
 }
@@ -13,16 +21,26 @@
 test_graph_authentic_legacy_object_content_load_contract <- function() {
   root <- tempfile("legacy_object_content_");dir.create(root)
   on.exit(unlink(root,recursive=TRUE),add=TRUE)
-  fixture <- .graph_legacy_fixture(root)
-  b <- wb_open_bundle(fixture$path)
-  on.exit(wb_close_bundle(b),add=TRUE)
-  loaded <- wb_art_load(b,fixture$expected$id)
-  stopifnot(identical(unclass(loaded),unclass(fixture$expected$primitive)),
-    identical(scworkbench:::.wb_prov_payload_identity(b,loaded)$content_sha256,
-      fixture$expected$identity$content_sha256),
-    identical(DBI::dbGetQuery(b$con,"SELECT version FROM bundle_schema_migrations ORDER BY version;")$version,1:11))
-  denied <- tryCatch(scworkbench:::.wb_graph_object_verify(b$con,fixture$expected$id),error=identity)
-  stopifnot(inherits(denied,"wb_graph_error"),denied$code=="GRAPH_SOURCE_AUTHORITY_REQUIRED")
+  for (pre_descriptor in c(FALSE, TRUE)) {
+    case_root <- file.path(root,if(pre_descriptor) "pre_descriptor" else "ordered_descriptor")
+    dir.create(case_root)
+    fixture <- .graph_legacy_fixture(case_root,pre_descriptor)
+    b <- wb_open_bundle(fixture$path)
+    tryCatch({
+      loaded <- wb_art_load(b,fixture$expected$id)
+      stopifnot(identical(unclass(loaded),unclass(fixture$expected$primitive)),
+        identical(scworkbench:::.wb_prov_payload_identity(b,loaded)$content_sha256,
+          fixture$expected$identity$content_sha256),
+        identical(DBI::dbGetQuery(b$con,"SELECT version FROM bundle_schema_migrations ORDER BY version;")$version,1:11))
+      denied <- tryCatch(scworkbench:::.wb_graph_object_verify(b$con,fixture$expected$id),error=identity)
+      stopifnot(inherits(denied,"wb_graph_error"),denied$code=="GRAPH_SOURCE_AUTHORITY_REQUIRED")
+      if(pre_descriptor) {
+        DBI::dbExecute(b$con,"UPDATE artifact_pseudotime SET pseudotime=pseudotime+1 WHERE artifact_id=? AND cell_id='c1';",params=list(fixture$expected$id))
+        mutated <- tryCatch(wb_art_load(b,fixture$expected$id),error=identity)
+        stopifnot(inherits(mutated,"wb_graph_error"),mutated$code=="ARTIFACT_CONTENT_IDENTITY_MISMATCH")
+      }
+    },finally=wb_close_bundle(b))
+  }
   TRUE
 }
 

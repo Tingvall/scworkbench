@@ -91,8 +91,6 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       durable_meta <- if (.wb_graph_object_has_attestation(con, artifact_id, "cell_vector")) {
         .wb_graph_object_restore(con, artifact_id, df, payload_descriptor, "cell_vector")
       } else {
-        .wb_graph_require(!is.null(payload_descriptor), "ARTIFACT_CONTENT_IDENTITY_UNAVAILABLE",
-          "Ordinary legacy object loading requires its original ordered payload descriptor.")
         legacy_object_identity_required <- TRUE
         .wb_object_primitive_meta_from_descriptor(payload_descriptor)
       }
@@ -136,8 +134,6 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       durable_meta <- if (.wb_graph_object_has_attestation(con, artifact_id, "cell_vector_family")) {
         .wb_graph_object_restore(con, artifact_id, df, payload_descriptor, "cell_vector_family")
       } else {
-        .wb_graph_require(!is.null(payload_descriptor), "ARTIFACT_CONTENT_IDENTITY_UNAVAILABLE",
-          "Ordinary legacy object loading requires its original ordered payload descriptor.")
         legacy_object_identity_required <- TRUE
         .wb_object_primitive_meta_from_descriptor(payload_descriptor)
       }

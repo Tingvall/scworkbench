@@ -16,6 +16,16 @@
   con <- DBI::dbConnect(RSQLite::SQLite(), file.path(path, "db", "app.sqlite"))
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   scworkbench:::.wb_sqlite_configure_connection(con, writable = TRUE)
+  source("tests/fixtures/historical_schema_payload_order_support.R", local=TRUE)
+  fixture_restore_pre_graph_payload_layout(con)
+  # Remove precisely the supplemental object authority introduced in migration11.
+  # The version9 fixture retains the legacy payload and provenance identities.
+  legacy_outputs <- DBI::dbGetQuery(con, "SELECT * FROM prov_run_outputs;")
+  legacy_outputs$retained_payload_identity_json <- NULL
+  DBI::dbExecute(con, "DROP TABLE artifact_object_metadata_chunks;")
+  DBI::dbExecute(con, "DROP TABLE artifact_object_payload_meta;")
+  DBI::dbExecute(con, "ALTER TABLE prov_run_outputs DROP COLUMN retained_payload_identity_json;")
+  stopifnot(identical(DBI::dbGetQuery(con, "SELECT * FROM prov_run_outputs;"), legacy_outputs))
   DBI::dbWithTransaction(con, {
     DBI::dbExecute(con, "PRAGMA defer_foreign_keys=ON;")
     DBI::dbExecute(con, "CREATE TABLE artifact_pseudotime_v9 (
@@ -29,7 +39,7 @@
     DBI::dbExecute(con, "DROP TABLE artifact_pseudotime;")
     DBI::dbExecute(con, "ALTER TABLE artifact_pseudotime_v9 RENAME TO artifact_pseudotime;")
     DBI::dbExecute(con, "CREATE INDEX idx_pt_artifact ON artifact_pseudotime(artifact_id);")
-    DBI::dbExecute(con, "DELETE FROM bundle_schema_migrations WHERE version=10;")
+    DBI::dbExecute(con, "DELETE FROM bundle_schema_migrations WHERE version>=10;")
   })
   DBI::dbExecute(con, "PRAGMA wal_checkpoint(TRUNCATE);")
   invisible(path)
@@ -121,7 +131,10 @@ test_nullable_cell_vector_family_storage_contract <- function() {
 
   upgraded <- wb_open_bundle(old_path)
   upgraded_rows <- .nullable_family_snapshot(old_path)$values
-  stopifnot(identical(upgraded_rows, old_before$values),
+  stopifnot(identical(upgraded_rows[, names(old_before$values), drop=FALSE], old_before$values),
+    all(is.na(upgraded_rows$payload_ordinal)),
+    identical(as.integer(DBI::dbGetQuery(upgraded$con, "SELECT version FROM bundle_schema_migrations ORDER BY version;")$version), 1:11),
+    any(DBI::dbGetQuery(upgraded$con, "PRAGMA index_list(artifact_pseudotime);")$name == "artifact_pseudotime_payload_order"),
     identical(as.character(wb_art_list(upgraded)$artifact_id), finite_id),
     identical(unclass(wb_art_load(upgraded, finite_id)),
       unclass(finite_family)),
