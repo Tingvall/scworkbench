@@ -51,6 +51,7 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
   .wb_assert(nrow(art) == 1, paste0("wb_art_load(): artifact not found: ", artifact_id))
 
   type <- as.character(art$type[[1]])
+  legacy_object_identity_required <- FALSE
 
   # Reconstruct primitive by type
   prim <- switch(
@@ -87,8 +88,14 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       df <- .wb_artifact_restore_object_row_order(
         df, payload_descriptor, "cell_vector", artifact_id
       )
-      durable_meta <- .wb_graph_object_restore(con, artifact_id, df,
-        payload_descriptor, "cell_vector")
+      durable_meta <- if (.wb_graph_object_has_attestation(con, artifact_id, "cell_vector")) {
+        .wb_graph_object_restore(con, artifact_id, df, payload_descriptor, "cell_vector")
+      } else {
+        .wb_graph_require(!is.null(payload_descriptor), "ARTIFACT_CONTENT_IDENTITY_UNAVAILABLE",
+          "Ordinary legacy object loading requires its original ordered payload descriptor.")
+        legacy_object_identity_required <- TRUE
+        .wb_object_primitive_meta_from_descriptor(payload_descriptor)
+      }
 
       vt <- unique(as.character(stats::na.omit(df$value_type %||% character(0))))
       .wb_assert(length(vt) <= 1L,
@@ -126,8 +133,14 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       df <- .wb_artifact_restore_object_row_order(
         df, payload_descriptor, "cell_vector_family", artifact_id
       )
-      durable_meta <- .wb_graph_object_restore(con, artifact_id, df,
-        payload_descriptor, "cell_vector_family")
+      durable_meta <- if (.wb_graph_object_has_attestation(con, artifact_id, "cell_vector_family")) {
+        .wb_graph_object_restore(con, artifact_id, df, payload_descriptor, "cell_vector_family")
+      } else {
+        .wb_graph_require(!is.null(payload_descriptor), "ARTIFACT_CONTENT_IDENTITY_UNAVAILABLE",
+          "Ordinary legacy object loading requires its original ordered payload descriptor.")
+        legacy_object_identity_required <- TRUE
+        .wb_object_primitive_meta_from_descriptor(payload_descriptor)
+      }
 
       wb_prim_cell_vector_family(
         key = df$lineage_id,
@@ -495,6 +508,8 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
     stop("wb_art_load(): Unsupported artifact type: ", type, call. = FALSE)
   )
 
+  if (legacy_object_identity_required)
+    .wb_graph_legacy_object_identity_assert(con, artifact_id, prim)
   prim <- .wb_trajectory_hydrate_primitive_meta(bundle, artifact_id, prim)
 
   if (identical(type, "relation_family") &&

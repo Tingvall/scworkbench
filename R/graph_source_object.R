@@ -288,8 +288,33 @@
 
 # This is a materializing loader convenience, not the scalable grant path. It
 # reads the same actual bytes used by bounded verification, never a shadow meta.
+.wb_graph_object_has_attestation <- function(con, artifact_id, kind) {
+  table <- if (kind == "cell_vector") "artifact_labels" else "artifact_pseudotime"
+  queries <- c(
+    "SELECT 1 FROM artifact_object_payload_meta WHERE artifact_id=? LIMIT 1;",
+    "SELECT 1 FROM artifact_object_metadata_chunks WHERE artifact_id=? LIMIT 1;",
+    "SELECT 1 FROM prov_run_outputs WHERE artifact_id=? AND retained_payload_identity_json IS NOT NULL LIMIT 1;",
+    paste0("SELECT 1 FROM ", table,
+      " WHERE artifact_id=? AND payload_ordinal IS NOT NULL LIMIT 1;"))
+  any(vapply(queries, function(query)
+    nrow(DBI::dbGetQuery(con, query, params = list(artifact_id))) != 0L, logical(1)))
+}
+
+.wb_graph_legacy_object_identity_assert <- function(con, artifact_id, prim) {
+  observed <- .wb_prov_sha256_object(unclass(prim))
+  scheme <- unname(.wb_content_identity_schemes()[["object"]])
+  .wb_graph_certificate_scan(con, artifact_id, function(certificate) {
+    .wb_graph_require(identical(certificate$content_identity_scheme[[1L]], scheme) &&
+      identical(certificate$content_sha256[[1L]], observed),
+      "ARTIFACT_CONTENT_IDENTITY_MISMATCH",
+      "Ordinary legacy object content differs from independently retained output evidence.")
+  })
+  invisible(TRUE)
+}
+
 .wb_graph_object_restore <- function(con, artifact_id, df, descriptor, kind) {
-  .wb_graph_object_closure(con, artifact_id)
+  .wb_graph_object_verify(con, artifact_id,
+    require_certificate = !isTRUE(RSQLite::sqliteIsTransacting(con)))
   table <- if (kind == "cell_vector") "artifact_labels" else "artifact_pseudotime"
   keys <- DBI::dbGetQuery(con, paste0("SELECT cell_id",
     if (kind == "cell_vector_family") ",lineage_id" else "",
