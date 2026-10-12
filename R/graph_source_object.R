@@ -254,7 +254,10 @@
 }
 
 .wb_graph_certificate_scan <- function(con, artifact_id, callback,
-    budgets = .wb_graph_budgets(), required = TRUE) {
+    budgets = .wb_graph_budgets(), required = TRUE, include_verification = FALSE) {
+  fields <- c("content_identity_scheme", "content_sha256", "retained_payload_identity_json")
+  if (include_verification) fields <- c(fields, "verification_level", "verification_status")
+  byte_expression <- paste0("COALESCE(octet_length(", fields, "),0)", collapse = "+")
   hidden <- DBI::dbGetQuery(con,
     "SELECT 1 FROM prov_run_outputs WHERE artifact_id=? AND rowid<=0 LIMIT 1;",
     params = list(artifact_id))
@@ -262,19 +265,15 @@
     "Hidden nonpositive provenance output rowid.")
   after <- bit64::as.integer64(-1); count <- "0"
   repeat {
-    size <- DBI::dbGetQuery(con, paste0("SELECT rowid,",
-      "COALESCE(octet_length(content_identity_scheme),0)+COALESCE(octet_length(content_sha256),0)+",
-      "COALESCE(octet_length(retained_payload_identity_json),0) n FROM prov_run_outputs ",
+    size <- DBI::dbGetQuery(con, paste0("SELECT rowid,", byte_expression, " n FROM prov_run_outputs ",
       "WHERE artifact_id=? AND rowid>? ORDER BY rowid LIMIT 1;"),
       params = list(artifact_id, after))
     if (!nrow(size)) break
     .wb_graph_require(size$n[[1]] <= budgets$partition_bytes, "GRAPH_RESOURCE_EXCEEDED",
       "Retained output certificate exceeds byte admission before decoding.")
-    certificate <- DBI::dbGetQuery(con, paste0(
-      "SELECT content_identity_scheme,content_sha256,retained_payload_identity_json ",
+    certificate <- DBI::dbGetQuery(con, paste0("SELECT ", paste(fields, collapse = ","), " ",
       "FROM prov_run_outputs WHERE rowid=? AND ",
-      "COALESCE(octet_length(content_identity_scheme),0)+COALESCE(octet_length(content_sha256),0)+",
-      "COALESCE(octet_length(retained_payload_identity_json),0)<=?;"),
+      byte_expression, "<=?;"),
       params = list(size$rowid[[1]], budgets$partition_bytes))
     .wb_graph_require(nrow(certificate) == 1L, "GRAPH_RESOURCE_EXCEEDED",
       "Retained certificate changed during admitted fetch.")
@@ -304,11 +303,16 @@
   observed <- .wb_prov_sha256_object(unclass(prim))
   scheme <- unname(.wb_content_identity_schemes()[["object"]])
   .wb_graph_certificate_scan(con, artifact_id, function(certificate) {
+    if (is.na(certificate$content_identity_scheme[[1L]]) &&
+        is.na(certificate$content_sha256[[1L]]) &&
+        identical(certificate$verification_level[[1L]], "structural") &&
+        identical(certificate$verification_status[[1L]], "legacy_structural_only"))
+      return(invisible(NULL))
     .wb_graph_require(identical(certificate$content_identity_scheme[[1L]], scheme) &&
       identical(certificate$content_sha256[[1L]], observed),
       "ARTIFACT_CONTENT_IDENTITY_MISMATCH",
       "Ordinary legacy object content differs from independently retained output evidence.")
-  })
+  }, required = TRUE, include_verification = TRUE)
   invisible(TRUE)
 }
 

@@ -1,5 +1,5 @@
 # Ordinary legacy content is distinct from authority to bind a graph source.
-.graph_legacy_fixture <- function(root, pre_descriptor = FALSE) {
+.graph_legacy_fixture <- function(root, pre_descriptor = FALSE, pre_content = FALSE) {
   archive <- "tests/fixtures/graph_legacy_object_fa929.tar.gz"
   expected <- "tests/fixtures/graph_legacy_object_fa929_expected.rds"
   stopifnot(digest::digest(file=archive,algo="sha256",serialize=FALSE)==
@@ -14,6 +14,14 @@
       digest::digest(file=expected,algo="sha256",serialize=FALSE)==
       "2c6fcc01501909577d2137d8cae556a5cc9636d2c74510551bf622dfd948e0d2")
   }
+  if (pre_content) {
+    archive <- "tests/fixtures/graph_legacy_object_96a37.tar.gz"
+    expected <- "tests/fixtures/graph_legacy_object_96a37_expected.rds"
+    stopifnot(digest::digest(file=archive,algo="sha256",serialize=FALSE)==
+      "dda1ae9bcfac1f9b2a71040138d1704482bf9466fb7b0e7c768f850a8576fd17",
+      digest::digest(file=expected,algo="sha256",serialize=FALSE)==
+      "555a7fa3c1355e629ea12ae7f921978b1c7189e6586314c97e623fc2e9c4f778")
+  }
   utils::untar(archive,exdir=root)
   list(path=file.path(root,"authentic.bundle"),expected=readRDS(expected))
 }
@@ -21,17 +29,32 @@
 test_graph_authentic_legacy_object_content_load_contract <- function() {
   root <- tempfile("legacy_object_content_");dir.create(root)
   on.exit(unlink(root,recursive=TRUE),add=TRUE)
-  for (pre_descriptor in c(FALSE, TRUE)) {
-    case_root <- file.path(root,if(pre_descriptor) "pre_descriptor" else "ordered_descriptor")
+  for (variant in c("ordered_descriptor", "pre_descriptor", "pre_content")) {
+    pre_descriptor <- variant == "pre_descriptor"
+    pre_content <- variant == "pre_content"
+    case_root <- file.path(root,variant)
     dir.create(case_root)
-    fixture <- .graph_legacy_fixture(case_root,pre_descriptor)
+    fixture <- .graph_legacy_fixture(case_root,pre_descriptor,pre_content)
     b <- wb_open_bundle(fixture$path)
     tryCatch({
       loaded <- wb_art_load(b,fixture$expected$id)
       stopifnot(identical(unclass(loaded),unclass(fixture$expected$primitive)),
-        identical(scworkbench:::.wb_prov_payload_identity(b,loaded)$content_sha256,
-          fixture$expected$identity$content_sha256),
         identical(DBI::dbGetQuery(b$con,"SELECT version FROM bundle_schema_migrations ORDER BY version;")$version,1:11))
+      if (!pre_content) stopifnot(identical(
+        scworkbench:::.wb_prov_payload_identity(b,loaded)$content_sha256,
+        fixture$expected$identity$content_sha256))
+      else {
+        certificate <- wb_entity_certificate(b,"artifact",fixture$expected$id)
+        stopifnot(certificate$identity$verification_level == "structural",
+          certificate$identity$verification_status == "legacy_structural_only")
+        DBI::dbExecute(b$con,"UPDATE artifact_labels SET label='inspected current value' WHERE artifact_id=? AND cell_id='c1';",params=list(fixture$expected$id))
+        inspected <- wb_art_load(b,fixture$expected$id)
+        stopifnot(inspected$value[[match("c1",inspected$cell_id)]]=="inspected current value",
+          wb_entity_certificate(b,"artifact",fixture$expected$id)$identity$verification_status=="legacy_structural_only")
+        DBI::dbExecute(b$con,"UPDATE prov_run_outputs SET verification_status='content_verified' WHERE artifact_id=?;",params=list(fixture$expected$id))
+        contradictory <- tryCatch(wb_art_load(b,fixture$expected$id),error=identity)
+        stopifnot(inherits(contradictory,"wb_graph_error"),contradictory$code=="ARTIFACT_CONTENT_IDENTITY_MISMATCH")
+      }
       denied <- tryCatch(scworkbench:::.wb_graph_object_verify(b$con,fixture$expected$id),error=identity)
       stopifnot(inherits(denied,"wb_graph_error"),denied$code=="GRAPH_SOURCE_AUTHORITY_REQUIRED")
       if(pre_descriptor) {
@@ -63,7 +86,7 @@ test_graph_object_proof_removal_content_and_authority_contract <- function() {
     DBI::dbExecute(con,"UPDATE artifact_pseudotime SET payload_ordinal=NULL WHERE artifact_id=?;",params=list(id))
   }
   cases <- c("header","chunks","ordinals","retained_certificate","all","all_value",
-    "all_metadata","all_order","all_missing_content","all_unsupported_scheme")
+    "all_metadata","all_order","all_missing_content","all_missing_both","all_missing_row","all_unsupported_scheme")
   for(case in cases) {
     path <- file.path(root,paste0(case,".bundle"));fs::dir_copy(file.path(root,"modern.bundle"),path)
     current <- wb_open_bundle(path)
@@ -85,6 +108,8 @@ test_graph_object_proof_removal_content_and_authority_contract <- function() {
         DBI::dbExecute(con,"UPDATE artifacts SET provenance_json=? WHERE artifact_id=?;",params=list(jsonlite::toJSON(provenance,auto_unbox=TRUE,null="null"),id))
       }
       if(case=="all_missing_content")DBI::dbExecute(con,"UPDATE prov_run_outputs SET content_sha256=NULL WHERE artifact_id=?;",params=list(id))
+      if(case=="all_missing_both")DBI::dbExecute(con,"UPDATE prov_run_outputs SET content_sha256=NULL,content_identity_scheme=NULL WHERE artifact_id=?;",params=list(id))
+      if(case=="all_missing_row")DBI::dbExecute(con,"DELETE FROM prov_run_outputs WHERE artifact_id=?;",params=list(id))
       if(case=="all_unsupported_scheme")DBI::dbExecute(con,"UPDATE prov_run_outputs SET content_identity_scheme='unsupported.object.identity' WHERE artifact_id=?;",params=list(id))
       observed <- tryCatch(wb_art_load(current,id),error=identity)
       if(case=="all")stopifnot(identical(unclass(observed),unclass(primitive)))
