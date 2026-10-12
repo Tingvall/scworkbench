@@ -84,4 +84,3 @@ prefix <- if(field=='value')'{"type":"double","attributes":{},"value":[' else '{
   list(sha256=hash,rows=descriptor$rows,batch_rows=batch_rows,metadata_bytes=as.numeric(descriptor$metadata_bytes))
   })
 }
-

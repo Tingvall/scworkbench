@@ -134,4 +134,3 @@
   }, budgets)
   list(scheme = "scworkbench.artifact.ordered-object-payload.canonical-json.v1", sha256 = digest)
 }
-

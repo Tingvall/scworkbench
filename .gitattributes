@@ -2,3 +2,6 @@ containers/licenses/BPCells/COPYRIGHT -diff
 # Raw numeric-gate evidence is retained byte-for-byte, including R diagnostics.
 # Whitespace checking remains enabled for all source, documentation and fixtures.
 notes/generic_graph_implementation/evidence/*.log -whitespace
+
+# Raw measurement records retain exact original bytes (including CSV CRLF).
+notes/generic_graph_implementation/evidence/** -whitespace
