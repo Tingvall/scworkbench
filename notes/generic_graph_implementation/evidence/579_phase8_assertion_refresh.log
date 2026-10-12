@@ -1,0 +1,2 @@
+PHASE8_TEST_INVENTORY tests=242 files=139 migrated_reference_rows=63
+PHASE8_CURRENT_TEST_INVENTORY tests=336 files=172 introduced=96 moved=2

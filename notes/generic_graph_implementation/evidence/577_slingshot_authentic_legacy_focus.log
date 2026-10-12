@@ -1,0 +1,8 @@
+RUN test_op_slingshot_adopt_contract [test_op_slingshot_adopt_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS test_op_slingshot_adopt_contract (31.888s)
+CONTRACT TEST SUMMARY files=1 discovered=1 executed=1 passed=1 skipped=0 failed=0 excluded=0 accounted=1
+Warning message:
+call dbDisconnect() when finished working with a connection 

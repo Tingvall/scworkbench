@@ -348,9 +348,7 @@ test_op_slingshot_adopt_contract <- function() {
   ), silent = TRUE)
   stopifnot(inherits(incomplete_error, "try-error"))
 
-  # Legacy trajectory payloads did not retain identity-bearing primitive
-  # metadata. Their loader path still backfills the fit-family contract from
-  # provenance, while modern payloads above remain byte-for-byte identical.
+  # Removing the descriptor from a current attested payload is corruption.
   legacy_provenance <- jsonlite::fromJSON(
     DBI::dbGetQuery(
       b$con, "SELECT provenance_json FROM artifacts WHERE artifact_id = ?;",
@@ -366,12 +364,34 @@ test_op_slingshot_adopt_contract <- function() {
       artifact_ids[["pseudotime"]]
     )
   )
-  legacy_loaded <- wb_art_load(b, artifact_ids[["pseudotime"]])
-  stopifnot(
-    identical(legacy_loaded$meta$trajectory_fit_id, model$trajectory_fit_id),
-    identical(legacy_loaded$meta$engine, "slingshot"),
-    identical(legacy_loaded$meta$family_kind, "trajectory_pseudotime")
-  )
+  corrupted <- tryCatch(wb_art_load(b, artifact_ids[["pseudotime"]]), error = identity)
+  stopifnot(inherits(corrupted, "wb_graph_error"))
+
+  # Public promotion by the exact pre-content-certificate core 96a37bb28593
+  # provides the authentic legacy provenance/backfill oracle, without running
+  # a scientific algorithm in the historical producer.
+  archive <- "tests/fixtures/trajectory_legacy_96a37.tar.gz"
+  expected_path <- "tests/fixtures/trajectory_legacy_96a37_expected.rds"
+  stopifnot(digest::digest(file=archive,algo="sha256",serialize=FALSE)==
+    "bc5986db0284d0138a12994d6e70500d7fd43520e8aa5426c7db0b8a15470318",
+    digest::digest(file=expected_path,algo="sha256",serialize=FALSE)==
+    "c6b5b1b3928b18361e59a508eae1797c88d2bfaf47b7f916fc126311e5028ce9")
+  legacy_root <- tempfile("authentic_trajectory_legacy_")
+  dir.create(legacy_root)
+  on.exit(unlink(legacy_root,recursive=TRUE),add=TRUE)
+  utils::untar(archive,exdir=legacy_root)
+  expected <- readRDS(expected_path)
+  legacy_bundle <- wb_open_bundle(file.path(legacy_root,"authentic.bundle"))
+  tryCatch({
+    legacy_loaded <- wb_art_load(legacy_bundle,expected$id)
+    stopifnot(identical(unclass(legacy_loaded),unclass(expected$primitive)),
+      identical(legacy_loaded$meta$trajectory_fit_id,"legacy_fit_96a37"),
+      identical(legacy_loaded$meta$engine,"slingshot"),
+      identical(legacy_loaded$meta$family_kind,"trajectory_pseudotime"),
+      wb_entity_certificate(legacy_bundle,"artifact",expected$id)$identity$verification_status=="unverified")
+    denied <- tryCatch(scworkbench:::.wb_graph_object_verify(legacy_bundle$con,expected$id),error=identity)
+    stopifnot(inherits(denied,"wb_graph_error"),denied$code=="GRAPH_SOURCE_AUTHORITY_REQUIRED")
+  },finally=wb_close_bundle(legacy_bundle))
 
   TRUE
 }

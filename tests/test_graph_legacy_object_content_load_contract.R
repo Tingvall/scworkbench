@@ -46,11 +46,15 @@ test_graph_authentic_legacy_object_content_load_contract <- function() {
       else {
         certificate <- wb_entity_certificate(b,"artifact",fixture$expected$id)
         stopifnot(certificate$identity$verification_level == "structural",
-          certificate$identity$verification_status == "legacy_structural_only")
+          certificate$identity$verification_status == "unverified",
+          certificate$identity$observed$status == "unavailable",
+          certificate$identity$observed$reason == "content_identity_not_recorded",
+          certificate$producer$output$verification_status == "legacy_structural_only")
         DBI::dbExecute(b$con,"UPDATE artifact_labels SET label='inspected current value' WHERE artifact_id=? AND cell_id='c1';",params=list(fixture$expected$id))
         inspected <- wb_art_load(b,fixture$expected$id)
         stopifnot(inspected$value[[match("c1",inspected$cell_id)]]=="inspected current value",
-          wb_entity_certificate(b,"artifact",fixture$expected$id)$identity$verification_status=="legacy_structural_only")
+          wb_entity_certificate(b,"artifact",fixture$expected$id)$identity$verification_status=="unverified",
+          wb_entity_certificate(b,"artifact",fixture$expected$id)$producer$output$verification_status=="legacy_structural_only")
         DBI::dbExecute(b$con,"UPDATE prov_run_outputs SET verification_status='content_verified' WHERE artifact_id=?;",params=list(fixture$expected$id))
         contradictory <- tryCatch(wb_art_load(b,fixture$expected$id),error=identity)
         stopifnot(inherits(contradictory,"wb_graph_error"),contradictory$code=="ARTIFACT_CONTENT_IDENTITY_MISMATCH")

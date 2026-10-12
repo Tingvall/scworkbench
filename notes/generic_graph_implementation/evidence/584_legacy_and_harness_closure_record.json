@@ -1,0 +1,22 @@
+{
+  "runtime_commit": "9869ccf344191ca7ff6e070139bfdcd03336d746",
+  "runtime_library": "/tmp/scwb-legacy-inspection-566.e46ahol2/library",
+  "original_failed_runs_preserved": [
+    567,
+    571,
+    573,
+    575,
+    576,
+    580
+  ],
+  "closures": {
+    "legacy_certificate_status": "570 1/1 PASS; production status layers unchanged",
+    "slingshot_authentic_legacy": "577 1/1 PASS scientific assertions preserved; current descriptor corruption rejects; authentic96a37 fixture exact",
+    "distinct_original_failures": "578 3/3 PASS atomic activation, trajectory policy, finalized historical recipient",
+    "fingerprint_child_bootstrap": "569 3/3 PASS installed child; source fallback syntax-only"
+  },
+  "historical_fixture_source": "96a37bb28593cfe3724991765f4eba2d302255f1",
+  "trajectory_fixture_sha256": "bc5986db0284d0138a12994d6e70500d7fd43520e8aa5426c7db0b8a15470318",
+  "trajectory_expected_sha256": "c6b5b1b3928b18361e59a508eae1797c88d2bfaf47b7f916fc126311e5028ce9",
+  "scope": "test preparation/status assertions only; no runtime changes; metadata historical pins unchanged"
+}

@@ -38,6 +38,8 @@ test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract <- functio
   # Migrate the disposable extracted copy, never the frozen source archive.
   writable <- wb_open_bundle(root)
   wb_migrate_bundle(writable)
+  # Recipient inspection requires checkpointed, finalized SQLite storage.
+  wb_finalize_recipient_bundle(writable)
   wb_close_bundle(writable)
   upgraded <- fingerprint(root)
   b <- wb_open_bundle(root, read_only = TRUE)

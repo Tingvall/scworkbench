@@ -1,0 +1,7 @@
+RUN test_operation_pack_v2_atomic_activation_contract [test_operation_pack_v2_contract.R; self_contained]
+PASS test_operation_pack_v2_atomic_activation_contract (3.163s)
+RUN test_operation_pack_v3_trajectory_family_policy_contract [test_operation_pack_v3_trajectory_family_contract.R; self_contained]
+PASS test_operation_pack_v3_trajectory_family_policy_contract (0.197s)
+RUN test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract [test_phase6_peakvi_ownership_contract.R; self_contained]
+PASS test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract (4.387s)
+CONTRACT TEST SUMMARY files=3 discovered=3 executed=3 passed=3 skipped=0 failed=0 excluded=0 accounted=3

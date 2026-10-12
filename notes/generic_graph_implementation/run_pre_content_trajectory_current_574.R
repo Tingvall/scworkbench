@@ -1,0 +1,22 @@
+lib <- "/tmp/scwb-legacy-inspection-566.e46ahol2/library"
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+root <- "/tmp/scwb-pre-content-562.u8hg2ft6"
+source <- file.path(root,"authentic_legacy_trajectory_572.bundle")
+fingerprint <- function(path) {f <- sort(list.files(path,recursive=TRUE,all.files=TRUE,full.names=TRUE,no..=TRUE));stats::setNames(vapply(f,digest::digest,character(1),file=TRUE,algo="sha256",serialize=FALSE),substring(f,nchar(path)+2L))}
+before <- fingerprint(source)
+copy <- file.path(root,"current_legacy_trajectory_574.bundle")
+fs::dir_copy(source,copy)
+expected <- readRDS(file.path(root,"authentic_legacy_trajectory_572_expected.rds"))
+b <- wb_open_bundle(copy)
+loaded <- wb_art_load(b,expected$id)
+stopifnot(identical(unclass(loaded),unclass(expected$primitive)))
+certificate <- wb_entity_certificate(b,"artifact",expected$id)
+stopifnot(certificate$identity$verification_status=="unverified",certificate$producer$output$verification_status=="legacy_structural_only")
+wb_close_bundle(b)
+b <- wb_open_bundle(copy,read_only=TRUE)
+stopifnot(identical(unclass(wb_art_load(b,expected$id)),unclass(expected$primitive)))
+denied <- tryCatch(scworkbench:::.wb_graph_object_verify(b$con,expected$id),error=identity)
+stopifnot(inherits(denied,"wb_graph_error"),denied$code=="GRAPH_SOURCE_AUTHORITY_REQUIRED")
+wb_close_bundle(b)
+stopifnot(identical(before,fingerprint(source)))
+cat("CURRENT_566_AUTHENTIC_96A37_TRAJECTORY migrated_load=PASS readonly_load=PASS exact_primitive=PASS legacy_unverified=PASS source_purity=PASS\n")

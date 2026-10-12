@@ -1,0 +1,9 @@
+UNCHANGED_TEST stimulus=source_package_find_lookup repo=/home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010 wrong_child_library=/home/dirk/Projects/.scworkbench-worktrees installed_parent=/tmp/scwb-legacy-inspection-566.e46ahol2/library/scworkbench parent_hot_reload=NONE
+Error in library(scworkbench, lib.loc = args[[1]]) : 
+  there is no package called ‘scworkbench’
+Execution halted 
+UNCHANGED_TEST_ERROR is.null(status) || identical(status, 0L) is not TRUE
+Warning message:
+In system2(file.path(R.home("bin"), "Rscript"), vapply(c(child,  :
+  running command ''/usr/lib/R/bin/Rscript' '/tmp/RtmpLR9RP9/promotion_fingerprint_metadata_4640303d9a52/verify.R' '/home/dirk/Projects/.scworkbench-worktrees' '/tmp/RtmpLR9RP9/promotion_fingerprint_metadata_4640303d9a52/library' 'scwbFingerprintUnloadableFixture' '/tmp/RtmpLR9RP9/promotion_fingerprint_metadata_4640303d9a52/onload.marker' 'scwbFingerprintUnreadableFixture' 2>&1' had status 1
+UNCHANGED_TEST_RESULT accepted=FALSE namespace_unchanged=TRUE

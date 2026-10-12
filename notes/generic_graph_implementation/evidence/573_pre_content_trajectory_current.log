@@ -1,0 +1,3 @@
+Error in wb_open_bundle(copy, readonly = TRUE) : 
+  unused argument (readonly = TRUE)
+Execution halted

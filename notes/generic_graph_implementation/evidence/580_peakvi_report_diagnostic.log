@@ -1,0 +1,149 @@
+$schema_version
+[1] "scworkbench.bundle_validation_report.v1"
+
+$path_contract
+$path_contract$version
+[1] "scworkbench-bundle-path-v1"
+
+$path_contract$durable_paths
+[1] "bundle_relative_contained"
+
+$path_contract$external_paths
+[1] "declared_nonportable_uninspected"
+
+$path_contract$serialized_payloads
+[1] "not_loaded_by_validation"
+
+$path_contract$unsafe_payloads_loaded
+[1] FALSE
+
+
+$bundle_path
+[1] "/tmp/Rtmp5qdqZy/scwb_peakvi_historical_4b6c6207340c/historical.bundle"
+
+$bundle_manifest_version
+[1] "2.3.0"
+
+$requested_level
+[1] "recipient"
+
+$completed_levels
+[1] "structural" "content"    "recipient" 
+
+$ok
+[1] FALSE
+
+$status
+[1] "error"
+
+$diagnostics
+                             code severity check_class entity_kind entity_id
+1 SQLITE_UNRESOLVED_JOURNAL_STATE    error   recipient      sqlite      main
+2 SQLITE_UNRESOLVED_JOURNAL_STATE    error   recipient      sqlite      main
+               path table expected observed
+1 db/app.sqlite-shm  <NA>     <NA>  present
+2 db/app.sqlite-wal  <NA>     <NA>  present
+                                                             message
+1 Recipient bundle contains unresolved SQLite WAL/SHM/journal state.
+2 Recipient bundle contains unresolved SQLite WAL/SHM/journal state.
+
+$skipped_checks
+[1] check_class   minimum_level reason       
+<0 rows> (or 0-length row.names)
+
+$content_coverage
+  entity_kind                          entity_id
+1    artifact model_ref_20260927_004232_3utisbnr
+2       space            historical_peakvi_space
+                                             baseline_source
+1 entity_lifecycle,prov_run_entity_bindings,prov_run_outputs
+2                  entity_lifecycle,prov_run_entity_bindings
+                                  recorded_scheme
+1 scworkbench.content.file-tree.canonical-json.v1
+2  scworkbench.content.dense-space-hdf5.sha256.v1
+                                    actual_scheme verification_status
+1 scworkbench.content.file-tree.canonical-json.v1    content_verified
+2  scworkbench.content.dense-space-hdf5.sha256.v1    content_verified
+
+$elapsed_by_check_class
+              check_class elapsed_seconds
+1       analysis_capsules           0.001
+2               artifacts           0.020
+3           bundle_layout           0.002
+4    content_completeness           0.300
+5               lifecycle           0.026
+6                manifest           0.003
+7          matrix_content           0.002
+8  normalized_memberships           0.002
+9                   paths           0.017
+10             provenance           0.358
+11              recipient           0.002
+12    schema_and_registry           1.123
+13          source_inputs           0.005
+14      spaces_and_models           0.062
+15       sqlite_integrity           0.002
+
+$elapsed_seconds
+[1] 2.031202
+
+$peak_memory_mb
+[1] 78.4
+
+$process_peak_rss_mb
+[1] 142.6445
+
+$resource_samples
+      event                  check_class elapsed_seconds   rss_mb peak_rss_mb
+1     start recipient_fingerprint_before      0.06485939 136.0195    136.0195
+2  complete recipient_fingerprint_before      0.07778978 136.0195    136.0195
+3     start                bundle_layout      0.07819152 136.0195    136.0195
+4  complete                bundle_layout      0.08085132 136.0195    136.0195
+5     start                     manifest      0.08115268 136.0195    136.0195
+6  complete                     manifest      0.08455443 136.0195    136.0195
+7     start          schema_and_registry      0.08490896 136.0195    136.0195
+8  complete          schema_and_registry      1.20787644 136.0195    136.0195
+9     start                        paths      1.20823526 136.0195    136.0195
+10 complete                        paths      1.22612596 136.0195    136.0195
+11    start             sqlite_integrity      1.22668862 136.0195    136.0195
+12 complete             sqlite_integrity      1.22866154 136.0195    136.0195
+13    start               matrix_content      1.22900414 136.0195    136.0195
+14 complete               matrix_content      1.23099852 136.0195    136.0195
+15    start            spaces_and_models      1.23134136 136.0195    136.0195
+16 complete            spaces_and_models      1.29458785 142.5195    142.5195
+17    start       normalized_memberships      1.29498601 142.5195    142.5195
+18 complete       normalized_memberships      1.29679966 142.5195    142.5195
+19    start                    artifacts      1.29714990 142.5195    142.5195
+20 complete                    artifacts      1.31766081 142.6445    142.6445
+21    start                   provenance      1.31801939 142.6445    142.6445
+22 complete                   provenance      1.67562413 142.6445    142.6445
+23    start                source_inputs      1.67601919 142.6445    142.6445
+24 complete                source_inputs      1.68218184 142.6445    142.6445
+25    start                    lifecycle      1.68256021 142.6445    142.6445
+26 complete                    lifecycle      1.70934129 142.6445    142.6445
+27    start         content_completeness      1.70974493 142.6445    142.6445
+28 complete         content_completeness      2.00968766 142.6445    142.6445
+29    start            analysis_capsules      2.01098776 142.6445    142.6445
+30 complete            analysis_capsules      2.01352715 142.6445    142.6445
+31    start                    recipient      2.01389909 142.6445    142.6445
+32 complete                    recipient      2.01563811 142.6445    142.6445
+33 complete  recipient_fingerprint_after      2.02779412 142.6445    142.6445
+
+$started_at
+[1] "2026-10-12T21:43:54.266621+0200"
+
+$finished_at
+[1] "2026-10-12T21:43:56.297823+0200"
+
+$pre_validation_fingerprint
+[1] "5d111fd1ca7584f15d8da1d8d0c1f466c5a53f3819f48e007a44dc8f110befab"
+
+$post_validation_fingerprint
+[1] "5d111fd1ca7584f15d8da1d8d0c1f466c5a53f3819f48e007a44dc8f110befab"
+
+attr(,"class")
+[1] "scworkbench_bundle_validation_report"
+[2] "list"                                
+Error in e$test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract() : 
+  identical(upgraded, fingerprint(root)) is not TRUE
+Calls: <Anonymous> -> stopifnot
+Execution halted

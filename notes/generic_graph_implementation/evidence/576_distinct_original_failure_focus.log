@@ -1,0 +1,9 @@
+RUN test_operation_pack_v2_atomic_activation_contract [test_operation_pack_v2_contract.R; self_contained]
+PASS test_operation_pack_v2_atomic_activation_contract (3.147s)
+RUN test_operation_pack_v3_trajectory_family_policy_contract [test_operation_pack_v3_trajectory_family_contract.R; self_contained]
+PASS test_operation_pack_v3_trajectory_family_policy_contract (0.193s)
+RUN test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract [test_phase6_peakvi_ownership_contract.R; self_contained]
+FAIL test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract -- isTRUE(wb_bundle_validation_report(root, level = "recipient")$ok) is not TRUE
+CONTRACT TEST SUMMARY files=3 discovered=3 executed=3 passed=2 skipped=0 failed=1 excluded=0 accounted=3
+Error: unexpected ')' in "stopifnot(identical(namespace_before,asNamespace("scworkbench"))))"
+Execution halted
