@@ -140,3 +140,35 @@ ordinary compatibility/currentgrantnegative boundary, boundedpart/cache/disk /
 cleanup/sourcepurity evidence and all literal limitations. Reuse the same two
 reviewers through parent01a12c74-97ae-71c0-9522-eb3c68b45383. Accept or identify
 concrete remaining work; earlier metadata-only acceptance is insufficient.
+
+
+## Independent audit and authorized SDK prose successor
+
+Both same reviewers completed full revised-scope audits of8ea implementation /
+68532b39175e72cf77498ac12ff15acab28f7882 frozen evidence. Metadata reran current
+644threecases3PASS/zeroSKIP/exit0; memory/resource reviewer21RchecksPASS, installed
+Python parity1PASS andbudget/broker/chain10PASS, sourceigraph10PASS. Exact
+297source/workarchive,232installed andPython/source611hashes remained stable.
+Durable reports are coordination/evidence/2026-10-12_final_graph_independent_review/
+metadata/REVIEW.md SHA8ec95b439bfe0be93d8f8fc2aab4582cb9102225f39178ba71bc9480e06e8b32,
+and memory/REVIEW.md SHAfc825cd7adc15ad142aa9157d89c84c25b7d10ea734fb9b5fee56f08739a2ddf.
+Their unconditional full acceptance was withheld ONLY for stale SDK prose
+claiming promoted native matrix authority awaited certificate approval; no other
+runtime blocker was identified. These conditional reports are not unconditional
+acceptance and no completionemail was sent.
+
+After both posthash/freeze releases, the authorized change updates only
+inst/dev/generate_operation_pack_sdk_catalog.R:250 and generated
+inst/sdk/operation-packs/capabilities-v4.json:933/CAPABILITIES_V4.md:11.
+It describes independently verified promoted native cell/feature axes while
+pending-session andunpromoted-materialized source authority remains deferred.
+GRAPH_GUIDE97-106 was already accurate; no counterpart stale claim was found in
+PySDKdocs/src.654 proves exactlyoneJSONfield prose delta, all executable fields /
+protocols/schema/grants/identities andallotherSDKassets unchanged.653/655 complete
+regeneration/idempotencePASS.656 owns an installed643bytecopy differing only in
+these3documentation/generator assets, with all229other installed bytes unchanged;
+657existingcatalogcoverage1/1zeroSKIP/fullv4schema+publicgraphcapability checksPASS.
+The prose-only sourcecommit and rebuilt archive need exact ship-byte validation,
+then the same reviewers close ONLYthisfinding and issue their full dispositions.
+No runtime/suite rerun is needed for the prose correction.556stalephase8pending
+text now explicitly points to actual649/650 superseding final3PASS.

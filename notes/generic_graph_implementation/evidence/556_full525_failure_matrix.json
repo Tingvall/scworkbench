@@ -361,7 +361,7 @@
       "name": "test_phase8_test_ownership_inventory_contract",
       "actual_525_error": "identical(sort(current$test_identity), sort(discovered)) is not TRUE",
       "classification": "Versioned current test ownership metadata stale",
-      "closure": "560 initial3/3PASS plus641current-only336 assertion refresh; explicit85additionledger andhistorical ownership/baseline/reference pins unchanged; finalmetadata actual gate pending."
+      "closure": "560 initial3/3PASS;641current-only336 assertion refresh;649 finalinstalled8ea/643 all3phase8testsPASS/zeroSKIP/exit0, recorded650. Historical ownership/baseline/reference pins unchanged. Supersedes stale pre649 pending text."
     },
     {
       "name": "test_promotion_runtime_fingerprint_metadata_loadability_contract",

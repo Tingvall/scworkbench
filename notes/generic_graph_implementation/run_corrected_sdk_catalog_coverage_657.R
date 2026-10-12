@@ -1,0 +1,20 @@
+lib <- "/tmp/scwb-sdk-doc-656.46m7679m/library"
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+scworkbench:::.wb_matrix_native_byte_api_initialize()
+env <- new.env(parent=asNamespace("scworkbench"))
+sys.source("inst/tests/contract_test_runner.R",env)
+inventory <- env$contract_test_discover("tests",exclusions=character(),parent_env=env)
+names <- c("test_operation_pack_sdk_catalog_coverage")
+selected <- lapply(names,function(name){matches <- Filter(function(record)identical(record$name,name),inventory$tests);stopifnot(length(matches)==1L);matches[[1L]]})
+inventory$tests <- selected;inventory$files <- unique(vapply(selected,`[[`,character(1),"file"))
+run <- env$contract_test_execute(inventory,reporter=TRUE)
+saveRDS(run,"notes/generic_graph_implementation/evidence/657_corrected_sdk_catalog_coverage.rds")
+env$contract_test_assert_success(run)
+
+graph <- wb_operation_pack_capabilities(pack_abi_version="4",kind="graph")
+full <- jsonlite::read_json(system.file("sdk","operation-packs","capabilities-v4.json",package="scworkbench"),simplifyVector=FALSE)
+validated <- scworkbench:::.wb_json_schema_validate_2020(full,jsonlite::read_json(system.file("sdk","operation-packs","capabilities-v4.schema.json",package="scworkbench")))
+stopifnot(isTRUE(validated$ok))
+entry <- Filter(function(x)x$id=="graph",full$capabilities)[[1L]]
+stopifnot(grepl("promoted native-matrix cell/feature axes",entry$source_binding,fixed=TRUE),grepl("Pending session matrix bindings remain deferred",entry$source_binding,fixed=TRUE),!grepl("pending certificate approval",entry$source_binding,fixed=TRUE))
+cat("SDK_V4_SCHEMA_AND_SUPPORTED_PROMOTED_DEFERRED_PENDING_SOURCE_DOCUMENTATION=PASS\n")

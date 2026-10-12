@@ -247,7 +247,7 @@ catalog_v4$operation_declaration_fields <- as.list(names(schema[["$defs"]]$opera
 graph_capability <- entry("graph", c("inputs", "outputs", "axis_sources"), "graph",
   "readers[[input]]() -> header,next_part(); writers$open_graph(name,header) -> write_part(component,rows),finish(); writers$write_graph(name,value); wb_graph_binding_from_source(context$graph_source_axes[[output]][[source]],binding_id,mapping)",
   "Exactly-once complete ordered node/edge/incidence/attribute/binding stream; each required output and full mixed-primitive closure sealed once.",
-  "Authenticated retained graph descriptor; explicit binding selectors; retained cell_vector/cell_vector_family axes independently verified. Matrix-bound authority fails closed pending certificate approval.",
+  "Authenticated retained graph descriptors with explicit binding selectors; independently verified retained cell_vector/cell_vector_family axes and promoted native-matrix cell/feature axes. Pending session matrix bindings remain deferred; unpromoted materialized matrices do not grant source authority.",
   "Per-part decoded bytes/rows, admitted storage/spill/publication/cache budgets, separately lower materialization budget; no universal graph-size ceiling.",
   "Full graph read ACKs and finished writer seal before receipt; source/payload revalidation and atomic mixed-output publication.",
   "graph read/write and ordinary mixed IO executable via process5; other ABI3 advanced policy limitations remain unchanged",

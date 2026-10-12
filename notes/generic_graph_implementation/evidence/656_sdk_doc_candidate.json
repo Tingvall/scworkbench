@@ -1,0 +1,17 @@
+{
+  "baseline_source": "8ea74ac095853716449396f02ed2f99b6f0787b6",
+  "baseline_evidence": "68532b39175e72cf77498ac12ff15acab28f7882",
+  "library": "/tmp/scwb-sdk-doc-656.46m7679m/library",
+  "changed_installed_files": [
+    "dev/generate_operation_pack_sdk_catalog.R",
+    "sdk/operation-packs/CAPABILITIES_V4.md",
+    "sdk/operation-packs/capabilities-v4.json"
+  ],
+  "all_other_installed_bytes_identical": true,
+  "compiled_runtime_R_src_Meta_Namespace_unchanged": true,
+  "changed_sha256": {
+    "dev/generate_operation_pack_sdk_catalog.R": "c08e4d941293d39e99ad705701d03146dfeaf4f6b05596d6e8ae4a3d02b3916a",
+    "sdk/operation-packs/CAPABILITIES_V4.md": "10bd6d01ab0b328cde5b3f379225c4c9ec6335c8905f6019cea80ea6cf185ab9",
+    "sdk/operation-packs/capabilities-v4.json": "9e6230d2f4843680ee3c051f433db11ab134aa51793843b8ec3afcd3362eb404"
+  }
+}
