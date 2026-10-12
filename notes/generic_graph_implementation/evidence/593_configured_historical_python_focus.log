@@ -1,0 +1,13 @@
+RUN test_operation_pack_v1_cross_language_lifecycle_contract [test_operation_pack_v1_contract.R; self_contained]
+FAIL test_operation_pack_v1_cross_language_lifecycle_contract -- Error: identical(python_pack$runtime_attestation$pybench$source_revision,  .... is not TRUE
+Execution halted
+RUN test_operation_pack_v1_python_fault_confinement_contract [test_operation_pack_v1_contract.R; self_contained]
+FAIL test_operation_pack_v1_python_fault_confinement_contract -- Error: fault mode forged_runtime returned code OPERATION_PACK_EXECUTION_TIMEOUT instead of OPERATION_PACK_RUNTIME_IDENTITY_MISMATCH: Python operation-pack operation 'scwbpython::affine_cell_vector' failed: PyBench subprocess exceeded its execution timeout
+Execution halted
+CONTRACT TEST SUMMARY files=1 discovered=2 executed=2 passed=0 skipped=0 failed=2 excluded=0 accounted=2
+Error: Contract suite failed:
+- test_operation_pack_v1_cross_language_lifecycle_contract [test_operation_pack_v1_contract.R]: Error: identical(python_pack$runtime_attestation$pybench$source_revision,  .... is not TRUE
+Execution halted
+- test_operation_pack_v1_python_fault_confinement_contract [test_operation_pack_v1_contract.R]: Error: fault mode forged_runtime returned code OPERATION_PACK_EXECUTION_TIMEOUT instead of OPERATION_PACK_RUNTIME_IDENTITY_MISMATCH: Python operation-pack operation 'scwbpython::affine_cell_vector' failed: PyBench subprocess exceeded its execution timeout
+Execution halted
+Execution halted

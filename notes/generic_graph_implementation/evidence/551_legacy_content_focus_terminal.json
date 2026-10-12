@@ -1,0 +1,18 @@
+{
+  "candidate": "441297513b9a1b41fae23764c9a85c3b129cf0b7",
+  "installed_candidate": 550,
+  "focused_run": 551,
+  "exit": 0,
+  "executed": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "authentic_fa929_primitive_and_identity": "PASS",
+  "current_partial_attestation_mutations": "REJECTED",
+  "complete_graph_proof_removal_ordinary_content": "EXACT_ORIGINAL_CERTIFICATE_VERIFIED",
+  "complete_graph_proof_removal_graph_authority": "REJECTED",
+  "value_metadata_order_certificate_mutations": "REJECTED",
+  "original_modern_source_restored_read_only": "PASS",
+  "older_missing_descriptor_scope": "PENDING exact historical contract evidence",
+  "qualification": false
+}

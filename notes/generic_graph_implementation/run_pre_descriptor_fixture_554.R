@@ -1,0 +1,22 @@
+args <- commandArgs(TRUE)
+stopifnot(length(args)==2L)
+lib <- args[[1]];root <- args[[2]]
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+b <- wb_init_bundle(file.path(root,"authentic_pre_descriptor.bundle"))
+wb_define_cells(b,c("c1","c2","c3","c4"))
+primitive <- wb_prim_cell_vector_family(c("K1","K1","K2","K2"),
+ c("c1","c2","c3","c4"),c(1.5,3,2.5,4),value_type="continuous")
+run <- wb_new_run("metadata_cell_vector",inputs=list(),outputs=list(vector=primitive))
+promoted <- wb_promote_analysis(b,stats::setNames(list(run),run$run_id),head_run_id=run$run_id,outputs="vector")
+id <- promoted$promoted$artifact_id[[1]]
+loaded <- wb_art_load(b,id)
+stopifnot(identical(unclass(loaded),unclass(primitive)))
+provenance <- jsonlite::fromJSON(DBI::dbGetQuery(b$con,"SELECT provenance_json FROM artifacts WHERE artifact_id=?;",params=list(id))$provenance_json[[1]],simplifyVector=FALSE)
+stopifnot(is.null(provenance$primitive_payload))
+identity <- scworkbench:::.wb_prov_payload_identity(b,loaded)
+cert <- DBI::dbGetQuery(b$con,"SELECT content_identity_scheme,content_sha256 FROM prov_run_outputs WHERE artifact_id=?;",params=list(id))
+stopifnot(nrow(cert)>0L,all(cert$content_sha256==identity$content_sha256),all(cert$content_identity_scheme==identity$content_identity_scheme))
+cat("PRE_DESCRIPTOR public_promote=PASS original_load=PASS original_content_certificate=PASS descriptor=ABSENT\n")
+print(cert)
+saveRDS(list(id=id,primitive=loaded,identity=identity),file.path(root,"authentic_pre_descriptor_expected.rds"))
+wb_close_bundle(b)

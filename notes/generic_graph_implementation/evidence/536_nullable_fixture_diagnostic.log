@@ -1,0 +1,19 @@
+ACTUAL_MIGRATION_ATTEMPT_RESULT
+[1] "Error : Bundle schema migration ledger is not a valid ordered migration prefix.\n"
+attr(,"class")
+[1] "try-error"
+attr(,"condition")
+<simpleError: Bundle schema migration ledger is not a valid ordered migration prefix.>
+OLD_FIXTURE_LEDGER
+   version                        migration_id
+1        1      001_consolidate_durable_schema
+2        2           002_referential_integrity
+3        3              003_lifecycle_backfill
+4        4     004_complete_space_foreign_keys
+5        5         005_metadata_field_registry
+6        6     006_provenance_identity_schemes
+7        7               007_analysis_capsules
+8        8 008_metadata_field_content_identity
+9        9      009_typed_cell_set_consumption
+10      11                 011_graph_sqlite_v1
+UNCHANGED_TEST_FAILURE grepl("rolled back completely", as.character(failed), fixed = TRUE) is not TRUE

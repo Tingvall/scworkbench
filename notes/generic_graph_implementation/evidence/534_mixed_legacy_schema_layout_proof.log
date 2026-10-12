@@ -1,0 +1,30 @@
+FRESH_V11 artifact_labels
+  cid            name    type notnull dflt_value pk
+1   0     artifact_id    TEXT       1         NA  1
+2   1         cell_id    TEXT       1         NA  2
+3   2           label    TEXT       1         NA  0
+4   3      value_type    TEXT       0         NA  0
+5   4       value_num    REAL       0         NA  0
+6   5 payload_ordinal INTEGER       0         NA  0
+FRESH_V11 artifact_pseudotime
+  cid            name    type notnull dflt_value pk
+1   0     artifact_id    TEXT       1         NA  1
+2   1         cell_id    TEXT       1         NA  2
+3   2      lineage_id    TEXT       1         NA  3
+4   3      pseudotime    REAL       0         NA  0
+5   4 payload_ordinal INTEGER       0         NA  0
+UNCHANGED_FIXTURE_LEDGER_DOWNGRADE version>=6 ONLY; see .large_hash_make_legacy_runs in frozen test source
+RECONSTRUCTED_HISTORICAL artifact_labels
+  cid        name type notnull dflt_value pk
+1   0 artifact_id TEXT       1         NA  1
+2   1     cell_id TEXT       1         NA  2
+3   2       label TEXT       1         NA  0
+4   3  value_type TEXT       0         NA  0
+5   4   value_num REAL       0         NA  0
+RECONSTRUCTED_HISTORICAL artifact_pseudotime
+  cid        name type notnull dflt_value pk
+1   0 artifact_id TEXT       1         NA  1
+2   1     cell_id TEXT       1         NA  2
+3   2  lineage_id TEXT       1         NA  3
+4   3  pseudotime REAL       0         NA  0
+ROW_TYPE_NULLABILITY_KEY_FOREIGN_KEY_PRESERVATION helper_assertions=PASS

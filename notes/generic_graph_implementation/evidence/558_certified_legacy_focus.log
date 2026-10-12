@@ -1,0 +1,15 @@
+RUN test_graph_authentic_legacy_object_content_load_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_authentic_legacy_object_content_load_contract (3.162s)
+RUN test_graph_object_proof_removal_content_and_authority_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_object_proof_removal_content_and_authority_contract (23.390s)
+RUN test_graph_sql_transaction_roundtrip_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_transaction_roundtrip_contract (4.680s)
+RUN test_graph_typed_missing_values_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_typed_missing_values_contract (0.002s)
+RUN test_nullable_cell_vector_family_storage_contract [test_nullable_cell_vector_family_storage_contract.R; self_contained]
+PASS test_nullable_cell_vector_family_storage_contract (50.623s)
+RUN test_operation_docs_single_source_contract [test_operation_docs_single_source_contract.R; self_contained]
+PASS test_operation_docs_single_source_contract (0.037s)
+RUN test_operation_pack_sdk_catalog_coverage [test_operation_pack_sdk_contract.R; self_contained]
+PASS test_operation_pack_sdk_catalog_coverage (1.532s)
+CONTRACT TEST SUMMARY files=5 discovered=7 executed=7 passed=7 skipped=0 failed=0 excluded=0 accounted=7

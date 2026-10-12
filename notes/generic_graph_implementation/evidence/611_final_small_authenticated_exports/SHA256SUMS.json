@@ -1,0 +1,8 @@
+{
+  "R_small_authenticated_expected.json": "fe3c22126fa6c15a93a75087f55f81c62ba9684a5357482f9ca76df8c4714ec9",
+  "R_small_copy_receipt.json": "a5dab9342d7d1a7238a8c8132eaf54b5f91d58cafc33c0a9ead276653ed7dfc2",
+  "R_small_copy_request.json": "85cdb52d5aee15ff9d21c8b42d7e58121b10ec9742478735cb6476cf6b338783",
+  "R_small_receipt.json": "da09854a2d575d7b5544f636869fc8ef9281cf27496d2ae5faf21ff04ce67a2a",
+  "R_small_request.json": "867516b17a6a1231c32cb0c4042b09430d01f3786b6134c362cdafe0b1ba9804",
+  "bounded_small_case.json": "60741a7915721fb6c8872ad58a656dce3fb1c1de42bad52ab756cacd4ea703d2"
+}

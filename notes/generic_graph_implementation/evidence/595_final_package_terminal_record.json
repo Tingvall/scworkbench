@@ -1,0 +1,11 @@
+{
+  "source_commit": "5c3ad8111610ddf57c64877391b5e6cc47f22ff8",
+  "archive": "/tmp/scwb-final-585.ki8nvr4e/scworkbench_0.1.0.tar.gz",
+  "archive_sha256": "417fc8578c393693f7ea56dbcb039a62fa620a10ba59cf7ae190e6bb09354f01",
+  "exit": 0,
+  "errors": 0,
+  "warnings": 0,
+  "notes": 1,
+  "note": "installed package size; see exact00check log",
+  "scope": "R CMD check sources test files; it is not the explicit contract runner invoking all test functions"
+}

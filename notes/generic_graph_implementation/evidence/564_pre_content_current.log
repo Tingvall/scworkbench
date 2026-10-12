@@ -1,0 +1,1149 @@
+CURRENT_CERT_ONLY_REJECTS_OLD_INSPECTION ARTIFACT_CONTENT_IDENTITY_MISMATCH: Ordinary legacy object content differs from independently retained output evidence.
+  content_identity_scheme content_sha256 verification_level
+1                    <NA>           <NA>         structural
+     verification_status
+1 legacy_structural_only
+CURRENT_ENTITY_CERTIFICATE_STATUS
+$schema
+[1] "scworkbench.provenance.entity_certificate.v1"
+
+$subject
+$subject$kind
+[1] "artifact"
+
+$subject$id
+[1] "cell_vector_20261012_211644_in5oir6m"
+
+$subject$node_id
+[1] "artifact:cell_vector_20261012_211644_in5oir6m"
+
+$subject$display_name
+[1] "cell_vector / cell_vector_20261012_211644_in5oir6m"
+
+$subject$created_at
+[1] "2026-10-12T21:16:44+0200"
+
+$subject$lifecycle_state
+[1] "current"
+
+
+$lifecycle
+$lifecycle$state
+[1] "current"
+
+$lifecycle$record
+$lifecycle$record$status
+[1] "available"
+
+$lifecycle$record$value
+$lifecycle$record$value$entity_kind
+[1] "artifact"
+
+$lifecycle$record$value$entity_id
+[1] "cell_vector_20261012_211644_in5oir6m"
+
+$lifecycle$record$value$lifecycle_state
+[1] "current"
+
+$lifecycle$record$value$identity_hash
+[1] "000437b8000453b9"
+
+$lifecycle$record$value$identity_scheme
+NULL
+
+$lifecycle$record$value$provenance_bound
+[1] 1
+
+$lifecycle$record$value$created_at
+[1] "2026-10-12T21:18:25.452739+0200"
+
+$lifecycle$record$value$updated_at
+[1] "2026-10-12T21:18:25.452739+0200"
+
+$lifecycle$record$value$reason
+NULL
+
+$lifecycle$record$value$actor
+NULL
+
+
+
+$lifecycle$supersessions
+$lifecycle$supersessions$status
+[1] "available"
+
+$lifecycle$supersessions$items
+list()
+
+
+$lifecycle$tombstone
+$lifecycle$tombstone$status
+[1] "not_applicable"
+
+
+
+$producer
+$producer$status
+[1] "available"
+
+$producer$run_id
+[1] "run_6bnjuzd247bp"
+
+$producer$snapshot_id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$producer$output
+$producer$output$snapshot_id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$producer$output$run_id
+[1] "run_6bnjuzd247bp"
+
+$producer$output$output_name
+[1] "vector"
+
+$producer$output$primitive_kind
+[1] "cell_vector"
+
+$producer$output$output_hash
+[1] "000437b8000453b9"
+
+$producer$output$structural_fingerprint
+[1] "000437b8000453b9"
+
+$producer$output$content_sha256
+NULL
+
+$producer$output$verification_level
+[1] "structural"
+
+$producer$output$verification_status
+[1] "legacy_structural_only"
+
+$producer$output$content_identity_scheme
+NULL
+
+$producer$output$structural_fingerprint_scheme
+NULL
+
+$producer$output$output_hash_scheme
+[1] "scworkbench.identity.legacy-hash-text16.v1"
+
+$producer$output$replay_equivalence_policy
+[1] "not_comparable"
+
+$producer$output$replay_equivalence_reference
+NULL
+
+$producer$output$replay_equivalence_status
+[1] "legacy_not_comparable"
+
+
+$producer$history
+NULL
+
+$producer$operation
+$producer$operation$name
+[1] "metadata_cell_vector"
+
+$producer$operation$version
+[1] "1"
+
+$producer$operation$contract
+$producer$operation$contract$status
+[1] "available"
+
+$producer$operation$contract$value
+$producer$operation$contract$value$version
+[1] "1"
+
+$producer$operation$contract$value$interface
+$producer$operation$contract$value$interface$op_name
+[1] "metadata_cell_vector"
+
+$producer$operation$contract$value$interface$title
+[1] "Metadata Cell Vector"
+
+$producer$operation$contract$value$interface$description
+[1] "Materialize an imported cell metadata column as a typed, provenance-backed cell vector."
+
+$producer$operation$contract$value$interface$inputs
+list()
+
+$producer$operation$contract$value$interface$params
+$producer$operation$contract$value$interface$params[[1]]
+$producer$operation$contract$value$interface$params[[1]]$name
+[1] "source_column"
+
+$producer$operation$contract$value$interface$params[[1]]$type
+[1] "string"
+
+$producer$operation$contract$value$interface$params[[1]]$required
+[1] TRUE
+
+$producer$operation$contract$value$interface$params[[1]]$help
+[1] "Imported cell metadata column to materialize."
+
+
+$producer$operation$contract$value$interface$params[[2]]
+$producer$operation$contract$value$interface$params[[2]]$name
+[1] "cell_set"
+
+$producer$operation$contract$value$interface$params[[2]]$type
+[1] "cell_set"
+
+$producer$operation$contract$value$interface$params[[2]]$default
+[1] "all"
+
+$producer$operation$contract$value$interface$params[[2]]$help
+[1] "Named bundle cell set defining the vector universe."
+
+
+$producer$operation$contract$value$interface$params[[3]]
+$producer$operation$contract$value$interface$params[[3]]$name
+[1] "value_type"
+
+$producer$operation$contract$value$interface$params[[3]]$type
+[1] "choice"
+
+$producer$operation$contract$value$interface$params[[3]]$default
+[1] "auto"
+
+$producer$operation$contract$value$interface$params[[3]]$choices
+$producer$operation$contract$value$interface$params[[3]]$choices[[1]]
+[1] "categorical"
+
+$producer$operation$contract$value$interface$params[[3]]$choices[[2]]
+[1] "continuous"
+
+$producer$operation$contract$value$interface$params[[3]]$choices[[3]]
+[1] "auto"
+
+
+$producer$operation$contract$value$interface$params[[3]]$help
+[1] "Explicit vector value type; auto records a conservative native-type decision."
+
+
+$producer$operation$contract$value$interface$params[[4]]
+$producer$operation$contract$value$interface$params[[4]]$name
+[1] "missing_policy"
+
+$producer$operation$contract$value$interface$params[[4]]$type
+[1] "choice"
+
+$producer$operation$contract$value$interface$params[[4]]$default
+[1] "error"
+
+$producer$operation$contract$value$interface$params[[4]]$choices
+$producer$operation$contract$value$interface$params[[4]]$choices[[1]]
+[1] "error"
+
+$producer$operation$contract$value$interface$params[[4]]$choices[[2]]
+[1] "drop"
+
+$producer$operation$contract$value$interface$params[[4]]$choices[[3]]
+[1] "as_category"
+
+
+$producer$operation$contract$value$interface$params[[4]]$help
+[1] "How missing values are handled before vector materialization."
+
+
+$producer$operation$contract$value$interface$params[[5]]
+$producer$operation$contract$value$interface$params[[5]]$name
+[1] "missing_label"
+
+$producer$operation$contract$value$interface$params[[5]]$type
+[1] "string"
+
+$producer$operation$contract$value$interface$params[[5]]$default
+[1] "__MISSING__"
+
+$producer$operation$contract$value$interface$params[[5]]$help
+[1] "Replacement label when missing_policy='as_category'."
+
+
+$producer$operation$contract$value$interface$params[[6]]
+$producer$operation$contract$value$interface$params[[6]]$name
+[1] "vector_name"
+
+$producer$operation$contract$value$interface$params[[6]]$type
+[1] "string"
+
+$producer$operation$contract$value$interface$params[[6]]$required
+[1] TRUE
+
+$producer$operation$contract$value$interface$params[[6]]$help
+[1] "Stable promoted vector name; collision protection is controlled by overwrite."
+
+
+$producer$operation$contract$value$interface$params[[7]]
+$producer$operation$contract$value$interface$params[[7]]$name
+[1] "overwrite"
+
+$producer$operation$contract$value$interface$params[[7]]$type
+[1] "bool"
+
+$producer$operation$contract$value$interface$params[[7]]$default
+[1] FALSE
+
+$producer$operation$contract$value$interface$params[[7]]$help
+[1] "Allow a new immutable artifact to supersede an existing vector with the same name."
+
+
+
+$producer$operation$contract$value$interface$produces
+$producer$operation$contract$value$interface$produces$vector
+$producer$operation$contract$value$interface$produces$vector$kind
+[1] "cell_vector"
+
+$producer$operation$contract$value$interface$produces$vector$description
+[1] "Typed per-cell vector materialized from imported bundle metadata."
+
+$producer$operation$contract$value$interface$produces$vector$output_name
+[1] "vector"
+
+$producer$operation$contract$value$interface$produces$vector$primitive_kind
+[1] "cell_vector"
+
+$producer$operation$contract$value$interface$produces$vector$durability_role
+[1] "terminal_artifact"
+
+$producer$operation$contract$value$interface$produces$vector$promotable_directly
+[1] TRUE
+
+$producer$operation$contract$value$interface$produces$vector$materialized_by_terminals
+[1] "vector"
+
+
+
+$producer$operation$contract$value$interface$promotion_terminals
+[1] "vector"
+
+$producer$operation$contract$value$interface$semantics
+list()
+
+
+$producer$operation$contract$value$resolved_inputs
+list()
+
+$producer$operation$contract$value$parameters
+$producer$operation$contract$value$parameters$vector_name
+[1] "legacy"
+
+$producer$operation$contract$value$parameters$source_column
+[1] "group"
+
+
+
+
+$producer$operation$contract_hash
+[1] "074a8e1c01103582"
+
+$producer$operation$contract_hash_scheme
+[1] "scworkbench.identity.legacy-hash-text16.v1"
+
+
+$producer$run
+$producer$run$operation
+$producer$run$operation$name
+[1] "metadata_cell_vector"
+
+$producer$run$operation$version
+[1] "1"
+
+$producer$run$operation$contract
+$producer$run$operation$contract$status
+[1] "available"
+
+$producer$run$operation$contract$value
+$producer$run$operation$contract$value$version
+[1] "1"
+
+$producer$run$operation$contract$value$interface
+$producer$run$operation$contract$value$interface$op_name
+[1] "metadata_cell_vector"
+
+$producer$run$operation$contract$value$interface$title
+[1] "Metadata Cell Vector"
+
+$producer$run$operation$contract$value$interface$description
+[1] "Materialize an imported cell metadata column as a typed, provenance-backed cell vector."
+
+$producer$run$operation$contract$value$interface$inputs
+list()
+
+$producer$run$operation$contract$value$interface$params
+$producer$run$operation$contract$value$interface$params[[1]]
+$producer$run$operation$contract$value$interface$params[[1]]$name
+[1] "source_column"
+
+$producer$run$operation$contract$value$interface$params[[1]]$type
+[1] "string"
+
+$producer$run$operation$contract$value$interface$params[[1]]$required
+[1] TRUE
+
+$producer$run$operation$contract$value$interface$params[[1]]$help
+[1] "Imported cell metadata column to materialize."
+
+
+$producer$run$operation$contract$value$interface$params[[2]]
+$producer$run$operation$contract$value$interface$params[[2]]$name
+[1] "cell_set"
+
+$producer$run$operation$contract$value$interface$params[[2]]$type
+[1] "cell_set"
+
+$producer$run$operation$contract$value$interface$params[[2]]$default
+[1] "all"
+
+$producer$run$operation$contract$value$interface$params[[2]]$help
+[1] "Named bundle cell set defining the vector universe."
+
+
+$producer$run$operation$contract$value$interface$params[[3]]
+$producer$run$operation$contract$value$interface$params[[3]]$name
+[1] "value_type"
+
+$producer$run$operation$contract$value$interface$params[[3]]$type
+[1] "choice"
+
+$producer$run$operation$contract$value$interface$params[[3]]$default
+[1] "auto"
+
+$producer$run$operation$contract$value$interface$params[[3]]$choices
+$producer$run$operation$contract$value$interface$params[[3]]$choices[[1]]
+[1] "categorical"
+
+$producer$run$operation$contract$value$interface$params[[3]]$choices[[2]]
+[1] "continuous"
+
+$producer$run$operation$contract$value$interface$params[[3]]$choices[[3]]
+[1] "auto"
+
+
+$producer$run$operation$contract$value$interface$params[[3]]$help
+[1] "Explicit vector value type; auto records a conservative native-type decision."
+
+
+$producer$run$operation$contract$value$interface$params[[4]]
+$producer$run$operation$contract$value$interface$params[[4]]$name
+[1] "missing_policy"
+
+$producer$run$operation$contract$value$interface$params[[4]]$type
+[1] "choice"
+
+$producer$run$operation$contract$value$interface$params[[4]]$default
+[1] "error"
+
+$producer$run$operation$contract$value$interface$params[[4]]$choices
+$producer$run$operation$contract$value$interface$params[[4]]$choices[[1]]
+[1] "error"
+
+$producer$run$operation$contract$value$interface$params[[4]]$choices[[2]]
+[1] "drop"
+
+$producer$run$operation$contract$value$interface$params[[4]]$choices[[3]]
+[1] "as_category"
+
+
+$producer$run$operation$contract$value$interface$params[[4]]$help
+[1] "How missing values are handled before vector materialization."
+
+
+$producer$run$operation$contract$value$interface$params[[5]]
+$producer$run$operation$contract$value$interface$params[[5]]$name
+[1] "missing_label"
+
+$producer$run$operation$contract$value$interface$params[[5]]$type
+[1] "string"
+
+$producer$run$operation$contract$value$interface$params[[5]]$default
+[1] "__MISSING__"
+
+$producer$run$operation$contract$value$interface$params[[5]]$help
+[1] "Replacement label when missing_policy='as_category'."
+
+
+$producer$run$operation$contract$value$interface$params[[6]]
+$producer$run$operation$contract$value$interface$params[[6]]$name
+[1] "vector_name"
+
+$producer$run$operation$contract$value$interface$params[[6]]$type
+[1] "string"
+
+$producer$run$operation$contract$value$interface$params[[6]]$required
+[1] TRUE
+
+$producer$run$operation$contract$value$interface$params[[6]]$help
+[1] "Stable promoted vector name; collision protection is controlled by overwrite."
+
+
+$producer$run$operation$contract$value$interface$params[[7]]
+$producer$run$operation$contract$value$interface$params[[7]]$name
+[1] "overwrite"
+
+$producer$run$operation$contract$value$interface$params[[7]]$type
+[1] "bool"
+
+$producer$run$operation$contract$value$interface$params[[7]]$default
+[1] FALSE
+
+$producer$run$operation$contract$value$interface$params[[7]]$help
+[1] "Allow a new immutable artifact to supersede an existing vector with the same name."
+
+
+
+$producer$run$operation$contract$value$interface$produces
+$producer$run$operation$contract$value$interface$produces$vector
+$producer$run$operation$contract$value$interface$produces$vector$kind
+[1] "cell_vector"
+
+$producer$run$operation$contract$value$interface$produces$vector$description
+[1] "Typed per-cell vector materialized from imported bundle metadata."
+
+$producer$run$operation$contract$value$interface$produces$vector$output_name
+[1] "vector"
+
+$producer$run$operation$contract$value$interface$produces$vector$primitive_kind
+[1] "cell_vector"
+
+$producer$run$operation$contract$value$interface$produces$vector$durability_role
+[1] "terminal_artifact"
+
+$producer$run$operation$contract$value$interface$produces$vector$promotable_directly
+[1] TRUE
+
+$producer$run$operation$contract$value$interface$produces$vector$materialized_by_terminals
+[1] "vector"
+
+
+
+$producer$run$operation$contract$value$interface$promotion_terminals
+[1] "vector"
+
+$producer$run$operation$contract$value$interface$semantics
+list()
+
+
+$producer$run$operation$contract$value$resolved_inputs
+list()
+
+$producer$run$operation$contract$value$parameters
+$producer$run$operation$contract$value$parameters$vector_name
+[1] "legacy"
+
+$producer$run$operation$contract$value$parameters$source_column
+[1] "group"
+
+
+
+
+$producer$run$operation$contract_hash
+[1] "074a8e1c01103582"
+
+$producer$run$operation$contract_hash_scheme
+[1] "scworkbench.identity.legacy-hash-text16.v1"
+
+
+$producer$run$parameters
+$producer$run$parameters$status
+[1] "available"
+
+$producer$run$parameters$value
+$producer$run$parameters$value$vector_name
+[1] "legacy"
+
+$producer$run$parameters$value$source_column
+[1] "group"
+
+
+
+$producer$run$symbolic_inputs
+$producer$run$symbolic_inputs$status
+[1] "available"
+
+$producer$run$symbolic_inputs$value
+list()
+
+
+$producer$run$resolved_execution_inputs
+$producer$run$resolved_execution_inputs$status
+[1] "available"
+
+$producer$run$resolved_execution_inputs$value
+$producer$run$resolved_execution_inputs$value$effective_n
+[1] "NA"
+
+$producer$run$resolved_execution_inputs$value$resolved
+list()
+
+
+
+$producer$run$recorded_inputs
+$producer$run$recorded_inputs$status
+[1] "available"
+
+$producer$run$recorded_inputs$value
+list()
+
+
+$producer$run$runtime_attestation
+$producer$run$runtime_attestation$status
+[1] "available"
+
+$producer$run$runtime_attestation$value
+$producer$run$runtime_attestation$value$schema
+[1] "scworkbench.runtime_attestation.v1"
+
+$producer$run$runtime_attestation$value$r_version
+[1] "R version 4.4.1 (2024-06-14)"
+
+$producer$run$runtime_attestation$value$platform
+[1] "x86_64-pc-linux-gnu"
+
+$producer$run$runtime_attestation$value$scworkbench_version
+[1] "0.1.0"
+
+$producer$run$runtime_attestation$value$operation
+$producer$run$runtime_attestation$value$operation$name
+[1] "metadata_cell_vector"
+
+$producer$run$runtime_attestation$value$operation$version
+[1] "1"
+
+
+$producer$run$runtime_attestation$value$namespaces
+$producer$run$runtime_attestation$value$namespaces$base
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$BiocGenerics
+[1] "0.50.0"
+
+$producer$run$runtime_attestation$value$namespaces$bit
+[1] "4.0.5"
+
+$producer$run$runtime_attestation$value$namespaces$bit64
+[1] "4.0.5"
+
+$producer$run$runtime_attestation$value$namespaces$blob
+[1] "1.2.4"
+
+$producer$run$runtime_attestation$value$namespaces$BPCells
+[1] "0.3.1"
+
+$producer$run$runtime_attestation$value$namespaces$cachem
+[1] "1.1.0"
+
+$producer$run$runtime_attestation$value$namespaces$cli
+[1] "3.6.3"
+
+$producer$run$runtime_attestation$value$namespaces$compiler
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$datasets
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$DBI
+[1] "1.2.3"
+
+$producer$run$runtime_attestation$value$namespaces$fastmap
+[1] "1.2.0"
+
+$producer$run$runtime_attestation$value$namespaces$GenomeInfoDb
+[1] "1.40.1"
+
+$producer$run$runtime_attestation$value$namespaces$GenomeInfoDbData
+[1] "1.2.12"
+
+$producer$run$runtime_attestation$value$namespaces$GenomicRanges
+[1] "1.56.1"
+
+$producer$run$runtime_attestation$value$namespaces$graphics
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$grDevices
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$grid
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$httr
+[1] "1.4.7"
+
+$producer$run$runtime_attestation$value$namespaces$igraph
+[1] "2.2.2"
+
+$producer$run$runtime_attestation$value$namespaces$IRanges
+[1] "2.38.0"
+
+$producer$run$runtime_attestation$value$namespaces$irlba
+[1] "2.3.5.1"
+
+$producer$run$runtime_attestation$value$namespaces$jsonlite
+[1] "1.8.8"
+
+$producer$run$runtime_attestation$value$namespaces$lattice
+[1] "0.22.5"
+
+$producer$run$runtime_attestation$value$namespaces$lifecycle
+[1] "1.0.4"
+
+$producer$run$runtime_attestation$value$namespaces$magrittr
+[1] "2.0.3"
+
+$producer$run$runtime_attestation$value$namespaces$Matrix
+[1] "1.7.0"
+
+$producer$run$runtime_attestation$value$namespaces$MatrixGenerics
+[1] "1.16.0"
+
+$producer$run$runtime_attestation$value$namespaces$matrixStats
+[1] "1.3.0"
+
+$producer$run$runtime_attestation$value$namespaces$memoise
+[1] "2.0.1"
+
+$producer$run$runtime_attestation$value$namespaces$methods
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$pkgconfig
+[1] "2.0.3"
+
+$producer$run$runtime_attestation$value$namespaces$R6
+[1] "2.5.1"
+
+$producer$run$runtime_attestation$value$namespaces$Rcpp
+[1] "1.1.1"
+
+$producer$run$runtime_attestation$value$namespaces$rlang
+[1] "1.1.4"
+
+$producer$run$runtime_attestation$value$namespaces$RSQLite
+[1] "2.3.7"
+
+$producer$run$runtime_attestation$value$namespaces$S4Vectors
+[1] "0.42.1"
+
+$producer$run$runtime_attestation$value$namespaces$scworkbench
+[1] "0.1.0"
+
+$producer$run$runtime_attestation$value$namespaces$stats
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$stats4
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$tools
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$UCSC.utils
+[1] "1.0.0"
+
+$producer$run$runtime_attestation$value$namespaces$utils
+[1] "4.4.1"
+
+$producer$run$runtime_attestation$value$namespaces$uwot
+[1] "0.2.2"
+
+$producer$run$runtime_attestation$value$namespaces$vctrs
+[1] "0.6.5"
+
+$producer$run$runtime_attestation$value$namespaces$XVector
+[1] "0.44.0"
+
+$producer$run$runtime_attestation$value$namespaces$zlibbioc
+[1] "1.50.0"
+
+
+$producer$run$runtime_attestation$value$bpcells
+$producer$run$runtime_attestation$value$bpcells$version
+[1] "0.3.1"
+
+$producer$run$runtime_attestation$value$bpcells$native_provenance
+[1] "c293a0a34e653c395c8e9bf9ed3133107324d7b7"
+
+
+$producer$run$runtime_attestation$value$image
+$producer$run$runtime_attestation$value$image$status
+[1] "unavailable"
+
+$producer$run$runtime_attestation$value$image$sha256
+NULL
+
+
+$producer$run$runtime_attestation$value$runtime_provenance
+$producer$run$runtime_attestation$value$runtime_provenance$source_revision
+NULL
+
+$producer$run$runtime_attestation$value$runtime_provenance$container_digest
+NULL
+
+
+$producer$run$runtime_attestation$value$source_revision
+NULL
+
+$producer$run$runtime_attestation$value$container_digest
+NULL
+
+$producer$run$runtime_attestation$value$packages
+$producer$run$runtime_attestation$value$packages[[1]]
+[1] "0.3.1"
+
+$producer$run$runtime_attestation$value$packages[[2]]
+[1] "1.7.0"
+
+$producer$run$runtime_attestation$value$packages[[3]]
+[1] "2.3.5.1"
+
+$producer$run$runtime_attestation$value$packages[[4]]
+[1] "0.2.2"
+
+$producer$run$runtime_attestation$value$packages[[5]]
+[1] "2.2.2"
+
+
+
+
+$producer$run$identity
+$producer$run$identity$run_hash
+[1] "00087e270008a6a1"
+
+$producer$run$identity$run_hash_scheme
+[1] "scworkbench.identity.legacy-hash-text16.v1"
+
+
+$producer$run$snapshots
+[1] "prov_20261012_211644_yfqciv3d"
+
+$producer$run$entity_bindings
+$producer$run$entity_bindings$status
+[1] "available"
+
+$producer$run$entity_bindings$items
+$producer$run$entity_bindings$items[[1]]
+$producer$run$entity_bindings$items[[1]]$snapshot_id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$producer$run$entity_bindings$items[[1]]$commit_id
+[1] "commit_20261012_211643_cqkhc64s"
+
+$producer$run$entity_bindings$items[[1]]$run_id
+[1] "run_6bnjuzd247bp"
+
+$producer$run$entity_bindings$items[[1]]$direction
+[1] "output"
+
+$producer$run$entity_bindings$items[[1]]$binding_name
+[1] "vector"
+
+$producer$run$entity_bindings$items[[1]]$entity_kind
+[1] "artifact"
+
+$producer$run$entity_bindings$items[[1]]$entity_id
+[1] "cell_vector_20261012_211644_in5oir6m"
+
+$producer$run$entity_bindings$items[[1]]$relationship_type
+[1] "PRODUCES"
+
+$producer$run$entity_bindings$items[[1]]$path
+[1] "provenance/materializations/commit_20261012_211643_cqkhc64s/run_6bnjuzd247bp/vector.rds"
+
+$producer$run$entity_bindings$items[[1]]$content_hash
+[1] "000437b8000453b9"
+
+$producer$run$entity_bindings$items[[1]]$source
+[1] "promotion_artifact"
+
+$producer$run$entity_bindings$items[[1]]$content_identity_scheme
+NULL
+
+$producer$run$entity_bindings$items[[1]]$resolution_json
+NULL
+
+$producer$run$entity_bindings$items[[1]]$source_membership_sha256
+NULL
+
+$producer$run$entity_bindings$items[[1]]$source_membership_identity_scheme
+NULL
+
+$producer$run$entity_bindings$items[[1]]$source_member_count
+NULL
+
+$producer$run$entity_bindings$items[[1]]$effective_membership_sha256
+NULL
+
+$producer$run$entity_bindings$items[[1]]$effective_membership_identity_scheme
+NULL
+
+$producer$run$entity_bindings$items[[1]]$effective_member_count
+NULL
+
+
+
+
+$producer$run$outputs
+$producer$run$outputs$status
+[1] "available"
+
+$producer$run$outputs$items
+$producer$run$outputs$items[[1]]
+$producer$run$outputs$items[[1]]$snapshot_id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$producer$run$outputs$items[[1]]$output_name
+[1] "vector"
+
+$producer$run$outputs$items[[1]]$primitive_kind
+[1] "cell_vector"
+
+$producer$run$outputs$items[[1]]$artifact_id
+[1] "cell_vector_20261012_211644_in5oir6m"
+
+$producer$run$outputs$items[[1]]$output_hash
+[1] "000437b8000453b9"
+
+$producer$run$outputs$items[[1]]$structural_fingerprint
+[1] "000437b8000453b9"
+
+$producer$run$outputs$items[[1]]$content_sha256
+NULL
+
+$producer$run$outputs$items[[1]]$verification_level
+[1] "structural"
+
+$producer$run$outputs$items[[1]]$verification_status
+[1] "legacy_structural_only"
+
+$producer$run$outputs$items[[1]]$content_identity_scheme
+NULL
+
+$producer$run$outputs$items[[1]]$structural_fingerprint_scheme
+NULL
+
+$producer$run$outputs$items[[1]]$output_hash_scheme
+[1] "scworkbench.identity.legacy-hash-text16.v1"
+
+$producer$run$outputs$items[[1]]$replay_equivalence_policy
+[1] "not_comparable"
+
+$producer$run$outputs$items[[1]]$replay_equivalence_reference
+NULL
+
+$producer$run$outputs$items[[1]]$replay_equivalence_status
+[1] "legacy_not_comparable"
+
+
+
+
+$producer$run$parent_runs
+character(0)
+
+$producer$run$child_runs
+character(0)
+
+$producer$run$replay_equivalence
+$producer$run$replay_equivalence$status
+[1] "unavailable"
+
+$producer$run$replay_equivalence$reason
+[1] "no_replay_receipt"
+
+
+
+
+$relationships
+$relationships$immediate_inputs
+$relationships$immediate_inputs$status
+[1] "available"
+
+$relationships$immediate_inputs$items
+$relationships$immediate_inputs$items[[1]]
+$relationships$immediate_inputs$items[[1]]$kind
+[1] "run"
+
+$relationships$immediate_inputs$items[[1]]$id
+[1] "run_6bnjuzd247bp"
+
+$relationships$immediate_inputs$items[[1]]$node_id
+[1] "run:run_6bnjuzd247bp"
+
+$relationships$immediate_inputs$items[[1]]$relationship_type
+[1] "PRODUCES"
+
+$relationships$immediate_inputs$items[[1]]$binding
+[1] "vector"
+
+$relationships$immediate_inputs$items[[1]]$run_id
+[1] "run_6bnjuzd247bp"
+
+$relationships$immediate_inputs$items[[1]]$snapshot_id
+[1] "prov_20261012_211644_yfqciv3d"
+
+
+
+
+$relationships$immediate_outputs
+$relationships$immediate_outputs$status
+[1] "available"
+
+$relationships$immediate_outputs$items
+$relationships$immediate_outputs$items[[1]]
+$relationships$immediate_outputs$items[[1]]$kind
+[1] "snapshot"
+
+$relationships$immediate_outputs$items[[1]]$id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$relationships$immediate_outputs$items[[1]]$node_id
+[1] "snapshot:prov_20261012_211644_yfqciv3d"
+
+$relationships$immediate_outputs$items[[1]]$relationship_type
+[1] "PROMOTED_IN"
+
+$relationships$immediate_outputs$items[[1]]$binding
+[1] "vector"
+
+$relationships$immediate_outputs$items[[1]]$run_id
+[1] "run_6bnjuzd247bp"
+
+$relationships$immediate_outputs$items[[1]]$snapshot_id
+[1] "prov_20261012_211644_yfqciv3d"
+
+
+
+
+$relationships$upstream
+$relationships$upstream$status
+[1] "available"
+
+$relationships$upstream$count
+[1] 2
+
+$relationships$upstream$items
+$relationships$upstream$items[[1]]
+$relationships$upstream$items[[1]]$kind
+[1] "run"
+
+$relationships$upstream$items[[1]]$id
+[1] "run_6bnjuzd247bp"
+
+$relationships$upstream$items[[1]]$node_id
+[1] "run:run_6bnjuzd247bp"
+
+
+$relationships$upstream$items[[2]]
+$relationships$upstream$items[[2]]$kind
+[1] "snapshot"
+
+$relationships$upstream$items[[2]]$id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$relationships$upstream$items[[2]]$node_id
+[1] "snapshot:prov_20261012_211644_yfqciv3d"
+
+
+
+
+$relationships$downstream
+$relationships$downstream$status
+[1] "available"
+
+$relationships$downstream$count
+[1] 2
+
+$relationships$downstream$items
+$relationships$downstream$items[[1]]
+$relationships$downstream$items[[1]]$kind
+[1] "run"
+
+$relationships$downstream$items[[1]]$id
+[1] "run_6bnjuzd247bp"
+
+$relationships$downstream$items[[1]]$node_id
+[1] "run:run_6bnjuzd247bp"
+
+
+$relationships$downstream$items[[2]]
+$relationships$downstream$items[[2]]$kind
+[1] "snapshot"
+
+$relationships$downstream$items[[2]]$id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$relationships$downstream$items[[2]]$node_id
+[1] "snapshot:prov_20261012_211644_yfqciv3d"
+
+
+
+
+
+$identity
+$identity$content_sha256
+NULL
+
+$identity$content_identity_scheme
+NULL
+
+$identity$structural_fingerprint
+[1] "000437b8000453b9"
+
+$identity$structural_fingerprint_scheme
+NULL
+
+$identity$verification_level
+[1] "structural"
+
+$identity$verification_status
+[1] "unverified"
+
+$identity$observed
+$identity$observed$status
+[1] "unavailable"
+
+$identity$observed$reason
+[1] "content_identity_not_recorded"
+
+
+
+$promotion
+$promotion$snapshot_id
+[1] "prov_20261012_211644_yfqciv3d"
+
+$promotion$replay_equivalence_status
+[1] "legacy_not_comparable"
+
+
+$details
+$details$primitive_kind
+[1] "cell_vector"
+
+$details$artifact_type
+[1] "cell_vector"
+
+$details$cell_set
+[1] "all"
+
+$details$lineage_status
+[1] "complete"
+
+$details$storage
+$details$storage$status
+[1] "registry_backed"
+
+$details$storage$reason
+[1] "use_typed_artifact_getter"
+
+
+$details$source_space_id
+$details$source_space_id$status
+[1] "not_applicable"
+
+
+$details$output_space_id
+$details$output_space_id$status
+[1] "not_applicable"
+
+
+

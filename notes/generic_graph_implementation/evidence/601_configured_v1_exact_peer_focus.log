@@ -1,0 +1,13 @@
+RUN test_operation_pack_v1_cross_language_lifecycle_contract [test_operation_pack_v1_contract.R; self_contained]
+FAIL test_operation_pack_v1_cross_language_lifecycle_contract -- Error: identical(python_pack$runtime_attestation$pybench$source_revision,  .... is not TRUE
+Execution halted
+RUN test_operation_pack_v1_python_fault_confinement_contract [test_operation_pack_v1_contract.R; self_contained]
+FAIL test_operation_pack_v1_python_fault_confinement_contract -- Error: GRAPH_SOURCE_AUTHORITY_REQUIRED: Retained payload lacks independently issued provenance output evidence.
+Execution halted
+CONTRACT TEST SUMMARY files=1 discovered=2 executed=2 passed=0 skipped=0 failed=2 excluded=0 accounted=2
+Error: Contract suite failed:
+- test_operation_pack_v1_cross_language_lifecycle_contract [test_operation_pack_v1_contract.R]: Error: identical(python_pack$runtime_attestation$pybench$source_revision,  .... is not TRUE
+Execution halted
+- test_operation_pack_v1_python_fault_confinement_contract [test_operation_pack_v1_contract.R]: Error: GRAPH_SOURCE_AUTHORITY_REQUIRED: Retained payload lacks independently issued provenance output evidence.
+Execution halted
+Execution halted

@@ -1,0 +1,6 @@
+DIAGNOSTIC observed branches:c("retained_reference", "retained_reference", "retained_reference", 
+"retained_reference", "retained_reference")
+DIAGNOSTIC actual cache:c(-640, -640, -640)
+DIAGNOSTIC admitted cache:c(-640, -640, -640)
+UNCHANGED_TEST_FAILURE all(c("stage_payload", "published_certificate", "retained_reference") %in%  .... is not TRUE
+UNCHANGED_TEST_RESULT=FALSE

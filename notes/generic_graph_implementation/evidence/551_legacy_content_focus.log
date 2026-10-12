@@ -1,0 +1,9 @@
+RUN test_graph_authentic_legacy_object_content_load_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_authentic_legacy_object_content_load_contract (1.599s)
+RUN test_graph_object_proof_removal_content_and_authority_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_object_proof_removal_content_and_authority_contract (22.214s)
+RUN test_graph_sql_transaction_roundtrip_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_transaction_roundtrip_contract (4.432s)
+RUN test_graph_typed_missing_values_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_typed_missing_values_contract (0.002s)
+CONTRACT TEST SUMMARY files=2 discovered=4 executed=4 passed=4 skipped=0 failed=0 excluded=0 accounted=4

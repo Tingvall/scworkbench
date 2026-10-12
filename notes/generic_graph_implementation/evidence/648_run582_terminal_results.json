@@ -1,0 +1,414 @@
+{
+  "results": [
+    {
+      "name": "test_operation_pack_v2_cell_set_family_atomic_rollback_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 81.096
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_modes_and_empty_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 63.067
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_publication_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "signature": "self_contained",
+      "status": "failed",
+      "reason": "                             code severity check_class entity_kind\n1 SQLITE_UNRESOLVED_JOURNAL_STATE    error   recipient      sqlite\n2 SQLITE_UNRESOLVED_JOURNAL_STATE    error   recipient      sqlite\n3       VALIDATION_MUTATED_BUNDLE    error   recipient      bundle\n                     entity_id              path table\n1                         main db/app.sqlite-shm  <NA>\n2                         main db/app.sqlite-wal  <NA>\n3 scwb_v2_publish_4c9c7cb3b55c              <NA>  <NA>\n                                                          expected\n1                                                             <NA>\n2                                                             <NA>\n3 ee847fc299f976521a36450d22bc0c65c0c34dff7b8d547d302ec71cc8206e02\n                                                          observed\n1                                                          present\n2                                                          present\n3 0b8ea3ba7fe45d44a69ed7403778adc5e94bdca8c60b9ddcd5fde88e75a209fa\n                                                             message\n1 Recipient bundle contains unresolved SQLite WAL/SHM/journal state.\n2 Recipient bundle contains unresolved SQLite WAL/SHM/journal state.\n3    Recipient validation changed the bundle filesystem fingerprint.",
+      "elapsed_seconds": 41.48
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_writer_fail_closed_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 10.138
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_capability_gap_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 27.158
+    },
+    {
+      "name": "test_operation_pack_v2_dynamic_dependency_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 9.282
+    },
+    {
+      "name": "test_operation_pack_v2_interrupted_recovery_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 12.564
+    },
+    {
+      "name": "test_operation_pack_v2_optional_dependency_and_capability_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 8.778
+    },
+    {
+      "name": "test_operation_pack_v2_reference_lifecycle_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 14.543
+    },
+    {
+      "name": "test_operation_pack_v2_transition_atomicity_and_binding_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 42.247
+    },
+    {
+      "name": "test_operation_pack_v2_transition_schema_exhaustive_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 37.534
+    },
+    {
+      "name": "test_operation_pack_v2_v1_coexistence_and_order_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 7.966
+    },
+    {
+      "name": "test_operation_pack_v2_feature_set_registry_fail_closed_contract",
+      "file": "test_operation_pack_v2_feature_set_registry_read_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 54.489
+    },
+    {
+      "name": "test_operation_pack_v2_feature_set_registry_lifecycle_contract",
+      "file": "test_operation_pack_v2_feature_set_registry_read_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 48.913
+    },
+    {
+      "name": "test_operation_pack_v2_observed_chunk_trace_fail_closed_contract",
+      "file": "test_operation_pack_v2_observed_chunk_trace_fail_closed_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 12.412
+    },
+    {
+      "name": "test_operation_pack_v2_transition_rollback_contract",
+      "file": "test_operation_pack_v2_transition_rollback_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 30.937
+    },
+    {
+      "name": "test_operation_pack_v3_ancestry_resolution_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 106.599
+    },
+    {
+      "name": "test_operation_pack_v3_chunk_replay_and_rollback_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 105.436
+    },
+    {
+      "name": "test_operation_pack_v3_r_lifecycle_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 96.802
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_2d_labels_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 81.142
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_adversarial_atomicity_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 546.271
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_lifecycle_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 69.267
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_positive_scale_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 158.745
+    },
+    {
+      "name": "test_operation_pack_v3_g1_model_reference_dispatch_lifecycle_contract",
+      "file": "test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 152.187
+    },
+    {
+      "name": "test_operation_pack_v3_g3_adversarial_contract",
+      "file": "test_operation_pack_v3_g3_external_state_adoption_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 16.971
+    },
+    {
+      "name": "test_operation_pack_v3_g3_duplicate_source_record_contract",
+      "file": "test_operation_pack_v3_g3_external_state_adoption_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 23.519
+    },
+    {
+      "name": "test_operation_pack_v3_g3_external_state_adoption_contract",
+      "file": "test_operation_pack_v3_g3_external_state_adoption_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 65.103
+    },
+    {
+      "name": "test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 144.232
+    },
+    {
+      "name": "test_operation_pack_v3_g7_union_lifecycle_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 62.339
+    },
+    {
+      "name": "test_operation_pack_v3_g7_effective_key_lifecycle_rollback_and_receipt_contract",
+      "file": "test_operation_pack_v3_g7_effective_family_key_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 46.448
+    },
+    {
+      "name": "test_operation_pack_v3_matrix_model_boundary_lifecycle_contract",
+      "file": "test_operation_pack_v3_matrix_model_boundary_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 36.599
+    },
+    {
+      "name": "test_operation_pack_v3_matrix_model_boundary_rollback_contract",
+      "file": "test_operation_pack_v3_matrix_model_boundary_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 52.182
+    },
+    {
+      "name": "test_operation_pack_v3_matrix_model_source_reopen_authentication_contract",
+      "file": "test_operation_pack_v3_matrix_model_boundary_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 28.493
+    },
+    {
+      "name": "test_operation_pack_v3_phase5_g1_g2_durable_lifecycle_contract",
+      "file": "test_operation_pack_v3_phase5_consolidated_capabilities.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 55.772
+    },
+    {
+      "name": "test_operation_pack_v3_phase5_g4_ordered_artifact_collection_contract",
+      "file": "test_operation_pack_v3_phase5_consolidated_capabilities.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 24.746
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_g2_lifecycle_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 42.389
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_negative_and_rollback_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 139.423
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_promoted_sql_fault_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 17.96
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_typed_lifecycle_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 26.032
+    },
+    {
+      "name": "test_operation_pack_v3_durable_reopen_committed_matrix_source_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 32.619
+    },
+    {
+      "name": "test_operation_pack_v3_stage_matrix_between_reads_and_publication_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 32.142
+    },
+    {
+      "name": "test_operation_pack_v3_stage_only_predecessor_typed_read_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 17.532
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 111.689
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_source_recheck_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 24.498
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_typed_lifecycle_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 26.254
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_verified_g1_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 70.45
+    },
+    {
+      "name": "test_payload_content_identity_contract",
+      "file": "test_payload_content_identity_contract.R",
+      "signature": "self_contained",
+      "status": "failed",
+      "reason": "Bundle schema migration rolled back completely; recovery backup: /tmp/RtmphyBTFM/.scwb_payload_identity_4c9c43714e90.schema-backups/app.sqlite.v0-to-v11.20261012T223450.700535-19612-dnhq11t3h8yk.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns.",
+      "elapsed_seconds": 31.644
+    },
+    {
+      "name": "test_provenance_bundle_dag_contract",
+      "file": "test_provenance_bundle_dag_contract.R",
+      "signature": "isolated_bundle",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 9.894
+    },
+    {
+      "name": "test_provenance_snapshot_contract",
+      "file": "test_provenance_snapshot_contract.R",
+      "signature": "isolated_bundle",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 7.354
+    },
+    {
+      "name": "test_public_typed_run_branch_inputs_contract",
+      "file": "test_public_typed_run_branch_inputs_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 25.024
+    }
+  ],
+  "summary": {
+    "files": 20,
+    "discovered": 50,
+    "executed": 50,
+    "passed": 48,
+    "skipped": 0,
+    "failed": 2,
+    "excluded": 0,
+    "accounted": 50
+  }
+}

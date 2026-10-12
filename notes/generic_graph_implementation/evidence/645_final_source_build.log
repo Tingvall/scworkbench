@@ -1,0 +1,18 @@
+* checking for file ‘/tmp/scwb-final-source-643.ui645z4a/source/DESCRIPTION’ ... OK
+* preparing ‘scworkbench’:
+* checking DESCRIPTION meta-information ... OK
+* cleaning src
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Omitted ‘LazyData’ from DESCRIPTION
+  NB: this package now depends on R (>= 3.5.0)
+  WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+  serialize/load version 3 cannot be read in older versions of R.
+  File(s) containing such objects:
+    ‘scworkbench/tests/fixtures/graph_legacy_object_96a37_expected.rds’
+    ‘scworkbench/tests/fixtures/graph_legacy_object_fa47_expected.rds’
+    ‘scworkbench/tests/fixtures/graph_legacy_object_fa929_expected.rds’
+    ‘scworkbench/tests/fixtures/provenance_legacy_table_96a37_expected.rds’
+    ‘scworkbench/tests/fixtures/trajectory_legacy_96a37_expected.rds’
+* building ‘scworkbench_0.1.0.tar.gz’
+

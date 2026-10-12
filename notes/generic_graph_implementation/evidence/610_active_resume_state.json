@@ -1,0 +1,60 @@
+{
+  "status": "active_incomplete",
+  "source_commit": "5c3ad8111610ddf57c64877391b5e6cc47f22ff8",
+  "runtime_commit": "9869ccf344191ca7ff6e070139bfdcd03336d746",
+  "frozen_install": "/tmp/scwb-final-585.ki8nvr4e/library",
+  "active_runs": {
+    "582": {
+      "log": "notes/generic_graph_implementation/evidence/582_registration_cascade_focus.log",
+      "run": 24,
+      "pass": 22,
+      "fail_names": [
+        "test_operation_pack_v2_cell_set_family_publication_contract"
+      ],
+      "graph_scenarios": 0,
+      "terminal": "pending"
+    },
+    "589": {
+      "log": "notes/generic_graph_implementation/evidence/589_remaining_original_focus.log",
+      "run": 40,
+      "pass": 38,
+      "fail_names": [
+        "test_session_inspection_and_ingest_integrity_contract",
+        "test_typed_effective_cell_coverage_contract"
+      ],
+      "graph_scenarios": 0,
+      "terminal": "pending"
+    },
+    "597": {
+      "log": "notes/generic_graph_implementation/evidence/597_final_small_public_lifecycle.log",
+      "run": 0,
+      "pass": 0,
+      "fail_names": [],
+      "graph_scenarios": 0,
+      "terminal": "pending"
+    },
+    "603": {
+      "log": "notes/generic_graph_implementation/evidence/603_final_graph_normative_focus.log",
+      "run": 0,
+      "pass": 0,
+      "fail_names": [],
+      "graph_scenarios": 18,
+      "terminal": "pending"
+    },
+    "609": {
+      "log": "notes/generic_graph_implementation/evidence/609_typed_coverage_public_promotion_diagnostic.log",
+      "run": 0,
+      "pass": 0,
+      "fail_names": [],
+      "graph_scenarios": 0,
+      "terminal": "pending"
+    }
+  },
+  "pending_approved_test_only_fixes": [
+    "session public finalize after589terminal (605/606/607 PASS)",
+    "cell family publication public finalize after582terminal (608 PASS)",
+    "typed coverage public promotion after589terminal IF609PASS"
+  ],
+  "no_runtime_changes_approved": "Missing producer evidence guard and all current graph authority remain strict",
+  "critical_next": "Finish current runs, scoped failed-case closures only, 601 exact v1 peer retry after reduced concurrency, final597 authenticated current Py parity, exact evidence/source pin and independent same reviewers through parent."
+}

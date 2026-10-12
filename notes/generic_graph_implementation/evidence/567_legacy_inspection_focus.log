@@ -1,0 +1,27 @@
+RUN test_graph_authentic_legacy_object_content_load_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+FAIL test_graph_authentic_legacy_object_content_load_contract -- certificate$identity$verification_status == "legacy_structural_only" is not TRUE
+RUN test_graph_object_proof_removal_content_and_authority_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_object_proof_removal_content_and_authority_contract (24.540s)
+RUN test_graph_sql_transaction_roundtrip_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_transaction_roundtrip_contract (4.473s)
+RUN test_graph_typed_missing_values_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_typed_missing_values_contract (0.004s)
+RUN test_nullable_cell_vector_family_storage_contract [test_nullable_cell_vector_family_storage_contract.R; self_contained]
+PASS test_nullable_cell_vector_family_storage_contract (50.116s)
+RUN test_operation_docs_single_source_contract [test_operation_docs_single_source_contract.R; self_contained]
+PASS test_operation_docs_single_source_contract (0.028s)
+RUN test_operation_pack_sdk_catalog_coverage [test_operation_pack_sdk_contract.R; self_contained]
+PASS test_operation_pack_sdk_catalog_coverage (1.507s)
+RUN test_graph_retained_cell_source_payload_contract [test_graph_source_authority_contract.R; self_contained]
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector_family SEARCH artifact_pseudotime USING INDEX artifact_pseudotime_payload_order (artifact_id=?) 
+PASS test_graph_retained_cell_source_payload_contract (14.240s)
+RUN test_graph_object_source_batch_identity_admission_restoration_contract [test_graph_object_source_batch_contract.R; self_contained]
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.186
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.16
+PASS test_graph_object_source_batch_identity_admission_restoration_contract (8.982s)
+CONTRACT TEST SUMMARY files=7 discovered=9 executed=9 passed=8 skipped=0 failed=1 excluded=0 accounted=9
+Error: Contract suite failed:
+- test_graph_authentic_legacy_object_content_load_contract [test_graph_legacy_object_content_load_contract.R]: certificate$identity$verification_status == "legacy_structural_only" is not TRUE
+Execution halted

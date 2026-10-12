@@ -1,0 +1,26 @@
+Processing /home/dirk/Projects/lymphocyte_trajectory/coordination/evidence/2026-10-12_quill_graph_small_gate/pybench-0.1.0-py3-none-any.whl
+Processing /home/dirk/Projects/.pybench-worktrees/generic-graph-native-matrix-python-20261011/tests/fixtures/operation-pack-v4-graph-python
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Processing /home/dirk/Projects/.pybench-worktrees/generic-graph-native-matrix-python-20261011/tests/fixtures/operation-pack-v3-python-reference
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting numpy>=1.26
+  Using cached numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.8 MB)
+Collecting jsonschema>=4.23
+  Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+Collecting pandas>=2.1
+  Using cached pandas-2.3.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
+Collecting packaging>=24
+  Using cached packaging-26.3-py3-none-any.whl (129 kB)
+Collecting h5py==3.15.1
+  Using cached h5py-3.15.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (4.7 MB)
+ERROR: Package 'pybench' requires a different Python: 3.10.12 not in '>=3.11'

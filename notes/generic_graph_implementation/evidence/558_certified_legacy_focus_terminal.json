@@ -1,0 +1,16 @@
+{
+  "source_commit": "dd5b6a8e4bc17e58d7df09866f3de72e1860bbc9",
+  "installed_candidate": 557,
+  "focused_run": 558,
+  "exit": 0,
+  "executed": 7,
+  "passed": 7,
+  "skipped": 0,
+  "failed": 0,
+  "authentic_fa929_and_fa47_original_primitive_content": "PASS",
+  "original_proof_and_mutation_guards": "PASS",
+  "true_v9_nullable_all_original_lifecycle_assertions": "PASS",
+  "docs_sdk_no_reload_regressions": "PASS",
+  "uncertified_older_inspection_scope": "PENDING",
+  "qualification": false
+}

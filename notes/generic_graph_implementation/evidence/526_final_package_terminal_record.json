@@ -1,0 +1,15 @@
+{
+  "core_commit": "53771f10ee275ff24bfc72800681116738255915",
+  "build523_exit": 0,
+  "check524_exit": 0,
+  "errors": 0,
+  "warnings": 0,
+  "notes": 1,
+  "note_details": [
+    "* checking installed package size ... NOTE\n  installed size is 12.3Mb\n  sub-directories of 1Mb or more:\n    protocol   4.2Mb\n    R          4.4Mb\n    sdk        1.1Mb\n* checking package directory ... OK"
+  ],
+  "code_dependency_check": "OK",
+  "code_possible_problems": "OK",
+  "qualification": false,
+  "remaining": "Valid runtime full suite525 terminal and same two independent reviewers"
+}

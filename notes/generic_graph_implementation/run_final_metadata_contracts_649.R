@@ -1,0 +1,12 @@
+lib <- "/tmp/scwb-final-source-643.ui645z4a/library"
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+scworkbench:::.wb_matrix_native_byte_api_initialize()
+env <- new.env(parent=asNamespace("scworkbench"))
+sys.source("inst/tests/contract_test_runner.R",env)
+inventory <- env$contract_test_discover("tests",exclusions=character(),parent_env=env)
+names <- c("test_phase8_no_pack_core_surface_contract","test_phase8_primitive_exchange_inventory_contract","test_phase8_test_ownership_inventory_contract")
+selected <- lapply(names,function(name){matches <- Filter(function(record)identical(record$name,name),inventory$tests);stopifnot(length(matches)==1L);matches[[1L]]})
+inventory$tests <- selected;inventory$files <- unique(vapply(selected,`[[`,character(1),"file"))
+run <- env$contract_test_execute(inventory,reporter=TRUE)
+saveRDS(run,"notes/generic_graph_implementation/evidence/649_final_metadata_contracts.rds")
+env$contract_test_assert_success(run)

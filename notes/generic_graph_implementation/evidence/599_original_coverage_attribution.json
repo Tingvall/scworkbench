@@ -1,0 +1,2977 @@
+{
+  "original_run": 525,
+  "current_commit": "5c3ad8111610ddf57c64877391b5e6cc47f22ff8",
+  "events": [
+    {
+      "name": "test_analysis_capsule_atomicity_security_contract",
+      "file": "test_analysis_capsule_atomicity_security_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "65c530a4095136263033ed2ec19c785e2e96075eec1c9a14692f93f323a9071f",
+      "current_test_file_sha256": "65c530a4095136263033ed2ec19c785e2e96075eec1c9a14692f93f323a9071f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_analysis_capsule_documentation_policy_contract",
+      "file": "test_analysis_capsule_documentation_policy_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f92e16ee59e36a04d93c84b60b3036b675acaa741be92b92281fb28f0ad3d304",
+      "current_test_file_sha256": "f92e16ee59e36a04d93c84b60b3036b675acaa741be92b92281fb28f0ad3d304",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_analysis_capsule_process_death_contract",
+      "file": "test_analysis_capsule_process_death_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "95df25a6989571e56e8356f11923664633352eefe58a10ce28934463790a1e76",
+      "current_test_file_sha256": "95df25a6989571e56e8356f11923664633352eefe58a10ce28934463790a1e76",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_analysis_capsule_r_source_review_closure_contract",
+      "file": "test_analysis_capsule_r_source_review_closure_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "8ce232a88c19e04a08b22320009058e055e2a2ff1e0566bbda9e63f0585ce213",
+      "current_test_file_sha256": "8ce232a88c19e04a08b22320009058e055e2a2ff1e0566bbda9e63f0585ce213",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_analysis_capsule_recipient_validation_contract",
+      "file": "test_analysis_capsule_recipient_validation_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f67a88aacb847b97a067baa461594735e4c34ad9a63986d3f8acfa487c5ad45b",
+      "current_test_file_sha256": "f67a88aacb847b97a067baa461594735e4c34ad9a63986d3f8acfa487c5ad45b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_analysis_capsule_tamper_validation_contract",
+      "file": "test_analysis_capsule_recipient_validation_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f67a88aacb847b97a067baa461594735e4c34ad9a63986d3f8acfa487c5ad45b",
+      "current_test_file_sha256": "f67a88aacb847b97a067baa461594735e4c34ad9a63986d3f8acfa487c5ad45b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_analysis_capsule_registration_contract",
+      "file": "test_analysis_capsule_registration_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "00dd2d2d229a67a0aca4667ca17d068ae2226b6a653ea52382f2a8fcf2bb26d5",
+      "current_test_file_sha256": "00dd2d2d229a67a0aca4667ca17d068ae2226b6a653ea52382f2a8fcf2bb26d5",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_artifact_naming_contract",
+      "file": "test_artifact_naming_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "53ab982b8457e4cb774c9098186fc312e4dc4bcea47fd088593615ac7b11e0a6",
+      "current_test_file_sha256": "53ab982b8457e4cb774c9098186fc312e4dc4bcea47fd088593615ac7b11e0a6",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_atomic_authoritative_manifest_contract",
+      "file": "test_atomic_authoritative_manifest_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a829fd097da3fcf17591608b51d16bebc9616338e5a16ca461b52af97ce9277b",
+      "current_test_file_sha256": "a829fd097da3fcf17591608b51d16bebc9616338e5a16ca461b52af97ce9277b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_attach_adapters_contract",
+      "file": "test_attach_adapters_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c16e178f75ed45e86494e8c4d94522d5a1cfb962335404553bf7702e35164c39",
+      "current_test_file_sha256": "c16e178f75ed45e86494e8c4d94522d5a1cfb962335404553bf7702e35164c39",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_auditable_transformation_onboarding_law_contract",
+      "file": "test_auditable_transformation_onboarding_law_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "35241116577a2158a3317952f6329a937eba5e134137331a6b5477d6dbb3c9ba",
+      "current_test_file_sha256": "35241116577a2158a3317952f6329a937eba5e134137331a6b5477d6dbb3c9ba",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_bundle_ingest_containers_contract",
+      "file": "test_bundle_ingest_containers_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ead5ecf0487c768ca1bb3eed74194bab40b3d2c38e215757750ab73a47b7583e",
+      "current_test_file_sha256": "ead5ecf0487c768ca1bb3eed74194bab40b3d2c38e215757750ab73a47b7583e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_bundle_path_containment_trust_boundary_contract",
+      "file": "test_bundle_path_containment_trust_boundary_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "2e2139a3042e231f63ee54e14b59b3a43e1d875f1428bcc52b6cdcf17ee2ecaf",
+      "current_test_file_sha256": "2e2139a3042e231f63ee54e14b59b3a43e1d875f1428bcc52b6cdcf17ee2ecaf",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_object_primitive_family_durable_roundtrip_contract",
+      "file": "test_cell_vector_durable_identity_roundtrip_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "872be8ece3cd81cdd2332e1f0c1250eb78f8631a0dfaca1a64140b2221f0c1ae",
+      "current_test_file_sha256": "872be8ece3cd81cdd2332e1f0c1250eb78f8631a0dfaca1a64140b2221f0c1ae",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_central_schema_foreign_key_closure_contract",
+      "file": "test_central_schema_foreign_key_closure_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "04fd363a02dd96af0dd7e0bceb66134f087c91057c033a8b42a65f071271cedc",
+      "current_test_file_sha256": "04fd363a02dd96af0dd7e0bceb66134f087c91057c033a8b42a65f071271cedc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_normalized_membership_deep_validation_contract",
+      "file": "test_central_schema_foreign_key_closure_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "04fd363a02dd96af0dd7e0bceb66134f087c91057c033a8b42a65f071271cedc",
+      "current_test_file_sha256": "04fd363a02dd96af0dd7e0bceb66134f087c91057c033a8b42a65f071271cedc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_central_schema_migration_foreign_keys_contract",
+      "file": "test_central_schema_migration_foreign_keys_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "87a15c827f12dabbc10e0c7965e9eae57789a48dbd306fcbb02c65d83e1924f2",
+      "current_test_file_sha256": "87a15c827f12dabbc10e0c7965e9eae57789a48dbd306fcbb02c65d83e1924f2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_compute_profile_contract",
+      "file": "test_compute_profile_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f1b039dc8c4d8ed6cf887155ae9db977eb7c56c3a2dab70b9813e79d5acdc8a4",
+      "current_test_file_sha256": "f1b039dc8c4d8ed6cf887155ae9db977eb7c56c3a2dab70b9813e79d5acdc8a4",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_container_release_hygiene_contract",
+      "file": "test_container_release_hygiene_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "8bbe4cd88e1aca1a1a7640a838fb9de071c43bc6e34be8027a07795293ca4042",
+      "current_test_file_sha256": "8bbe4cd88e1aca1a1a7640a838fb9de071c43bc6e34be8027a07795293ca4042",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_contract_catalogs_semantic",
+      "file": "test_contract_catalogs_semantic.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "50260f2011f8cbc7853c8745df0881f8d38c333c8a39249920ce073b5be9b829",
+      "current_test_file_sha256": "50260f2011f8cbc7853c8745df0881f8d38c333c8a39249920ce073b5be9b829",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_contract_runner_discovery_contract",
+      "file": "test_contract_runner_discovery_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "307a4a5c9199e83fcd10a180d1956804fcdd08335e0ff10f5ba239f7b67df73a",
+      "current_test_file_sha256": "307a4a5c9199e83fcd10a180d1956804fcdd08335e0ff10f5ba239f7b67df73a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_deep_bundle_integrity_validation_closure_contract",
+      "file": "test_deep_bundle_integrity_validation_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f2a012a412ef56fec2b8895ce6c83fff410ad6732cdb3bc851d189fbd06121e8",
+      "current_test_file_sha256": "f2a012a412ef56fec2b8895ce6c83fff410ad6732cdb3bc851d189fbd06121e8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_deep_bundle_integrity_validation_contract",
+      "file": "test_deep_bundle_integrity_validation_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f2a012a412ef56fec2b8895ce6c83fff410ad6732cdb3bc851d189fbd06121e8",
+      "current_test_file_sha256": "f2a012a412ef56fec2b8895ce6c83fff410ad6732cdb3bc851d189fbd06121e8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_derived_cell_set_lifecycle_contract",
+      "file": "test_derived_cell_set_lifecycle_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "1981cd7686d2d5612419bd5d20f05e6650ca5c0bdb42023259b972466fce7290",
+      "current_test_file_sha256": "1981cd7686d2d5612419bd5d20f05e6650ca5c0bdb42023259b972466fce7290",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_docker_release_engineering_contract",
+      "file": "test_docker_release_engineering_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a91ca1b9ac2fdef1be3949943aaa5eca57f2599fa12402e13db3f1a932d78b0f",
+      "current_test_file_sha256": "a91ca1b9ac2fdef1be3949943aaa5eca57f2599fa12402e13db3f1a932d78b0f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_documentation_source_package_curation_contract",
+      "file": "test_documentation_source_package_curation_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "0883c7b5f3ae0c625736b3dba7644454a21881222cd43de1bb081feeecec7232",
+      "current_test_file_sha256": "0883c7b5f3ae0c625736b3dba7644454a21881222cd43de1bb081feeecec7232",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_durable_resumable_sessions_contract",
+      "file": "test_durable_resumable_sessions_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "53df69cd57c3c087c5625b9926c450ee248361e65ccc909751f1f417fe091eba",
+      "current_test_file_sha256": "53df69cd57c3c087c5625b9926c450ee248361e65ccc909751f1f417fe091eba",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_durable_session_dependent_branch_contract",
+      "file": "test_durable_session_dependent_branch_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d3b5cfca241b98aa73b58d7167f39deabfb5675b8baa0a376753c3bcab0368b2",
+      "current_test_file_sha256": "d3b5cfca241b98aa73b58d7167f39deabfb5675b8baa0a376753c3bcab0368b2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_durable_session_generation_recovery_contract",
+      "file": "test_durable_session_generation_recovery_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "7139473d83f831197356a2edc2ca03114fae03af3d43eb7cca51ffad16246c6e",
+      "current_test_file_sha256": "7139473d83f831197356a2edc2ca03114fae03af3d43eb7cca51ffad16246c6e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_durable_session_source_payload_corruption_contract",
+      "file": "test_durable_session_source_payload_corruption_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "261f98cba7cc672f431478720d378513830c815c754dca6d074cef59bbbe6490",
+      "current_test_file_sha256": "261f98cba7cc672f431478720d378513830c815c754dca6d074cef59bbbe6490",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_durable_session_subprocess_recovery_contract",
+      "file": "test_durable_session_subprocess_recovery_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "3e9733ce18887943ffe47ac7c24bb05dabecd9c7c7cfd0793e94b8704f1060e7",
+      "current_test_file_sha256": "3e9733ce18887943ffe47ac7c24bb05dabecd9c7c7cfd0793e94b8704f1060e7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_exclusive_bundle_writer_lock_safety_closure_contract",
+      "file": "test_exclusive_bundle_writer_lock_safety_closure_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "bba3af4852fe9222bc7b8ea43ed4ed5df6adbb7e45e88138b74144a1b61c224d",
+      "current_test_file_sha256": "bba3af4852fe9222bc7b8ea43ed4ed5df6adbb7e45e88138b74144a1b61c224d",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_session_wal_snapshot_contract",
+      "file": "test_exclusive_bundle_writer_lock_safety_closure_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "bba3af4852fe9222bc7b8ea43ed4ed5df6adbb7e45e88138b74144a1b61c224d",
+      "current_test_file_sha256": "bba3af4852fe9222bc7b8ea43ed4ed5df6adbb7e45e88138b74144a1b61c224d",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_feature_selection_plan_contract",
+      "file": "test_feature_selection_plan_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ef756991ff80daf93991ca4e5679e6ed82cd4224b40e298615535b14d884c5dd",
+      "current_test_file_sha256": "ef756991ff80daf93991ca4e5679e6ed82cd4224b40e298615535b14d884c5dd",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_feature_set_namespace_transfer_contract",
+      "file": "test_feature_set_namespace_transfer_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9bb2672324844ab88ea393bcdd0318bf9cdb74524f236394eb43bd9cb20d063a",
+      "current_test_file_sha256": "9bb2672324844ab88ea393bcdd0318bf9cdb74524f236394eb43bd9cb20d063a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_feature_set_namespace_transfer_intersect_contract",
+      "file": "test_feature_set_namespace_transfer_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9bb2672324844ab88ea393bcdd0318bf9cdb74524f236394eb43bd9cb20d063a",
+      "current_test_file_sha256": "9bb2672324844ab88ea393bcdd0318bf9cdb74524f236394eb43bd9cb20d063a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_feature_sets_contract",
+      "file": "test_feature_sets_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5009ef7309fefd1fa7d71f9e873323eb5fae65a54ca9cf5c4832a5ba65d963f3",
+      "current_test_file_sha256": "5009ef7309fefd1fa7d71f9e873323eb5fae65a54ca9cf5c4832a5ba65d963f3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_file_backed_dense_space_corruption_contract",
+      "file": "test_file_backed_dense_space_corruption_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "4446846375c0b55eb3c232678de0543c2bc21ac87d3acdd1030482ef4ad64e07",
+      "current_test_file_sha256": "4446846375c0b55eb3c232678de0543c2bc21ac87d3acdd1030482ef4ad64e07",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_file_backed_dense_space_storage_contract",
+      "file": "test_file_backed_dense_space_storage_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "8c1966c439e320ce62d4f812577ed8a3975aa5bebd527dac9c9dbb2ef71842bc",
+      "current_test_file_sha256": "8c1966c439e320ce62d4f812577ed8a3975aa5bebd527dac9c9dbb2ef71842bc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_foundation_data_getters_selectors",
+      "file": "test_foundation_data_getters_selectors.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "cf37cbcd9f07906a638866bf5315bb1d0230c6ecbae1cdb9548813efc4c0bb99",
+      "current_test_file_sha256": "cf37cbcd9f07906a638866bf5315bb1d0230c6ecbae1cdb9548813efc4c0bb99",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_foundation_hardening_1to5",
+      "file": "test_foundation_hardening_1to5.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "45ee60116cde226fd26a9b8b37ad0d6a0692324209253709890708d0f9ae26ea",
+      "current_test_file_sha256": "45ee60116cde226fd26a9b8b37ad0d6a0692324209253709890708d0f9ae26ea",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_fullstack_monocle3_dependency_closure_contract",
+      "file": "test_fullstack_monocle3_dependency_closure_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "291b07064d61576dcdcc5f151957740a9d8761d725647e4e103692b310610bc1",
+      "current_test_file_sha256": "291b07064d61576dcdcc5f151957740a9d8761d725647e4e103692b310610bc1",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_geneprograms_extraction_contract",
+      "file": "test_geneprograms_extraction_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "49d1c578fd11f9b7493d370d7581b7b5b37b8a7d475748e8d89fe653c69810ee",
+      "current_test_file_sha256": "49d1c578fd11f9b7493d370d7581b7b5b37b8a7d475748e8d89fe653c69810ee",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_generated_document_child_failure_cleanup_contract",
+      "file": "test_generated_document_revision_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "80f806226876a4b3c8f81eb11179969c48c294ca8e15c0e6f06e014a59f161b2",
+      "current_test_file_sha256": "80f806226876a4b3c8f81eb11179969c48c294ca8e15c0e6f06e014a59f161b2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_generated_document_linked_worktree_revision_contract",
+      "file": "test_generated_document_revision_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "80f806226876a4b3c8f81eb11179969c48c294ca8e15c0e6f06e014a59f161b2",
+      "current_test_file_sha256": "80f806226876a4b3c8f81eb11179969c48c294ca8e15c0e6f06e014a59f161b2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_generated_document_stale_linked_revision_rejected_contract",
+      "file": "test_generated_document_revision_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "80f806226876a4b3c8f81eb11179969c48c294ca8e15c0e6f06e014a59f161b2",
+      "current_test_file_sha256": "80f806226876a4b3c8f81eb11179969c48c294ca8e15c0e6f06e014a59f161b2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_getter_catalog_semantic_contract",
+      "file": "test_getter_catalog_semantic_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "2ab9b3f5ae137235075ffd45400b9ba7a898e1e21927d990937ad0e29b6fc416",
+      "current_test_file_sha256": "2ab9b3f5ae137235075ffd45400b9ba7a898e1e21927d990937ad0e29b6fc416",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_abi4_axis_source_declaration_contract",
+      "file": "test_graph_abi4_admission_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "8eb42b81cc3a4b5c971e1d95ed02e5139d737a39a45907fb6df9155f5bb5af06",
+      "current_test_file_sha256": "8eb42b81cc3a4b5c971e1d95ed02e5139d737a39a45907fb6df9155f5bb5af06",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_abi4_closed_admission_contract",
+      "file": "test_graph_abi4_admission_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "8eb42b81cc3a4b5c971e1d95ed02e5139d737a39a45907fb6df9155f5bb5af06",
+      "current_test_file_sha256": "8eb42b81cc3a4b5c971e1d95ed02e5139d737a39a45907fb6df9155f5bb5af06",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_abi4_core_issued_request_contract",
+      "file": "test_graph_abi4_admission_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "8eb42b81cc3a4b5c971e1d95ed02e5139d737a39a45907fb6df9155f5bb5af06",
+      "current_test_file_sha256": "8eb42b81cc3a4b5c971e1d95ed02e5139d737a39a45907fb6df9155f5bb5af06",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_broker_atomic_response_and_ack_contract",
+      "file": "test_graph_abi4_broker_publication_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "971b42b66bd50c8988a86454ca1a528f880126e295a157c08da311485db39df4",
+      "current_test_file_sha256": "971b42b66bd50c8988a86454ca1a528f880126e295a157c08da311485db39df4",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_abi4_public_r_execution_contract",
+      "file": "test_graph_abi4_public_execution_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "38843936ec599a8e512bc6c90205fa1846651a6e49f703514478dde2fa621cce",
+      "current_test_file_sha256": "38843936ec599a8e512bc6c90205fa1846651a6e49f703514478dde2fa621cce",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_abi4_python_live_broker_contract",
+      "file": "test_graph_abi4_python_live_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "bda2014fe794cb1905e8d8072187144ec5bec28e87cccb9ee6b05bc7b5f2759a",
+      "current_test_file_sha256": "bda2014fe794cb1905e8d8072187144ec5bec28e87cccb9ee6b05bc7b5f2759a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_abi4_actual_payload_count_contract",
+      "file": "test_graph_abi4_retained_count_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "914e6a89b3b700290a3dee0ced42988f00016f089b3c02f8a5f9823a4e8a0348",
+      "current_test_file_sha256": "914e6a89b3b700290a3dee0ced42988f00016f089b3c02f8a5f9823a4e8a0348",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_session_discard_owned_stage_contract",
+      "file": "test_graph_abi4_retained_count_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "914e6a89b3b700290a3dee0ced42988f00016f089b3c02f8a5f9823a4e8a0348",
+      "current_test_file_sha256": "914e6a89b3b700290a3dee0ced42988f00016f089b3c02f8a5f9823a4e8a0348",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_abi4_runtime_sidecar_scheme_contract",
+      "file": "test_graph_abi4_runtime_sidecar_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "b2668e36f24b9f95538af1b9ee9c67b87de7d4708f4413f55cfff5b3a381113d",
+      "current_test_file_sha256": "b2668e36f24b9f95538af1b9ee9c67b87de7d4708f4413f55cfff5b3a381113d",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_content_only_and_selected_view_contract",
+      "file": "test_graph_binding_read_selection_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "52277c7c12d3386ad2d12e89a4ce81d1896224a1d31c6b170c4f0d527355c468",
+      "current_test_file_sha256": "52277c7c12d3386ad2d12e89a4ce81d1896224a1d31c6b170c4f0d527355c468",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_metadata_fault_cleanup_contract",
+      "file": "test_graph_bounded_legacy_collector_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "current_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_public_certificate_parity_and_cache_contract",
+      "file": "test_graph_bounded_legacy_collector_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "current_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_refs_parser_and_fileless_contract",
+      "file": "test_graph_bounded_legacy_collector_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "current_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_structure_transformation_admission_contract",
+      "file": "test_graph_bounded_legacy_collector_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "current_test_file_sha256": "ef1575061fef7ca8e2de6244ef709187393ab42640df1b267c4bfcb5933506e3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_compact_rows_direct_admission_contract",
+      "file": "test_graph_legacy_metadata_expansion_admission_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "current_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_compact_rows_public_predecode_admission_contract",
+      "file": "test_graph_legacy_metadata_expansion_admission_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "current_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_duplicate_attribute_predecode_contract",
+      "file": "test_graph_legacy_metadata_expansion_admission_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "current_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_legacy_duplicate_rows_public_predecode_contract",
+      "file": "test_graph_legacy_metadata_expansion_admission_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "current_test_file_sha256": "e182595e16c01794b1f6fd2e19506f545bce4ce83d7a8376281f59efbce151a3",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_matrix_existing_producer_selection_contract",
+      "file": "test_graph_matrix_source_selection_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "50e760a33fe82f5617191f5a4db5c1d10b93ad1bbb4f0e49ee2aaeb938a9573a",
+      "current_test_file_sha256": "50e760a33fe82f5617191f5a4db5c1d10b93ad1bbb4f0e49ee2aaeb938a9573a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_matrix_native_existing_source_authority_contract",
+      "file": "test_graph_matrix_source_selection_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "50e760a33fe82f5617191f5a4db5c1d10b93ad1bbb4f0e49ee2aaeb938a9573a",
+      "current_test_file_sha256": "50e760a33fe82f5617191f5a4db5c1d10b93ad1bbb4f0e49ee2aaeb938a9573a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_matrix_promotion_first_precheck_contract",
+      "file": "test_graph_matrix_source_selection_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "50e760a33fe82f5617191f5a4db5c1d10b93ad1bbb4f0e49ee2aaeb938a9573a",
+      "current_test_file_sha256": "50e760a33fe82f5617191f5a4db5c1d10b93ad1bbb4f0e49ee2aaeb938a9573a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_bounded_storage_axis_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_fragment_identity_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_incremental_text_and_axis_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_overlapping_fragment_getter_parity_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_physical_and_membership_verification_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_streaming_text_identity_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_tree_identity_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_source_connection_budget_purity_contract",
+      "file": "test_graph_native_matrix_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "current_test_file_sha256": "d89fe4324724913dc8c6c2274603bdda894c601ffe05b07456d7e46a6f3b54af",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_producer_run_frame_parity_contract",
+      "file": "test_graph_native_matrix_producer_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5b041aa029400b2cb92665cfecccbe42ca8171e33760eea531e5cd8f845ed35f",
+      "current_test_file_sha256": "5b041aa029400b2cb92665cfecccbe42ca8171e33760eea531e5cd8f845ed35f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_public_promotion_first_lifecycle_contract",
+      "file": "test_graph_native_matrix_public_promotion_first_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "2fac90ea319eb484d6e8b6d02a850d995faa6060d1f7cd03525f2ebb259b0eef",
+      "current_test_file_sha256": "2fac90ea319eb484d6e8b6d02a850d995faa6060d1f7cd03525f2ebb259b0eef",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_native_matrix_real_promoted_g2_source_contract",
+      "file": "test_graph_native_matrix_real_g2_source_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "b1a4883cab2000bd8bd80a5513c4cefb473fdcde745487af48b9ce733c777d2d",
+      "current_test_file_sha256": "b1a4883cab2000bd8bd80a5513c4cefb473fdcde745487af48b9ce733c777d2d",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_no_axis_public_lifecycle_contract",
+      "file": "test_graph_no_axis_public_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "1c8a3427c197c7e3dfa6c99bc90eea6e01491b4bfa306756f1a83c5853c55fac",
+      "current_test_file_sha256": "1c8a3427c197c7e3dfa6c99bc90eea6e01491b4bfa306756f1a83c5853c55fac",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_object_source_batch_identity_admission_restoration_contract",
+      "file": "test_graph_object_source_batch_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "652678b646b4cd9cf03719267f0cb4e4441b744e35ac10d38222c37d9958f0a5",
+      "current_test_file_sha256": "652678b646b4cd9cf03719267f0cb4e4441b744e35ac10d38222c37d9958f0a5",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_bounded_transport_seal_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_content_frozen_identity_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_decoded_partition_budget_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_factory_failure_cleanup_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_hidden_row_closure_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_igraph_lossless_boundary_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_padded_edge_byte_admission_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_sdk_collect_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_sql_binding_descriptor_frozen_identity_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_sql_stream_identity_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_sql_transaction_roundtrip_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_typed_missing_values_contract",
+      "file": "test_graph_primitive_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "current_test_file_sha256": "142850da9f79ea8da55254762be2ef089be0ffd0d57ac92652e394055f4ebab8",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_aggregate_cache_and_nested_policy_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_import_connection_reservation_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_late_transaction_admission_rejects_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_live_stage_and_selector_spill_overlap_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_owned_inode_metadata_overflow_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_owned_session_copy_admission_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_owned_spill_alias_and_fd_metadata_admission_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_padded_mapping_cursor_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_publication_budget_rollback_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_publication_copy_and_temporary_overlap_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_stage_and_journal_rollback_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_unlinked_sqlite_spill_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_unrelated_descriptor_slot_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_unstaged_direct_transaction_restoration_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_resource_unstaged_public_promotion_cache_contract",
+      "file": "test_graph_resource_accounting_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "f8398ba86e01e7f2e145736c292c349558673483fe20280725f7e963cd20a468",
+      "current_test_file_sha256": "49fcb055ee2bf6658a942435f24d94bf89131786e4686bae1750c9b35f71720c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_normative_scenario_public_lifecycle_contract",
+      "file": "test_graph_scenario_roundtrip_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d7ff20d71b9d368601a1c79e942023a1de3d868ce1fb1ca44842999d525db151",
+      "current_test_file_sha256": "d7ff20d71b9d368601a1c79e942023a1de3d868ce1fb1ca44842999d525db151",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_sdk_inventory_and_public_scaffold_contract",
+      "file": "test_graph_sdk_authoring_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e5d4e5fe283ccae60a102312e3f8c7d7fba0f9f5130e470118f4e32ad21f315b",
+      "current_test_file_sha256": "e5d4e5fe283ccae60a102312e3f8c7d7fba0f9f5130e470118f4e32ad21f315b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_small_forced_out_of_core_public_lifecycle_contract",
+      "file": "test_graph_small_out_of_core_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "0613a6fcf3866535e4b7cc9c00a8bdebbd7fc59c1a27d8f29d8c2524bc2d967d",
+      "current_test_file_sha256": "0613a6fcf3866535e4b7cc9c00a8bdebbd7fc59c1a27d8f29d8c2524bc2d967d",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_retained_cell_source_payload_contract",
+      "file": "test_graph_source_authority_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "788ada9100b91ea499067ce05f24d4761477027587344301f808e3a4cef9e477",
+      "current_test_file_sha256": "788ada9100b91ea499067ce05f24d4761477027587344301f808e3a4cef9e477",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_source_snapshot_unrelated_head_scope_contract",
+      "file": "test_graph_source_snapshot_scope_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9bf2ed32b3f0c30369c7cea476e7a6933eaff4e8f07adb51e8b1aa31cb7e0716",
+      "current_test_file_sha256": "9bf2ed32b3f0c30369c7cea476e7a6933eaff4e8f07adb51e8b1aa31cb7e0716",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_large_string_numeric_lexeme_contract",
+      "file": "test_graph_strict_json_unicode_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "515473fd365e1000d835f2f161f4b5f1c6766a7ce459c5b6c92aedc03771432e",
+      "current_test_file_sha256": "515473fd365e1000d835f2f161f4b5f1c6766a7ce459c5b6c92aedc03771432e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_graph_strict_json_unicode_contract",
+      "file": "test_graph_strict_json_unicode_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "515473fd365e1000d835f2f161f4b5f1c6766a7ce459c5b6c92aedc03771432e",
+      "current_test_file_sha256": "515473fd365e1000d835f2f161f4b5f1c6766a7ce459c5b6c92aedc03771432e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_h5ad_nested_source_identity_relinking_contract",
+      "file": "test_h5ad_nested_source_identity_relinking_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "48a78603c1c98e065bce2a5212a8f9f0f9016cea5e894f3b2ce1caa877dcb1a5",
+      "current_test_file_sha256": "48a78603c1c98e065bce2a5212a8f9f0f9016cea5e894f3b2ce1caa877dcb1a5",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_historical_nullable_schema_unexpected_column_rejects_contract",
+      "file": "test_historical_nullable_schema_layout_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "33e9a00fe484404b22773cb1c88519cc8709ddd42fb04f1828253879d20c6345",
+      "current_test_file_sha256": "33e9a00fe484404b22773cb1c88519cc8709ddd42fb04f1828253879d20c6345",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_imported_state_provenance_identity_contract",
+      "file": "test_imported_state_provenance_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5febf7e367a39b2d6689e3cfd299391df349becab9108c7692ec7cdfcf2d6327",
+      "current_test_file_sha256": "5febf7e367a39b2d6689e3cfd299391df349becab9108c7692ec7cdfcf2d6327",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_ingest_adapters_contract",
+      "file": "test_ingest_adapters_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "16cacca4713b9c490046878492395ffbbb51105e576a21f51f24da89b14a39b4",
+      "current_test_file_sha256": "16cacca4713b9c490046878492395ffbbb51105e576a21f51f24da89b14a39b4",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_knowledge_graph_contract",
+      "file": "test_knowledge_graph_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ee35032e744f9161513f38ab6cca85583fbccf72e4fce19989ecfe25961d1a71",
+      "current_test_file_sha256": "ee35032e744f9161513f38ab6cca85583fbccf72e4fce19989ecfe25961d1a71",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_large_materialization_promotion_rollback_contract",
+      "file": "test_large_payload_provenance_hashing_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "4b68c5f2a13a39e2e9aa1dbf7272208d84d485150a8b02eae4d0c7f668a10074",
+      "current_test_file_sha256": "5d3e8dd8f21328a6474798f8aa8c7d69d946be3be740f67531c898bb507a0842",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_large_payload_native_sha256_contract",
+      "file": "test_large_payload_provenance_hashing_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "4b68c5f2a13a39e2e9aa1dbf7272208d84d485150a8b02eae4d0c7f668a10074",
+      "current_test_file_sha256": "5d3e8dd8f21328a6474798f8aa8c7d69d946be3be740f67531c898bb507a0842",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_mixed_legacy_new_provenance_identity_contract",
+      "file": "test_large_payload_provenance_hashing_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "4b68c5f2a13a39e2e9aa1dbf7272208d84d485150a8b02eae4d0c7f668a10074",
+      "current_test_file_sha256": "5d3e8dd8f21328a6474798f8aa8c7d69d946be3be740f67531c898bb507a0842",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_legacy_cell_vector_contract",
+      "file": "test_legacy_cell_vector_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5bbb7e4770519450404ed50c65365db10d6fc6f9bdb3b8a2b787b1d108cdeaca",
+      "current_test_file_sha256": "5bbb7e4770519450404ed50c65365db10d6fc6f9bdb3b8a2b787b1d108cdeaca",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_logged_release_gate_contract",
+      "file": "test_logged_release_gate_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "88e8562890f59468726151d47ac2297a880f29217ef31676dac9597c851fae4a",
+      "current_test_file_sha256": "88e8562890f59468726151d47ac2297a880f29217ef31676dac9597c851fae4a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_long_running_session_promotion_guidance_contract",
+      "file": "test_long_running_session_promotion_guidance_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "7f0f00b09af23789da3bc9818c1e414370b36bffc6a5842554b29bf8948754eb",
+      "current_test_file_sha256": "7f0f00b09af23789da3bc9818c1e414370b36bffc6a5842554b29bf8948754eb",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_manifest_stream_extended_types_and_mixed_blob_contract",
+      "file": "test_manifest_stream_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "current_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_manifest_stream_huge_single_text_contract",
+      "file": "test_manifest_stream_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "current_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_manifest_stream_late_mutation_and_transaction_contract",
+      "file": "test_manifest_stream_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "current_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_manifest_stream_logical_chunk_boundary_contract",
+      "file": "test_manifest_stream_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "current_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_manifest_stream_scalar_and_sql_type_parity_contract",
+      "file": "test_manifest_stream_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "current_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract",
+      "file": "test_manifest_stream_identity_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "current_test_file_sha256": "a74e258ca2dae1efed4254acb44a346c73ae54d778a21d9332d0dd06370d468e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_metadata_bulk_writer_large_universe_contract",
+      "file": "test_metadata_identifier_bulk_write_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "current_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_metadata_bulk_writer_scale_contract",
+      "file": "test_metadata_identifier_bulk_write_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "current_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_metadata_field_deep_validation_contract",
+      "file": "test_metadata_identifier_bulk_write_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "current_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_metadata_identifier_bulk_write_contract",
+      "file": "test_metadata_identifier_bulk_write_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "current_test_file_sha256": "3d1a5745a5f2cb95e8db6e1deb15fe375e10dee4c4d8072deedd862b9de1afb7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_metadata_identifier_consumers_contract",
+      "file": "test_metadata_identifier_consumers_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "0ef5cc0fa4792bffb32f457cea837263c527a1c45e98f3c5927d79546383f891",
+      "current_test_file_sha256": "0ef5cc0fa4792bffb32f457cea837263c527a1c45e98f3c5927d79546383f891",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_metadata_identity_namespace_closure_contract",
+      "file": "test_metadata_identity_namespace_closure_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d6de762d62e7ffc0a63e2703886749e5df7e058314145dbaebc1744f8d554e99",
+      "current_test_file_sha256": "d6de762d62e7ffc0a63e2703886749e5df7e058314145dbaebc1744f8d554e99",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_model_ref_relocatability_contract",
+      "file": "test_model_ref_relocatability_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9f00d5c542ca4d9ffccb0fee82a59833adf7a24bc74cf03388629875f88b086d",
+      "current_test_file_sha256": "9f00d5c542ca4d9ffccb0fee82a59833adf7a24bc74cf03388629875f88b086d",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_motif_match_contract",
+      "file": "test_motif_match_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6dc99e0afd78b2195626ea730f7f4cfa6cc7fe06498ee7115539496094989410",
+      "current_test_file_sha256": "6dc99e0afd78b2195626ea730f7f4cfa6cc7fe06498ee7115539496094989410",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_motif_registry_contract",
+      "file": "test_motif_registry_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e08d2098af13ad4cdc19101c2334fa16e8163d54305439d42bc0f00733c35545",
+      "current_test_file_sha256": "e08d2098af13ad4cdc19101c2334fa16e8163d54305439d42bc0f00733c35545",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_native_sqlite_byte_same_engine_contract",
+      "file": "test_native_sqlite_byte_api_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "4671b2375e6b57fb7ad1008f27f76c5dcf5d247510bc0f280262a4941548731b",
+      "current_test_file_sha256": "4671b2375e6b57fb7ad1008f27f76c5dcf5d247510bc0f280262a4941548731b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_navigation_contract",
+      "file": "test_navigation_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "ea033e83ea8a6d36722d7e9b9e480d122bfacc2c6c05c792770996f7f0ee77b4",
+      "current_test_file_sha256": "ea033e83ea8a6d36722d7e9b9e480d122bfacc2c6c05c792770996f7f0ee77b4",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_nullable_cell_vector_family_storage_contract",
+      "file": "test_nullable_cell_vector_family_storage_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "ff5e7fabc8295226f1356e6693e64429adc5ffbdff062b6ad45d4ba1eb597404",
+      "current_test_file_sha256": "0e7edd5de4b870f573d7c44bc146946e0dbd51074f9537d7e228104755c9ec9d",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_onboarding_container_mount_contract",
+      "file": "test_onboarding_container_mount_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "38c1c04ed98f53e86c1c39a9b795f203c09e054e7baa380b005e5dbaad0bab3e",
+      "current_test_file_sha256": "38c1c04ed98f53e86c1c39a9b795f203c09e054e7baa380b005e5dbaad0bab3e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_op_catalog_semantic_contract",
+      "file": "test_op_catalog_semantic_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c86da51579e26fd5995bc28dbb3b0443464715c02a82bb97a93633cf1595850b",
+      "current_test_file_sha256": "c86da51579e26fd5995bc28dbb3b0443464715c02a82bb97a93633cf1595850b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_op_chunking_helper_contract",
+      "file": "test_op_chunking_helper_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "63ec37e1429c2e74749cc3caf286ff3867c72f5a921bc73838d11202222ce7cb",
+      "current_test_file_sha256": "63ec37e1429c2e74749cc3caf286ff3867c72f5a921bc73838d11202222ce7cb",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_op_contract_conformance",
+      "file": "test_op_contract_conformance.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "47b02398f4549811f28872a2be6e2b926c6e7dd41b0d90c37ec25c31d0d3d431",
+      "current_test_file_sha256": "47b02398f4549811f28872a2be6e2b926c6e7dd41b0d90c37ec25c31d0d3d431",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_op_feature_set_import_qc_contract",
+      "file": "test_op_feature_set_import_qc_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "481f8ef51e9b2478745764775fa47560fcb7a28024eb069b28ed44762e080930",
+      "current_test_file_sha256": "481f8ef51e9b2478745764775fa47560fcb7a28024eb069b28ed44762e080930",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_op_metadata_cell_vector_diagnostics_contract",
+      "file": "test_op_metadata_cell_vector_diagnostics_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "1f5c95f9f0b7286cc7bfb2b72f4d39fa414115dbf460108de86420fc7d51c55a",
+      "current_test_file_sha256": "1f5c95f9f0b7286cc7bfb2b72f4d39fa414115dbf460108de86420fc7d51c55a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_op_slingshot_adopt_contract",
+      "file": "test_op_slingshot_adopt_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "20daba1aec0a38af5d868997c9b9d13620392a7ad50f38c566d3f6f27cbd56a7",
+      "current_test_file_sha256": "4c36095e8445c01c81ff7bfc189d07f400b5f336618fca220a82fa3b41f1bb8c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_op_slingshot_adopt_reordered_axis_rejection_contract",
+      "file": "test_op_slingshot_adopt_contract.R",
+      "stage": "original_installed_namespace",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "20daba1aec0a38af5d868997c9b9d13620392a7ad50f38c566d3f6f27cbd56a7",
+      "current_test_file_sha256": "4c36095e8445c01c81ff7bfc189d07f400b5f336618fca220a82fa3b41f1bb8c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_docs_single_source_contract",
+      "file": "test_operation_docs_single_source_contract.R",
+      "stage": "namespace_replacement_trigger",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "4b3a59bb2f96f17e0daaeb86d1a6b5542a9556fc7e74d81075dbd01e377100ba",
+      "current_test_file_sha256": "8435cc54788830bbc1d7d307ff491d46848fbc7a5eff16af8939966c764be7fc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_canonical_json_v1_contract",
+      "file": "test_operation_pack_canonical_identity_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c0d22c6c0a604f76f8d930a25f258bc9dcae356467b68178f3e55b123bafe307",
+      "current_test_file_sha256": "c0d22c6c0a604f76f8d930a25f258bc9dcae356467b68178f3e55b123bafe307",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_python_original_manifest_authentication_contract",
+      "file": "test_operation_pack_canonical_identity_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c0d22c6c0a604f76f8d930a25f258bc9dcae356467b68178f3e55b123bafe307",
+      "current_test_file_sha256": "c0d22c6c0a604f76f8d930a25f258bc9dcae356467b68178f3e55b123bafe307",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_sdk_activation_negatives",
+      "file": "test_operation_pack_sdk_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "current_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_sdk_case_accounting",
+      "file": "test_operation_pack_sdk_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "current_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_sdk_catalog_coverage",
+      "file": "test_operation_pack_sdk_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "current_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_sdk_installed_contract",
+      "file": "test_operation_pack_sdk_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "current_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_sdk_installed_tutorial",
+      "file": "test_operation_pack_sdk_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "current_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_sdk_manifest_negatives",
+      "file": "test_operation_pack_sdk_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "current_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_sdk_scaffold_safety",
+      "file": "test_operation_pack_sdk_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "current_test_file_sha256": "6c9ed5756a9542f6a2950de40782e07b0737b148d4d0a0f733357f61165dd63b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v1_backend_admission_contract",
+      "file": "test_operation_pack_v1_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "current_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v1_contract",
+      "file": "test_operation_pack_v1_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "current_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v1_cross_language_lifecycle_contract",
+      "file": "test_operation_pack_v1_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "SKIP",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "current_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v1_python_fault_confinement_contract",
+      "file": "test_operation_pack_v1_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "SKIP",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "current_test_file_sha256": "5dfb7cb5620d29483ad7aaf2a61bc2c0fc33beb7bfe826c63f6b045e2bd06955",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_atomic_rollback_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "current_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_identity_fixture_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "current_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_modes_and_empty_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "current_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_normalization_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "current_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_publication_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "current_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_writer_fail_closed_contract",
+      "file": "test_operation_pack_v2_cell_set_family_admission_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "current_test_file_sha256": "79cf0a3b0b5299301f77219230dca966edd7b894fe6d645fcfcce02cce6b2cfc",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_atomic_activation_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_cell_set_family_capability_gap_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_dynamic_dependency_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_interrupted_recovery_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_manifest_admission_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_optional_dependency_and_capability_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_outer_schema_exhaustive_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_protocol_identity_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_reference_lifecycle_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_transition_atomicity_and_binding_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_transition_schema_exhaustive_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_v1_coexistence_and_order_contract",
+      "file": "test_operation_pack_v2_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "current_test_file_sha256": "6b46c246227535f95cd496677381f5e7927b99a3f31ba434665ef72705c916b7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_feature_set_registry_fail_closed_contract",
+      "file": "test_operation_pack_v2_feature_set_registry_read_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "current_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_feature_set_registry_identity_fixture_contract",
+      "file": "test_operation_pack_v2_feature_set_registry_read_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "current_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_feature_set_registry_lifecycle_contract",
+      "file": "test_operation_pack_v2_feature_set_registry_read_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "current_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_feature_set_registry_snapshot_contract",
+      "file": "test_operation_pack_v2_feature_set_registry_read_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "current_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_feature_set_registry_snapshot_negative_contract",
+      "file": "test_operation_pack_v2_feature_set_registry_read_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "current_test_file_sha256": "934d622534974f0cc5b00593e1ac419b741715ac037c699062b74a52cc7fe8b0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_observed_chunk_trace_fail_closed_contract",
+      "file": "test_operation_pack_v2_observed_chunk_trace_fail_closed_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c2a544cab546108b304f22f576052e08414c97fd2e432b9af5d2e00c22c9cbfb",
+      "current_test_file_sha256": "c2a544cab546108b304f22f576052e08414c97fd2e432b9af5d2e00c22c9cbfb",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v2_transition_rollback_contract",
+      "file": "test_operation_pack_v2_transition_rollback_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "695a78e7ecd4e9e7b210ed299967427eb4699014394b552dd869d40b0003f7d0",
+      "current_test_file_sha256": "695a78e7ecd4e9e7b210ed299967427eb4699014394b552dd869d40b0003f7d0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_typed_slice_chunking_catalog_contract",
+      "file": "test_operation_pack_v3_chunking_catalog_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "008e5a9565282f057f47e0d9be63b34296c46e45734f9571484d7cc7b4f73bfa",
+      "current_test_file_sha256": "008e5a9565282f057f47e0d9be63b34296c46e45734f9571484d7cc7b4f73bfa",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_ancestry_resolution_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_bounded_cardinality_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_chunk_replay_and_rollback_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_identity_fixture_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_in_memory_typed_slice_source_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_one_per_cell_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_phase4c_generic_grants_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_r_lifecycle_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_session_annotation_and_bounded_axes_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_shared_schema_drift_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_typed_slice_getter_contract",
+      "file": "test_operation_pack_v3_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "current_test_file_sha256": "34a402f4240ab0bd56049dd447986bfe91eaaf6a4817675b5d84e7924e377ba2",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_2d_labels_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "current_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_adversarial_atomicity_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "current_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_lifecycle_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "current_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_positive_scale_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "current_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_protocol_contract",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "current_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_derived_fitted_axis_protocol_generation_is_stable",
+      "file": "test_operation_pack_v3_derived_fitted_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "current_test_file_sha256": "c1aaca8e6d5e3ad072cbe7d5c97477d62ffd631a8e17d581640c85d5717c289f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_durable_model_tree_contract",
+      "file": "test_operation_pack_v3_durable_model_tree_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "1c004591cffe0e9216f6483a6ac671ebc944de7bc47ba441ee56f16a737b98e4",
+      "current_test_file_sha256": "1c004591cffe0e9216f6483a6ac671ebc944de7bc47ba441ee56f16a737b98e4",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g1_deserialized_model_view_is_not_input_authority_contract",
+      "file": "test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "current_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g1_model_reference_dispatch_lifecycle_contract",
+      "file": "test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "current_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g1_verified_primary_deserialization_contract",
+      "file": "test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "current_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_non_g1_model_object_remains_identity_bearing_contract",
+      "file": "test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "current_test_file_sha256": "fc37e25248d2b8c1967d444c6227b1d3c4da15a194c58d2328562304555c4791",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g3_adversarial_contract",
+      "file": "test_operation_pack_v3_g3_external_state_adoption_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "current_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g3_duplicate_source_record_contract",
+      "file": "test_operation_pack_v3_g3_external_state_adoption_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "current_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g3_external_state_adoption_contract",
+      "file": "test_operation_pack_v3_g3_external_state_adoption_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "current_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g3_shared_identity_fixture_contract",
+      "file": "test_operation_pack_v3_g3_external_state_adoption_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "current_test_file_sha256": "9a1dca12178410c1ae9ae4cadf625087cf3d9b6b6aaac5db693060bc70a2a24a",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_manifest_semantic_rejection_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "current_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_protocol_identity_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "current_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_seal_adversarial_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "current_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_source_and_linked_output_adversarial_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "current_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "current_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_union_lifecycle_contract",
+      "file": "test_operation_pack_v3_g7_derived_cell_output_axis_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "current_test_file_sha256": "77bff9d03c9f2fce355f0c8d491ac43f393582d04e3212a9e9f4adf225dd765f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_effective_key_lifecycle_rollback_and_receipt_contract",
+      "file": "test_operation_pack_v3_g7_effective_family_key_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "current_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_effective_key_manifest_adversarial_contract",
+      "file": "test_operation_pack_v3_g7_effective_family_key_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "current_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_effective_key_protocol_fixture_contract",
+      "file": "test_operation_pack_v3_g7_effective_family_key_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "current_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_g7_effective_key_resolution_contract",
+      "file": "test_operation_pack_v3_g7_effective_family_key_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "current_test_file_sha256": "d30a35a21fd06c2f8a32aa314a1e8ecdce9da321a92ad9cc53b54e3d73515eb0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_genomic_registry_contract",
+      "file": "test_operation_pack_v3_genomic_registry_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "deb1134ee7db81900e5090d4db09ed48ba80d524b82a0562633c49d8c28b4cc5",
+      "current_test_file_sha256": "deb1134ee7db81900e5090d4db09ed48ba80d524b82a0562633c49d8c28b4cc5",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_phase7_shared_identity_fixture_contract",
+      "file": "test_operation_pack_v3_genomic_registry_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "deb1134ee7db81900e5090d4db09ed48ba80d524b82a0562633c49d8c28b4cc5",
+      "current_test_file_sha256": "deb1134ee7db81900e5090d4db09ed48ba80d524b82a0562633c49d8c28b4cc5",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_latent_union_protocol_contract",
+      "file": "test_operation_pack_v3_latent_union_protocol_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "1771d90c88fe9fb4d00ed8705b956cecf983fbc1634b66ca409c0ff9191446ed",
+      "current_test_file_sha256": "1771d90c88fe9fb4d00ed8705b956cecf983fbc1634b66ca409c0ff9191446ed",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_matrix_model_boundary_lifecycle_contract",
+      "file": "test_operation_pack_v3_matrix_model_boundary_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "current_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_matrix_model_boundary_rollback_contract",
+      "file": "test_operation_pack_v3_matrix_model_boundary_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "current_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_matrix_model_protocol_fixture_contract",
+      "file": "test_operation_pack_v3_matrix_model_boundary_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "current_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_matrix_model_source_reopen_authentication_contract",
+      "file": "test_operation_pack_v3_matrix_model_boundary_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "current_test_file_sha256": "a4b2d967277192693a37b7efa775368ac5ab0815c1648cac314219c593136446",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_ordered_cell_metadata_protocol_fixture_contract",
+      "file": "test_operation_pack_v3_ordered_cell_metadata_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e06251ab8aedc8d46966d35b0451f4a5302373314fb5454133198f1d52189b48",
+      "current_test_file_sha256": "e06251ab8aedc8d46966d35b0451f4a5302373314fb5454133198f1d52189b48",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_ordered_cell_metadata_resolution_contract",
+      "file": "test_operation_pack_v3_ordered_cell_metadata_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e06251ab8aedc8d46966d35b0451f4a5302373314fb5454133198f1d52189b48",
+      "current_test_file_sha256": "e06251ab8aedc8d46966d35b0451f4a5302373314fb5454133198f1d52189b48",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_phase5_g1_g2_durable_lifecycle_contract",
+      "file": "test_operation_pack_v3_phase5_consolidated_capabilities.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "current_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_phase5_g4_ordered_artifact_collection_contract",
+      "file": "test_operation_pack_v3_phase5_consolidated_capabilities.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "current_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_phase5_g5_g6_named_axis_contract",
+      "file": "test_operation_pack_v3_phase5_consolidated_capabilities.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "current_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_phase5_manifest_admission_no_residue_contract",
+      "file": "test_operation_pack_v3_phase5_consolidated_capabilities.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "current_test_file_sha256": "bbde20307018ef9a52022baa4629b62bef5e1bfd4bcae38bf8447341fb814d11",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_python_composite_lifecycle_contract",
+      "file": "test_operation_pack_v3_python_composite_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "SKIP",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "b8306bb56320d5312226f182e40ab208e82f4cf7ea34b2088be563391c9a1945",
+      "current_test_file_sha256": "b8306bb56320d5312226f182e40ab208e82f4cf7ea34b2088be563391c9a1945",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_python_composite_protocol_contract",
+      "file": "test_operation_pack_v3_python_composite_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "SKIP",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "b8306bb56320d5312226f182e40ab208e82f4cf7ea34b2088be563391c9a1945",
+      "current_test_file_sha256": "b8306bb56320d5312226f182e40ab208e82f4cf7ea34b2088be563391c9a1945",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_python_phase5_model_lifecycle_contract",
+      "file": "test_operation_pack_v3_python_composite_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "SKIP",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "b8306bb56320d5312226f182e40ab208e82f4cf7ea34b2088be563391c9a1945",
+      "current_test_file_sha256": "b8306bb56320d5312226f182e40ab208e82f4cf7ea34b2088be563391c9a1945",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_runtime_family_key_contract",
+      "file": "test_operation_pack_v3_runtime_family_key_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "4de1f7504ba42f1b57152729d87da4582d175dd9e8cf21b5b142a02cb0a8d461",
+      "current_test_file_sha256": "4de1f7504ba42f1b57152729d87da4582d175dd9e8cf21b5b142a02cb0a8d461",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_g2_lifecycle_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "current_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_identity_fixture_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "current_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_layout_and_delayed_axis_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "current_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_negative_and_rollback_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "current_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_promoted_sql_fault_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "current_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_relation_family_typed_lifecycle_contract",
+      "file": "test_operation_pack_v3_sealed_relation_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "current_test_file_sha256": "20ffd2a2359b898d6c47118f27c7645bbcead7f93eeefbc08181bdb89c90f58c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract",
+      "file": "test_operation_pack_v3_sparse_membership_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "115600f8b644ab8722aac5a66c390d9a642483db94cc24be48ea92ad5e5abc78",
+      "current_test_file_sha256": "115600f8b644ab8722aac5a66c390d9a642483db94cc24be48ea92ad5e5abc78",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_sparse_membership_contract",
+      "file": "test_operation_pack_v3_sparse_membership_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "115600f8b644ab8722aac5a66c390d9a642483db94cc24be48ea92ad5e5abc78",
+      "current_test_file_sha256": "115600f8b644ab8722aac5a66c390d9a642483db94cc24be48ea92ad5e5abc78",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_sparse_pack_free_catalog_contract",
+      "file": "test_operation_pack_v3_sparse_membership_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "115600f8b644ab8722aac5a66c390d9a642483db94cc24be48ea92ad5e5abc78",
+      "current_test_file_sha256": "115600f8b644ab8722aac5a66c390d9a642483db94cc24be48ea92ad5e5abc78",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_durable_reopen_committed_matrix_source_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "current_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_stage_matrix_between_reads_and_publication_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "current_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_stage_matrix_committed_and_predecessor_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "current_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_stage_matrix_payload_and_checksum_rejection_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "current_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_stage_matrix_registry_and_broker_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "current_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_stage_only_predecessor_typed_read_contract",
+      "file": "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "current_test_file_sha256": "d15bb0fe0a78fc37718ee0656c845c3c8b7d11c53b6fba4b1cf132cb97cc16ad",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_manifest_admission_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "current_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_protocol_identity_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "current_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "current_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_source_recheck_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "current_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_typed_lifecycle_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "current_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_standalone_sparse_family_verified_g1_contract",
+      "file": "test_operation_pack_v3_standalone_sparse_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "current_test_file_sha256": "5772428a7e58b038ea68f1155e34391b09f45f4efb56288cb1da1de219d9efb9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_space_2d_dataframe_transport_contract",
+      "file": "test_operation_pack_v3_trajectory_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "05a0527b0477c3761fb8c36300cc0568729a39ae4546b831cedf6d3d5118ffe9",
+      "current_test_file_sha256": "05a0527b0477c3761fb8c36300cc0568729a39ae4546b831cedf6d3d5118ffe9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_operation_pack_v3_trajectory_family_policy_contract",
+      "file": "test_operation_pack_v3_trajectory_family_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "05a0527b0477c3761fb8c36300cc0568729a39ae4546b831cedf6d3d5118ffe9",
+      "current_test_file_sha256": "05a0527b0477c3761fb8c36300cc0568729a39ae4546b831cedf6d3d5118ffe9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_payload_content_identity_contract",
+      "file": "test_payload_content_identity_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "d73eb72ad1b5cb8185a651e72e7924c8c07c7ffc9abe5b1ac524771bebd2ccba",
+      "current_test_file_sha256": "d73eb72ad1b5cb8185a651e72e7924c8c07c7ffc9abe5b1ac524771bebd2ccba",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_phase5_s2_core_ownership_contract",
+      "file": "test_phase5_s2_core_ownership_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "1ab06d6d331abb35a4b0dcdeff815c5a2cc098edb9e5cc6440d192745ee2e8e7",
+      "current_test_file_sha256": "1ab06d6d331abb35a4b0dcdeff815c5a2cc098edb9e5cc6440d192745ee2e8e7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_phase6_matrix_subset_getter_and_recipient_contract",
+      "file": "test_phase6_matrix_subset_getter_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "efa785ee3f995912129a8e42dbf97ace24138640e41d5aa94e955d8e91089516",
+      "current_test_file_sha256": "efa785ee3f995912129a8e42dbf97ace24138640e41d5aa94e955d8e91089516",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_phase6_latent_union_no_pack_catalog_contract",
+      "file": "test_phase6_peakvi_ownership_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "dee57aca19bcc477f59f6347d92bb5b574396df7da0ffc978426818cd2690821",
+      "current_test_file_sha256": "ad5ac658ff69ae2443dc66171f03ae8e9ba7dd61afd58f834dcc176a1b302e6f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract",
+      "file": "test_phase6_peakvi_ownership_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "dee57aca19bcc477f59f6347d92bb5b574396df7da0ffc978426818cd2690821",
+      "current_test_file_sha256": "ad5ac658ff69ae2443dc66171f03ae8e9ba7dd61afd58f834dcc176a1b302e6f",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_phase8_no_pack_core_surface_contract",
+      "file": "test_phase8_no_pack_core_surface_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "11782b0edd732e0260d2d675a0b711ab47395154791625cc6905f506763945f4",
+      "current_test_file_sha256": "f44e6dd63f54d28ee30d6ab64d8b8690a1c0e5b62f5d681f768b7d02879840eb",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_phase8_primitive_exchange_inventory_contract",
+      "file": "test_phase8_no_pack_core_surface_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "11782b0edd732e0260d2d675a0b711ab47395154791625cc6905f506763945f4",
+      "current_test_file_sha256": "f44e6dd63f54d28ee30d6ab64d8b8690a1c0e5b62f5d681f768b7d02879840eb",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_phase8_test_ownership_inventory_contract",
+      "file": "test_phase8_no_pack_core_surface_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "11782b0edd732e0260d2d675a0b711ab47395154791625cc6905f506763945f4",
+      "current_test_file_sha256": "f44e6dd63f54d28ee30d6ab64d8b8690a1c0e5b62f5d681f768b7d02879840eb",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_plot_catalog_semantic_contract",
+      "file": "test_plot_catalog_semantic_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f6b60ee1be9c49c334c8588fac385678f9a33673127b7b9259914576ff0d673e",
+      "current_test_file_sha256": "f6b60ee1be9c49c334c8588fac385678f9a33673127b7b9259914576ff0d673e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_plot_wranglers_contract",
+      "file": "test_plot_wranglers_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "04f865dcbad3336da3020f8bd569ba18f4a717d376fd8b83a8e49e4209023ff9",
+      "current_test_file_sha256": "04f865dcbad3336da3020f8bd569ba18f4a717d376fd8b83a8e49e4209023ff9",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_post_migration_documentation_contract",
+      "file": "test_post_migration_documentation_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "f3bff09b605721cbdca9ccf5858ecc66969e2350a928cc688b5144a5c1c7fa77",
+      "current_test_file_sha256": "f3bff09b605721cbdca9ccf5858ecc66969e2350a928cc688b5144a5c1c7fa77",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_primitives_contract",
+      "file": "test_primitives_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "7e60e971374fd2908c4251a8c0a4ae5a85bc90c1353f2b7cb30c0b83c423bc65",
+      "current_test_file_sha256": "7e60e971374fd2908c4251a8c0a4ae5a85bc90c1353f2b7cb30c0b83c423bc65",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_promotion_artifact_payload_atomicity_contract",
+      "file": "test_promotion_artifact_payload_atomicity_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "7c4f89d6c5886716349ff2721950ba841bfefff4478a8a77d71c5295ca3f2d63",
+      "current_test_file_sha256": "7c4f89d6c5886716349ff2721950ba841bfefff4478a8a77d71c5295ca3f2d63",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_promotion_staged_model_payload_contract",
+      "file": "test_promotion_artifact_payload_atomicity_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "7c4f89d6c5886716349ff2721950ba841bfefff4478a8a77d71c5295ca3f2d63",
+      "current_test_file_sha256": "7c4f89d6c5886716349ff2721950ba841bfefff4478a8a77d71c5295ca3f2d63",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_promotion_output_contract",
+      "file": "test_promotion_output_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "7ee0e89e62f28a822575517c276d53d19f21c273b24aa43d599ab5634cde8d58",
+      "current_test_file_sha256": "7ee0e89e62f28a822575517c276d53d19f21c273b24aa43d599ab5634cde8d58",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_promotion_runtime_fingerprint_legacy_public_commit_contract",
+      "file": "test_promotion_runtime_fingerprint_metadata_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "e88901baec4889e2fffcdee8675e056392201cba35c427a8da9d456d559962d4",
+      "current_test_file_sha256": "f36b01fa543c7e7a5ceea0c989dbc7b69d772bc7d6884b16c7ffa28a56f510c0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_promotion_runtime_fingerprint_metadata_loadability_contract",
+      "file": "test_promotion_runtime_fingerprint_metadata_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "e88901baec4889e2fffcdee8675e056392201cba35c427a8da9d456d559962d4",
+      "current_test_file_sha256": "f36b01fa543c7e7a5ceea0c989dbc7b69d772bc7d6884b16c7ffa28a56f510c0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_promotion_runtime_fingerprint_metadata_parity_contract",
+      "file": "test_promotion_runtime_fingerprint_metadata_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": false,
+      "original_test_file_sha256": "e88901baec4889e2fffcdee8675e056392201cba35c427a8da9d456d559962d4",
+      "current_test_file_sha256": "f36b01fa543c7e7a5ceea0c989dbc7b69d772bc7d6884b16c7ffa28a56f510c0",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_provenance_bundle_dag_contract",
+      "file": "test_provenance_bundle_dag_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "db494e6b8f9fe0a2effccbb4f752ab1fc0d4bf70a0643f7e3e4baf9d7d3447fd",
+      "current_test_file_sha256": "db494e6b8f9fe0a2effccbb4f752ab1fc0d4bf70a0643f7e3e4baf9d7d3447fd",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_provenance_kg_cross_snapshot_edge_canonicalization_contract",
+      "file": "test_provenance_kg_cross_snapshot_edge_canonicalization_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "6ac02109062f080e8ccded39249f61bc33f97abfb500a8ac9b7704e287aa116c",
+      "current_test_file_sha256": "6ac02109062f080e8ccded39249f61bc33f97abfb500a8ac9b7704e287aa116c",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_provenance_snapshot_contract",
+      "file": "test_provenance_snapshot_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "78e75bd755d6d03cfce4c346957415c115981abd9701cb0db94bca19061e8dbf",
+      "current_test_file_sha256": "78e75bd755d6d03cfce4c346957415c115981abd9701cb0db94bca19061e8dbf",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_provision_cran_namespaces_cross_repository_deferral_contract",
+      "file": "test_provision_cran_namespaces_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e4de9e3ba60ebc7b3242f7bc93164284de95a7ac5dcaa460616cdbc8326c0f31",
+      "current_test_file_sha256": "e4de9e3ba60ebc7b3242f7bc93164284de95a7ac5dcaa460616cdbc8326c0f31",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_provision_cran_namespaces_dependency_order_contract",
+      "file": "test_provision_cran_namespaces_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e4de9e3ba60ebc7b3242f7bc93164284de95a7ac5dcaa460616cdbc8326c0f31",
+      "current_test_file_sha256": "e4de9e3ba60ebc7b3242f7bc93164284de95a7ac5dcaa460616cdbc8326c0f31",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_public_api_boundary_contract",
+      "file": "test_public_api_boundary_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "85883f5e05af7ca73d1fa14d752116fd830f0e661aede863a01e857c6fe960ce",
+      "current_test_file_sha256": "85883f5e05af7ca73d1fa14d752116fd830f0e661aede863a01e857c6fe960ce",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_public_cell_metadata_import_contract",
+      "file": "test_public_cell_metadata_import_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "4c46c4342728a7909b1f077892e9f29a649b73df00d50f0a7623a369f4663fd7",
+      "current_test_file_sha256": "4c46c4342728a7909b1f077892e9f29a649b73df00d50f0a7623a369f4663fd7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_public_cell_metadata_import_safety_contract",
+      "file": "test_public_cell_metadata_import_safety_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "fb8639060468a4396ff9c73ef9a896d94ddbb4a1c2a3026aa8520b06359aac6b",
+      "current_test_file_sha256": "fb8639060468a4396ff9c73ef9a896d94ddbb4a1c2a3026aa8520b06359aac6b",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_public_cell_metadata_import_scale_contract",
+      "file": "test_public_cell_metadata_import_scale_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "PASS",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "0de4e00c46f660f1fd65bb34c549b891445bdc17faa3004052508e6ef40e0ce6",
+      "current_test_file_sha256": "0de4e00c46f660f1fd65bb34c549b891445bdc17faa3004052508e6ef40e0ce6",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_public_typed_run_branch_inputs_contract",
+      "file": "test_public_typed_run_branch_inputs_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "FAIL",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "e1b177b52209487685a92b439213230e6a6d69da94f3a2a986e495629220ec8e",
+      "current_test_file_sha256": "e1b177b52209487685a92b439213230e6a6d69da94f3a2a986e495629220ec8e",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    },
+    {
+      "name": "test_publish_app_bundle_provenance_contract",
+      "file": "test_publish_app_bundle_provenance_contract.R",
+      "stage": "post_namespace_replacement",
+      "result": "interrupted",
+      "source_file_unchanged_from_525": true,
+      "original_test_file_sha256": "32b19cec706d838296d3c2c1d129b8af34e1e1b468b7201e692b735c54f68be7",
+      "current_test_file_sha256": "32b19cec706d838296d3c2c1d129b8af34e1e1b468b7201e692b735c54f68be7",
+      "qualification_limit": "Current runtime ordinary-load compatibility changed; unchanged test bytes alone do not transfer final runtime qualification."
+    }
+  ],
+  "caveat": "Combined retained parent and targeted coverage; post namespace replacement results retain uncertainty. No canonical final all-pass full-suite claim."
+}

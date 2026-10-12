@@ -1,0 +1,5 @@
+ORIGINAL_PROV_OUTPUT_COLUMNS
+[1] "snapshot_id"           "run_id"                "output_name"          
+[4] "primitive_kind"        "output_hash"           "artifact_id"          
+[7] "materialization_class" "materialization_path" 
+AUTHENTIC_PRE_CONTENT ordinary_public_load=PASS exact_primitive=TRUE content_certificate=ABSENT no_new_graph_proof=TRUE

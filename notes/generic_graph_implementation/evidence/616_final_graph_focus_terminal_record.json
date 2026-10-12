@@ -1,0 +1,33 @@
+{
+  "source_runtime": "5c3ad8111610ddf57c64877391b5e6cc47f22ff8",
+  "production_runtime_unchanged_since": "9869ccf344191ca7ff6e070139bfdcd03336d746",
+  "focus603": {
+    "exit": 0,
+    "executed": 39,
+    "passed": 39,
+    "skipped": 0,
+    "normative_scenarios": 23
+  },
+  "sdk604": {
+    "exit": 0,
+    "executed": 6,
+    "passed": 6,
+    "skipped": 0
+  },
+  "live598": {
+    "exit": 0,
+    "passed": 1
+  },
+  "small597": {
+    "exit": 0,
+    "passed": 5,
+    "skipped": 0
+  },
+  "post_installed_core_hash_match": true,
+  "legacy_typed613": {
+    "exit": 0,
+    "passed": 1,
+    "scope": "publicpromotion originaltyped assertions plus corrected certificate.content_sha256 check"
+  },
+  "limits": "Combined parent/targeted core coverage; original525 nonqualifying; historicalPython mismatches retained; above-RAM stress deferred"
+}

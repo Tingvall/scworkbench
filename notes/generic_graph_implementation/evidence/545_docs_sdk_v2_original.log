@@ -1,0 +1,10 @@
+STATE before_docs mode= original namespace_path= /tmp/scwb-graph-final-valid-522.hxhra5_g/library/scworkbench system_file_root= /tmp/scwb-graph-final-valid-522.hxhra5_g/library/scworkbench system_file_sdk= /tmp/scwb-graph-final-valid-522.hxhra5_g/library/scworkbench/sdk/operation-packs/capabilities.json attached_fn_env= <environment: namespace:scworkbench> current_fn_env= <environment: namespace:scworkbench> attached_current_env_identical= TRUE original_current_ns_identical= TRUE original_current_registry_identical= TRUE original_fn_current_env_identical= TRUE 
+CASE sdk_before_docs PASS 
+CASE docs_unchanged_assertions PASS 
+STATE after_docs mode= original namespace_path= /home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010 system_file_root= /home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010 system_file_sdk=  attached_fn_env= <environment: namespace:scworkbench> current_fn_env= <environment: namespace:scworkbench> attached_current_env_identical= TRUE original_current_ns_identical= FALSE original_current_registry_identical= FALSE original_fn_current_env_identical= FALSE 
+CASE sdk_after_docs PASS 
+CASE_ERROR v2_feature_set_registry_fail_closed class= wb_graph_error,error,condition code= GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE message= GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE: RSQLite native byte API was not initialized. 
+CASE v2_feature_set_registry_fail_closed FAIL 
+STATE after_v2 mode= original namespace_path= /home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010 system_file_root= /home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010 system_file_sdk=  attached_fn_env= <environment: namespace:scworkbench> current_fn_env= <environment: namespace:scworkbench> attached_current_env_identical= TRUE original_current_ns_identical= FALSE original_current_registry_identical= FALSE original_fn_current_env_identical= FALSE 
+Error: !sdk_pass is not TRUE
+Execution halted

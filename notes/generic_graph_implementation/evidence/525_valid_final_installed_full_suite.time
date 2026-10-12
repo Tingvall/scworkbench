@@ -1,0 +1,24 @@
+Command exited with non-zero status 1
+	Command being timed: "Rscript notes/generic_graph_implementation/run_valid_final_installed_suite_525.R /tmp/scwb-graph-final-valid-522.hxhra5_g/library /home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010 /tmp/scwb-graph-final-valid-522.hxhra5_g/golden.bundle"
+	User time (seconds): 4890.03
+	System time (seconds): 78.54
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:23:42
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2342500
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 51
+	Minor (reclaiming a frame) page faults: 12903021
+	Voluntary context switches: 54141
+	Involuntary context switches: 40714
+	Swaps: 0
+	File system inputs: 58296
+	File system outputs: 6643720
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1

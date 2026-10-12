@@ -1,0 +1,23 @@
+RUN test_central_schema_foreign_key_closure_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+PASS test_central_schema_foreign_key_closure_contract (18.093s)
+RUN test_normalized_membership_deep_validation_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS test_normalized_membership_deep_validation_contract (7.665s)
+RUN test_central_schema_migration_foreign_keys_contract [test_central_schema_migration_foreign_keys_contract.R; self_contained]
+PASS test_central_schema_migration_foreign_keys_contract (21.069s)
+RUN test_generated_document_child_failure_cleanup_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_child_failure_cleanup_contract (3.635s)
+RUN test_generated_document_linked_worktree_revision_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_linked_worktree_revision_contract (33.687s)
+RUN test_generated_document_stale_linked_revision_rejected_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_stale_linked_revision_rejected_contract (30.434s)
+RUN test_historical_nullable_schema_unexpected_column_rejects_contract [test_historical_nullable_schema_layout_contract.R; self_contained]
+PASS test_historical_nullable_schema_unexpected_column_rejects_contract (0.006s)
+RUN test_schema_catalog_actual_durable_membership_contract [test_schema_catalog_durable_membership_contract.R; self_contained]
+PASS test_schema_catalog_actual_durable_membership_contract (7.426s)
+CONTRACT TEST SUMMARY files=5 discovered=8 executed=8 passed=8 skipped=0 failed=0 excluded=0 accounted=8
+Warning message:
+In connection_release(conn@ptr) : Already disconnected
+FIXTURE_DOC_FOCUS PASS zero skips

@@ -1,0 +1,2833 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+golden_bundle=/tmp/scwb-graph-final-valid-522.hxhra5_g/golden.bundle
+VALID_FINAL_INSTALLED_CORE discovered=334 files=171
+RUN test_analysis_capsule_atomicity_security_contract [test_analysis_capsule_atomicity_security_contract.R; self_contained]
+PASS test_analysis_capsule_atomicity_security_contract (53.282s)
+RUN test_analysis_capsule_documentation_policy_contract [test_analysis_capsule_documentation_policy_contract.R; self_contained]
+PASS test_analysis_capsule_documentation_policy_contract (0.128s)
+RUN test_analysis_capsule_process_death_contract [test_analysis_capsule_process_death_contract.R; self_contained]
+PASS test_analysis_capsule_process_death_contract (60.497s)
+RUN test_analysis_capsule_r_source_review_closure_contract [test_analysis_capsule_r_source_review_closure_contract.R; self_contained]
+PASS test_analysis_capsule_r_source_review_closure_contract (30.433s)
+RUN test_analysis_capsule_recipient_validation_contract [test_analysis_capsule_recipient_validation_contract.R; self_contained]
+PASS test_analysis_capsule_recipient_validation_contract (54.411s)
+RUN test_analysis_capsule_tamper_validation_contract [test_analysis_capsule_recipient_validation_contract.R; self_contained]
+PASS test_analysis_capsule_tamper_validation_contract (99.909s)
+RUN test_analysis_capsule_registration_contract [test_analysis_capsule_registration_contract.R; self_contained]
+PASS test_analysis_capsule_registration_contract (28.258s)
+RUN test_artifact_naming_contract [test_artifact_naming_contract.R; isolated_bundle]
+PASS test_artifact_naming_contract (7.927s)
+RUN test_atomic_authoritative_manifest_contract [test_atomic_authoritative_manifest_contract.R; self_contained]
+PASS test_atomic_authoritative_manifest_contract (36.774s)
+RUN test_attach_adapters_contract [test_attach_adapters_contract.R; isolated_bundle]
+PASS test_attach_adapters_contract (6.682s)
+RUN test_auditable_transformation_onboarding_law_contract [test_auditable_transformation_onboarding_law_contract.R; self_contained]
+PASS test_auditable_transformation_onboarding_law_contract (0.002s)
+RUN test_bundle_ingest_containers_contract [test_bundle_ingest_containers_contract.R; isolated_bundle]
+Registered S3 method overwritten by 'zellkonverter':
+  method                                             from      
+  py_to_r.pandas.core.arrays.categorical.Categorical reticulate
+Skipping H5AD round-trip contract checks; set SCWORKBENCH_TEST_H5AD=1 in a provisioned zellkonverter runtime.
+10x_mtx: initializing staged bundle
+10x_mtx: defining 4 cells
+10x_mtx: cell definition complete
+10x_mtx: initializing matrix registry for RNA_counts
+10x_mtx: feature registry complete
+10x_mtx: importing library 1/2 (R1_Pupa)
+10x_mtx: registered library 1/2 (R1_Pupa)
+10x_mtx: importing library 2/2 (R2_Nurse)
+10x_mtx: registered library 2/2 (R2_Nurse)
+10x_mtx: initializing staged bundle
+10x_mtx: defining 2 cells
+10x_mtx: cell definition complete
+10x_mtx: initializing matrix registry for RNA_counts
+10x_mtx: feature registry complete
+10x_mtx: importing library 1/1 (R1_Pupa)
+10x_mtx: registered library 1/1 (R1_Pupa)
+10x_mtx: initializing staged bundle
+10x_mtx: defining 2 cells
+10x_mtx: cell definition complete
+10x_mtx: initializing matrix registry for RNA_counts
+10x_mtx: feature registry complete
+10x_mtx: importing library 1/1 (sample_dup)
+10x_mtx: registered library 1/1 (sample_dup)
+PASS test_bundle_ingest_containers_contract (114.519s)
+RUN test_bundle_path_containment_trust_boundary_contract [test_bundle_path_containment_trust_boundary_contract.R; self_contained]
+PASS test_bundle_path_containment_trust_boundary_contract (39.494s)
+RUN test_object_primitive_family_durable_roundtrip_contract [test_cell_vector_durable_identity_roundtrip_contract.R; self_contained]
+PASS test_object_primitive_family_durable_roundtrip_contract (11.190s)
+RUN test_central_schema_foreign_key_closure_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+PASS test_central_schema_foreign_key_closure_contract (21.584s)
+RUN test_normalized_membership_deep_validation_contract [test_central_schema_foreign_key_closure_contract.R; self_contained]
+PASS test_normalized_membership_deep_validation_contract (10.832s)
+RUN test_central_schema_migration_foreign_keys_contract [test_central_schema_migration_foreign_keys_contract.R; self_contained]
+PASS test_central_schema_migration_foreign_keys_contract (29.248s)
+RUN test_compute_profile_contract [test_compute_profile_contract.R; self_contained]
+PASS test_compute_profile_contract (0.000s)
+RUN test_container_release_hygiene_contract [test_container_release_hygiene_contract.R; self_contained]
+Runtime license inventory: OK (2 components; profile=files-only)
+License evidence digest mismatch for Triton: expected=92640fb97222fd0a698ff28ce0c3782c172623f8d6c609b557636a80f28fb946 observed=bb3642503e0bb5ca22a557574037d623cfb5c9252fc11a9bc2d80db21898d70f path=/tmp/RtmpU9V0qk/container_license_inventory_8e89c85d9fbb/Triton/LICENSE
+Container source hygiene: OK
+Container source tree contains prohibited Git metadata: /tmp/RtmpU9V0qk/container_source_hygiene_8e89c3921f740/.git
+Container source tree contains prohibited Git metadata: /tmp/RtmpU9V0qk/container_source_hygiene_8e89c3921f740/nested/.git
+Container source tree contains prohibited Git metadata: /tmp/RtmpU9V0qk/container_source_hygiene_8e89c3921f740/.git
+PASS test_container_release_hygiene_contract (0.141s)
+RUN test_contract_catalogs_semantic [test_contract_catalogs_semantic.R; self_contained]
+PASS test_contract_catalogs_semantic (0.037s)
+RUN test_contract_runner_discovery_contract [test_contract_runner_discovery_contract.R; self_contained]
+FAIL test_contract_runner_discovery_contract -- identical(as.integer(run$summary[c("discovered", "executed",  .... is not TRUE
+RUN test_deep_bundle_integrity_validation_closure_contract [test_deep_bundle_integrity_validation_contract.R; self_contained]
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PASS test_deep_bundle_integrity_validation_closure_contract (124.652s)
+RUN test_deep_bundle_integrity_validation_contract [test_deep_bundle_integrity_validation_contract.R; self_contained]
+PASS test_deep_bundle_integrity_validation_contract (107.480s)
+RUN test_derived_cell_set_lifecycle_contract [test_derived_cell_set_lifecycle_contract.R; self_contained]
+PASS test_derived_cell_set_lifecycle_contract (27.267s)
+RUN test_docker_release_engineering_contract [test_docker_release_engineering_contract.R; self_contained]
+PASS test_docker_release_engineering_contract (0.093s)
+RUN test_documentation_source_package_curation_contract [test_documentation_source_package_curation_contract.R; self_contained]
+PASS test_documentation_source_package_curation_contract (0.561s)
+RUN test_durable_resumable_sessions_contract [test_durable_resumable_sessions_contract.R; self_contained]
+PASS test_durable_resumable_sessions_contract (47.914s)
+RUN test_durable_session_dependent_branch_contract [test_durable_session_dependent_branch_contract.R; self_contained]
+PASS test_durable_session_dependent_branch_contract (42.113s)
+RUN test_durable_session_generation_recovery_contract [test_durable_session_generation_recovery_contract.R; self_contained]
+PASS test_durable_session_generation_recovery_contract (64.250s)
+RUN test_durable_session_source_payload_corruption_contract [test_durable_session_source_payload_corruption_contract.R; self_contained]
+PASS test_durable_session_source_payload_corruption_contract (51.372s)
+RUN test_durable_session_subprocess_recovery_contract [test_durable_session_subprocess_recovery_contract.R; self_contained]
+DURABLE_ACTUAL_CHILD_IDENTITY package=/tmp/scwb-graph-final-valid-522.hxhra5_g/library/scworkbench dll_sha256=9b0c73509ed673a605d2c4b2804ca82b69be39301cbce1f68c790f80b1c85ae6 bodies=wb_session_open:35a4eb918280c1226e729509c69f250b124dc6565dc068e9b4c58b8e5067697b,wb_session_resume:a3956b9cc7282d018d5a980ce31b965c72635240fef18931c9b85b5ca189553f,wb_session_run_op:c3c891d819bfa395959b1934c5aa853cb9e516abc5a02cfbfb6783436d805c9e,.wb_session_stage_bundle:b5bcf7289ad0c712bb40011524b484596745d92b9bed5fc24992071353dcfd86,.wb_session_stage_open:cd4bd501d50d0e78f1881a102e715efca3a7126d89273553e8c466e0527b28a2,.wb_graph_disk_admit:83ab58c13c2edb421f6c3db73f40f4beb6b32494d895d7e9b8d2b9ae6a1e9cca MATCH
+DURABLE_ACTUAL_CHILD_IDENTITY package=/tmp/scwb-graph-final-valid-522.hxhra5_g/library/scworkbench dll_sha256=9b0c73509ed673a605d2c4b2804ca82b69be39301cbce1f68c790f80b1c85ae6 bodies=wb_session_open:35a4eb918280c1226e729509c69f250b124dc6565dc068e9b4c58b8e5067697b,wb_session_resume:a3956b9cc7282d018d5a980ce31b965c72635240fef18931c9b85b5ca189553f,wb_session_run_op:c3c891d819bfa395959b1934c5aa853cb9e516abc5a02cfbfb6783436d805c9e,.wb_session_stage_bundle:b5bcf7289ad0c712bb40011524b484596745d92b9bed5fc24992071353dcfd86,.wb_session_stage_open:cd4bd501d50d0e78f1881a102e715efca3a7126d89273553e8c466e0527b28a2,.wb_graph_disk_admit:83ab58c13c2edb421f6c3db73f40f4beb6b32494d895d7e9b8d2b9ae6a1e9cca MATCH
+PASS test_durable_session_subprocess_recovery_contract (52.074s)
+RUN test_exclusive_bundle_writer_lock_safety_closure_contract [test_exclusive_bundle_writer_lock_safety_closure_contract.R; self_contained]
+PASS test_exclusive_bundle_writer_lock_safety_closure_contract (0.006s)
+RUN test_session_wal_snapshot_contract [test_exclusive_bundle_writer_lock_safety_closure_contract.R; isolated_bundle]
+PASS test_session_wal_snapshot_contract (7.697s)
+RUN test_feature_selection_plan_contract [test_feature_selection_plan_contract.R; isolated_bundle]
+PASS test_feature_selection_plan_contract (4.817s)
+RUN test_feature_set_namespace_transfer_contract [test_feature_set_namespace_transfer_contract.R; self_contained]
+PASS test_feature_set_namespace_transfer_contract (22.740s)
+RUN test_feature_set_namespace_transfer_intersect_contract [test_feature_set_namespace_transfer_contract.R; self_contained]
+PASS test_feature_set_namespace_transfer_intersect_contract (9.551s)
+RUN test_feature_sets_contract [test_feature_sets_contract.R; isolated_bundle]
+PASS test_feature_sets_contract (9.108s)
+RUN test_file_backed_dense_space_corruption_contract [test_file_backed_dense_space_corruption_contract.R; self_contained]
+PASS test_file_backed_dense_space_corruption_contract (25.414s)
+RUN test_file_backed_dense_space_storage_contract [test_file_backed_dense_space_storage_contract.R; self_contained]
+PASS test_file_backed_dense_space_storage_contract (22.038s)
+RUN test_foundation_data_getters_selectors [test_foundation_data_getters_selectors.R; isolated_bundle]
+PASS test_foundation_data_getters_selectors (3.058s)
+RUN test_foundation_hardening_1to5 [test_foundation_hardening_1to5.R; isolated_bundle]
+PASS test_foundation_hardening_1to5 (20.635s)
+RUN test_fullstack_monocle3_dependency_closure_contract [test_fullstack_monocle3_dependency_closure_contract.R; self_contained]
+PASS test_fullstack_monocle3_dependency_closure_contract (0.016s)
+RUN test_geneprograms_extraction_contract [test_geneprograms_extraction_contract.R; self_contained]
+PASS test_geneprograms_extraction_contract (0.002s)
+RUN test_generated_document_child_failure_cleanup_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_child_failure_cleanup_contract (3.600s)
+RUN test_generated_document_linked_worktree_revision_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_linked_worktree_revision_contract (30.800s)
+RUN test_generated_document_stale_linked_revision_rejected_contract [test_generated_document_revision_contract.R; self_contained]
+PASS test_generated_document_stale_linked_revision_rejected_contract (31.018s)
+RUN test_getter_catalog_semantic_contract [test_getter_catalog_semantic_contract.R; self_contained]
+PASS test_getter_catalog_semantic_contract (0.022s)
+RUN test_graph_abi4_axis_source_declaration_contract [test_graph_abi4_admission_contract.R; self_contained]
+PASS test_graph_abi4_axis_source_declaration_contract (0.231s)
+RUN test_graph_abi4_closed_admission_contract [test_graph_abi4_admission_contract.R; self_contained]
+PASS test_graph_abi4_closed_admission_contract (0.106s)
+RUN test_graph_abi4_core_issued_request_contract [test_graph_abi4_admission_contract.R; self_contained]
+PASS test_graph_abi4_core_issued_request_contract (11.250s)
+RUN test_graph_broker_atomic_response_and_ack_contract [test_graph_abi4_broker_publication_contract.R; self_contained]
+PASS test_graph_broker_atomic_response_and_ack_contract (0.020s)
+RUN test_graph_abi4_public_r_execution_contract [test_graph_abi4_public_execution_contract.R; self_contained]
+GRAPH_RECIPIENT_PROCESS pack_free=TRUE read_only=TRUE relocated=TRUE descriptor_unchanged=TRUE sources_verified=TRUE missing_pack_rejected=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+PASS test_graph_abi4_public_r_execution_contract (112.198s)
+RUN test_graph_abi4_python_live_broker_contract [test_graph_abi4_python_live_contract.R; self_contained]
+GRAPH_ABI4_LIVE_PYTHON matrix_to_graph=PASS graph_broker_to_table=PASS retained_cv_bound_graph_table=PASS full_closure=PASS source_authority=verified recipient=PASS fingerprint_unchanged=TRUE
+PASS test_graph_abi4_python_live_broker_contract (54.092s)
+RUN test_graph_abi4_actual_payload_count_contract [test_graph_abi4_retained_count_contract.R; self_contained]
+PASS test_graph_abi4_actual_payload_count_contract (0.331s)
+RUN test_graph_session_discard_owned_stage_contract [test_graph_abi4_retained_count_contract.R; self_contained]
+PASS test_graph_session_discard_owned_stage_contract (0.033s)
+RUN test_graph_abi4_runtime_sidecar_scheme_contract [test_graph_abi4_runtime_sidecar_contract.R; self_contained]
+PASS test_graph_abi4_runtime_sidecar_scheme_contract (0.013s)
+RUN test_graph_content_only_and_selected_view_contract [test_graph_binding_read_selection_contract.R; self_contained]
+PASS test_graph_content_only_and_selected_view_contract (17.325s)
+RUN test_graph_bounded_legacy_metadata_fault_cleanup_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_metadata_fault_cleanup_contract (8.426s)
+RUN test_graph_bounded_legacy_public_certificate_parity_and_cache_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_public_certificate_parity_and_cache_contract (129.979s)
+RUN test_graph_bounded_legacy_refs_parser_and_fileless_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_refs_parser_and_fileless_contract (0.027s)
+RUN test_graph_bounded_legacy_structure_transformation_admission_contract [test_graph_bounded_legacy_collector_contract.R; self_contained]
+PASS test_graph_bounded_legacy_structure_transformation_admission_contract (28.342s)
+RUN test_graph_bounded_legacy_compact_rows_direct_admission_contract [test_graph_legacy_metadata_expansion_admission_contract.R; self_contained]
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION direct2m decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION positive2m decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION double2m decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION integer_inf_first decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION integer_missing_first decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION nested_value decoder_calls=0 max_allocation= 200 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION nested_attribute decoder_calls=0 max_allocation= 216 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION nested_alias decoder_calls=0 max_allocation= 224 carrier_budget= 2097152 PASS
+COMPACT_DIRECT_ADMITTED 0 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED -5 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED -1000 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED 5 exact_oldcodec=PASS
+COMPACT_DIRECT_ADMITTED 1000 exact_oldcodec=PASS
+COMPACT_DIRECT_INERT_ALIAS exact_oldcodec=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION small_partition decoder_calls=0 max_allocation= 192 carrier_budget= 32768 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION aggregate_siblings decoder_calls=0 max_allocation= 312 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION one_below_carrier_boundary decoder_calls=0 max_allocation= 192 carrier_budget= 265648 PASS
+COMPACT_DIRECT_BOUNDARY exact_partition= 33207 accepted_one_below_rejected=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION overflow_-1e308 decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION overflow_1e308 decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_DIRECT_REJECTION overflow_2147483648 decoder_calls=0 max_allocation= 192 carrier_budget= 2097152 PASS
+PASS test_graph_bounded_legacy_compact_rows_direct_admission_contract (0.591s)
+RUN test_graph_bounded_legacy_compact_rows_public_predecode_admission_contract [test_graph_legacy_metadata_expansion_admission_contract.R; self_contained]
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION direct decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION data_frame decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION positive decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_value decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_attribute decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION nested_alias decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+COMPACT_PUBLIC_REJECTION coercion decoder_calls=0 max_allocation= 524336 cache_restore=PASS cleanup=PASS
+COMPACT_PUBLIC_ADMITTED small certificate_and_oldgetter_identity=PASS
+COMPACT_PUBLIC_ADMITTED nested certificate_and_oldgetter_identity=PASS
+COMPACT_PUBLIC_ADMITTED inert_alias certificate_and_oldgetter_identity=PASS
+PASS test_graph_bounded_legacy_compact_rows_public_predecode_admission_contract (14.490s)
+RUN test_graph_bounded_legacy_duplicate_attribute_predecode_contract [test_graph_legacy_metadata_expansion_admission_contract.R; self_contained]
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT duplicate_last_large decoder_calls=0 max_allocation= 224 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT duplicate_first_large decoder_calls=0 max_allocation= 224 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT escaped_dot decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT nested_duplicate decoder_calls=0 max_allocation= 264 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT duplicate_native_class decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT mixed_class_alias decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT later_class_alias decoder_calls=0 max_allocation= 232 PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_ATTRIBUTE_REJECT escaped_class decoder_calls=0 max_allocation= 232 PASS
+DUPLICATE_ATTRIBUTE_VALID duplicate_small exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID escaped_small exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID inert_alias_large exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID ordinary_duplicate_class exact_oldcodec=PASS
+DUPLICATE_ATTRIBUTE_VALID marker_in_names exact_oldcodec=PASS
+PASS test_graph_bounded_legacy_duplicate_attribute_predecode_contract (0.076s)
+RUN test_graph_bounded_legacy_duplicate_rows_public_predecode_contract [test_graph_legacy_metadata_expansion_admission_contract.R; self_contained]
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT direct bytes= 174 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT escaped bytes= 179 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT nested bytes= 216 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+Tracing function "unserializeJSON" in package "namespace:jsonlite"
+Untracing function "unserializeJSON" in package "namespace:jsonlite"
+DUPLICATE_PUBLIC_REJECT native_class bytes= 179 decoder_calls=0 max_allocation= 524336 cleanup=PASS cache_restore=PASS
+DUPLICATE_PUBLIC_VALID complete_certificate_and_oldgetter_identity=PASS
+PASS test_graph_bounded_legacy_duplicate_rows_public_predecode_contract (13.297s)
+RUN test_graph_matrix_existing_producer_selection_contract [test_graph_matrix_source_selection_contract.R; self_contained]
+PASS test_graph_matrix_existing_producer_selection_contract (12.906s)
+RUN test_graph_matrix_native_existing_source_authority_contract [test_graph_matrix_source_selection_contract.R; self_contained]
+PASS test_graph_matrix_native_existing_source_authority_contract (8.419s)
+RUN test_graph_matrix_promotion_first_precheck_contract [test_graph_matrix_source_selection_contract.R; self_contained]
+PASS test_graph_matrix_promotion_first_precheck_contract (9.390s)
+RUN test_graph_native_matrix_bounded_storage_axis_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+GRAPH_NATIVE_STORAGE_AXIS named_col col packed-uint-matrix-v2 PASS
+GRAPH_NATIVE_STORAGE_AXIS named_row row unpacked-double-matrix-v2 PASS
+GRAPH_NATIVE_STORAGE_AXIS unnamed col packed-double-matrix-v2 PASS
+PASS test_graph_native_matrix_bounded_storage_axis_contract (0.019s)
+RUN test_graph_native_matrix_fragment_identity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_fragment_identity_contract (0.415s)
+RUN test_graph_native_matrix_incremental_text_and_axis_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_incremental_text_and_axis_contract (0.330s)
+RUN test_graph_native_matrix_overlapping_fragment_getter_parity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_overlapping_fragment_getter_parity_contract (7.071s)
+RUN test_graph_native_matrix_physical_and_membership_verification_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_physical_and_membership_verification_contract (6.683s)
+RUN test_graph_native_matrix_streaming_text_identity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_native_matrix_streaming_text_identity_contract (0.023s)
+RUN test_graph_native_matrix_tree_identity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+GRAPH_NATIVE_TREE_PARITY C 12 entries
+GRAPH_NATIVE_TREE_PARITY C.UTF-8 12 entries
+PASS test_graph_native_matrix_tree_identity_contract (0.036s)
+RUN test_graph_source_connection_budget_purity_contract [test_graph_native_matrix_identity_contract.R; self_contained]
+PASS test_graph_source_connection_budget_purity_contract (0.014s)
+RUN test_graph_native_matrix_producer_run_frame_parity_contract [test_graph_native_matrix_producer_contract.R; self_contained]
+PASS test_graph_native_matrix_producer_run_frame_parity_contract (0.435s)
+RUN test_graph_native_matrix_public_promotion_first_lifecycle_contract [test_graph_native_matrix_public_promotion_first_contract.R; self_contained]
+NATIVE_GRAPH_READ_IDENTITY_BUDGETS 8388608/262144/256 
+GRAPH_NATIVE_RECIPIENT pack_free=TRUE read_only=TRUE relocated=TRUE native_source_verified=TRUE  descriptor_unchanged=TRUE selected_mappings_preserved=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+GRAPH_NATIVE_PUBLIC_G2 normalized=TRUE unpromoted_pre_stage_rejected=TRUE no_residue=TRUE  promoted_matrix=TRUE direct_binding=TRUE selected_mappings_cells=2 features=1  complete_source_cells=3 features=2 promotion_faults=3 execution_faults=6 source_tamper_rejected=TRUE  graph_read_run=TRUE graph_promote=TRUE recipient=PASS
+PASS test_graph_native_matrix_public_promotion_first_lifecycle_contract (158.194s)
+RUN test_graph_native_matrix_real_promoted_g2_source_contract [test_graph_native_matrix_real_g2_source_contract.R; self_contained]
+GRAPH_NATIVE_REAL_G2 public_normalize=PASS public_matrix_promotion=PASS  exact_run_output=PASS unused_source_authority_cells=3 features=2 native_dispatch=DISABLED
+PASS test_graph_native_matrix_real_promoted_g2_source_contract (23.289s)
+RUN test_graph_no_axis_public_lifecycle_contract [test_graph_no_axis_public_contract.R; self_contained]
+GRAPH_ONLY_RECIPIENT cells=0 matrices=0 nodes=3 bindings=0 pack_free=TRUE read_only=TRUE recipient=PASS filesystem_pure=TRUE 
+PASS test_graph_no_axis_public_lifecycle_contract (17.726s)
+RUN test_graph_object_source_batch_identity_admission_restoration_contract [test_graph_object_source_batch_contract.R; self_contained]
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.174
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.16
+PASS test_graph_object_source_batch_identity_admission_restoration_contract (9.372s)
+RUN test_graph_bounded_transport_seal_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_bounded_transport_seal_contract (0.673s)
+RUN test_graph_content_frozen_identity_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_content_frozen_identity_contract (0.028s)
+RUN test_graph_decoded_partition_budget_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_decoded_partition_budget_contract (0.109s)
+RUN test_graph_factory_failure_cleanup_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_factory_failure_cleanup_contract (0.004s)
+RUN test_graph_hidden_row_closure_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_hidden_row_closure_contract (0.142s)
+RUN test_graph_igraph_lossless_boundary_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_igraph_lossless_boundary_contract (0.362s)
+RUN test_graph_padded_edge_byte_admission_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_padded_edge_byte_admission_contract (0.226s)
+RUN test_graph_sdk_collect_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sdk_collect_contract (0.104s)
+RUN test_graph_sql_binding_descriptor_frozen_identity_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_binding_descriptor_frozen_identity_contract (6.736s)
+RUN test_graph_sql_stream_identity_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_stream_identity_contract (0.770s)
+RUN test_graph_sql_transaction_roundtrip_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_sql_transaction_roundtrip_contract (5.832s)
+RUN test_graph_typed_missing_values_contract [test_graph_primitive_contract.R; self_contained]
+PASS test_graph_typed_missing_values_contract (0.002s)
+RUN test_graph_resource_aggregate_cache_and_nested_policy_contract [test_graph_resource_accounting_contract.R; self_contained]
+FAIL test_graph_resource_aggregate_cache_and_nested_policy_contract -- all(c("stage_payload", "published_certificate", "retained_reference") %in%  .... is not TRUE
+RUN test_graph_resource_import_connection_reservation_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_import_connection_reservation_contract (0.318s)
+RUN test_graph_resource_late_transaction_admission_rejects_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_late_transaction_admission_rejects_contract (0.006s)
+RUN test_graph_resource_live_stage_and_selector_spill_overlap_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_live_stage_and_selector_spill_overlap_contract (0.042s)
+RUN test_graph_resource_owned_inode_metadata_overflow_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_owned_inode_metadata_overflow_contract (0.004s)
+RUN test_graph_resource_owned_session_copy_admission_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_owned_session_copy_admission_contract (9.299s)
+RUN test_graph_resource_owned_spill_alias_and_fd_metadata_admission_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_owned_spill_alias_and_fd_metadata_admission_contract (0.008s)
+RUN test_graph_resource_padded_mapping_cursor_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_padded_mapping_cursor_contract (0.117s)
+RUN test_graph_resource_publication_budget_rollback_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_publication_budget_rollback_contract (4.739s)
+RUN test_graph_resource_publication_copy_and_temporary_overlap_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_publication_copy_and_temporary_overlap_contract (0.014s)
+RUN test_graph_resource_stage_and_journal_rollback_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_stage_and_journal_rollback_contract (0.032s)
+RUN test_graph_resource_unlinked_sqlite_spill_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_unlinked_sqlite_spill_contract (0.193s)
+RUN test_graph_resource_unrelated_descriptor_slot_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_unrelated_descriptor_slot_contract (0.004s)
+RUN test_graph_resource_unstaged_direct_transaction_restoration_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_unstaged_direct_transaction_restoration_contract (4.171s)
+RUN test_graph_resource_unstaged_public_promotion_cache_contract [test_graph_resource_accounting_contract.R; self_contained]
+PASS test_graph_resource_unstaged_public_promotion_cache_contract (7.517s)
+RUN test_graph_normative_scenario_public_lifecycle_contract [test_graph_scenario_roundtrip_contract.R; self_contained]
+GRAPH_SCENARIO airline_parallel_isolate independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO social_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO social_directed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO social_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO signed_weighted_grn independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO ppi_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO reaction_hyper_repeated independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO transport_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO empty_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO empty_directed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO empty_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO isolated_only independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO mixed_declared_directed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO mixed_declared_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO disconnected_undirected independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO disconnected_undirected_supplemental independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO disconnected_self_loop_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO directed_self_loop independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO undirected_self_loop independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIO self_loops_mixed independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO repeated_hyper_incidences independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO unary_undirected_hyperedge independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=explicit_rejection
+GRAPH_SCENARIO typed_all_scopes independent_R_roots=PASS public_writer_promote=PASS components=PASS igraph=lossless
+GRAPH_SCENARIOS_RECIPIENT cases=23 process_replaced=TRUE relocated=TRUE pack_free=TRUE exact_components=TRUE recipient=PASS fingerprint_unchanged=TRUE 
+PASS test_graph_normative_scenario_public_lifecycle_contract (525.831s)
+RUN test_graph_sdk_inventory_and_public_scaffold_contract [test_graph_sdk_authoring_contract.R; self_contained]
+PASS test_graph_sdk_inventory_and_public_scaffold_contract (0.215s)
+RUN test_graph_small_forced_out_of_core_public_lifecycle_contract [test_graph_small_out_of_core_contract.R; self_contained]
+GRAPH_SMALL_RNA_DISTRIBUTION choice=fresh_pinned_install exact_code_manifest_comparison=PASS
+GRAPH_SMALL_RUNTIME_BASELINE stage=after_native_promotion_before_graph_emit rss_bytes=1265471488 hwm_bytes=2279661568 framework_working_policy_bytes=1048576 rss_delta_claim=NONE
+SMALL_CURSOR max_rows=2 max_partition_json_bytes=1439
+SMALL_CURSOR max_rows=2 max_partition_json_bytes=1439
+SMALL_CURSOR max_rows=2 max_partition_json_bytes=1439
+SMALL_CURSOR max_rows=2 max_partition_json_bytes=1439
+SMALL_CURSOR max_rows=2 max_partition_json_bytes=1439
+SMALL_CURSOR max_rows=2 max_partition_json_bytes=1439
+GRAPH_SMALL_RECIPIENT pack_free=TRUE read_only=TRUE exact_rows_roots_bindings=TRUE purity=TRUE PASS 
+GRAPH_SMALL_GATE content=d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24 binding=83cce8354536a7eeac50cde5000e15400beb54f7ed2bcaf66c3632a397ee5d68 descriptor=b6b4ed3ef8a4d7c67f6a6f2f0da088d09c6d4ed0d946966fdd548d877480ba83 max_token_partition_bytes=1439 token_bytes=71907 max_canonical_token_bytes=22564 canonical_token_files=80 disk_peak_observed=237568 stage_count=17 max_stage_cache_kib=42 max_observed_aggregate_cache_kib=254 runtime_baseline_rss_bytes=1265471488 runtime_baseline_hwm_bytes=2279661568 runtime_baseline_stage=after_native_promotion_before_graph_emit rss_delta_claim=NONE rna_distribution=fresh_pinned_install working_policy=1048576 aggregate_cache_policy=262144 partitions=4096/2 collect_rejected=8192 mixed_promotion=TRUE rollback_retry=TRUE cleanup=TRUE source_purity=TRUE large_physical_stress=DEFERRED
+PASS test_graph_small_forced_out_of_core_public_lifecycle_contract (643.869s)
+RUN test_graph_retained_cell_source_payload_contract [test_graph_source_authority_contract.R; self_contained]
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector_family SEARCH artifact_pseudotime USING INDEX artifact_pseudotime_payload_order (artifact_id=?) 
+PASS test_graph_retained_cell_source_payload_contract (15.792s)
+RUN test_graph_source_snapshot_unrelated_head_scope_contract [test_graph_source_snapshot_scope_contract.R; self_contained]
+PASS test_graph_source_snapshot_unrelated_head_scope_contract (6.657s)
+RUN test_graph_large_string_numeric_lexeme_contract [test_graph_strict_json_unicode_contract.R; self_contained]
+PASS test_graph_large_string_numeric_lexeme_contract (5.940s)
+RUN test_graph_strict_json_unicode_contract [test_graph_strict_json_unicode_contract.R; self_contained]
+PASS test_graph_strict_json_unicode_contract (0.001s)
+RUN test_h5ad_nested_source_identity_relinking_contract [test_h5ad_nested_source_identity_relinking_contract.R; self_contained]
+PASS test_h5ad_nested_source_identity_relinking_contract (107.590s)
+RUN test_historical_nullable_schema_unexpected_column_rejects_contract [test_historical_nullable_schema_layout_contract.R; self_contained]
+PASS test_historical_nullable_schema_unexpected_column_rejects_contract (0.008s)
+RUN test_imported_state_provenance_identity_contract [test_imported_state_provenance_identity_contract.R; self_contained]
+PASS test_imported_state_provenance_identity_contract (69.582s)
+RUN test_ingest_adapters_contract [test_ingest_adapters_contract.R; isolated_bundle]
+PASS test_ingest_adapters_contract (6.566s)
+RUN test_knowledge_graph_contract [test_knowledge_graph_contract.R; isolated_bundle]
+PASS test_knowledge_graph_contract (15.359s)
+RUN test_large_materialization_promotion_rollback_contract [test_large_payload_provenance_hashing_contract.R; self_contained]
+PASS test_large_materialization_promotion_rollback_contract (15.747s)
+RUN test_large_payload_native_sha256_contract [test_large_payload_provenance_hashing_contract.R; self_contained]
+PASS test_large_payload_native_sha256_contract (2.627s)
+RUN test_mixed_legacy_new_provenance_identity_contract [test_large_payload_provenance_hashing_contract.R; self_contained]
+FAIL test_mixed_legacy_new_provenance_identity_contract -- Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpU9V0qk/.scwb_mixed_hash_8e89c5fd002d8.schema-backups/app.sqlite.v5-to-v11.20261012T140834.196224-583836-15k1dfzw7ez5.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns.
+RUN test_legacy_cell_vector_contract [test_legacy_cell_vector_contract.R; self_contained]
+PASS test_legacy_cell_vector_contract (6.360s)
+RUN test_logged_release_gate_contract [test_logged_release_gate_contract.R; self_contained]
+PASS test_logged_release_gate_contract (0.129s)
+RUN test_long_running_session_promotion_guidance_contract [test_long_running_session_promotion_guidance_contract.R; self_contained]
+PASS test_long_running_session_promotion_guidance_contract (0.002s)
+RUN test_manifest_stream_extended_types_and_mixed_blob_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_extended_types_and_mixed_blob_contract (0.387s)
+RUN test_manifest_stream_huge_single_text_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_huge_single_text_contract (0.900s)
+RUN test_manifest_stream_late_mutation_and_transaction_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_late_mutation_and_transaction_contract (0.025s)
+RUN test_manifest_stream_logical_chunk_boundary_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_logical_chunk_boundary_contract (0.322s)
+RUN test_manifest_stream_scalar_and_sql_type_parity_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_scalar_and_sql_type_parity_contract (0.400s)
+RUN test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract [test_manifest_stream_identity_contract.R; self_contained]
+PASS test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract (30.709s)
+RUN test_metadata_bulk_writer_large_universe_contract [test_metadata_identifier_bulk_write_contract.R; self_contained]
+large metadata evidence: rows=120895 fields=10 statements=33 elapsed=4.320s peak_gc=636.4MiB
+PASS test_metadata_bulk_writer_large_universe_contract (24.147s)
+RUN test_metadata_bulk_writer_scale_contract [test_metadata_identifier_bulk_write_contract.R; self_contained]
+PASS test_metadata_bulk_writer_scale_contract (7.286s)
+RUN test_metadata_field_deep_validation_contract [test_metadata_identifier_bulk_write_contract.R; self_contained]
+PASS test_metadata_field_deep_validation_contract (47.874s)
+RUN test_metadata_identifier_bulk_write_contract [test_metadata_identifier_bulk_write_contract.R; self_contained]
+PASS test_metadata_identifier_bulk_write_contract (12.025s)
+RUN test_metadata_identifier_consumers_contract [test_metadata_identifier_consumers_contract.R; self_contained]
+PASS test_metadata_identifier_consumers_contract (36.325s)
+RUN test_metadata_identity_namespace_closure_contract [test_metadata_identity_namespace_closure_contract.R; self_contained]
+PASS test_metadata_identity_namespace_closure_contract (42.622s)
+RUN test_model_ref_relocatability_contract [test_model_ref_relocatability_contract.R; self_contained]
+PASS test_model_ref_relocatability_contract (14.861s)
+RUN test_motif_match_contract [test_motif_match_contract.R; isolated_bundle]
+PASS test_motif_match_contract (7.464s)
+RUN test_motif_registry_contract [test_motif_registry_contract.R; isolated_bundle]
+
+PASS test_motif_registry_contract (11.400s)
+RUN test_native_sqlite_byte_same_engine_contract [test_native_sqlite_byte_api_contract.R; self_contained]
+PASS test_native_sqlite_byte_same_engine_contract (0.015s)
+RUN test_navigation_contract [test_navigation_contract.R; isolated_bundle]
+PASS test_navigation_contract (2.267s)
+RUN test_nullable_cell_vector_family_storage_contract [test_nullable_cell_vector_family_storage_contract.R; self_contained]
+FAIL test_nullable_cell_vector_family_storage_contract -- grepl("rolled back completely", as.character(failed), fixed = TRUE) is not TRUE
+RUN test_onboarding_container_mount_contract [test_onboarding_container_mount_contract.R; self_contained]
+PASS test_onboarding_container_mount_contract (0.001s)
+RUN test_op_catalog_semantic_contract [test_op_catalog_semantic_contract.R; self_contained]
+PASS test_op_catalog_semantic_contract (0.024s)
+RUN test_op_chunking_helper_contract [test_op_chunking_helper_contract.R; self_contained]
+PASS test_op_chunking_helper_contract (0.003s)
+RUN test_op_contract_conformance [test_op_contract_conformance.R; self_contained]
+PASS test_op_contract_conformance (0.009s)
+RUN test_op_feature_set_import_qc_contract [test_op_feature_set_import_qc_contract.R; isolated_bundle]
+PASS test_op_feature_set_import_qc_contract (20.052s)
+RUN test_op_metadata_cell_vector_diagnostics_contract [test_op_metadata_cell_vector_diagnostics_contract.R; self_contained]
+PASS test_op_metadata_cell_vector_diagnostics_contract (31.484s)
+RUN test_op_slingshot_adopt_contract [test_op_slingshot_adopt_contract.R; self_contained]
+FAIL test_op_slingshot_adopt_contract -- GRAPH_SOURCE_PAYLOAD_INVALID: Scientific payload ordinals disagree with the durable row-order descriptor.
+RUN test_op_slingshot_adopt_reordered_axis_rejection_contract [test_op_slingshot_adopt_contract.R; self_contained]
+PASS test_op_slingshot_adopt_reordered_axis_rejection_contract (12.703s)
+RUN test_operation_docs_single_source_contract [test_operation_docs_single_source_contract.R; self_contained]
+PASS test_operation_docs_single_source_contract (0.952s)
+RUN test_operation_pack_canonical_json_v1_contract [test_operation_pack_canonical_identity_contract.R; self_contained]
+PASS test_operation_pack_canonical_json_v1_contract (0.111s)
+RUN test_operation_pack_python_original_manifest_authentication_contract [test_operation_pack_canonical_identity_contract.R; self_contained]
+PASS test_operation_pack_python_original_manifest_authentication_contract (1.475s)
+RUN test_operation_pack_sdk_activation_negatives [test_operation_pack_sdk_contract.R; self_contained]
+<environment: namespace:scwbSdkActivation>
+$schema_version
+[1] "scworkbench.operation_pack.conformance.v3"
+
+$ok
+[1] TRUE
+
+$activated
+[1] FALSE
+
+$identity
+$identity$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$identity$schema_version
+[1] "scworkbench.operation_pack.v3"
+
+$identity$pack_abi_version
+[1] "3"
+
+$identity$namespace
+[1] "sdkactivation"
+
+$identity$package
+$identity$package$name
+[1] "scwbSdkActivation"
+
+$identity$package$version
+[1] "0.1.0"
+
+
+$identity$backend
+[1] "R"
+
+$identity$compatibility
+$identity$compatibility$scworkbench
+$identity$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+$identity$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+
+$identity$compatibility$pack_abi
+$identity$compatibility$pack_abi$minimum
+[1] "3"
+
+$identity$compatibility$pack_abi$maximum
+[1] "3"
+
+
+
+$identity$entry_point
+[1] "scwbSdkActivation::register_operation_pack"
+
+$identity$manifest_source_identity
+$identity$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$identity$manifest_source_identity$sha256
+[1] "c6130a006fe7d4be795a7bc3f965e156c5898a20cd250c33fcb414bef2f7955d"
+
+
+$identity$manifest_identity
+$identity$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v3"
+
+$identity$manifest_identity$sha256
+[1] "280e637815555bf70e2c0ab9fe7a63b5ab98dc9d6ac72081343a09e45e6178df"
+
+
+$identity$manifest_sha256
+[1] "280e637815555bf70e2c0ab9fe7a63b5ab98dc9d6ac72081343a09e45e6178df"
+
+$identity$operation_definition_identities
+$identity$operation_definition_identities$`sdkactivation::matrix_cell_sum`
+$identity$operation_definition_identities$`sdkactivation::matrix_cell_sum`$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$identity$operation_definition_identities$`sdkactivation::matrix_cell_sum`$sha256
+[1] "368da66092632dc70dfb2724659093a172ac77937883734c7f142e3186b1d469"
+
+
+
+$identity$operation_definition_sha256
+$identity$operation_definition_sha256$`sdkactivation::matrix_cell_sum`
+[1] "368da66092632dc70dfb2724659093a172ac77937883734c7f142e3186b1d469"
+
+
+$identity$distribution_identity
+$identity$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$identity$distribution_identity$sha256
+[1] "ee833aa92db79ed11760804620d9135458cd09e2fbbf5390306bb5e83b9a9d19"
+
+
+$identity$entry_point_identity
+$identity$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$identity$entry_point_identity$sha256
+[1] "965b9805764812e1a4c1e15ef332facca21197e4f214b72c5069cb4fd2c06dbf"
+
+
+$identity$pack_identity
+$identity$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$identity$pack_identity$sha256
+[1] "8200788c21406d359fb66f3a61c29a6ff16bd5d4659972edad2eb56ac304a653"
+
+
+$identity$pack_sha256
+[1] "8200788c21406d359fb66f3a61c29a6ff16bd5d4659972edad2eb56ac304a653"
+
+
+$operations
+$operations[[1]]
+$operations[[1]]$op_name
+[1] "sdkactivation::matrix_cell_sum"
+
+$operations[[1]]$definition_sha256
+[1] "368da66092632dc70dfb2724659093a172ac77937883734c7f142e3186b1d469"
+
+$operations[[1]]$consumes
+$operations[[1]]$consumes[[1]]
+$operations[[1]]$consumes[[1]]$name
+[1] "matrix"
+
+$operations[[1]]$consumes[[1]]$kind
+[1] "matrix"
+
+$operations[[1]]$consumes[[1]]$required
+[1] TRUE
+
+$operations[[1]]$consumes[[1]]$alignment
+[1] "cell_and_feature_ordered"
+
+
+
+$operations[[1]]$produces
+$operations[[1]]$produces[[1]]
+$operations[[1]]$produces[[1]]$name
+[1] "sums"
+
+$operations[[1]]$produces[[1]]$category
+[1] "terminal_artifact"
+
+$operations[[1]]$produces[[1]]$kind
+[1] "cell_vector"
+
+$operations[[1]]$produces[[1]]$storage_profile
+[1] "terminal_primitive_v1"
+
+$operations[[1]]$produces[[1]]$allocated_id_key
+[1] "sums_id"
+
+$operations[[1]]$produces[[1]]$required
+[1] TRUE
+
+$operations[[1]]$produces[[1]]$promotion_group
+[1] "result"
+
+$operations[[1]]$produces[[1]]$value_kind
+[1] "continuous"
+
+
+$operations[[1]]$produces[[2]]
+$operations[[1]]$produces[[2]]$name
+[1] "summary"
+
+$operations[[1]]$produces[[2]]$category
+[1] "terminal_artifact"
+
+$operations[[1]]$produces[[2]]$kind
+[1] "obs_table"
+
+$operations[[1]]$produces[[2]]$storage_profile
+[1] "terminal_primitive_v1"
+
+$operations[[1]]$produces[[2]]$allocated_id_key
+[1] "summary_id"
+
+$operations[[1]]$produces[[2]]$required
+[1] TRUE
+
+$operations[[1]]$produces[[2]]$promotion_group
+[1] "result"
+
+$operations[[1]]$produces[[2]]$table_type
+[1] "sdk_matrix_cell_sum_summary"
+
+
+
+$operations[[1]]$promotable
+[1] "sums"    "summary"
+
+
+
+$claims
+$claims$engine_compatible
+[1] TRUE
+
+$claims$scientifically_validated
+[1] FALSE
+
+$claims$host_sandboxed
+[1] FALSE
+
+$claims$bundle_mutated
+[1] FALSE
+
+
+attr(,"class")
+[1] "wb_operation_pack_conformance_v3" "wb_operation_pack_conformance"   
+[3] "list"                            
+OBSERVED OPERATION_PACK_MANIFEST_SOURCE_REQUIRED ABI v3 activation must authenticate the original installed manifest path.
+REJECTED ABI v3 activation must authenticate the original installed manifest path.
+[1] "/tmp/Rtmp7ipRJ5/sdk-activation-922e9762fb96e/library/scwbSdkCollision/scworkbench/operation-pack.json"
+OBSERVED OPERATION_PACK_NAMESPACE_DUPLICATE Operation-pack namespace 'sdkactivation' is already loaded.
+REJECTED Operation-pack namespace 'sdkactivation' is already loaded.
+[1] "/tmp/Rtmp7ipRJ5/sdk-activation-922e9762fb96e/library/scwbSdkAbiMismatch/scworkbench/operation-pack.json"
+OBSERVED OPERATION_PACK_MANIFEST_SCHEMA_INVALID Operation-pack v3 manifest failed Draft 2020-12 validation at $/compatibility/pack_abi/minimum: const mismatch
+REJECTED Operation-pack v3 manifest failed Draft 2020-12 validation at $/compatibility/pack_abi/minimum: const mismatch
+[1] "/tmp/Rtmp7ipRJ5/sdk-activation-922e9762fb96e/library/scwbSdkDependency/scworkbench/operation-pack.json"
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+SDK_ACTIVATION_NEGATIVES_OK inert=TRUE wrong_manifest=reject collision=reject abi=reject missing_dependency=reject unchanged=TRUE
+PASS test_operation_pack_sdk_activation_negatives (48.908s)
+RUN test_operation_pack_sdk_case_accounting [test_operation_pack_sdk_contract.R; self_contained]
+PASSED passes  
+SKIPPED skips -- fixture deliberately absent 
+FAILED fails -- deliberate assertion 
+SDK_CASE_SUMMARY discovered=3 executed=3 passed=1 skipped=1 failed=1
+PASS test_operation_pack_sdk_case_accounting (0.002s)
+RUN test_operation_pack_sdk_catalog_coverage [test_operation_pack_sdk_contract.R; self_contained]
+FAIL test_operation_pack_sdk_catalog_coverage -- Installed SDK asset is missing.
+RUN test_operation_pack_sdk_installed_contract [test_operation_pack_sdk_contract.R; self_contained]
+* installing *source* package ‘scwbSdkAcceptance’ ...
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (scwbSdkAcceptance)
+<environment: namespace:scwbSdkAcceptance>
+INSTALLED_INERT_VALIDATED_EXPLICITLY_ACTIVATED
+      namespace           package version backend
+1 sdkacceptance scwbSdkAcceptance   0.1.0       R
+                                                   manifest_sha256
+1 f9c1c8af37e8769a66bd4c8cd50cfb546fc71140929130571252d6dea56d5ce5
+                                                       pack_sha256
+1 e0fc80e892ff5395ab208fc3e50d6dc2f0f2c2da2fcd20ce818a4662a98a97d7
+  operation_count  used
+1               1 FALSE
+<environment: namespace:scwbSdkAcceptance>
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PASSED real_reader_chunk_1  
+PASSED real_reader_chunk_2  
+PASSED real_reader_chunk_3  
+PASSED invalid_chunk_size  
+PASSED missing_matrix  
+PASSED empty_selection  
+PASSED rollback_skip_partition  
+PASSED rollback_repeat_partition  
+PASSED rollback_reversed_partition  
+PASSED rollback_oversized_partition  
+PASSED rollback_foreign_partition  
+PASSED rollback_missing_terminal  
+PASSED rollback_reordered_output  
+PASSED rollback_after_first_terminal  
+PASSED rollback_before_publication  
+PASSED rollback_published  
+PASSED retry_and_recipient  
+SDK_CASE_SUMMARY discovered=17 executed=17 passed=17 skipped=0 failed=0
+PASS test_operation_pack_sdk_installed_contract (228.227s)
+RUN test_operation_pack_sdk_installed_tutorial [test_operation_pack_sdk_contract.R; self_contained]
+$qualified
+[1] TRUE
+
+$tests
+$tests$discovered
+[1] 17
+
+$tests$executed
+[1] 17
+
+$tests$passed
+[1] 17
+
+$tests$skipped
+[1] 0
+
+$tests$failed
+[1] 0
+
+
+$command_exits
+$command_exits$install
+[1] 0
+
+$command_exits$installed
+[1] 0
+
+$command_exits$contract
+[1] 0
+
+
+$identity
+$identity$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$identity$schema_version
+[1] "scworkbench.operation_pack.v3"
+
+$identity$pack_abi_version
+[1] "3"
+
+$identity$namespace
+[1] "sdktutorial"
+
+$identity$package
+$identity$package$name
+[1] "scwbSdkTutorial"
+
+$identity$package$version
+[1] "0.1.0"
+
+
+$identity$backend
+[1] "R"
+
+$identity$compatibility
+$identity$compatibility$scworkbench
+$identity$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+$identity$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+
+$identity$compatibility$pack_abi
+$identity$compatibility$pack_abi$minimum
+[1] "3"
+
+$identity$compatibility$pack_abi$maximum
+[1] "3"
+
+
+
+$identity$entry_point
+[1] "scwbSdkTutorial::register_operation_pack"
+
+$identity$manifest_source_identity
+$identity$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$identity$manifest_source_identity$sha256
+[1] "0a716c59015d6abce29d5ac7dfafd2f07e4c8c89db739e28f181813eb1557441"
+
+
+$identity$manifest_identity
+$identity$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v3"
+
+$identity$manifest_identity$sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+
+$identity$manifest_sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+$identity$operation_definition_identities
+$identity$operation_definition_identities$`sdktutorial::matrix_cell_sum`
+$identity$operation_definition_identities$`sdktutorial::matrix_cell_sum`$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$identity$operation_definition_identities$`sdktutorial::matrix_cell_sum`$sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+
+$identity$operation_definition_sha256
+$identity$operation_definition_sha256$`sdktutorial::matrix_cell_sum`
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+$identity$distribution_identity
+$identity$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$identity$distribution_identity$sha256
+[1] "3ad7e3d31d4fbfd9622531fbdfb6c65761a1100ebee2b5440e3ae853b2fd7f1a"
+
+
+$identity$entry_point_identity
+$identity$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$identity$entry_point_identity$sha256
+[1] "9669e0cefb6b0018283f0741fec3c4b280bdefb2fd379ef8d663cae092f13c17"
+
+
+$identity$pack_identity
+$identity$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$identity$pack_identity$sha256
+[1] "d1a8b9dd81d0ddc9590eb70258a7e4a645c0024828399a7d9278db72c1a29848"
+
+
+$identity$pack_sha256
+[1] "d1a8b9dd81d0ddc9590eb70258a7e4a645c0024828399a7d9278db72c1a29848"
+
+
+<environment: namespace:scwbSdkTutorial>
+$schema_version
+[1] "scworkbench.operation_pack.conformance.v3"
+
+$ok
+[1] TRUE
+
+$activated
+[1] FALSE
+
+$identity
+$identity$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$identity$schema_version
+[1] "scworkbench.operation_pack.v3"
+
+$identity$pack_abi_version
+[1] "3"
+
+$identity$namespace
+[1] "sdktutorial"
+
+$identity$package
+$identity$package$name
+[1] "scwbSdkTutorial"
+
+$identity$package$version
+[1] "0.1.0"
+
+
+$identity$backend
+[1] "R"
+
+$identity$compatibility
+$identity$compatibility$scworkbench
+$identity$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+$identity$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+
+$identity$compatibility$pack_abi
+$identity$compatibility$pack_abi$minimum
+[1] "3"
+
+$identity$compatibility$pack_abi$maximum
+[1] "3"
+
+
+
+$identity$entry_point
+[1] "scwbSdkTutorial::register_operation_pack"
+
+$identity$manifest_source_identity
+$identity$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$identity$manifest_source_identity$sha256
+[1] "0a716c59015d6abce29d5ac7dfafd2f07e4c8c89db739e28f181813eb1557441"
+
+
+$identity$manifest_identity
+$identity$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v3"
+
+$identity$manifest_identity$sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+
+$identity$manifest_sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+$identity$operation_definition_identities
+$identity$operation_definition_identities$`sdktutorial::matrix_cell_sum`
+$identity$operation_definition_identities$`sdktutorial::matrix_cell_sum`$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$identity$operation_definition_identities$`sdktutorial::matrix_cell_sum`$sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+
+$identity$operation_definition_sha256
+$identity$operation_definition_sha256$`sdktutorial::matrix_cell_sum`
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+$identity$distribution_identity
+$identity$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$identity$distribution_identity$sha256
+[1] "153bf0a1b3ede85130b07a19a9f12a0b865253e9bca7a98b2626dc1427dfbc1a"
+
+
+$identity$entry_point_identity
+$identity$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$identity$entry_point_identity$sha256
+[1] "9669e0cefb6b0018283f0741fec3c4b280bdefb2fd379ef8d663cae092f13c17"
+
+
+$identity$pack_identity
+$identity$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$identity$pack_identity$sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$identity$pack_sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$operations
+$operations[[1]]
+$operations[[1]]$op_name
+[1] "sdktutorial::matrix_cell_sum"
+
+$operations[[1]]$definition_sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+$operations[[1]]$consumes
+$operations[[1]]$consumes[[1]]
+$operations[[1]]$consumes[[1]]$name
+[1] "matrix"
+
+$operations[[1]]$consumes[[1]]$kind
+[1] "matrix"
+
+$operations[[1]]$consumes[[1]]$required
+[1] TRUE
+
+$operations[[1]]$consumes[[1]]$alignment
+[1] "cell_and_feature_ordered"
+
+
+
+$operations[[1]]$produces
+$operations[[1]]$produces[[1]]
+$operations[[1]]$produces[[1]]$name
+[1] "sums"
+
+$operations[[1]]$produces[[1]]$category
+[1] "terminal_artifact"
+
+$operations[[1]]$produces[[1]]$kind
+[1] "cell_vector"
+
+$operations[[1]]$produces[[1]]$storage_profile
+[1] "terminal_primitive_v1"
+
+$operations[[1]]$produces[[1]]$allocated_id_key
+[1] "sums_id"
+
+$operations[[1]]$produces[[1]]$required
+[1] TRUE
+
+$operations[[1]]$produces[[1]]$promotion_group
+[1] "result"
+
+$operations[[1]]$produces[[1]]$value_kind
+[1] "continuous"
+
+
+$operations[[1]]$produces[[2]]
+$operations[[1]]$produces[[2]]$name
+[1] "summary"
+
+$operations[[1]]$produces[[2]]$category
+[1] "terminal_artifact"
+
+$operations[[1]]$produces[[2]]$kind
+[1] "obs_table"
+
+$operations[[1]]$produces[[2]]$storage_profile
+[1] "terminal_primitive_v1"
+
+$operations[[1]]$produces[[2]]$allocated_id_key
+[1] "summary_id"
+
+$operations[[1]]$produces[[2]]$required
+[1] TRUE
+
+$operations[[1]]$produces[[2]]$promotion_group
+[1] "result"
+
+$operations[[1]]$produces[[2]]$table_type
+[1] "sdk_matrix_cell_sum_summary"
+
+
+
+$operations[[1]]$promotable
+[1] "sums"    "summary"
+
+
+
+$claims
+$claims$engine_compatible
+[1] TRUE
+
+$claims$scientifically_validated
+[1] FALSE
+
+$claims$host_sandboxed
+[1] FALSE
+
+$claims$bundle_mutated
+[1] FALSE
+
+
+attr(,"class")
+[1] "wb_operation_pack_conformance_v3" "wb_operation_pack_conformance"   
+[3] "list"                            
+$op_name
+[1] "sdktutorial::matrix_cell_sum"
+
+$title
+[1] "Finite matrix sums by cell"
+
+$description
+[1] "Computes finite per-cell sums using authenticated ordered cell partitions and emits a summary in one closure."
+
+$intent
+[1] "operation_pack_v2_reference"
+
+$inputs
+$inputs$matrix
+$inputs$matrix$required
+[1] TRUE
+
+$inputs$matrix$kind
+[1] "matrix"
+
+$inputs$matrix$effective_cell_coverage
+[1] "cell_indexed"
+
+
+$inputs$cell_set
+$inputs$cell_set$type
+[1] "select"
+
+$inputs$cell_set$label
+[1] "Cell set"
+
+$inputs$cell_set$choices
+[1] "core" "all" 
+
+$inputs$cell_set$default
+[1] "all"
+
+$inputs$cell_set$value_type
+[1] "cell_set"
+
+$inputs$cell_set$required
+[1] FALSE
+
+$inputs$cell_set$non_empty
+[1] TRUE
+
+
+
+$controls
+$controls$cell_set
+$controls$cell_set$name
+[1] "cell_set"
+
+$controls$cell_set$type
+[1] "cell_set"
+
+$controls$cell_set$default
+[1] "all"
+
+$controls$cell_set$required
+[1] FALSE
+
+$controls$cell_set$help
+[1] "Named bundle cell set defining the requested cell universe."
+
+
+$controls$cell_ids
+$controls$cell_ids$name
+[1] "cell_ids"
+
+$controls$cell_ids$type
+[1] "cell_ids"
+
+$controls$cell_ids$default
+NULL
+
+$controls$cell_ids$required
+[1] FALSE
+
+$controls$cell_ids$help
+[1] "Optional explicit non-empty cell-id universe overriding cell_set."
+
+
+$controls$min_cells
+$controls$min_cells$name
+[1] "min_cells"
+
+$controls$min_cells$type
+[1] "int"
+
+$controls$min_cells$default
+[1] 10
+
+$controls$min_cells$min
+[1] 1
+
+$controls$min_cells$required
+[1] FALSE
+
+$controls$min_cells$help
+[1] "Minimum effective cell count required before runner execution."
+
+
+
+$params
+$params[[1]]
+$params[[1]]$name
+[1] "chunk_size"
+
+$params[[1]]$type
+[1] "int"
+
+$params[[1]]$default
+[1] 2
+
+$params[[1]]$min
+[1] 1
+
+$params[[1]]$help
+[1] "ABI v2 parameter chunk_size"
+
+$params[[1]]$required
+[1] FALSE
+
+$params[[1]]$nullable
+[1] FALSE
+
+$params[[1]]$allow_non_finite
+[1] FALSE
+
+$params[[1]]$strict_integer
+[1] TRUE
+
+$params[[1]]$non_empty
+[1] FALSE
+
+
+
+$produces
+$produces$sums
+$produces$sums$kind
+[1] "cell_vector"
+
+$produces$sums$description
+NULL
+
+$produces$sums$output_name
+[1] "sums"
+
+$produces$sums$primitive_kind
+[1] "cell_vector"
+
+$produces$sums$durability_role
+[1] "terminal_artifact"
+
+$produces$sums$promotable_directly
+[1] TRUE
+
+$produces$sums$materialized_by_terminals
+[1] "sums"
+
+$produces$sums$replay_equivalence
+[1] "exact_canonical_value"
+
+
+$produces$summary
+$produces$summary$kind
+[1] "obs_table"
+
+$produces$summary$description
+NULL
+
+$produces$summary$output_name
+[1] "summary"
+
+$produces$summary$primitive_kind
+[1] "obs_table"
+
+$produces$summary$durability_role
+[1] "terminal_artifact"
+
+$produces$summary$promotable_directly
+[1] TRUE
+
+$produces$summary$materialized_by_terminals
+[1] "summary"
+
+$produces$summary$replay_equivalence
+[1] "exact_canonical_value"
+
+
+
+$replay_equivalence
+$replay_equivalence$sums
+[1] "exact_canonical_value"
+
+$replay_equivalence$summary
+[1] "exact_canonical_value"
+
+
+$chunking
+$chunking$chunkable
+[1] TRUE
+
+$chunking$axis
+[1] "cells"
+
+$chunking$chunk_size_param
+[1] "chunk_size"
+
+$chunking$status
+[1] "v3_typed_slice_capability"
+
+$chunking$chunk_size_default
+[1] 2
+
+
+$source_pack
+$source_pack$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$source_pack$schema_version
+[1] "scworkbench.operation_pack.v3"
+
+$source_pack$pack_abi_version
+[1] "3"
+
+$source_pack$namespace
+[1] "sdktutorial"
+
+$source_pack$package
+$source_pack$package$name
+[1] "scwbSdkTutorial"
+
+$source_pack$package$version
+[1] "0.1.0"
+
+
+$source_pack$backend
+[1] "R"
+
+$source_pack$compatibility
+$source_pack$compatibility$scworkbench
+$source_pack$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+$source_pack$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+
+$source_pack$compatibility$pack_abi
+$source_pack$compatibility$pack_abi$minimum
+[1] "3"
+
+$source_pack$compatibility$pack_abi$maximum
+[1] "3"
+
+
+
+$source_pack$entry_point
+[1] "scwbSdkTutorial::register_operation_pack"
+
+$source_pack$manifest_source_identity
+$source_pack$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$source_pack$manifest_source_identity$sha256
+[1] "0a716c59015d6abce29d5ac7dfafd2f07e4c8c89db739e28f181813eb1557441"
+
+
+$source_pack$manifest_identity
+$source_pack$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v3"
+
+$source_pack$manifest_identity$sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+
+$source_pack$manifest_sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+$source_pack$operation_definition_identities
+$source_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`
+$source_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$source_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`$sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+
+$source_pack$operation_definition_sha256
+$source_pack$operation_definition_sha256$`sdktutorial::matrix_cell_sum`
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+$source_pack$distribution_identity
+$source_pack$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$source_pack$distribution_identity$sha256
+[1] "153bf0a1b3ede85130b07a19a9f12a0b865253e9bca7a98b2626dc1427dfbc1a"
+
+
+$source_pack$entry_point_identity
+$source_pack$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$source_pack$entry_point_identity$sha256
+[1] "9669e0cefb6b0018283f0741fec3c4b280bdefb2fd379ef8d663cae092f13c17"
+
+
+$source_pack$pack_identity
+$source_pack$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$source_pack$pack_identity$sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$source_pack$pack_sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+[1] TRUE
+$sums
+$kind
+[1] "cell_vector"
+
+$cell_id
+[1] "cell_2" "cell_1" "cell_3" "cell_7" "cell_4"
+
+$value
+[1] "6"  "3"  "0"  "10" "6" 
+
+$value_type
+[1] "continuous"
+
+$meta
+$meta$finite_policy
+[1] "error"
+
+
+attr(,"class")
+[1] "wb_primitive"
+
+$summary
+$kind
+[1] "obs_table"
+
+$table_type
+[1] "sdk_matrix_cell_sum_summary"
+
+$entity_kind
+[1] "generic"
+
+$table
+  chunk_index cell_count feature_count first_cell last_cell sum_total
+1           1          2             3     cell_2    cell_1         9
+2           2          2             3     cell_3    cell_7        10
+3           3          1             3     cell_4    cell_4         6
+
+$meta
+list()
+
+attr(,"class")
+[1] "wb_primitive"
+
+$chunk_size
+[1] 2
+
+$finite_policy
+[1] "error"
+
+[1] "RECIPIENT_READ_ONLY_VALID; PACK_FREE_INSPECTION; MISSING_PACK_REJECTED; FINGERPRINT_UNCHANGED"
+$session_id
+[1] "session_jjpuj6rot1ns"
+
+$runs
+$runs$run_bb5yy384ciz4
+$run_id
+[1] "run_bb5yy384ciz4"
+
+$op_name
+[1] "sdktutorial::matrix_cell_sum"
+
+$created_at
+[1] "2026-10-12T14:23:47+0200"
+
+$inputs
+$inputs$cell_set
+[1] "set:sdk_subset"
+
+$inputs$effective_n
+[1] 5
+
+$inputs$parents
+character(0)
+
+$inputs$provenance_refs
+list()
+
+$inputs$coverage
+$inputs$coverage$schema_version
+[1] "scworkbench.effective_cell_coverage.v1"
+
+$inputs$coverage$requested_source
+[1] "cell_set"
+
+$inputs$coverage$cell_set
+[1] "set:sdk_subset"
+
+$inputs$coverage$requested_n
+[1] 5
+
+$inputs$coverage$per_input
+$inputs$coverage$per_input$matrix
+$inputs$coverage$per_input$matrix$kind
+[1] "matrix"
+
+$inputs$coverage$per_input$matrix$required
+[1] TRUE
+
+$inputs$coverage$per_input$matrix$coverage_mode
+[1] "cell_indexed"
+
+$inputs$coverage$per_input$matrix$source_id
+[1] "counts"
+
+$inputs$coverage$per_input$matrix$dims
+NULL
+
+$inputs$coverage$per_input$matrix$available_n
+[1] 6
+
+$inputs$coverage$per_input$matrix$input_n
+[1] 5
+
+$inputs$coverage$per_input$matrix$overlap_n
+[1] 5
+
+$inputs$coverage$per_input$matrix$dropped_n
+[1] 0
+
+
+
+$inputs$coverage$effective_n
+[1] 5
+
+$inputs$coverage$dropped_n
+[1] 0
+
+$inputs$coverage$percent
+[1] 100
+
+
+$inputs$cell_set_resolutions
+$inputs$cell_set_resolutions[[1]]
+$inputs$cell_set_resolutions[[1]]$schema
+[1] "scworkbench.cell_set_resolution.v1"
+
+$inputs$cell_set_resolutions[[1]]$binding_name
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$binding_path
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$parameter_type
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$declared_value
+[1] "set:sdk_subset"
+
+$inputs$cell_set_resolutions[[1]]$entity_kind
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$entity_id
+[1] "set:sdk_subset"
+
+$inputs$cell_set_resolutions[[1]]$relationship_type
+[1] "CONSUMES"
+
+$inputs$cell_set_resolutions[[1]]$resolution_policy
+[1] "source_membership_intersect_operation_effective_cells"
+
+$inputs$cell_set_resolutions[[1]]$entity_content_sha256
+[1] "3ed20bcf4d971bfe9446d6e9c77e4b128577ac2d3919a229853a8dc2b8d33e9b"
+
+$inputs$cell_set_resolutions[[1]]$entity_content_identity_scheme
+[1] "scworkbench.content.registry.canonical-json.v1"
+
+$inputs$cell_set_resolutions[[1]]$source_membership_sha256
+[1] "03e90a8505b40538728d11cfdf113651d425e151d411a760b6916e7cb6d83c00"
+
+$inputs$cell_set_resolutions[[1]]$source_membership_identity_scheme
+[1] "scworkbench.cell-set-membership.sorted-cell-id.canonical-json.v1"
+
+$inputs$cell_set_resolutions[[1]]$source_member_count
+[1] 5
+
+$inputs$cell_set_resolutions[[1]]$effective_membership_sha256
+[1] "03e90a8505b40538728d11cfdf113651d425e151d411a760b6916e7cb6d83c00"
+
+$inputs$cell_set_resolutions[[1]]$effective_membership_identity_scheme
+[1] "scworkbench.cell-set-membership.sorted-cell-id.canonical-json.v1"
+
+$inputs$cell_set_resolutions[[1]]$effective_member_count
+[1] 5
+
+
+
+$inputs$user_inputs
+$inputs$user_inputs$matrix
+[1] "counts"
+
+$inputs$user_inputs$cell_set
+[1] "set:sdk_subset"
+
+$inputs$user_inputs$min_cells
+[1] 1
+
+$inputs$user_inputs$chunk_size
+[1] 2
+
+
+$inputs$symbolic_inputs
+$inputs$symbolic_inputs$cell_set
+[1] "set:sdk_subset"
+
+$inputs$symbolic_inputs$min_cells
+[1] 1
+
+$inputs$symbolic_inputs$chunk_size
+[1] 2
+
+$inputs$symbolic_inputs$matrix
+[1] "counts"
+
+
+$inputs$execution_inputs
+$inputs$execution_inputs$effective_n
+[1] 5
+
+$inputs$execution_inputs$resolved
+$inputs$execution_inputs$resolved$matrix
+$inputs$execution_inputs$resolved$matrix$kind
+[1] "matrix"
+
+$inputs$execution_inputs$resolved$matrix$matrix_id
+[1] "counts"
+
+
+
+
+$inputs$operation_pack_registry_requests
+list()
+
+
+$params
+$params$chunk_size
+[1] 2
+
+$params$finite_policy
+[1] "error"
+
+
+$outputs
+$outputs$sums
+$kind
+[1] "cell_vector"
+
+$cell_id
+[1] "cell_2" "cell_1" "cell_3" "cell_7" "cell_4"
+
+$value
+[1] "6"  "3"  "0"  "10" "6" 
+
+$value_type
+[1] "continuous"
+
+$meta
+$meta$finite_policy
+[1] "error"
+
+
+attr(,"class")
+[1] "wb_primitive"
+
+$outputs$summary
+$kind
+[1] "obs_table"
+
+$table_type
+[1] "sdk_matrix_cell_sum_summary"
+
+$entity_kind
+[1] "generic"
+
+$table
+  chunk_index cell_count feature_count first_cell last_cell sum_total
+1           1          2             3     cell_2    cell_1         9
+2           2          2             3     cell_3    cell_7        10
+3           3          1             3     cell_4    cell_4         6
+
+$meta
+list()
+
+attr(,"class")
+[1] "wb_primitive"
+
+
+$notes
+NULL
+
+$operation_pack
+$operation_pack$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$operation_pack$schema_version
+[1] "scworkbench.operation_pack.v3"
+
+$operation_pack$pack_abi_version
+[1] "3"
+
+$operation_pack$namespace
+[1] "sdktutorial"
+
+$operation_pack$package
+$operation_pack$package$name
+[1] "scwbSdkTutorial"
+
+$operation_pack$package$version
+[1] "0.1.0"
+
+
+$operation_pack$backend
+[1] "R"
+
+$operation_pack$compatibility
+$operation_pack$compatibility$scworkbench
+$operation_pack$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+$operation_pack$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+
+$operation_pack$compatibility$pack_abi
+$operation_pack$compatibility$pack_abi$minimum
+[1] "3"
+
+$operation_pack$compatibility$pack_abi$maximum
+[1] "3"
+
+
+
+$operation_pack$entry_point
+[1] "scwbSdkTutorial::register_operation_pack"
+
+$operation_pack$manifest_source_identity
+$operation_pack$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack$manifest_source_identity$sha256
+[1] "0a716c59015d6abce29d5ac7dfafd2f07e4c8c89db739e28f181813eb1557441"
+
+
+$operation_pack$manifest_identity
+$operation_pack$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v3"
+
+$operation_pack$manifest_identity$sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+
+$operation_pack$manifest_sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+$operation_pack$operation_definition_identities
+$operation_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`
+$operation_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$operation_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`$sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+
+$operation_pack$operation_definition_sha256
+$operation_pack$operation_definition_sha256$`sdktutorial::matrix_cell_sum`
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+$operation_pack$distribution_identity
+$operation_pack$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack$distribution_identity$sha256
+[1] "153bf0a1b3ede85130b07a19a9f12a0b865253e9bca7a98b2626dc1427dfbc1a"
+
+
+$operation_pack$entry_point_identity
+$operation_pack$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack$entry_point_identity$sha256
+[1] "9669e0cefb6b0018283f0741fec3c4b280bdefb2fd379ef8d663cae092f13c17"
+
+
+$operation_pack$pack_identity
+$operation_pack$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$operation_pack$pack_identity$sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$operation_pack$pack_sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$operation_definition_sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+$operation_pack_runtime
+$operation_pack_runtime$schema
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$backend
+[1] "R"
+
+$operation_pack_runtime$pack_identity
+$operation_pack_runtime$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$operation_pack_runtime$pack_identity$sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$operation_pack_runtime$manifest_source_identity
+$operation_pack_runtime$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack_runtime$manifest_source_identity$sha256
+[1] "0a716c59015d6abce29d5ac7dfafd2f07e4c8c89db739e28f181813eb1557441"
+
+
+$operation_pack_runtime$distribution_identity
+$operation_pack_runtime$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack_runtime$distribution_identity$sha256
+[1] "153bf0a1b3ede85130b07a19a9f12a0b865253e9bca7a98b2626dc1427dfbc1a"
+
+
+$operation_pack_runtime$operation_definition_identity
+$operation_pack_runtime$operation_definition_identity$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$operation_pack_runtime$operation_definition_identity$sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+$operation_pack_runtime$entry_point
+$operation_pack_runtime$entry_point$value
+[1] "scwbSdkTutorial::register_operation_pack"
+
+$operation_pack_runtime$entry_point$identity
+$operation_pack_runtime$entry_point$identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack_runtime$entry_point$identity$sha256
+[1] "9669e0cefb6b0018283f0741fec3c4b280bdefb2fd379ef8d663cae092f13c17"
+
+
+
+$operation_pack_runtime$declared_requirement_set_identity
+$operation_pack_runtime$declared_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$declared_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$selected_requirement_set_identity
+$operation_pack_runtime$selected_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$selected_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$dynamic_resolutions
+list()
+
+$operation_pack_runtime$preflight_report_identity
+$operation_pack_runtime$preflight_report_identity$scheme
+[1] "scworkbench.operation_pack.preflight.v2"
+
+$operation_pack_runtime$preflight_report_identity$sha256
+[1] "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+
+
+$operation_pack_runtime$path_policy
+[1] "no_absolute_paths"
+
+$operation_pack_runtime$runtime_identity
+$operation_pack_runtime$runtime_identity$scheme
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$runtime_identity$scope
+[1] "runtime attestation excluding runtime_identity"
+
+$operation_pack_runtime$runtime_identity$sha256
+[1] "87bcd962d58d1d5bc26beceb13c8eca8b5469d5530a9a7bf374336733596a7b6"
+
+
+
+$operation_pack_transition
+$operation_pack_transition$transition_id
+[1] "transition_kzz330971xm27xnu"
+
+$operation_pack_transition$receipt_identity
+$operation_pack_transition$receipt_identity$scheme
+[1] "scworkbench.operation_pack.transition_receipt.v3"
+
+$operation_pack_transition$receipt_identity$scope
+[1] "receipt excluding receipt_identity"
+
+$operation_pack_transition$receipt_identity$sha256
+[1] "e7f6c3a82ea169fa26f419f6ad3459321b4a32dc510c8d9f3469dbd1adb89d4b"
+
+
+
+$operation_pack_registry_requests
+list()
+
+attr(,"class")
+[1] "wb_run"
+
+
+$active
+$active$sums
+$active$sums$ref_type
+[1] "run"
+
+$active$sums$run_id
+[1] "run_bb5yy384ciz4"
+
+$active$sums$output
+[1] "sums"
+
+
+$active$summary
+$active$summary$ref_type
+[1] "run"
+
+$active$summary$run_id
+[1] "run_bb5yy384ciz4"
+
+$active$summary$output
+[1] "summary"
+
+
+
+$head_run_id
+[1] "run_bb5yy384ciz4"
+
+attr(,"class")
+[1] "wb_session"
+[1] TRUE
+$session_id
+[1] "session_4keg395pyx19"
+
+$runs
+$runs$run_s9hsacy4mvyn
+$run_id
+[1] "run_s9hsacy4mvyn"
+
+$op_name
+[1] "sdktutorial::matrix_cell_sum"
+
+$created_at
+[1] "2026-10-12T14:24:15+0200"
+
+$inputs
+$inputs$cell_set
+[1] "set:sdk_subset"
+
+$inputs$effective_n
+[1] 5
+
+$inputs$parents
+character(0)
+
+$inputs$provenance_refs
+list()
+
+$inputs$coverage
+$inputs$coverage$schema_version
+[1] "scworkbench.effective_cell_coverage.v1"
+
+$inputs$coverage$requested_source
+[1] "cell_set"
+
+$inputs$coverage$cell_set
+[1] "set:sdk_subset"
+
+$inputs$coverage$requested_n
+[1] 5
+
+$inputs$coverage$per_input
+$inputs$coverage$per_input$matrix
+$inputs$coverage$per_input$matrix$kind
+[1] "matrix"
+
+$inputs$coverage$per_input$matrix$required
+[1] TRUE
+
+$inputs$coverage$per_input$matrix$coverage_mode
+[1] "cell_indexed"
+
+$inputs$coverage$per_input$matrix$source_id
+[1] "counts"
+
+$inputs$coverage$per_input$matrix$dims
+NULL
+
+$inputs$coverage$per_input$matrix$available_n
+[1] 6
+
+$inputs$coverage$per_input$matrix$input_n
+[1] 5
+
+$inputs$coverage$per_input$matrix$overlap_n
+[1] 5
+
+$inputs$coverage$per_input$matrix$dropped_n
+[1] 0
+
+
+
+$inputs$coverage$effective_n
+[1] 5
+
+$inputs$coverage$dropped_n
+[1] 0
+
+$inputs$coverage$percent
+[1] 100
+
+
+$inputs$cell_set_resolutions
+$inputs$cell_set_resolutions[[1]]
+$inputs$cell_set_resolutions[[1]]$schema
+[1] "scworkbench.cell_set_resolution.v1"
+
+$inputs$cell_set_resolutions[[1]]$binding_name
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$binding_path
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$parameter_type
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$declared_value
+[1] "set:sdk_subset"
+
+$inputs$cell_set_resolutions[[1]]$entity_kind
+[1] "cell_set"
+
+$inputs$cell_set_resolutions[[1]]$entity_id
+[1] "set:sdk_subset"
+
+$inputs$cell_set_resolutions[[1]]$relationship_type
+[1] "CONSUMES"
+
+$inputs$cell_set_resolutions[[1]]$resolution_policy
+[1] "source_membership_intersect_operation_effective_cells"
+
+$inputs$cell_set_resolutions[[1]]$entity_content_sha256
+[1] "3ed20bcf4d971bfe9446d6e9c77e4b128577ac2d3919a229853a8dc2b8d33e9b"
+
+$inputs$cell_set_resolutions[[1]]$entity_content_identity_scheme
+[1] "scworkbench.content.registry.canonical-json.v1"
+
+$inputs$cell_set_resolutions[[1]]$source_membership_sha256
+[1] "03e90a8505b40538728d11cfdf113651d425e151d411a760b6916e7cb6d83c00"
+
+$inputs$cell_set_resolutions[[1]]$source_membership_identity_scheme
+[1] "scworkbench.cell-set-membership.sorted-cell-id.canonical-json.v1"
+
+$inputs$cell_set_resolutions[[1]]$source_member_count
+[1] 5
+
+$inputs$cell_set_resolutions[[1]]$effective_membership_sha256
+[1] "03e90a8505b40538728d11cfdf113651d425e151d411a760b6916e7cb6d83c00"
+
+$inputs$cell_set_resolutions[[1]]$effective_membership_identity_scheme
+[1] "scworkbench.cell-set-membership.sorted-cell-id.canonical-json.v1"
+
+$inputs$cell_set_resolutions[[1]]$effective_member_count
+[1] 5
+
+
+
+$inputs$user_inputs
+$inputs$user_inputs$matrix
+[1] "counts"
+
+$inputs$user_inputs$cell_set
+[1] "set:sdk_subset"
+
+$inputs$user_inputs$min_cells
+[1] 1
+
+$inputs$user_inputs$chunk_size
+[1] 2
+
+
+$inputs$symbolic_inputs
+$inputs$symbolic_inputs$cell_set
+[1] "set:sdk_subset"
+
+$inputs$symbolic_inputs$min_cells
+[1] 1
+
+$inputs$symbolic_inputs$chunk_size
+[1] 2
+
+$inputs$symbolic_inputs$matrix
+[1] "counts"
+
+
+$inputs$execution_inputs
+$inputs$execution_inputs$effective_n
+[1] 5
+
+$inputs$execution_inputs$resolved
+$inputs$execution_inputs$resolved$matrix
+$inputs$execution_inputs$resolved$matrix$kind
+[1] "matrix"
+
+$inputs$execution_inputs$resolved$matrix$matrix_id
+[1] "counts"
+
+
+
+
+$inputs$operation_pack_registry_requests
+list()
+
+
+$params
+$params$chunk_size
+[1] 2
+
+$params$finite_policy
+[1] "error"
+
+
+$outputs
+$outputs$sums
+$kind
+[1] "cell_vector"
+
+$cell_id
+[1] "cell_2" "cell_1" "cell_3" "cell_7" "cell_4"
+
+$value
+[1] "6"  "3"  "0"  "10" "6" 
+
+$value_type
+[1] "continuous"
+
+$meta
+$meta$finite_policy
+[1] "error"
+
+
+attr(,"class")
+[1] "wb_primitive"
+
+$outputs$summary
+$kind
+[1] "obs_table"
+
+$table_type
+[1] "sdk_matrix_cell_sum_summary"
+
+$entity_kind
+[1] "generic"
+
+$table
+  chunk_index cell_count feature_count first_cell last_cell sum_total
+1           1          2             3     cell_2    cell_1         9
+2           2          2             3     cell_3    cell_7        10
+3           3          1             3     cell_4    cell_4         6
+
+$meta
+list()
+
+attr(,"class")
+[1] "wb_primitive"
+
+
+$notes
+NULL
+
+$operation_pack
+$operation_pack$identity_scheme
+[1] "scworkbench.operation_pack.canonical_json.v1"
+
+$operation_pack$schema_version
+[1] "scworkbench.operation_pack.v3"
+
+$operation_pack$pack_abi_version
+[1] "3"
+
+$operation_pack$namespace
+[1] "sdktutorial"
+
+$operation_pack$package
+$operation_pack$package$name
+[1] "scwbSdkTutorial"
+
+$operation_pack$package$version
+[1] "0.1.0"
+
+
+$operation_pack$backend
+[1] "R"
+
+$operation_pack$compatibility
+$operation_pack$compatibility$scworkbench
+$operation_pack$compatibility$scworkbench$minimum
+[1] "0.1.0"
+
+$operation_pack$compatibility$scworkbench$maximum_exclusive
+[1] "0.2.0"
+
+
+$operation_pack$compatibility$pack_abi
+$operation_pack$compatibility$pack_abi$minimum
+[1] "3"
+
+$operation_pack$compatibility$pack_abi$maximum
+[1] "3"
+
+
+
+$operation_pack$entry_point
+[1] "scwbSdkTutorial::register_operation_pack"
+
+$operation_pack$manifest_source_identity
+$operation_pack$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack$manifest_source_identity$sha256
+[1] "0a716c59015d6abce29d5ac7dfafd2f07e4c8c89db739e28f181813eb1557441"
+
+
+$operation_pack$manifest_identity
+$operation_pack$manifest_identity$scheme
+[1] "scworkbench.operation_pack.manifest.v3"
+
+$operation_pack$manifest_identity$sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+
+$operation_pack$manifest_sha256
+[1] "8fdd499effcad693dc7cf7796e688b7da0186ad4147570add8431589d93ed8cc"
+
+$operation_pack$operation_definition_identities
+$operation_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`
+$operation_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$operation_pack$operation_definition_identities$`sdktutorial::matrix_cell_sum`$sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+
+$operation_pack$operation_definition_sha256
+$operation_pack$operation_definition_sha256$`sdktutorial::matrix_cell_sum`
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+$operation_pack$distribution_identity
+$operation_pack$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack$distribution_identity$sha256
+[1] "153bf0a1b3ede85130b07a19a9f12a0b865253e9bca7a98b2626dc1427dfbc1a"
+
+
+$operation_pack$entry_point_identity
+$operation_pack$entry_point_identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack$entry_point_identity$sha256
+[1] "9669e0cefb6b0018283f0741fec3c4b280bdefb2fd379ef8d663cae092f13c17"
+
+
+$operation_pack$pack_identity
+$operation_pack$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$operation_pack$pack_identity$sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$operation_pack$pack_sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$operation_definition_sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+$operation_pack_runtime
+$operation_pack_runtime$schema
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$backend
+[1] "R"
+
+$operation_pack_runtime$pack_identity
+$operation_pack_runtime$pack_identity$scheme
+[1] "scworkbench.operation_pack.pack.v3"
+
+$operation_pack_runtime$pack_identity$sha256
+[1] "21ecbc9c6b724a6b980b3acfa74b9f31d69b0fa1a7adf9e869dbd8798127d2b5"
+
+
+$operation_pack_runtime$manifest_source_identity
+$operation_pack_runtime$manifest_source_identity$scheme
+[1] "scworkbench.operation_pack.manifest_source.bytes.v1"
+
+$operation_pack_runtime$manifest_source_identity$sha256
+[1] "0a716c59015d6abce29d5ac7dfafd2f07e4c8c89db739e28f181813eb1557441"
+
+
+$operation_pack_runtime$distribution_identity
+$operation_pack_runtime$distribution_identity$scheme
+[1] "scworkbench.operation_pack.content.v1"
+
+$operation_pack_runtime$distribution_identity$sha256
+[1] "153bf0a1b3ede85130b07a19a9f12a0b865253e9bca7a98b2626dc1427dfbc1a"
+
+
+$operation_pack_runtime$operation_definition_identity
+$operation_pack_runtime$operation_definition_identity$scheme
+[1] "scworkbench.operation_pack.definition.v3"
+
+$operation_pack_runtime$operation_definition_identity$sha256
+[1] "6cd35754f070420d23d1cffb79829623b8ebbc592f37f3cc497402efb144745a"
+
+
+$operation_pack_runtime$entry_point
+$operation_pack_runtime$entry_point$value
+[1] "scwbSdkTutorial::register_operation_pack"
+
+$operation_pack_runtime$entry_point$identity
+$operation_pack_runtime$entry_point$identity$scheme
+[1] "scworkbench.operation_pack.entry_point.v2"
+
+$operation_pack_runtime$entry_point$identity$sha256
+[1] "9669e0cefb6b0018283f0741fec3c4b280bdefb2fd379ef8d663cae092f13c17"
+
+
+
+$operation_pack_runtime$declared_requirement_set_identity
+$operation_pack_runtime$declared_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$declared_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$selected_requirement_set_identity
+$operation_pack_runtime$selected_requirement_set_identity$scheme
+[1] "scworkbench.operation_pack.dependencies.v2"
+
+$operation_pack_runtime$selected_requirement_set_identity$sha256
+[1] "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+
+
+$operation_pack_runtime$dynamic_resolutions
+list()
+
+$operation_pack_runtime$preflight_report_identity
+$operation_pack_runtime$preflight_report_identity$scheme
+[1] "scworkbench.operation_pack.preflight.v2"
+
+$operation_pack_runtime$preflight_report_identity$sha256
+[1] "05b87cf9d212ecbeb0653765ae3eb53f85395afd9c524ad3b5a6228f020b0271"
+
+
+$operation_pack_runtime$path_policy
+[1] "no_absolute_paths"
+
+$operation_pack_runtime$runtime_identity
+$operation_pack_runtime$runtime_identity$scheme
+[1] "scworkbench.operation_pack.runtime.v3"
+
+$operation_pack_runtime$runtime_identity$scope
+[1] "runtime attestation excluding runtime_identity"
+
+$operation_pack_runtime$runtime_identity$sha256
+[1] "87bcd962d58d1d5bc26beceb13c8eca8b5469d5530a9a7bf374336733596a7b6"
+
+
+
+$operation_pack_transition
+$operation_pack_transition$transition_id
+[1] "transition_6w9gjbyqvjpw0gr9"
+
+$operation_pack_transition$receipt_identity
+$operation_pack_transition$receipt_identity$scheme
+[1] "scworkbench.operation_pack.transition_receipt.v3"
+
+$operation_pack_transition$receipt_identity$scope
+[1] "receipt excluding receipt_identity"
+
+$operation_pack_transition$receipt_identity$sha256
+[1] "6e8bb0e22af27711edc80168c2c433cb6b1133ed1a903d0d3c6b6081bfddaf9d"
+
+
+
+$operation_pack_registry_requests
+list()
+
+attr(,"class")
+[1] "wb_run"
+
+
+$active
+$active$sums
+$active$sums$ref_type
+[1] "run"
+
+$active$sums$run_id
+[1] "run_s9hsacy4mvyn"
+
+$active$sums$output
+[1] "sums"
+
+
+$active$summary
+$active$summary$ref_type
+[1] "run"
+
+$active$summary$run_id
+[1] "run_s9hsacy4mvyn"
+
+$active$summary$output
+[1] "summary"
+
+
+
+$head_run_id
+[1] "run_s9hsacy4mvyn"
+
+attr(,"class")
+[1] "wb_session"
+SDK_INSTALLED_TUTORIAL_OK
+PASS test_operation_pack_sdk_installed_tutorial (294.110s)
+RUN test_operation_pack_sdk_manifest_negatives [test_operation_pack_sdk_contract.R; self_contained]
+FAIL test_operation_pack_sdk_manifest_negatives -- Installed SDK asset is missing.
+RUN test_operation_pack_sdk_scaffold_safety [test_operation_pack_sdk_contract.R; self_contained]
+FAIL test_operation_pack_sdk_scaffold_safety -- Installed SDK asset is missing.
+RUN test_operation_pack_v1_backend_admission_contract [test_operation_pack_v1_contract.R; self_contained]
+PASS test_operation_pack_v1_backend_admission_contract (23.808s)
+RUN test_operation_pack_v1_contract [test_operation_pack_v1_contract.R; self_contained]
+PASS test_operation_pack_v1_contract (79.036s)
+RUN test_operation_pack_v1_cross_language_lifecycle_contract [test_operation_pack_v1_contract.R; self_contained]
+SKIP test_operation_pack_v1_cross_language_lifecycle_contract -- Set SCWORKBENCH_PYBENCH_PYTHON and SCWORKBENCH_PYTHON_PACK_MANIFEST to execute the installed cross-language lifecycle proof.
+RUN test_operation_pack_v1_python_fault_confinement_contract [test_operation_pack_v1_contract.R; self_contained]
+SKIP test_operation_pack_v1_python_fault_confinement_contract -- Installed Python operation-pack fixtures are not configured.
+RUN test_operation_pack_v2_cell_set_family_atomic_rollback_contract [test_operation_pack_v2_cell_set_family_admission_contract.R; self_contained]
+FAIL test_operation_pack_v2_cell_set_family_atomic_rollback_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_cell_set_family_identity_fixture_contract [test_operation_pack_v2_cell_set_family_admission_contract.R; self_contained]
+PASS test_operation_pack_v2_cell_set_family_identity_fixture_contract (6.580s)
+RUN test_operation_pack_v2_cell_set_family_modes_and_empty_contract [test_operation_pack_v2_cell_set_family_admission_contract.R; self_contained]
+FAIL test_operation_pack_v2_cell_set_family_modes_and_empty_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_cell_set_family_normalization_contract [test_operation_pack_v2_cell_set_family_admission_contract.R; self_contained]
+PASS test_operation_pack_v2_cell_set_family_normalization_contract (7.492s)
+RUN test_operation_pack_v2_cell_set_family_publication_contract [test_operation_pack_v2_cell_set_family_admission_contract.R; self_contained]
+FAIL test_operation_pack_v2_cell_set_family_publication_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_cell_set_family_writer_fail_closed_contract [test_operation_pack_v2_cell_set_family_admission_contract.R; self_contained]
+FAIL test_operation_pack_v2_cell_set_family_writer_fail_closed_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_atomic_activation_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_atomic_activation_contract -- identical(as.character(error$code), code) is not TRUE
+RUN test_operation_pack_v2_cell_set_family_capability_gap_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_cell_set_family_capability_gap_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_dynamic_dependency_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_dynamic_dependency_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_interrupted_recovery_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_interrupted_recovery_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_manifest_admission_contract [test_operation_pack_v2_contract.R; self_contained]
+PASS test_operation_pack_v2_manifest_admission_contract (0.154s)
+RUN test_operation_pack_v2_optional_dependency_and_capability_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_optional_dependency_and_capability_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_outer_schema_exhaustive_contract [test_operation_pack_v2_contract.R; self_contained]
+PASS test_operation_pack_v2_outer_schema_exhaustive_contract (0.972s)
+RUN test_operation_pack_v2_protocol_identity_contract [test_operation_pack_v2_contract.R; self_contained]
+PASS test_operation_pack_v2_protocol_identity_contract (0.368s)
+RUN test_operation_pack_v2_reference_lifecycle_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_reference_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_transition_atomicity_and_binding_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_transition_atomicity_and_binding_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_transition_schema_exhaustive_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_transition_schema_exhaustive_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_v1_coexistence_and_order_contract [test_operation_pack_v2_contract.R; self_contained]
+FAIL test_operation_pack_v2_v1_coexistence_and_order_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_feature_set_registry_fail_closed_contract [test_operation_pack_v2_feature_set_registry_read_contract.R; self_contained]
+FAIL test_operation_pack_v2_feature_set_registry_fail_closed_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_feature_set_registry_identity_fixture_contract [test_operation_pack_v2_feature_set_registry_read_contract.R; self_contained]
+PASS test_operation_pack_v2_feature_set_registry_identity_fixture_contract (0.062s)
+RUN test_operation_pack_v2_feature_set_registry_lifecycle_contract [test_operation_pack_v2_feature_set_registry_read_contract.R; self_contained]
+FAIL test_operation_pack_v2_feature_set_registry_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_feature_set_registry_snapshot_contract [test_operation_pack_v2_feature_set_registry_read_contract.R; self_contained]
+PASS test_operation_pack_v2_feature_set_registry_snapshot_contract (8.400s)
+RUN test_operation_pack_v2_feature_set_registry_snapshot_negative_contract [test_operation_pack_v2_feature_set_registry_read_contract.R; self_contained]
+PASS test_operation_pack_v2_feature_set_registry_snapshot_negative_contract (8.167s)
+RUN test_operation_pack_v2_observed_chunk_trace_fail_closed_contract [test_operation_pack_v2_observed_chunk_trace_fail_closed_contract.R; self_contained]
+FAIL test_operation_pack_v2_observed_chunk_trace_fail_closed_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v2_transition_rollback_contract [test_operation_pack_v2_transition_rollback_contract.R; self_contained]
+FAIL test_operation_pack_v2_transition_rollback_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_typed_slice_chunking_catalog_contract [test_operation_pack_v3_chunking_catalog_contract.R; self_contained]
+PASS test_operation_pack_v3_typed_slice_chunking_catalog_contract (0.114s)
+RUN test_operation_pack_v3_ancestry_resolution_contract [test_operation_pack_v3_contract.R; self_contained]
+FAIL test_operation_pack_v3_ancestry_resolution_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_bounded_cardinality_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_bounded_cardinality_contract (0.054s)
+RUN test_operation_pack_v3_chunk_replay_and_rollback_contract [test_operation_pack_v3_contract.R; self_contained]
+FAIL test_operation_pack_v3_chunk_replay_and_rollback_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_identity_fixture_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_identity_fixture_contract (0.365s)
+RUN test_operation_pack_v3_in_memory_typed_slice_source_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_in_memory_typed_slice_source_contract (9.186s)
+RUN test_operation_pack_v3_one_per_cell_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_one_per_cell_contract (1.121s)
+RUN test_operation_pack_v3_phase4c_generic_grants_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_phase4c_generic_grants_contract (0.036s)
+RUN test_operation_pack_v3_r_lifecycle_contract [test_operation_pack_v3_contract.R; self_contained]
+FAIL test_operation_pack_v3_r_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_session_annotation_and_bounded_axes_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_session_annotation_and_bounded_axes_contract (8.128s)
+RUN test_operation_pack_v3_shared_schema_drift_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_shared_schema_drift_contract (0.017s)
+RUN test_operation_pack_v3_typed_slice_getter_contract [test_operation_pack_v3_contract.R; self_contained]
+PASS test_operation_pack_v3_typed_slice_getter_contract (7.187s)
+RUN test_operation_pack_v3_derived_fitted_axis_2d_labels_contract [test_operation_pack_v3_derived_fitted_axis_contract.R; self_contained]
+FAIL test_operation_pack_v3_derived_fitted_axis_2d_labels_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_derived_fitted_axis_adversarial_atomicity_contract [test_operation_pack_v3_derived_fitted_axis_contract.R; self_contained]
+FAIL test_operation_pack_v3_derived_fitted_axis_adversarial_atomicity_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_derived_fitted_axis_lifecycle_contract [test_operation_pack_v3_derived_fitted_axis_contract.R; self_contained]
+FAIL test_operation_pack_v3_derived_fitted_axis_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_derived_fitted_axis_positive_scale_contract [test_operation_pack_v3_derived_fitted_axis_contract.R; self_contained]
+FAIL test_operation_pack_v3_derived_fitted_axis_positive_scale_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_derived_fitted_axis_protocol_contract [test_operation_pack_v3_derived_fitted_axis_contract.R; self_contained]
+PASS test_operation_pack_v3_derived_fitted_axis_protocol_contract (0.578s)
+RUN test_operation_pack_v3_derived_fitted_axis_protocol_generation_is_stable [test_operation_pack_v3_derived_fitted_axis_contract.R; self_contained]
+PASS test_operation_pack_v3_derived_fitted_axis_protocol_generation_is_stable (3.283s)
+RUN test_operation_pack_v3_durable_model_tree_contract [test_operation_pack_v3_durable_model_tree_contract.R; self_contained]
+PASS test_operation_pack_v3_durable_model_tree_contract (36.799s)
+RUN test_operation_pack_v3_g1_deserialized_model_view_is_not_input_authority_contract [test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R; self_contained]
+PASS test_operation_pack_v3_g1_deserialized_model_view_is_not_input_authority_contract (0.004s)
+RUN test_operation_pack_v3_g1_model_reference_dispatch_lifecycle_contract [test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R; self_contained]
+FAIL test_operation_pack_v3_g1_model_reference_dispatch_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_g1_verified_primary_deserialization_contract [test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R; self_contained]
+PASS test_operation_pack_v3_g1_verified_primary_deserialization_contract (32.121s)
+RUN test_operation_pack_v3_non_g1_model_object_remains_identity_bearing_contract [test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R; self_contained]
+PASS test_operation_pack_v3_non_g1_model_object_remains_identity_bearing_contract (0.007s)
+RUN test_operation_pack_v3_g3_adversarial_contract [test_operation_pack_v3_g3_external_state_adoption_contract.R; self_contained]
+FAIL test_operation_pack_v3_g3_adversarial_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_g3_duplicate_source_record_contract [test_operation_pack_v3_g3_external_state_adoption_contract.R; self_contained]
+FAIL test_operation_pack_v3_g3_duplicate_source_record_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_g3_external_state_adoption_contract [test_operation_pack_v3_g3_external_state_adoption_contract.R; self_contained]
+FAIL test_operation_pack_v3_g3_external_state_adoption_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_g3_shared_identity_fixture_contract [test_operation_pack_v3_g3_external_state_adoption_contract.R; self_contained]
+PASS test_operation_pack_v3_g3_shared_identity_fixture_contract (0.055s)
+RUN test_operation_pack_v3_g7_manifest_semantic_rejection_contract [test_operation_pack_v3_g7_derived_cell_output_axis_contract.R; self_contained]
+PASS test_operation_pack_v3_g7_manifest_semantic_rejection_contract (0.397s)
+RUN test_operation_pack_v3_g7_protocol_identity_contract [test_operation_pack_v3_g7_derived_cell_output_axis_contract.R; self_contained]
+PASS test_operation_pack_v3_g7_protocol_identity_contract (0.183s)
+RUN test_operation_pack_v3_g7_seal_adversarial_contract [test_operation_pack_v3_g7_derived_cell_output_axis_contract.R; self_contained]
+PASS test_operation_pack_v3_g7_seal_adversarial_contract (0.048s)
+RUN test_operation_pack_v3_g7_source_and_linked_output_adversarial_contract [test_operation_pack_v3_g7_derived_cell_output_axis_contract.R; self_contained]
+PASS test_operation_pack_v3_g7_source_and_linked_output_adversarial_contract (0.041s)
+RUN test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract [test_operation_pack_v3_g7_derived_cell_output_axis_contract.R; self_contained]
+FAIL test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_g7_union_lifecycle_contract [test_operation_pack_v3_g7_derived_cell_output_axis_contract.R; self_contained]
+FAIL test_operation_pack_v3_g7_union_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_g7_effective_key_lifecycle_rollback_and_receipt_contract [test_operation_pack_v3_g7_effective_family_key_contract.R; self_contained]
+FAIL test_operation_pack_v3_g7_effective_key_lifecycle_rollback_and_receipt_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_g7_effective_key_manifest_adversarial_contract [test_operation_pack_v3_g7_effective_family_key_contract.R; self_contained]
+PASS test_operation_pack_v3_g7_effective_key_manifest_adversarial_contract (0.976s)
+RUN test_operation_pack_v3_g7_effective_key_protocol_fixture_contract [test_operation_pack_v3_g7_effective_family_key_contract.R; self_contained]
+PASS test_operation_pack_v3_g7_effective_key_protocol_fixture_contract (0.022s)
+RUN test_operation_pack_v3_g7_effective_key_resolution_contract [test_operation_pack_v3_g7_effective_family_key_contract.R; self_contained]
+PASS test_operation_pack_v3_g7_effective_key_resolution_contract (0.004s)
+RUN test_operation_pack_v3_genomic_registry_contract [test_operation_pack_v3_genomic_registry_contract.R; self_contained]
+PASS test_operation_pack_v3_genomic_registry_contract (10.675s)
+RUN test_operation_pack_v3_phase7_shared_identity_fixture_contract [test_operation_pack_v3_genomic_registry_contract.R; self_contained]
+PASS test_operation_pack_v3_phase7_shared_identity_fixture_contract (0.016s)
+RUN test_operation_pack_v3_latent_union_protocol_contract [test_operation_pack_v3_latent_union_protocol_contract.R; self_contained]
+PASS test_operation_pack_v3_latent_union_protocol_contract (0.170s)
+RUN test_operation_pack_v3_matrix_model_boundary_lifecycle_contract [test_operation_pack_v3_matrix_model_boundary_contract.R; self_contained]
+FAIL test_operation_pack_v3_matrix_model_boundary_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_matrix_model_boundary_rollback_contract [test_operation_pack_v3_matrix_model_boundary_contract.R; self_contained]
+FAIL test_operation_pack_v3_matrix_model_boundary_rollback_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_matrix_model_protocol_fixture_contract [test_operation_pack_v3_matrix_model_boundary_contract.R; self_contained]
+PASS test_operation_pack_v3_matrix_model_protocol_fixture_contract (0.029s)
+RUN test_operation_pack_v3_matrix_model_source_reopen_authentication_contract [test_operation_pack_v3_matrix_model_boundary_contract.R; self_contained]
+FAIL test_operation_pack_v3_matrix_model_source_reopen_authentication_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_ordered_cell_metadata_protocol_fixture_contract [test_operation_pack_v3_ordered_cell_metadata_contract.R; self_contained]
+PASS test_operation_pack_v3_ordered_cell_metadata_protocol_fixture_contract (0.007s)
+RUN test_operation_pack_v3_ordered_cell_metadata_resolution_contract [test_operation_pack_v3_ordered_cell_metadata_contract.R; self_contained]
+PASS test_operation_pack_v3_ordered_cell_metadata_resolution_contract (7.560s)
+RUN test_operation_pack_v3_phase5_g1_g2_durable_lifecycle_contract [test_operation_pack_v3_phase5_consolidated_capabilities.R; self_contained]
+FAIL test_operation_pack_v3_phase5_g1_g2_durable_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_phase5_g4_ordered_artifact_collection_contract [test_operation_pack_v3_phase5_consolidated_capabilities.R; self_contained]
+FAIL test_operation_pack_v3_phase5_g4_ordered_artifact_collection_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_phase5_g5_g6_named_axis_contract [test_operation_pack_v3_phase5_consolidated_capabilities.R; self_contained]
+PASS test_operation_pack_v3_phase5_g5_g6_named_axis_contract (12.174s)
+RUN test_operation_pack_v3_phase5_manifest_admission_no_residue_contract [test_operation_pack_v3_phase5_consolidated_capabilities.R; self_contained]
+PASS test_operation_pack_v3_phase5_manifest_admission_no_residue_contract (0.660s)
+RUN test_operation_pack_v3_python_composite_lifecycle_contract [test_operation_pack_v3_python_composite_contract.R; self_contained]
+SKIP test_operation_pack_v3_python_composite_lifecycle_contract -- Phase 3B Python fixture requires SCWORKBENCH_PHASE3B_PYBENCH_ROOT, SCWORKBENCH_PHASE3B_PYTHON_PACK_MANIFEST, and SCWORKBENCH_PYBENCH_PYTHON
+RUN test_operation_pack_v3_python_composite_protocol_contract [test_operation_pack_v3_python_composite_contract.R; self_contained]
+SKIP test_operation_pack_v3_python_composite_protocol_contract -- Phase 3B Python fixture requires SCWORKBENCH_PHASE3B_PYBENCH_ROOT, SCWORKBENCH_PHASE3B_PYTHON_PACK_MANIFEST, and SCWORKBENCH_PYBENCH_PYTHON
+RUN test_operation_pack_v3_python_phase5_model_lifecycle_contract [test_operation_pack_v3_python_composite_contract.R; self_contained]
+SKIP test_operation_pack_v3_python_phase5_model_lifecycle_contract -- Phase 3B Python fixture requires SCWORKBENCH_PHASE3B_PYBENCH_ROOT, SCWORKBENCH_PHASE3B_PYTHON_PACK_MANIFEST, and SCWORKBENCH_PYBENCH_PYTHON
+RUN test_operation_pack_v3_runtime_family_key_contract [test_operation_pack_v3_runtime_family_key_contract.R; self_contained]
+PASS test_operation_pack_v3_runtime_family_key_contract (0.077s)
+RUN test_operation_pack_v3_relation_family_g2_lifecycle_contract [test_operation_pack_v3_sealed_relation_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_relation_family_g2_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_relation_family_identity_fixture_contract [test_operation_pack_v3_sealed_relation_family_contract.R; self_contained]
+PASS test_operation_pack_v3_relation_family_identity_fixture_contract (0.099s)
+RUN test_operation_pack_v3_relation_family_layout_and_delayed_axis_contract [test_operation_pack_v3_sealed_relation_family_contract.R; self_contained]
+PASS test_operation_pack_v3_relation_family_layout_and_delayed_axis_contract (2.508s)
+RUN test_operation_pack_v3_relation_family_negative_and_rollback_contract [test_operation_pack_v3_sealed_relation_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_relation_family_negative_and_rollback_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_relation_family_promoted_sql_fault_contract [test_operation_pack_v3_sealed_relation_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_relation_family_promoted_sql_fault_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_relation_family_typed_lifecycle_contract [test_operation_pack_v3_sealed_relation_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_relation_family_typed_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract [test_operation_pack_v3_sparse_membership_contract.R; self_contained]
+PASS test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract (0.003s)
+RUN test_operation_pack_v3_sparse_membership_contract [test_operation_pack_v3_sparse_membership_contract.R; self_contained]
+PASS test_operation_pack_v3_sparse_membership_contract (6.291s)
+RUN test_operation_pack_v3_sparse_pack_free_catalog_contract [test_operation_pack_v3_sparse_membership_contract.R; self_contained]
+PASS test_operation_pack_v3_sparse_pack_free_catalog_contract (0.003s)
+RUN test_operation_pack_v3_durable_reopen_committed_matrix_source_contract [test_operation_pack_v3_stage_matrix_source_binding_contract.R; self_contained]
+FAIL test_operation_pack_v3_durable_reopen_committed_matrix_source_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_stage_matrix_between_reads_and_publication_contract [test_operation_pack_v3_stage_matrix_source_binding_contract.R; self_contained]
+FAIL test_operation_pack_v3_stage_matrix_between_reads_and_publication_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_stage_matrix_committed_and_predecessor_contract [test_operation_pack_v3_stage_matrix_source_binding_contract.R; self_contained]
+PASS test_operation_pack_v3_stage_matrix_committed_and_predecessor_contract (12.115s)
+RUN test_operation_pack_v3_stage_matrix_payload_and_checksum_rejection_contract [test_operation_pack_v3_stage_matrix_source_binding_contract.R; self_contained]
+PASS test_operation_pack_v3_stage_matrix_payload_and_checksum_rejection_contract (12.377s)
+RUN test_operation_pack_v3_stage_matrix_registry_and_broker_contract [test_operation_pack_v3_stage_matrix_source_binding_contract.R; self_contained]
+PASS test_operation_pack_v3_stage_matrix_registry_and_broker_contract (19.712s)
+RUN test_operation_pack_v3_stage_only_predecessor_typed_read_contract [test_operation_pack_v3_stage_matrix_source_binding_contract.R; self_contained]
+FAIL test_operation_pack_v3_stage_only_predecessor_typed_read_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_standalone_sparse_family_manifest_admission_contract [test_operation_pack_v3_standalone_sparse_family_contract.R; self_contained]
+PASS test_operation_pack_v3_standalone_sparse_family_manifest_admission_contract (0.696s)
+RUN test_operation_pack_v3_standalone_sparse_family_protocol_identity_contract [test_operation_pack_v3_standalone_sparse_family_contract.R; self_contained]
+PASS test_operation_pack_v3_standalone_sparse_family_protocol_identity_contract (0.131s)
+RUN test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract [test_operation_pack_v3_standalone_sparse_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_standalone_sparse_family_source_recheck_contract [test_operation_pack_v3_standalone_sparse_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_standalone_sparse_family_source_recheck_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_standalone_sparse_family_typed_lifecycle_contract [test_operation_pack_v3_standalone_sparse_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_standalone_sparse_family_typed_lifecycle_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_standalone_sparse_family_verified_g1_contract [test_operation_pack_v3_standalone_sparse_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_standalone_sparse_family_verified_g1_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_operation_pack_v3_space_2d_dataframe_transport_contract [test_operation_pack_v3_trajectory_family_contract.R; self_contained]
+PASS test_operation_pack_v3_space_2d_dataframe_transport_contract (8.486s)
+RUN test_operation_pack_v3_trajectory_family_policy_contract [test_operation_pack_v3_trajectory_family_contract.R; self_contained]
+FAIL test_operation_pack_v3_trajectory_family_policy_contract -- The file does not exist: 
+RUN test_payload_content_identity_contract [test_payload_content_identity_contract.R; self_contained]
+FAIL test_payload_content_identity_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_phase5_s2_core_ownership_contract [test_phase5_s2_core_ownership_contract.R; self_contained]
+PASS test_phase5_s2_core_ownership_contract (3.591s)
+RUN test_phase6_matrix_subset_getter_and_recipient_contract [test_phase6_matrix_subset_getter_contract.R; self_contained]
+PASS test_phase6_matrix_subset_getter_and_recipient_contract (11.311s)
+RUN test_phase6_latent_union_no_pack_catalog_contract [test_phase6_peakvi_ownership_contract.R; self_contained]
+PASS test_phase6_latent_union_no_pack_catalog_contract (0.003s)
+RUN test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract [test_phase6_peakvi_ownership_contract.R; self_contained]
+FAIL test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract -- isTRUE(wb_bundle_validation_report(root, level = "recipient")$ok) is not TRUE
+RUN test_phase8_no_pack_core_surface_contract [test_phase8_no_pack_core_surface_contract.R; self_contained]
+PASS test_phase8_no_pack_core_surface_contract (0.002s)
+RUN test_phase8_primitive_exchange_inventory_contract [test_phase8_no_pack_core_surface_contract.R; self_contained]
+FAIL test_phase8_primitive_exchange_inventory_contract -- setequal(inventory$primitive_kind, catalog_kinds) is not TRUE
+RUN test_phase8_test_ownership_inventory_contract [test_phase8_no_pack_core_surface_contract.R; self_contained]
+FAIL test_phase8_test_ownership_inventory_contract -- identical(sort(current$test_identity), sort(discovered)) is not TRUE
+RUN test_plot_catalog_semantic_contract [test_plot_catalog_semantic_contract.R; self_contained]
+PASS test_plot_catalog_semantic_contract (0.013s)
+RUN test_plot_wranglers_contract [test_plot_wranglers_contract.R; isolated_bundle]
+PASS test_plot_wranglers_contract (3.570s)
+RUN test_post_migration_documentation_contract [test_post_migration_documentation_contract.R; self_contained]
+PASS test_post_migration_documentation_contract (0.414s)
+RUN test_primitives_contract [test_primitives_contract.R; self_contained]
+PASS test_primitives_contract (0.004s)
+RUN test_promotion_artifact_payload_atomicity_contract [test_promotion_artifact_payload_atomicity_contract.R; self_contained]
+PASS test_promotion_artifact_payload_atomicity_contract (16.210s)
+RUN test_promotion_staged_model_payload_contract [test_promotion_artifact_payload_atomicity_contract.R; self_contained]
+PASS test_promotion_staged_model_payload_contract (19.741s)
+RUN test_promotion_output_contract [test_promotion_output_contract.R; self_contained]
+PASS test_promotion_output_contract (4.821s)
+RUN test_promotion_runtime_fingerprint_legacy_public_commit_contract [test_promotion_runtime_fingerprint_metadata_contract.R; self_contained]
+PASS test_promotion_runtime_fingerprint_legacy_public_commit_contract (13.198s)
+RUN test_promotion_runtime_fingerprint_metadata_loadability_contract [test_promotion_runtime_fingerprint_metadata_contract.R; self_contained]
+Error in library(scworkbench, lib.loc = args[[1]]) : 
+  there is no package called ‘scworkbench’
+Execution halted 
+FAIL test_promotion_runtime_fingerprint_metadata_loadability_contract -- is.null(status) || identical(status, 0L) is not TRUE
+RUN test_promotion_runtime_fingerprint_metadata_parity_contract [test_promotion_runtime_fingerprint_metadata_contract.R; self_contained]
+PASS test_promotion_runtime_fingerprint_metadata_parity_contract (0.004s)
+RUN test_provenance_bundle_dag_contract [test_provenance_bundle_dag_contract.R; isolated_bundle]
+FAIL test_provenance_bundle_dag_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_provenance_kg_cross_snapshot_edge_canonicalization_contract [test_provenance_kg_cross_snapshot_edge_canonicalization_contract.R; self_contained]
+PASS test_provenance_kg_cross_snapshot_edge_canonicalization_contract (19.821s)
+RUN test_provenance_snapshot_contract [test_provenance_snapshot_contract.R; isolated_bundle]
+FAIL test_provenance_snapshot_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_provision_cran_namespaces_cross_repository_deferral_contract [test_provision_cran_namespaces_contract.R; self_contained]
+PASS test_provision_cran_namespaces_cross_repository_deferral_contract (0.001s)
+RUN test_provision_cran_namespaces_dependency_order_contract [test_provision_cran_namespaces_contract.R; self_contained]
+CRAN package installed: DBI action=install_locked_version version=1.3.0
+CRAN package installed: biglm action=install_locked_version version=0.9.3
+PASS test_provision_cran_namespaces_dependency_order_contract (0.001s)
+RUN test_public_api_boundary_contract [test_public_api_boundary_contract.R; self_contained]
+PASS test_public_api_boundary_contract (0.000s)
+RUN test_public_cell_metadata_import_contract [test_public_cell_metadata_import_contract.R; self_contained]
+PASS test_public_cell_metadata_import_contract (35.984s)
+RUN test_public_cell_metadata_import_safety_contract [test_public_cell_metadata_import_safety_contract.R; self_contained]
+PASS test_public_cell_metadata_import_safety_contract (20.039s)
+RUN test_public_cell_metadata_import_scale_contract [test_public_cell_metadata_import_scale_contract.R; self_contained]
+metadata import scale evidence: rows=120895 fields=4 evidence_rows=4 elapsed=21.745s
+PASS test_public_cell_metadata_import_scale_contract (41.551s)
+RUN test_public_typed_run_branch_inputs_contract [test_public_typed_run_branch_inputs_contract.R; self_contained]
+FAIL test_public_typed_run_branch_inputs_contract -- wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().
+RUN test_publish_app_bundle_provenance_contract [test_publish_app_bundle_provenance_contract.R; self_contained]
+
+Warning messages:
+1: call dbDisconnect() when finished working with a connection 
+2: In connection_release(conn@ptr) : Already disconnected
+3: In connection_release(conn@ptr) : Already disconnected
+4: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpU9V0qk/scwb_durable_generation_root_8e89ca753777/generation_case/checkpoints/g_20261012132733.317323_583836-20261012132733.317353-SjeXukyQBubbqBmjUAer1bxW/session.json': No such file or directory
+5: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpU9V0qk/scwb_durable_generation_root_8e89ca753777/generation_case/checkpoints/g_20261012132738.273185_583836-20261012132738.273213-AXD9V0Smj59yQe7Q6P2JwhDL/session.json': No such file or directory
+6: In open.connection(con, "rb") :
+  cannot open file '/tmp/RtmpU9V0qk/scwb_durable_generation_root_8e89ca753777/generation_case/checkpoints/g_partial/session.json': No such file or directory
+7: In connection_release(conn@ptr) : Already disconnected
+8: Closing open result set, pending rows 
+9: Expired, result set already closed 
+10: In system2(file.path(R.home("bin"), "Rscript"), vapply(c(child,  :
+  running command ''/usr/lib/R/bin/Rscript' '/tmp/RtmpU9V0qk/promotion_fingerprint_metadata_8e89c10410c84/verify.R' '/home/dirk/Projects/.scworkbench-worktrees' '/tmp/RtmpU9V0qk/promotion_fingerprint_metadata_8e89c10410c84/library' 'scwbFingerprintUnloadableFixture' '/tmp/RtmpU9V0qk/promotion_fingerprint_metadata_8e89c10410c84/onload.marker' 'scwbFingerprintUnreadableFixture' 2>&1' had status 1
+Execution halted

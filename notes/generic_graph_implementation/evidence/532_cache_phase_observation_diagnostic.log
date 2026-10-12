@@ -1,0 +1,3 @@
+OBSERVED_PHASES c("stage_payload", "published_certificate", "retained_reference"
+)
+UNCHANGED_TEST_RESULT=TRUE

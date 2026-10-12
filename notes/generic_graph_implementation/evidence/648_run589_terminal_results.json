@@ -1,0 +1,334 @@
+{
+  "results": [
+    {
+      "name": "test_graph_authentic_legacy_object_content_load_contract",
+      "file": "test_graph_legacy_object_content_load_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 8.471
+    },
+    {
+      "name": "test_graph_object_proof_removal_content_and_authority_contract",
+      "file": "test_graph_legacy_object_content_load_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 42.309
+    },
+    {
+      "name": "test_publish_app_bundle_provenance_contract",
+      "file": "test_publish_app_bundle_provenance_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 40.623
+    },
+    {
+      "name": "test_pybench_payload_parity_contract",
+      "file": "test_pybench_payload_parity_contract.R",
+      "signature": "isolated_bundle",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 8.177
+    },
+    {
+      "name": "test_pybench_payload_parity",
+      "file": "test_pybench_payload_parity.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 16.083
+    },
+    {
+      "name": "test_pybench_protocol_hello_bridge_contract",
+      "file": "test_pybench_protocol_hello_bridge_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.004
+    },
+    {
+      "name": "test_pybench_staging_capability_v2_contract",
+      "file": "test_pybench_staging_capability_v2_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 120.552
+    },
+    {
+      "name": "test_pybench_transition_publication_atomicity_contract",
+      "file": "test_pybench_transition_publication_atomicity_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 135.032
+    },
+    {
+      "name": "test_registry_replay_closure_contract",
+      "file": "test_registry_replay_closure_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 65.784
+    },
+    {
+      "name": "test_relative_bundle_writer_lock_identity_contract",
+      "file": "test_relative_bundle_writer_lock_identity_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 88.336
+    },
+    {
+      "name": "test_release_engineering_contract",
+      "file": "test_release_engineering_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.41
+    },
+    {
+      "name": "test_report_draft_contract",
+      "file": "test_report_draft_contract.R",
+      "signature": "isolated_bundle",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 4.329
+    },
+    {
+      "name": "test_reporting_contracts",
+      "file": "test_reporting_contracts.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 30.151
+    },
+    {
+      "name": "test_representation_methods_are_pack_owned_contract",
+      "file": "test_representation_extraction_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 12.188
+    },
+    {
+      "name": "test_rna_methods_are_pack_owned_contract",
+      "file": "test_rna_extraction_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 12.835
+    },
+    {
+      "name": "test_schema_catalog_actual_durable_membership_contract",
+      "file": "test_schema_catalog_durable_membership_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 21.676
+    },
+    {
+      "name": "test_parameter_semantics_catalog_contract",
+      "file": "test_semantic_catalog_unified_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.034
+    },
+    {
+      "name": "test_recipe_semantics_catalog_contract",
+      "file": "test_semantic_catalog_unified_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.009
+    },
+    {
+      "name": "test_semantic_catalog_unified_contract",
+      "file": "test_semantic_catalog_unified_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 11.005
+    },
+    {
+      "name": "test_semantic_graph_views_contract",
+      "file": "test_semantic_catalog_unified_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 7.215
+    },
+    {
+      "name": "test_semantic_planning_artifact_contract",
+      "file": "test_semantic_planning_artifact_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 18.754
+    },
+    {
+      "name": "test_session_dag_contract",
+      "file": "test_session_dag_contract.R",
+      "signature": "isolated_bundle",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.011
+    },
+    {
+      "name": "test_session_input_ref_ergonomics_contract",
+      "file": "test_session_input_ref_ergonomics_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.002
+    },
+    {
+      "name": "test_low_level_ingest_dataset_integrity_contract",
+      "file": "test_session_inspection_ingest_integrity_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 43.067
+    },
+    {
+      "name": "test_session_inspection_and_ingest_integrity_contract",
+      "file": "test_session_inspection_ingest_integrity_contract.R",
+      "signature": "self_contained",
+      "status": "failed",
+      "reason": "Bundle integrity validation failed (recipient):\n- SQLITE_UNRESOLVED_JOURNAL_STATE[main]: Recipient bundle contains unresolved SQLite WAL/SHM/journal state.\n- SQLITE_UNRESOLVED_JOURNAL_STATE[main]: Recipient bundle contains unresolved SQLite WAL/SHM/journal state.\n- VALIDATION_MUTATED_BUNDLE[scwb_session_inspection_bundle_4ff92fd5a250]: Recipient validation changed the bundle filesystem fingerprint.",
+      "elapsed_seconds": 34.243
+    },
+    {
+      "name": "test_session_run_op_parameter_contract",
+      "file": "test_session_run_op_parameter_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 28.672
+    },
+    {
+      "name": "test_session_snapshot_concurrent_owner_contract",
+      "file": "test_session_snapshot_observation_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 28.595
+    },
+    {
+      "name": "test_session_snapshot_source_observation_contract",
+      "file": "test_session_snapshot_observation_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 32.404
+    },
+    {
+      "name": "test_source_ownership_contract",
+      "file": "test_source_ownership_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 14.793
+    },
+    {
+      "name": "test_large_multifragment_recipient_bounded_contract",
+      "file": "test_source_preflight_recipient_validation_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 37.876
+    },
+    {
+      "name": "test_source_preflight_zero_write_contract",
+      "file": "test_source_preflight_recipient_validation_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.09
+    },
+    {
+      "name": "test_source_scope_ingest_dag_recipient_contract",
+      "file": "test_source_preflight_recipient_validation_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 46.251
+    },
+    {
+      "name": "test_space_cell_identity_contract",
+      "file": "test_space_cell_identity_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 24.209
+    },
+    {
+      "name": "test_strict_operation_input_validation_contract",
+      "file": "test_strict_operation_input_validation_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 0.243
+    },
+    {
+      "name": "test_strict_replay_inputs_contract",
+      "file": "test_strict_replay_inputs_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 207.746
+    },
+    {
+      "name": "test_trajectory_family_helpers_contract",
+      "file": "test_trajectory_family_helpers_contract.R",
+      "signature": "isolated_bundle",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 7.584
+    },
+    {
+      "name": "test_typed_cell_set_consumption_provenance_contract",
+      "file": "test_typed_cell_set_consumption_provenance_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 165.019
+    },
+    {
+      "name": "test_typed_effective_cell_coverage_contract",
+      "file": "test_typed_effective_cell_coverage_contract.R",
+      "signature": "self_contained",
+      "status": "failed",
+      "reason": "GRAPH_SOURCE_AUTHORITY_REQUIRED: Retained payload lacks independently issued provenance output evidence.",
+      "elapsed_seconds": 52.53
+    },
+    {
+      "name": "test_unambiguous_manifest_feature_counts_contract",
+      "file": "test_unambiguous_manifest_feature_counts_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 126.125
+    },
+    {
+      "name": "test_validate_bundle_contract",
+      "file": "test_validate_bundle_contract.R",
+      "signature": "self_contained",
+      "status": "passed",
+      "reason": "",
+      "elapsed_seconds": 20.487
+    }
+  ],
+  "summary": {
+    "files": 32,
+    "discovered": 40,
+    "executed": 40,
+    "passed": 38,
+    "skipped": 0,
+    "failed": 2,
+    "excluded": 0,
+    "accounted": 40
+  }
+}

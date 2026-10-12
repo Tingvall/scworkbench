@@ -1,0 +1,7 @@
+RUN test_phase8_no_pack_core_surface_contract [test_phase8_no_pack_core_surface_contract.R; self_contained]
+PASS test_phase8_no_pack_core_surface_contract (0.005s)
+RUN test_phase8_primitive_exchange_inventory_contract [test_phase8_no_pack_core_surface_contract.R; self_contained]
+PASS test_phase8_primitive_exchange_inventory_contract (0.019s)
+RUN test_phase8_test_ownership_inventory_contract [test_phase8_no_pack_core_surface_contract.R; self_contained]
+PASS test_phase8_test_ownership_inventory_contract (0.134s)
+CONTRACT TEST SUMMARY files=1 discovered=3 executed=3 passed=3 skipped=0 failed=0 excluded=0 accounted=3

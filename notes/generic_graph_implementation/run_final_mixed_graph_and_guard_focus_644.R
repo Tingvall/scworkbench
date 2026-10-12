@@ -1,0 +1,13 @@
+lib <- "/tmp/scwb-final-source-643.ui645z4a/library"
+.libPaths(c(lib,.libPaths()));library(scworkbench,lib.loc=lib)
+scworkbench:::.wb_matrix_native_byte_api_initialize()
+Sys.setenv(SCWORKBENCH_GRAPH_PYTHON="/tmp/scwb-final-python-588/bin/python",SCWORKBENCH_GRAPH_PYTHON_MANIFEST="/tmp/scwb-final-python-588/lib/python3.11/site-packages/scwbgraphfixture/operation-pack.json")
+env <- new.env(parent=asNamespace("scworkbench"))
+sys.source("inst/tests/contract_test_runner.R",env)
+inventory <- env$contract_test_discover("tests",exclusions=character(),parent_env=env)
+names <- c("test_graph_abi4_public_r_execution_contract","test_graph_abi4_python_live_broker_contract","test_graph_object_proof_removal_content_and_authority_contract")
+selected <- lapply(names,function(name){matches <- Filter(function(record)identical(record$name,name),inventory$tests);stopifnot(length(matches)==1L);matches[[1L]]})
+inventory$tests <- selected;inventory$files <- unique(vapply(selected,`[[`,character(1),"file"))
+run <- env$contract_test_execute(inventory,reporter=TRUE)
+saveRDS(run,"notes/generic_graph_implementation/evidence/644_final_mixed_graph_and_guard_focus.rds")
+env$contract_test_assert_success(run)

@@ -1,0 +1,2 @@
+ERROR: Invalid requirement: 'pybench @ git+file:///tmp/scwb-v1-peer-596@0e67612a915caf4168a6824084fe5c5446690567'
+Hint: It looks like a path. File 'pybench @ git+file:///tmp/scwb-v1-peer-596@0e67612a915caf4168a6824084fe5c5446690567' does not exist.

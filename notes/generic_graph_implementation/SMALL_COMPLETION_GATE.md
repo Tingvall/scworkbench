@@ -46,15 +46,54 @@ Invalid draft preparation rejection remains490; corrected JSON is authoritative.
 | Finalize/relocate/fresh pack-free read-only recipient | small +public_execution +23scenarios/native public tests | R recipient owns durable promotion authority; Python authenticated carrier parity |
 | igraph exact lossless subset and reject boundary | primitive adapter +23scenarios | installed Python igraph tests, no dependency skip treated as pass |
 | SDK public authoring/docs/capabilities/generated protocols | sdk_authoring +explicit installed graph_tutorial.R six-case command | public SDK discovery/process5 +generator check |
-| ABI3/process4 and existing primitive regressions | final complete core suite | final complete Python suite |
+| ABI3/process4 and existing primitive regressions | Retained525 parent plus explicit58250 failed-case/58940 residual coverage and scoped recipient-fixture closures; no canonical full all-pass claim | bb0 parent750/5 plus e724 installed-wheel ABI3/process4 focused4/4 and final descendant affected158/12/1 |
 
 Run one consolidated small-focused qualification on a source/install-pinned R
 candidate, export authenticated request/receipt/expected roots for Quill, then
-one final full core suite and relevant build/check, one final Python suite and
-wheel/sdist checks, generated docs/protocol/link/whitespace checks. Corrections
+the recorded interrupted full core run525 and approved pinned targeted successor
+coverage, relevant build/check, retained Python parent full suite plus scoped
+descendant/wheel/sdist checks, generated docs/protocol/link/whitespace checks. Corrections
 receive affected checks; do not repeatedly run whole suites during construction.
 Freeze actual terminal logs/exits/source/install hashes. Reuse the same two
 independent reviewers via diagnosis parent01a12c74-97ae-71c0-9522-eb3c68b45383 on
 stable final tuple; prior metadata-only accepts do not qualify graph completion.
 No merge/push/profile/official packs/SIF. DONE email only after full independent
 acceptance; genuine blocker email only if user action is required.
+
+## Successor coverage attribution
+
+Final source5c3ad8111610ddf57c64877391b5e6cc47f22ff8 has production R/src/protocol
+bytes identical to9869ccf344191ca7ff6e070139bfdcd03336d746 (600ledger). Original
+525's namespace replacement is attributed exactly in599; every64original failure
+has a distinct556matrix row. No full rerun was approved. Successor58250 and58940
+remain running, with one actual recipient-fixture failure each; no provisional
+pass transfer. Final public small597, current live598PASS, normative603 and
+installed SDK604six/sixPASS provide actual graph-specific qualification.
+Package595passed0errors/0warnings/1sizeNOTE, not a function-execution full gate.
+
+Historical Python protocol equality594failed four expanded assets against its
+old e0feac peer; historical composite/model lifecycle2PASS remain separate.
+Controller accepts that obsolete-peer/current-byte comparison as unqualified,
+not a PASS or rewritten skip. Current e724 ABI3/process4 wheel4/4 focused executor
+proof and paired44-assets inventory are separately attributed; no unsupported
+backend authority is inferred. See final packet for exact records and limits.
+
+## Frozen final implementation and actual successor boundary
+
+Final8ea74ac095853716449396f02ed2f99b6f0787b6 is installed from exact source643.
+Current6443/3zeroSKIP covers mixedABI4R/publicfaults+freshpackfree relocated
+readonlyrecipient, installede724live retained-CV/matrix/broker and12ordinary
+proof-removal variants.649metadata3/3 and647package0ERROR/0WARNING/1sizeNOTE
+passed;646source/installedposthashMATCH650. The 625 private provisional ordinary
+Python output correction is qualified by630currente724 exactpublic values /
+promotion/certificate,633faultnegative/retry case and640crosslifecycle case.
+No publicsource/missingproducer orgraphauthority guard was relaxed.
+
+Parent597small disk-backed infrastructure5/5,60339/39including23scenarios,
+604installedSDK6/6 andQuill611actualnewroots/cursors/collect remain attributed
+parent/source-pinned evidence. Current644validates the changed interop boundary;
+no39/336repeat was requested. 582remains48PASS/2FAIL and58938PASS/2FAIL; specific
+fixture closures are623/631 and612/613, not relabeled fullpasses.651accounts all
+336current function names and their literal parent/scoped execution statuses.
+REVIEW_PACKET_FINAL_SMALL.md and650 carry exact hashes, changed-code scopes and all
+memory/oldprotocol/optionaldependency caveats for the same independentreviewers.

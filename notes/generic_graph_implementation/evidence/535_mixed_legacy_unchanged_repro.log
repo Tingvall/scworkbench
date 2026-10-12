@@ -1,0 +1,4 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+UNCHANGED_FAILURE_REPRODUCED Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpICXgwU/.scwb_mixed_hash_92099763115c4.schema-backups/app.sqlite.v5-to-v11.20261012T141154.409069-598169-mhn3ydtsn8hx.bak. Cause: Nullable-family migration requires the exact historical artifact_pseudotime columns.

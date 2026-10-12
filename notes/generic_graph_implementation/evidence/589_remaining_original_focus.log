@@ -1,0 +1,118 @@
+VALID_FINAL_INSTALLED_CORE discovered=336 files=172
+RUN test_graph_authentic_legacy_object_content_load_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_authentic_legacy_object_content_load_contract (8.471s)
+RUN test_graph_object_proof_removal_content_and_authority_contract [test_graph_legacy_object_content_load_contract.R; self_contained]
+PASS test_graph_object_proof_removal_content_and_authority_contract (42.309s)
+RUN test_publish_app_bundle_provenance_contract [test_publish_app_bundle_provenance_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS test_publish_app_bundle_provenance_contract (40.623s)
+RUN test_pybench_payload_parity_contract [test_pybench_payload_parity_contract.R; isolated_bundle]
+PASS test_pybench_payload_parity_contract (8.177s)
+RUN test_pybench_payload_parity [test_pybench_payload_parity.R; self_contained]
+PASS test_pybench_payload_parity (16.083s)
+RUN test_pybench_protocol_hello_bridge_contract [test_pybench_protocol_hello_bridge_contract.R; self_contained]
+PASS test_pybench_protocol_hello_bridge_contract (0.004s)
+RUN test_pybench_staging_capability_v2_contract [test_pybench_staging_capability_v2_contract.R; self_contained]
+PASS test_pybench_staging_capability_v2_contract (120.552s)
+RUN test_pybench_transition_publication_atomicity_contract [test_pybench_transition_publication_atomicity_contract.R; self_contained]
+PASS test_pybench_transition_publication_atomicity_contract (135.032s)
+RUN test_registry_replay_closure_contract [test_registry_replay_closure_contract.R; self_contained]
+PASS test_registry_replay_closure_contract (65.784s)
+RUN test_relative_bundle_writer_lock_identity_contract [test_relative_bundle_writer_lock_identity_contract.R; self_contained]
+10x_mtx: initializing staged bundle
+10x_mtx: defining 2 cells
+10x_mtx: cell definition complete
+10x_mtx: initializing matrix registry for RNA_counts
+10x_mtx: feature registry complete
+10x_mtx: importing library 1/1 (sample)
+10x_mtx: registered library 1/1 (sample)
+PASS test_relative_bundle_writer_lock_identity_contract (88.336s)
+RUN test_release_engineering_contract [test_release_engineering_contract.R; self_contained]
+composite release metadata: OK
+PASS test_release_engineering_contract (0.410s)
+RUN test_report_draft_contract [test_report_draft_contract.R; isolated_bundle]
+PASS test_report_draft_contract (4.329s)
+RUN test_reporting_contracts [test_reporting_contracts.R; self_contained]
+PASS test_reporting_contracts (30.151s)
+RUN test_representation_methods_are_pack_owned_contract [test_representation_extraction_contract.R; self_contained]
+PASS test_representation_methods_are_pack_owned_contract (12.188s)
+RUN test_rna_methods_are_pack_owned_contract [test_rna_extraction_contract.R; self_contained]
+PASS test_rna_methods_are_pack_owned_contract (12.835s)
+RUN test_schema_catalog_actual_durable_membership_contract [test_schema_catalog_durable_membership_contract.R; self_contained]
+PASS test_schema_catalog_actual_durable_membership_contract (21.676s)
+RUN test_parameter_semantics_catalog_contract [test_semantic_catalog_unified_contract.R; self_contained]
+PASS test_parameter_semantics_catalog_contract (0.034s)
+RUN test_recipe_semantics_catalog_contract [test_semantic_catalog_unified_contract.R; self_contained]
+PASS test_recipe_semantics_catalog_contract (0.009s)
+RUN test_semantic_catalog_unified_contract [test_semantic_catalog_unified_contract.R; self_contained]
+PASS test_semantic_catalog_unified_contract (11.005s)
+RUN test_semantic_graph_views_contract [test_semantic_catalog_unified_contract.R; self_contained]
+PASS test_semantic_graph_views_contract (7.215s)
+RUN test_semantic_planning_artifact_contract [test_semantic_planning_artifact_contract.R; self_contained]
+PASS test_semantic_planning_artifact_contract (18.754s)
+RUN test_session_dag_contract [test_session_dag_contract.R; isolated_bundle]
+PASS test_session_dag_contract (0.011s)
+RUN test_session_input_ref_ergonomics_contract [test_session_input_ref_ergonomics_contract.R; self_contained]
+PASS test_session_input_ref_ergonomics_contract (0.002s)
+RUN test_low_level_ingest_dataset_integrity_contract [test_session_inspection_ingest_integrity_contract.R; self_contained]
+PASS test_low_level_ingest_dataset_integrity_contract (43.067s)
+RUN test_session_inspection_and_ingest_integrity_contract [test_session_inspection_ingest_integrity_contract.R; self_contained]
+FAIL test_session_inspection_and_ingest_integrity_contract -- Bundle integrity validation failed (recipient):
+- SQLITE_UNRESOLVED_JOURNAL_STATE[main]: Recipient bundle contains unresolved SQLite WAL/SHM/journal state.
+- SQLITE_UNRESOLVED_JOURNAL_STATE[main]: Recipient bundle contains unresolved SQLite WAL/SHM/journal state.
+- VALIDATION_MUTATED_BUNDLE[scwb_session_inspection_bundle_4ff92fd5a250]: Recipient validation changed the bundle filesystem fingerprint.
+RUN test_session_run_op_parameter_contract [test_session_run_op_parameter_contract.R; self_contained]
+Warning: Converting to a dense matrix may use excessive memory
+This message is displayed once every 8 hours.
+PASS test_session_run_op_parameter_contract (28.672s)
+RUN test_session_snapshot_concurrent_owner_contract [test_session_snapshot_observation_contract.R; self_contained]
+PASS test_session_snapshot_concurrent_owner_contract (28.595s)
+RUN test_session_snapshot_source_observation_contract [test_session_snapshot_observation_contract.R; self_contained]
+PASS test_session_snapshot_source_observation_contract (32.404s)
+RUN test_source_ownership_contract [test_source_ownership_contract.R; self_contained]
+PASS test_source_ownership_contract (14.793s)
+RUN test_large_multifragment_recipient_bounded_contract [test_source_preflight_recipient_validation_contract.R; self_contained]
+PASS test_large_multifragment_recipient_bounded_contract (37.876s)
+RUN test_source_preflight_zero_write_contract [test_source_preflight_recipient_validation_contract.R; self_contained]
+PASS test_source_preflight_zero_write_contract (0.090s)
+RUN test_source_scope_ingest_dag_recipient_contract [test_source_preflight_recipient_validation_contract.R; self_contained]
+PASS test_source_scope_ingest_dag_recipient_contract (46.251s)
+RUN test_space_cell_identity_contract [test_space_cell_identity_contract.R; self_contained]
+PASS test_space_cell_identity_contract (24.209s)
+RUN test_strict_operation_input_validation_contract [test_strict_operation_input_validation_contract.R; self_contained]
+PASS test_strict_operation_input_validation_contract (0.243s)
+RUN test_strict_replay_inputs_contract [test_strict_replay_inputs_contract.R; self_contained]
+replay complete
+runs: 3 
+replay complete
+runs: 3 
+replay complete
+runs: 3 
+replay complete
+runs: 3 
+PASS test_strict_replay_inputs_contract (207.746s)
+RUN test_trajectory_family_helpers_contract [test_trajectory_family_helpers_contract.R; isolated_bundle]
+PASS test_trajectory_family_helpers_contract (7.584s)
+RUN test_typed_cell_set_consumption_provenance_contract [test_typed_cell_set_consumption_provenance_contract.R; self_contained]
+PASS test_typed_cell_set_consumption_provenance_contract (165.019s)
+RUN test_typed_effective_cell_coverage_contract [test_typed_effective_cell_coverage_contract.R; self_contained]
+FAIL test_typed_effective_cell_coverage_contract -- GRAPH_SOURCE_AUTHORITY_REQUIRED: Retained payload lacks independently issued provenance output evidence.
+RUN test_unambiguous_manifest_feature_counts_contract [test_unambiguous_manifest_feature_counts_contract.R; self_contained]
+PASS test_unambiguous_manifest_feature_counts_contract (126.125s)
+RUN test_validate_bundle_contract [test_validate_bundle_contract.R; self_contained]
+PASS test_validate_bundle_contract (20.487s)
+CONTRACT TEST SUMMARY files=32 discovered=40 executed=40 passed=38 skipped=0 failed=2 excluded=0 accounted=40
+Warning messages:
+1: In system2(pybench_python, c(py_path, cfg_path), stdout = TRUE,  :
+  running command ''/home/dirk/Projects/.scworkbench-worktrees/generic-graph-implementation-forge-20261010/../../pybench/.venv/bin/python' /tmp/RtmpWYQhWk/pybench_cell_vector_write_4ff95b572391.py /tmp/RtmpWYQhWk/pybench_cell_vector_cfg_4ff9297945b7.json 2>&1' had status 1
+2: call dbDisconnect() when finished working with a connection 
+3: In connection_release(conn@ptr) : Already disconnected
+Error: Contract suite failed:
+- test_session_inspection_and_ingest_integrity_contract [test_session_inspection_ingest_integrity_contract.R]: Bundle integrity validation failed (recipient):
+- SQLITE_UNRESOLVED_JOURNAL_STATE[main]: Recipient bundle contains unresolved SQLite WAL/SHM/journal state.
+- SQLITE_UNRESOLVED_JOURNAL_STATE[main]: Recipient bundle contains unresolved SQLite WAL/SHM/journal state.
+- VALIDATION_MUTATED_BUNDLE[scwb_session_inspection_bundle_4ff92fd5a250]: Recipient validation changed the bundle filesystem fingerprint.
+- test_typed_effective_cell_coverage_contract [test_typed_effective_cell_coverage_contract.R]: GRAPH_SOURCE_AUTHORITY_REQUIRED: Retained payload lacks independently issued provenance output evidence.
+Execution halted

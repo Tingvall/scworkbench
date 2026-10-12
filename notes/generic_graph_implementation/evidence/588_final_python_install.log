@@ -1,0 +1,62 @@
+Processing /home/dirk/Projects/lymphocyte_trajectory/coordination/evidence/2026-10-12_quill_graph_small_gate/pybench-0.1.0-py3-none-any.whl
+Processing /home/dirk/Projects/.pybench-worktrees/generic-graph-native-matrix-python-20261011/tests/fixtures/operation-pack-v4-graph-python
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Processing /home/dirk/Projects/.pybench-worktrees/generic-graph-native-matrix-python-20261011/tests/fixtures/operation-pack-v3-python-reference
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Processing /home/dirk/Projects/scworkbench-operation-pack-template-python
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting h5py==3.15.1
+  Using cached h5py-3.15.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (4.7 MB)
+Collecting jsonschema>=4.23
+  Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+Collecting numpy>=1.26
+  Using cached numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
+Collecting packaging>=24
+  Using cached packaging-26.3-py3-none-any.whl (129 kB)
+Collecting pandas>=2.1
+  Using cached pandas-3.0.6-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.1 MB)
+Collecting jsonschema-specifications>=2023.03.6
+  Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+Collecting rpds-py>=0.25.0
+  Using cached rpds_py-2026.9.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (375 kB)
+Collecting attrs>=22.2.0
+  Using cached attrs-26.1.0-py3-none-any.whl (67 kB)
+Collecting referencing>=0.28.4
+  Using cached referencing-0.37.0-py3-none-any.whl (26 kB)
+Collecting python-dateutil>=2.8.2
+  Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Collecting six>=1.5
+  Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+Collecting typing-extensions>=4.4.0
+  Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Building wheels for collected packages: scwb-graph-fixture, scwb-v3-python-reference, scworkbench-python-pack
+  Building wheel for scwb-graph-fixture (pyproject.toml): started
+  Building wheel for scwb-graph-fixture (pyproject.toml): finished with status 'done'
+  Created wheel for scwb-graph-fixture: filename=scwb_graph_fixture-0.1.0-py3-none-any.whl size=4255 sha256=6a6829e9d8120d55bad54f975ab9c646d150e1fa17553a2bfb083d7ab2164fc2
+  Stored in directory: /home/dirk/.cache/pip/wheels/29/b1/6a/08bbb4bf7c3478219045a0464ea6f3e2724516e8aeca861bd2
+  Building wheel for scwb-v3-python-reference (pyproject.toml): started
+  Building wheel for scwb-v3-python-reference (pyproject.toml): finished with status 'done'
+  Created wheel for scwb-v3-python-reference: filename=scwb_v3_python_reference-0.1.0-py3-none-any.whl size=11233 sha256=e9389baf64bf51b2360ede3d9ef435146401981e9b29418e00361e7329559c46
+  Stored in directory: /home/dirk/.cache/pip/wheels/35/55/f9/125509e189f6e7adf42159fa9a9b6b9eadc0c10d4b59c679d7
+  Building wheel for scworkbench-python-pack (pyproject.toml): started
+  Building wheel for scworkbench-python-pack (pyproject.toml): finished with status 'done'
+  Created wheel for scworkbench-python-pack: filename=scworkbench_python_pack-1.0.0rc1-py3-none-any.whl size=5717 sha256=0f782ae3f51389964fe8c63533cff3c4254906fd1a452e855be83efc486ae5d0
+  Stored in directory: /home/dirk/.cache/pip/wheels/7b/f1/a5/01650ca2339c1380fd7780d23571c7081d7066189313b6c302
+Successfully built scwb-graph-fixture scwb-v3-python-reference scworkbench-python-pack
+Installing collected packages: typing-extensions, six, rpds-py, packaging, numpy, attrs, referencing, python-dateutil, h5py, pandas, jsonschema-specifications, jsonschema, pybench, scworkbench-python-pack, scwb-v3-python-reference, scwb-graph-fixture
+Successfully installed attrs-26.1.0 h5py-3.15.1 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 numpy-2.4.6 packaging-26.3 pandas-3.0.6 pybench-0.1.0 python-dateutil-2.9.0.post0 referencing-0.37.0 rpds-py-2026.9.1 scwb-graph-fixture-0.1.0 scwb-v3-python-reference-0.1.0 scworkbench-python-pack-1.0.0rc1 six-1.17.0 typing-extensions-4.16.0

@@ -1,0 +1,4 @@
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+MIXED_LEGACY_FIXTURE diagnostic_copy=PASS all_original_assertions=PASS production_migration_unchanged=TRUE

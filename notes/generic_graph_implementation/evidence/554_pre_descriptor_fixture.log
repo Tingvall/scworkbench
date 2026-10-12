@@ -1,0 +1,5 @@
+PRE_DESCRIPTOR public_promote=PASS original_load=PASS original_content_certificate=PASS descriptor=ABSENT
+                       content_identity_scheme
+1 scworkbench.content.object.canonical-json.v1
+                                                    content_sha256
+1 34a8392d473ccd9d8273380446b6a81a591ee3715a9eaddb96fba91a963efb5a

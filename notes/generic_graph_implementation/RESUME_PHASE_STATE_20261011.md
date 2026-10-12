@@ -1012,3 +1012,45 @@ changes duringlive recipient; production47590/evidence35remainfrozen.
 499 source1093 freeze1fca8f0b5c74f4f33906cc20be485e23882a48703674d7d4ab350b70da9bdebd/install0 completes private live-connection propagation for promotion/allloadTRUE contexts; import intersects active lowest policy before reader/stage (nestedhighergrant test).500 affected run LIVE session66280,R559538: first4 resource PASS; small emitted3actualbindings/identity provisionalc84975af.../f3acdb90..., native32fullaxis unchanged; source/package runtime baseline642469888B recorded after actualnativepromotion beforegraph(no warmup/RSSdelta claim). Streamedcopy fault cases observed2rows/1439B; finalcopy/recipient terminalpending. Source1093 prelaunchMATCH/runtime233assetledger8a9c85c0ffab104932d060b8e6d8bb9551001c40dbc07a4364d038261ef21195. Quill verifies priorfailed497 provisionalR/Py fullboundroots diagnostic only, noacceptedfreeze yet. No fullsuite untilfocusedterminalPASS.
 
 500 TERMINAL0 10:15.52;5/5 zero skips. Actual22564B canonicaltokens80files; NDJSON71907B,max1439B2rows; observedstage disk237568B,cachemax254KiB<256. Baseline642469888B versus wholeRSS653742080B reported separately (noRSSdelta/constantmemory claim). Fullmixedpromotion3faults/executor6faults/retry/collect8192reject/cleanup/sourcepurity/finalize/relocate/freshpackfreeRO PASS.501 source1093/runtime233 posthash MATCH, exact5exports ledgerf19c67fe8d2d9c08eea20f3e61c3537ac0d95fa03afcc64572ac3c123abaccef, oldtest source0bd841 snapshot preserved. TwoAlreadydisconnected warnings traced to testdoubleclose; finaltest stores clearedsession return, restoresregistry/ownednamespace, guards anypreloadedRNA exact4code/manifestbytes. New native2tests isolation also repaired; prior505sources preserved. NO productiondelta after499. Byte-identical sharedcase60741a copiedtests/fixtures for package source; graphdevelopmentnotes excludedfromreleasebuild, prototype.o ignored/notdeleted.502 remainingfocusedTERMINAL0 39/39 zero skips including23normativescenario writer/igraph/recipient;503 installedSDKtutorialTERMINAL0 6/6/all3commandexits0;504 installedPython3.11 liveTERMINAL0 1/1 boundCV mixedgraph/table/broker/recipient/sourcepurity.506 actualexecution posthashMATCH. Quill localcleanbb0e319316fb5585d83936e7846531773a3432f5 copiedsuccessful500actualsample+copyreadgrants, fullroots/partitionchains/brokerusage parity; focused80+138 separatemodules=218 PASS, Pythonigraph installed/no skip. Remaining finalcleanR/Py tuple, ONEfullsuites/buildchecks, SAMEtwoindependentreviews throughparent. WholequalificationFALSE; no routineemail. Physical/8xDEFERRED and485/463 oldRSS failures retained.
+
+Final qualification continuation: parent core07882/Pybb0e319 advanced toe724 test-only Py portable/inventory corrections; allruntime/protocolsame, Pyparentfull750/5/3warnings plusaffected configured158/resolver12/strictinventory1 and officialgolden1/1. FinalQuillhandoff2026-10-12_quill_generic_graph_bounded_small_gate.md. Core509 attemptedinstalledfull harnesswrong(globalpublicexports/Gitarchivecwd): stoppedSIGINTverified567693 terminal1/nochildren, actualpartial50started42pass7fail plusinterruptedcase; two namespace durablefailures,threeGitcontextdocfailures,twohistoricalschemafailures separate.513 correctednamespace durable2PASS/schema2FAIL.511package0/3NOTEs: size12.3MB, Rtools misreadslocalrequire,undefinedutils globals.512 minimalproven/localrenamefix;514 normalutilsbinding equalityTRUE. Coreb1d mechanicsrename+qualifier/testhistoricalfixture;515install0.516focus39 terminal1:36PASS,2helperwronglabel3assumption+1docdriftFAIL.518 authoritative labels3or5typed/pseudotime4; readonlydocdrift exposesgenerator regexcounted scratch4 asdurable. Approvedgeneratoractualdurable59/sourceuniqueproof+helper preservesalltypedcols/rows/constraints,migration010UNCHANGED. Coreclean53771f10ee275ff24bfc72800681116738255915.521affected8/8PASS zero skips inclschema2/normalizedmembership/docs3/unexpectedcolumnpurity/catalogscratch+unannotatedactualtablefail. No arbitraryschema/migration/authority changes.522 finalGitarchive bfa64c1d42da7768ad5903a83da708aefe0d9b249bad107f09a708c9849f4d99 installed0 to /tmp/scwb-graph-final-valid-522.hxhra5_g/library;523build0 tarSHA63d6466a99665d14925fa8f0a7bec31def0584a80466519c0a0cde04f3ec095f.524 exactsourcepackagecheck LIVE session63521.525 VALIDcomplete installedcore suite LIVE session69947: driver run_valid_final_installed_suite_525.R uses testenv parentasNamespace pluscontracthelpers, testcwd pinnedactualGitroot, R_LIBS+childinstalledlib explicit, finalPye724 env /tmp/pybench-graph-final-e724-20261012/venv/bin/python+sitepackages manifest. No exclusions. Source1098 frozen525_valid_source.sha256; runtime233 ledger086c3ddbe45aa6d2033ba0e6bb2c963f9acb3977655005ab71d919c75c0aced2. DO NOTeditcore/testsourcewhilelive. Awaitactualfull/package terminal, exactposthash, thenSAMEtwoindependentreviews throughparent. No routineemail/fullrepeats/physicalstress; old485RSSFAIL, allfailedruns remain. Largephysical8xDEFERRED. Work is NOTdone yet.
+
+###525 live graph checkpoint and isolated discovery harness closure
+
+Core537/Python e724 remain frozen.525 discovered334 functions/171files without
+exclusions. Public R graph execution and fresh relocated pack-free read-only
+recipient PASS; installed final-e724 Python broker test PASS. Long Unicode
+legacy certificate/cache parity PASS129.979s. Native matrix identity/source
+connection budget/producer parity checks PASS; public promotion-first lifecycle
+currently active. Known nested discovery failure remains an actual full-suite
+failure:525 private test helper environment is invisible to its nested global
+discovery fixture.528 unchanged test PASS with expected global helper aliases;
+529 confirms identical helper functions/shared state and restores operator
+globals. No live525 injection or source change. Preserve actual final full exit
+and count, plus the separate targeted closure. Do not claim zero-failure full
+suite. Internal optional H5AD round-trip skipped due unset provision flag.
+Controller acknowledges this attribution; final same-two review after terminal.
+
+USER REQUESTED SHUTDOWN PAUSE. Full525 interrupted, incomplete227pass/64fail/5skip/297started of334; namespace hotreload breach, authentic543 legacyloader regression unresolved. All owned root/agent workers gone. Durable authoritative checkpoint: /home/dirk/Projects/lymphocyte_trajectory/coordination/checkpoints/2026-10-12_graph_shutdown_forge/SHUTDOWN_CHECKPOINT.md
+
+
+## Final implementation qualification checkpoint, 2026-10-12
+
+Task remains active until independent acceptance. Final implementation8ea74ac095853716449396f02ed2f99b6f0787b6,
+exactsource643installed/tmp/scwb-final-source-643.ui645z4a/library. Current644mixed
+R/Python/freshrecipient+strict12negative3/3,649metadata3/3 and647package0ERROR/
+0WARNING/1sizeNOTE allPASS; source/installedhash646postMATCH650. Shared decoder /
+authenticatedprovisionalPythonv1 output regression620 repaired,625 exactimplbytes
+match8ea,630currentwheel exactvalues/promotion/certPASS,633faultcasePASS(original8+
+3addedneg+publicationfault/2sec timeout/retry/noresidue),640crosslifecycle1/1PASS.
+Original525 interrupted/nonqualifying,58248/2 and58938/2 remainfailedaggregates;
+scopedfixtureresolutions556/618/642 areliteral.651all336functionnames accounted.
+Parent5c small5975/5,normative60339/39(23cases),SDK6046/6 andQuill611source-bound
+parityroots/disks/cursors retained scope. Current8ea/e72444protocolinventoryPASS,
+optionalpalantircollectionexit4 notPASS, historicale0feac protocol594FAIL is
+unqualified/inapplicable old/currentcomparison. PhysicalRAM/8x deferred, runtime
+RSS descriptive. Exact review packet REVIEW_PACKET_FINAL_SMALL.md plus650 ready
+for same2independentreviewers through parent01a12c74-97ae-71c0-9522-eb3c68b45383.
+No merge/push/officialprofile/packs/SIF/email. Controller owns completionemail only
+after fullindependentacceptance. No further tests/fullsuite repeats justified
+unless reviewers identify concrete remainingwork. SourceR/tests/inst trackedclean.

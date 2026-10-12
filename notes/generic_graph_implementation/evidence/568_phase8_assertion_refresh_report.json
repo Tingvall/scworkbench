@@ -1,0 +1,23 @@
+{
+  "head": "9869ccf344191ca7ff6e070139bfdcd03336d746",
+  "current_tests": 336,
+  "changed_rows": {
+    "test_graph_authentic_legacy_object_content_load_contract": {
+      "columns": [
+        "assertion_count",
+        "key_assertions"
+      ],
+      "previous_assertion_count": "3",
+      "current_assertion_count": "7"
+    }
+  },
+  "proof_removal_row": "already identical to current source parser capture",
+  "all_other_rows": "byte-valued CSV fields unchanged",
+  "historical_and_addition_ledgers_unchanged_sha256": {
+    "core_test_ownership_inventory.csv": "463bb781a81572fb665ba97b7323c57b21ca95ac9ac4a74efaad64fd8d55dbc2",
+    "migrated_operation_test_references.csv": "8280392272193776364ce8b633153ebaaef6f8944631e0c8cdefcba2ffe21e53",
+    "packed_operation_names.csv": "a7f18e5b70a79d8fb66d844cd2a8da0ddc6a4a328010b361b8f4a8f07e48b891",
+    "graph_and_core_test_additions.csv": "f965ca9511eb8d204e4b0381fa623875b57d365e4eef4c03a6b703bdd0220728"
+  },
+  "phase8_runtime_tests": "not rerun"
+}

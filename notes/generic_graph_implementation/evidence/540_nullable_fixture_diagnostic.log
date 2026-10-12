@@ -1,0 +1,19 @@
+ACTUAL_MIGRATION_ATTEMPT_RESULT
+[1] "Error : Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpPz9Q4i/scwb-nullable-family-928565d3364d6/.migration-fault.bundle.schema-backups/app.sqlite.v9-to-v11.20261012T142029.921841-600150-6vd5hsxt8crq.bak. Cause: injected nullable-family migration fault\n"
+attr(,"class")
+[1] "try-error"
+attr(,"condition")
+<simpleError: Bundle schema migration rolled back completely; recovery backup: /tmp/RtmpPz9Q4i/scwb-nullable-family-928565d3364d6/.migration-fault.bundle.schema-backups/app.sqlite.v9-to-v11.20261012T142029.921841-600150-6vd5hsxt8crq.bak. Cause: injected nullable-family migration fault>
+OLD_FIXTURE_LEDGER
+  version                        migration_id
+1       1      001_consolidate_durable_schema
+2       2           002_referential_integrity
+3       3              003_lifecycle_backfill
+4       4     004_complete_space_foreign_keys
+5       5         005_metadata_field_registry
+6       6     006_provenance_identity_schemes
+7       7               007_analysis_capsules
+8       8 008_metadata_field_content_identity
+9       9      009_typed_cell_set_consumption
+UNCHANGED_TEST_FAILURE GRAPH_SOURCE_AUTHORITY_REQUIRED: Retained source lacks fresh bounded payload authority.
+CORRECTED_FIXTURE_RESULT=FALSE

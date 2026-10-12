@@ -1,0 +1,39 @@
+{
+  "commit": "8ea74ac095853716449396f02ed2f99b6f0787b6",
+  "exact_git_archive_sha256": "e1a614b394bb7c6e4aca0eb11a624756c895b69005c29e4d1f762916d5b3c90b",
+  "package_archive": "/tmp/scwb-final-source-643.ui645z4a/scworkbench_0.1.0.tar.gz",
+  "package_archive_sha256": "7276f69bcdbac9e6eb2a39261f01b467ea0d58f01fe73564648be03af9d62420",
+  "source_execution_posthash_match": true,
+  "installed_execution_posthash_match": true,
+  "current_graph644": {
+    "exit": 0,
+    "executed": 3,
+    "passed": 3,
+    "skipped": 0,
+    "cases": [
+      "public R mixed lifecycle/faults/source verification/fresh relocatedpackfree readonlyrecipient",
+      "installed e724 Python matrix/retainedCV/broker/mixedrecipient exactsource/purity",
+      "currentordinaryproofremoval12variants strictproducer/graphauthority rejection"
+    ]
+  },
+  "metadata649": {
+    "exit": 0,
+    "passed": 3,
+    "skipped": 0,
+    "inventory_tests": 336,
+    "explicit_additions": 85,
+    "ABI2_kinds": 11,
+    "ABI4_kinds": 12
+  },
+  "package647": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 0,
+    "notes": 1,
+    "note": "installed size see exact00check",
+    "build_warning": "R CMD build automatically adds R>=3.5 because retained fixture RDS use serializationversion3; preserved build log",
+    "scope": "packagecheck sources testfiles, not explicit fullfunction runner"
+  },
+  "coverage": "Combined retained parent and scoped successor coverage; original525/582/589 remainfailed/interrupted runs; historicalprotocol594FAIL unqualified, original5fixtureSKIPs retained; aboveRAM/8x deferred",
+  "independent_acceptance": "pending"
+}

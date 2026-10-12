@@ -1,0 +1,15 @@
+RUN test_operation_pack_v3_python_composite_lifecycle_contract [test_operation_pack_v3_python_composite_contract.R; self_contained]
+Warning: Matrix compression performs poorly with non-integers.
+• Consider calling convert_matrix_type if a compressed integer matrix is intended.
+This message is displayed once every 8 hours.
+PASS test_operation_pack_v3_python_composite_lifecycle_contract (390.901s)
+RUN test_operation_pack_v3_python_composite_protocol_contract [test_operation_pack_v3_python_composite_contract.R; self_contained]
+FAIL test_operation_pack_v3_python_composite_protocol_contract -- identical(readBin(r_path, "raw", file.info(r_path)$size), readBin(py_path,  .... is not TRUE
+RUN test_operation_pack_v3_python_phase5_model_lifecycle_contract [test_operation_pack_v3_python_composite_contract.R; self_contained]
+PASS test_operation_pack_v3_python_phase5_model_lifecycle_contract (75.814s)
+CONTRACT TEST SUMMARY files=1 discovered=3 executed=3 passed=2 skipped=0 failed=1 excluded=0 accounted=3
+Warning message:
+call dbDisconnect() when finished working with a connection 
+Error: Contract suite failed:
+- test_operation_pack_v3_python_composite_protocol_contract [test_operation_pack_v3_python_composite_contract.R]: identical(readBin(r_path, "raw", file.info(r_path)$size), readBin(py_path,  .... is not TRUE
+Execution halted

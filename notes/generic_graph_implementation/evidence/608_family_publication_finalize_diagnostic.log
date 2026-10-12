@@ -1,0 +1,2 @@
+SESSION_FINALIZE before_journal=wal after_journal=delete logical_state_unchanged=TRUE
+FAMILY_PUBLICATION_PUBLIC_FINALIZE_ORIGINAL_ASSERTIONS PASS

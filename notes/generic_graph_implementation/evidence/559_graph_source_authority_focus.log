@@ -1,0 +1,10 @@
+RUN test_graph_retained_cell_source_payload_contract [test_graph_source_authority_contract.R; self_contained]
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector SEARCH artifact_labels USING INDEX artifact_labels_payload_order (artifact_id=?) 
+GRAPH_SOURCE_CURSOR_PLAN cell_vector_family SEARCH artifact_pseudotime USING INDEX artifact_pseudotime_payload_order (artifact_id=?) 
+PASS test_graph_retained_cell_source_payload_contract (13.844s)
+RUN test_graph_object_source_batch_identity_admission_restoration_contract [test_graph_object_source_batch_contract.R; self_contained]
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector rows=5001 exact_identity=PASS elapsed=0.151
+OBJECT_CLOSURE_BATCH_PROTOTYPE kind=cell_vector_family rows=5001 exact_identity=PASS elapsed=0.144
+PASS test_graph_object_source_batch_identity_admission_restoration_contract (7.528s)
+CONTRACT TEST SUMMARY files=2 discovered=2 executed=2 passed=2 skipped=0 failed=0 excluded=0 accounted=2

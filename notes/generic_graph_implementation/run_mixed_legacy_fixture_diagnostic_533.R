@@ -1,0 +1,7 @@
+.libPaths(c("/tmp/scwb-graph-final-valid-522.hxhra5_g/library",.libPaths()))
+library(scworkbench,lib.loc="/tmp/scwb-graph-final-valid-522.hxhra5_g/library")
+env <- new.env(parent=asNamespace("scworkbench"))
+sys.source("inst/tests/contract_test_runner.R",env)
+sys.source("notes/generic_graph_implementation/mixed_legacy_fixture_diagnostic_533.R",env)
+stopifnot(isTRUE(do.call(env$test_mixed_legacy_new_provenance_identity_contract,list())))
+cat("MIXED_LEGACY_FIXTURE diagnostic_copy=PASS all_original_assertions=PASS production_migration_unchanged=TRUE\n")

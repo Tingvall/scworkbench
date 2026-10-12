@@ -1,0 +1,240 @@
+* using log directory ‘/tmp/scwb-final-source-643.ui645z4a/scworkbench.Rcheck’
+* using R version 4.4.1 (2024-06-14)
+* using platform: x86_64-pc-linux-gnu
+* R was compiled by
+    gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+    GNU Fortran (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+* running under: Pop!_OS 22.04 LTS
+* using session charset: UTF-8
+* using options ‘--no-manual --no-build-vignettes’
+* checking for file ‘scworkbench/DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘scworkbench’ version ‘0.1.0’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘scworkbench’ can be installed ... OK
+* used C compiler: ‘gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0’
+* checking installed package size ... NOTE
+  installed size is 12.4Mb
+  sub-directories of 1Mb or more:
+    protocol   4.2Mb
+    R          4.4Mb
+    sdk        1.1Mb
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking line endings in Makefiles ... OK
+* checking compilation flags in Makevars ... OK
+* checking for GNU extensions in Makefiles ... OK
+* checking for portable use of $(BLAS_LIBS) and $(LAPACK_LIBS) ... OK
+* checking use of PKG_*FLAGS in Makefiles ... OK
+* checking compiled code ... OK
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ... OK
+  Running ‘test_analysis_capsule_atomicity_security_contract.R’
+  Running ‘test_analysis_capsule_documentation_policy_contract.R’
+  Running ‘test_analysis_capsule_process_death_contract.R’
+  Running ‘test_analysis_capsule_r_source_review_closure_contract.R’
+  Running ‘test_analysis_capsule_recipient_validation_contract.R’
+  Running ‘test_analysis_capsule_registration_contract.R’
+  Running ‘test_artifact_naming_contract.R’
+  Running ‘test_atomic_authoritative_manifest_contract.R’
+  Running ‘test_attach_adapters_contract.R’
+  Running ‘test_auditable_transformation_onboarding_law_contract.R’
+  Running ‘test_bundle_ingest_containers_contract.R’
+  Running ‘test_bundle_path_containment_trust_boundary_contract.R’
+  Running ‘test_cell_vector_durable_identity_roundtrip_contract.R’
+  Running ‘test_central_schema_foreign_key_closure_contract.R’
+  Running ‘test_central_schema_migration_foreign_keys_contract.R’
+  Running ‘test_compute_profile_contract.R’
+  Running ‘test_container_release_hygiene_contract.R’
+  Running ‘test_contract_catalogs_semantic.R’
+  Running ‘test_contract_runner_discovery_contract.R’
+  Running ‘test_deep_bundle_integrity_validation_contract.R’
+  Running ‘test_derived_cell_set_lifecycle_contract.R’
+  Running ‘test_docker_release_engineering_contract.R’
+  Running ‘test_documentation_source_package_curation_contract.R’
+  Running ‘test_durable_resumable_sessions_contract.R’
+  Running ‘test_durable_session_dependent_branch_contract.R’
+  Running ‘test_durable_session_generation_recovery_contract.R’
+  Running ‘test_durable_session_source_payload_corruption_contract.R’
+  Running ‘test_durable_session_subprocess_recovery_contract.R’
+  Running ‘test_exclusive_bundle_writer_lock_safety_closure_contract.R’
+  Running ‘test_feature_selection_plan_contract.R’
+  Running ‘test_feature_set_namespace_transfer_contract.R’
+  Running ‘test_feature_sets_contract.R’
+  Running ‘test_file_backed_dense_space_corruption_contract.R’
+  Running ‘test_file_backed_dense_space_storage_contract.R’
+  Running ‘test_foundation_data_getters_selectors.R’
+  Running ‘test_foundation_hardening_1to5.R’
+  Running ‘test_fullstack_monocle3_dependency_closure_contract.R’
+  Running ‘test_geneprograms_extraction_contract.R’
+  Running ‘test_generated_document_revision_contract.R’
+  Running ‘test_getter_catalog_semantic_contract.R’
+  Running ‘test_graph_abi4_admission_contract.R’
+  Running ‘test_graph_abi4_broker_publication_contract.R’
+  Running ‘test_graph_abi4_public_execution_contract.R’
+  Running ‘test_graph_abi4_python_live_contract.R’
+  Running ‘test_graph_abi4_retained_count_contract.R’
+  Running ‘test_graph_abi4_runtime_sidecar_contract.R’
+  Running ‘test_graph_binding_read_selection_contract.R’
+  Running ‘test_graph_bounded_legacy_collector_contract.R’
+  Running ‘test_graph_legacy_metadata_expansion_admission_contract.R’
+  Running ‘test_graph_legacy_object_content_load_contract.R’
+  Running ‘test_graph_matrix_source_selection_contract.R’
+  Running ‘test_graph_native_matrix_identity_contract.R’
+  Running ‘test_graph_native_matrix_producer_contract.R’
+  Running ‘test_graph_native_matrix_public_promotion_first_contract.R’
+  Running ‘test_graph_native_matrix_real_g2_source_contract.R’
+  Running ‘test_graph_no_axis_public_contract.R’
+  Running ‘test_graph_object_source_batch_contract.R’
+  Running ‘test_graph_primitive_contract.R’
+  Running ‘test_graph_resource_accounting_contract.R’
+  Running ‘test_graph_scenario_roundtrip_contract.R’
+  Running ‘test_graph_sdk_authoring_contract.R’
+  Running ‘test_graph_small_out_of_core_contract.R’
+  Running ‘test_graph_source_authority_contract.R’
+  Running ‘test_graph_source_snapshot_scope_contract.R’
+  Running ‘test_graph_strict_json_unicode_contract.R’
+  Running ‘test_h5ad_nested_source_identity_relinking_contract.R’
+  Running ‘test_historical_nullable_schema_layout_contract.R’
+  Running ‘test_imported_state_provenance_identity_contract.R’
+  Running ‘test_ingest_adapters_contract.R’
+  Running ‘test_knowledge_graph_contract.R’
+  Running ‘test_large_payload_provenance_hashing_contract.R’
+  Running ‘test_legacy_cell_vector_contract.R’
+  Running ‘test_logged_release_gate_contract.R’
+  Running ‘test_long_running_session_promotion_guidance_contract.R’
+  Running ‘test_manifest_stream_identity_contract.R’
+  Running ‘test_metadata_identifier_bulk_write_contract.R’
+  Running ‘test_metadata_identifier_consumers_contract.R’
+  Running ‘test_metadata_identity_namespace_closure_contract.R’
+  Running ‘test_model_ref_relocatability_contract.R’
+  Running ‘test_motif_match_contract.R’
+  Running ‘test_motif_registry_contract.R’
+  Running ‘test_native_sqlite_byte_api_contract.R’
+  Running ‘test_navigation_contract.R’
+  Running ‘test_nullable_cell_vector_family_storage_contract.R’
+  Running ‘test_onboarding_container_mount_contract.R’
+  Running ‘test_op_catalog_semantic_contract.R’
+  Running ‘test_op_chunking_helper_contract.R’
+  Running ‘test_op_contract_conformance.R’
+  Running ‘test_op_feature_set_import_qc_contract.R’
+  Running ‘test_op_metadata_cell_vector_diagnostics_contract.R’
+  Running ‘test_op_slingshot_adopt_contract.R’
+  Running ‘test_operation_docs_single_source_contract.R’
+  Running ‘test_operation_pack_canonical_identity_contract.R’
+  Running ‘test_operation_pack_sdk_contract.R’
+  Running ‘test_operation_pack_v1_contract.R’
+  Running ‘test_operation_pack_v2_cell_set_family_admission_contract.R’
+  Running ‘test_operation_pack_v2_contract.R’
+  Running ‘test_operation_pack_v2_feature_set_registry_read_contract.R’
+  Running ‘test_operation_pack_v2_observed_chunk_trace_fail_closed_contract.R’
+  Running ‘test_operation_pack_v2_transition_rollback_contract.R’
+  Running ‘test_operation_pack_v3_chunking_catalog_contract.R’
+  Running ‘test_operation_pack_v3_contract.R’
+  Running ‘test_operation_pack_v3_derived_fitted_axis_contract.R’
+  Running ‘test_operation_pack_v3_durable_model_tree_contract.R’
+  Running ‘test_operation_pack_v3_g1_model_reference_dispatch_repair_contract.R’
+  Running ‘test_operation_pack_v3_g3_external_state_adoption_contract.R’
+  Running ‘test_operation_pack_v3_g7_derived_cell_output_axis_contract.R’
+  Running ‘test_operation_pack_v3_g7_effective_family_key_contract.R’
+  Running ‘test_operation_pack_v3_genomic_registry_contract.R’
+  Running ‘test_operation_pack_v3_latent_union_protocol_contract.R’
+  Running ‘test_operation_pack_v3_matrix_model_boundary_contract.R’
+  Running ‘test_operation_pack_v3_ordered_cell_metadata_contract.R’
+  Running ‘test_operation_pack_v3_phase5_consolidated_capabilities.R’
+  Running ‘test_operation_pack_v3_python_composite_contract.R’
+  Running ‘test_operation_pack_v3_runtime_family_key_contract.R’
+  Running ‘test_operation_pack_v3_sealed_relation_family_contract.R’
+  Running ‘test_operation_pack_v3_sparse_membership_contract.R’
+  Running ‘test_operation_pack_v3_stage_matrix_source_binding_contract.R’
+  Running ‘test_operation_pack_v3_standalone_sparse_family_contract.R’
+  Running ‘test_operation_pack_v3_trajectory_family_contract.R’
+  Running ‘test_payload_content_identity_contract.R’
+  Running ‘test_phase5_s2_core_ownership_contract.R’
+  Running ‘test_phase6_matrix_subset_getter_contract.R’
+  Running ‘test_phase6_peakvi_ownership_contract.R’
+  Running ‘test_phase8_no_pack_core_surface_contract.R’
+  Running ‘test_plot_catalog_semantic_contract.R’
+  Running ‘test_plot_wranglers_contract.R’
+  Running ‘test_post_migration_documentation_contract.R’
+  Running ‘test_primitives_contract.R’
+  Running ‘test_promotion_artifact_payload_atomicity_contract.R’
+  Running ‘test_promotion_output_contract.R’
+  Running ‘test_promotion_runtime_fingerprint_metadata_contract.R’
+  Running ‘test_provenance_bundle_dag_contract.R’
+  Running ‘test_provenance_kg_cross_snapshot_edge_canonicalization_contract.R’
+  Running ‘test_provenance_snapshot_contract.R’
+  Running ‘test_provision_cran_namespaces_contract.R’
+  Running ‘test_public_api_boundary_contract.R’
+  Running ‘test_public_cell_metadata_import_contract.R’
+  Running ‘test_public_cell_metadata_import_safety_contract.R’
+  Running ‘test_public_cell_metadata_import_scale_contract.R’
+  Running ‘test_public_typed_run_branch_inputs_contract.R’
+  Running ‘test_publish_app_bundle_provenance_contract.R’
+  Running ‘test_pybench_payload_parity_contract.R’
+  Running ‘test_pybench_payload_parity.R’
+  Running ‘test_pybench_protocol_hello_bridge_contract.R’
+  Running ‘test_pybench_staging_capability_v2_contract.R’
+  Running ‘test_pybench_transition_publication_atomicity_contract.R’
+  Running ‘test_registry_replay_closure_contract.R’
+  Running ‘test_relative_bundle_writer_lock_identity_contract.R’
+  Running ‘test_release_engineering_contract.R’
+  Running ‘test_report_draft_contract.R’
+  Running ‘test_reporting_contracts.R’
+  Running ‘test_representation_extraction_contract.R’
+  Running ‘test_rna_extraction_contract.R’
+  Running ‘test_schema_catalog_durable_membership_contract.R’
+  Running ‘test_semantic_catalog_unified_contract.R’
+  Running ‘test_semantic_planning_artifact_contract.R’
+  Running ‘test_session_dag_contract.R’
+  Running ‘test_session_input_ref_ergonomics_contract.R’
+  Running ‘test_session_inspection_ingest_integrity_contract.R’
+  Running ‘test_session_run_op_parameter_contract.R’
+  Running ‘test_session_snapshot_observation_contract.R’
+  Running ‘test_source_ownership_contract.R’
+  Running ‘test_source_preflight_recipient_validation_contract.R’
+  Running ‘test_space_cell_identity_contract.R’
+  Running ‘test_strict_operation_input_validation_contract.R’
+  Running ‘test_strict_replay_inputs_contract.R’
+  Running ‘test_trajectory_family_helpers_contract.R’
+  Running ‘test_typed_cell_set_consumption_provenance_contract.R’
+  Running ‘test_typed_effective_cell_coverage_contract.R’
+  Running ‘test_unambiguous_manifest_feature_counts_contract.R’
+  Running ‘test_validate_bundle_contract.R’
+* DONE
+Status: 1 NOTE

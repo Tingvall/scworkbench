@@ -1,0 +1,8 @@
+{
+  "core_commit": "53771f10ee275ff24bfc72800681116738255915",
+  "tarball": "/tmp/scwb-graph-final-valid-522.hxhra5_g/scworkbench_0.1.0.tar.gz",
+  "sha256": "63d6466a99665d14925fa8f0a7bec31def0584a80466519c0a0cde04f3ec095f",
+  "required_final_fixtures_included": true,
+  "development_notes_excluded": true,
+  "qualification": false
+}

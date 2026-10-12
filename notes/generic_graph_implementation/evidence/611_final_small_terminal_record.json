@@ -1,0 +1,19 @@
+{
+  "source_commit": "5c3ad8111610ddf57c64877391b5e6cc47f22ff8",
+  "exit": 0,
+  "passed": 5,
+  "skipped": 0,
+  "installed_core_posthash_match": true,
+  "content": "d98d32aaceec530597ec03aabb2eeb3aa6697639852cfba754c9165f95735e24",
+  "binding": "72b08f3d313df1a99fad381fe3239ea1d6308a30ca8dae82b7d45be8e717c6d0",
+  "descriptor": "20ee6d6a2fee2e73c80df97e55d3bc76d1a3fcaa58867ec33e7537f0ebc33d69",
+  "exports": {
+    "R_small_authenticated_expected.json": "fe3c22126fa6c15a93a75087f55f81c62ba9684a5357482f9ca76df8c4714ec9",
+    "R_small_copy_receipt.json": "a5dab9342d7d1a7238a8c8132eaf54b5f91d58cafc33c0a9ead276653ed7dfc2",
+    "R_small_copy_request.json": "85cdb52d5aee15ff9d21c8b42d7e58121b10ec9742478735cb6476cf6b338783",
+    "R_small_receipt.json": "da09854a2d575d7b5544f636869fc8ef9281cf27496d2ae5faf21ff04ce67a2a",
+    "R_small_request.json": "867516b17a6a1231c32cb0c4042b09430d01f3786b6134c362cdafe0b1ba9804",
+    "bounded_small_case.json": "60741a7915721fb6c8872ad58a656dce3fb1c1de42bad52ab756cacd4ea703d2"
+  },
+  "qualification_scope": "tested bounded infrastructure; total RSS descriptive; above-RAM and8x stress deferred"
+}
