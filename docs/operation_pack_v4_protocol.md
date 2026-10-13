@@ -17,8 +17,10 @@ explicit selected binding IDs. Requests authenticate complete graph counts and
 content/binding/descriptor roots. Outputs declare resource/count ceilings,
 binding policy and a closed ordered `axis_sources` list. Retained cell-vector
 sources and selected authenticated graph bindings issue path-free axis
-projections; matrix-bound source admission currently rejects pending the
-separate bounded certificate decision. Unbound matrix → graph is supported.
+projections. Verified promoted native-matrix cell and feature axes also support
+authenticated bindings. Unpromoted/session-predecessor matrix bindings remain
+unsupported and reject; no separate certificate or persisted anchor is introduced.
+Unbound matrix → graph is supported.
 
 `readers[[input]]()` returns header and exactly-once `next_part()`. Each ordered
 part and ACK binds the request/transition, grant, component, offset and payload.

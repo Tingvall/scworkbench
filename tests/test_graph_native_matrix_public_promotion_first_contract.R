@@ -20,9 +20,7 @@ test_graph_native_matrix_public_promotion_first_lifecycle_contract <- function()
       try(unloadNamespace("scwbNativeGraphFixture"), silent = TRUE)
     .libPaths(old); unlink(c(library_dir, root), recursive = TRUE)
   }, add = TRUE)
-  rna <- "/home/dirk/Projects/operation_packs/scwbRNA"
-  stopifnot(identical(system2("git", c("-C", rna, "rev-parse", "HEAD"), stdout = TRUE)[[1L]],
-    "151dd29211b219343dce6247c5e48fc932b4c83d"))
+  rna <- graph_native_rna_fixture_source()
   for (source in c(rna, file.path(normalizePath("."), "tests", "fixtures", "operation-pack-v4-native-matrix"))) {
     log <- tempfile("native_graph_fixture_install_")
     status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",

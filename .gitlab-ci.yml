@@ -30,6 +30,7 @@ canonical_contracts_complete_discovery:
   stage: test
   timeout: 2h
   script:
+    - bash inst/ci/checkout_graph_rna_fixture.sh
     - inst/ci/run_canonical_gate.sh ci-evidence/canonical.log
   artifacts:
     when: always
@@ -41,7 +42,7 @@ source_package_check:
   script:
     - Rscript inst/tests/check_documentation_contracts.R
     - inst/ci/check_release_package.sh | tee ci-evidence/source-package.log
-    - grep -x 'Status: OK' ci-evidence/source-package.log
+    - "grep -x 'Status: OK' ci-evidence/source-package.log"
   artifacts:
     when: always
     paths:
@@ -73,7 +74,7 @@ existing_sif_qualification:
     - test -n "${SCWORKBENCH_QUALIFIED_SIF:-}"
     - inst/ci/provision_pinned_pybench.sh .ci/pybench
     - SINGULARITY_BIND="$CI_PROJECT_DIR/.ci/pybench:/work/pybench" SINGULARITYENV_PYTHONPATH=/work/pybench/src containers/apptainer/qualify_fullstack_release.sh "${SCWORKBENCH_QUALIFIED_SIF}" "$CI_PROJECT_DIR" | tee ci-evidence/qualification.log
-    - grep -x 'Status: OK' ci-evidence/qualification.log
+    - "grep -x 'Status: OK' ci-evidence/qualification.log"
     - sha256sum "${SCWORKBENCH_QUALIFIED_SIF}" > ci-evidence/SIF.sha256
   artifacts:
     when: always

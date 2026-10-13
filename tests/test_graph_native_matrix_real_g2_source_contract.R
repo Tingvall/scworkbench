@@ -16,9 +16,7 @@ test_graph_native_matrix_real_promoted_g2_source_contract <- function() {
       try(unloadNamespace("scwbRNA"), silent = TRUE)
     .libPaths(old); unlink(c(root, library_dir), recursive = TRUE)
   }, add = TRUE)
-  pack <- "/home/dirk/Projects/operation_packs/scwbRNA"
-  stopifnot(identical(system2("git", c("-C", pack, "rev-parse", "HEAD"), stdout = TRUE)[[1L]],
-    "151dd29211b219343dce6247c5e48fc932b4c83d"))
+  pack <- graph_native_rna_fixture_source()
   log <- tempfile("native_real_g2_install_")
   status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
     paste0("--library=", shQuote(library_dir)), shQuote(pack)), stdout = log, stderr = log)

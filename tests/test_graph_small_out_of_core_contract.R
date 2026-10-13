@@ -4,6 +4,7 @@ test_graph_small_forced_out_of_core_public_lifecycle_contract <- function() {
   registry_preimage <- as.list(registry, all.names = TRUE)
   namespaces_preimage <- loadedNamespaces()
   source("tests/fixtures/graph_small_out_of_core_support.R", local = TRUE)
+  source("tests/fixtures/graph_native_rna_namespace_support.R", local = TRUE)
   fixture_file <- "tests/fixtures/graph_small_out_of_core_case.json"
   stopifnot(digest::digest(file = fixture_file, algo = "sha256", serialize = FALSE) ==
     "60741a7915721fb6c8872ad58a656dce3fb1c1de42bad52ab756cacd4ea703d2")
@@ -42,9 +43,7 @@ test_graph_small_forced_out_of_core_public_lifecycle_contract <- function() {
     paste0("--library=", shQuote(lib)), shQuote(pack$path)), stdout = log, stderr = log)
   if (status != 0L) stop(paste(readLines(log), collapse = "\n"))
   # Reuse the accepted native producer without changing its pack or authority.
-  rna <- "/home/dirk/Projects/operation_packs/scwbRNA"
-  stopifnot(identical(system2("git", c("-C", rna, "rev-parse", "HEAD"), stdout = TRUE)[[1L]],
-    "151dd29211b219343dce6247c5e48fc932b4c83d"))
+  rna <- graph_native_rna_fixture_source()
   status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
     paste0("--library=", shQuote(lib)), shQuote(rna)), stdout = log, stderr = log)
   if (status != 0L) stop(paste(readLines(log), collapse = "\n"))
