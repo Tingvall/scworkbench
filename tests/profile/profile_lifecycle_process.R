@@ -101,6 +101,7 @@ if (identical(mode, "create_exact_replay")) {
     identical(before, digest::digest(db_path, algo = "sha256", file = TRUE)))
   writable <- wb_open_bundle(copy_root)
   wb_migrate_bundle(writable)
+  stopifnot(isTRUE(wb_finalize_recipient_bundle(writable)$ready))
   wb_close_bundle(writable)
   migrated <- digest::digest(db_path, algo = "sha256", file = TRUE)
   historical <- wb_open_bundle(copy_root, read_only = TRUE)
