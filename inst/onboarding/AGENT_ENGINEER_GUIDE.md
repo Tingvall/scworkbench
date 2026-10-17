@@ -31,7 +31,7 @@ instead. Read [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md) for current boundaries.
   feed the same canonical catalog and executor; see `docs/operation_packs.md`.
 - The no-pack production catalog has five operations. The optional
   [standard profile](../standard_profile/README.md) installs seven pinned R
-  packs and, only after explicit process-local activation, exposes 61 normal
+  packs and, only after explicit process-local activation, exposes 62 normal
   operations. Installing packs alone does not change the catalog.
 - Choose among the eleven existing primitive kinds using the
   [primitive exchange inventory](../phase8/primitive_exchange_inventory.csv).

@@ -32,7 +32,7 @@ if (identical(mode, "create_exact_replay")) {
 
   stopifnot(nrow(wb_operation_packs()) == 0L)
   profile <- scwb_standard_profile_activate(receipt_path, lib.loc = library_path)
-  stopifnot(nrow(profile$packs) == 7L, length(wb_list_ops()) == 61L)
+  stopifnot(nrow(profile$packs) == 7L, length(wb_list_ops()) == 62L)
   bundle <- wb_open_bundle(bundle_root)
   executed <- wb_session_run_op(wb_session_new(), bundle,
     "scwbrna::cell_suffix_label", inputs = list(cell_set = "all",

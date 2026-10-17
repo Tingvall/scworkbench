@@ -29,8 +29,8 @@ wb_operation_pack_capabilities()
 
 Core alone exposes five operations: `feature_set_import`,
 `feature_set_namespace_transfer`, `cell_set_derive`, `metadata_cell_vector`,
-and `slingshot_adopt`. The optional standard profile adds 56 operations from
-seven pinned packs, for 61 total after explicit process-local activation.
+and `slingshot_adopt`. The optional standard profile adds 57 operations from
+seven pinned packs, for 62 total after explicit process-local activation.
 
 | Pack | Method area | Operations | ABI |
 | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ seven pinned packs, for 61 total after explicit process-local activation.
 | scwbGenePrograms | Gene programs and signatures | 10 | v3 |
 | scwbRNA | RNA preprocessing | 4 | v3 |
 | scwbRepresentation | Representations and neighbours | 6 | v3 |
-| scwbTrajectory | Trajectory analysis | 25 | v3 |
+| scwbTrajectory | Trajectory analysis | 26 | v3 |
 | scwbLatent | Model-bound latent spaces | 4 | v3 |
 | scwbATAC | Motif activity | 1 | v3 |
 

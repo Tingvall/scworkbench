@@ -72,7 +72,7 @@ wb_session_dag(s, bundle = b, include_artifacts = TRUE, include_active = TRUE)
 
 ## Post-Migration Rules
 
-- Core has five operations; the explicitly activated seven-pack profile has 61.
+- Core has five operations; the explicitly activated seven-pack profile has 62.
 - New scientific methods normally belong in packs, not the core catalog.
 - Declare primitive IO, use authenticated callbacks, compute, emit primitives.
 - Check backend support and per-grant schedules; schema parity is not execution parity.

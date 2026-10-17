@@ -35,7 +35,7 @@ expected <- c(
   scwbGenePrograms = "1bc3ad43c920622ab1e45df4bd8bd968335e912b",
   scwbRNA = "151dd29211b219343dce6247c5e48fc932b4c83d",
   scwbRepresentation = "be51127ca0d7c11a0667be826c24449a5c7e8912",
-  scwbTrajectory = "b10bac7f3f90168eaea9fbd886802bb13a79ade6",
+  scwbTrajectory = "de6e0810578e918cf9425858eddd0549e41195be",
   scwbLatent = "fe83554d4904861e76b7dd616e34c84fd23d3a16",
   scwbATAC = "0d0b2c0728e0db543442c1783fdc9398ee309eb5")
 for (package in names(expected)) {
@@ -127,6 +127,6 @@ for (mode in c("create_exact_replay", "pack_free_inspect_missing_replay",
 install("install_collision_fixture", file.path(core_source, "tests", "fixtures",
   "operation-pack-v2-reference"), full_library, core_library)
 process("active_collision", "active_collision", full_library)
-cat("STANDARD_PROFILE_MATRIX_PASS packs=7 operations=61 individual_activations=7",
+cat("STANDARD_PROFILE_MATRIX_PASS packs=7 operations=62 individual_activations=7",
     " negatives=missing,wrong_pin,lock_collision,publication_rollback,active_collision",
     " lifecycle=exact_replay,pack_free_inspection,missing_pack_replay,disposable_v9_upgrade\n")

@@ -8,12 +8,13 @@ or ambient discovery mechanism.
 The profile lock names the exact source commits, package versions, original
 manifest bytes and canonical manifest identities for scwbStatistics,
 scwbGenePrograms, scwbRNA, scwbRepresentation, scwbTrajectory, scwbLatent and
-scwbATAC. Those packs contribute 56 normal scientific operations; core
+scwbATAC. Those packs contribute 57 normal scientific operations; core
 contributes five. Protocol/conformance fixtures are not part of the profile.
 
-The SDK release integration advances PyBench and the RNA, Representation and
-Trajectory source pins while retaining all seven operation manifests and
-operation definitions. `profile.json` is authoritative for the full revisions;
+The graph/changepoint release integration advances PyBench and scwbTrajectory.
+Trajectory 0.1.2 adds the single-changepoint operation; the other six pack pins
+are unchanged. This integration does not edit any operation manifest or
+operation definition. `profile.json` is authoritative for the full revisions;
 release metadata binds its exact file SHA-256. A newly synchronized checkout
 must match these pins, not an earlier profile's revisions. Rebuild the instance
 receipt through the installer; receipts from the earlier profile are invalid
@@ -48,7 +49,7 @@ Sys.setenv(SCWB_LATENT_PYTHON = "/path/to/cpu-python")
 profile <- scwb_standard_profile_activate(
   "/path/to/standard-profile-receipt.json",
   lib.loc = "/path/to/clean-r-library")
-stopifnot(nrow(wb_operation_packs()) == 7L, length(wb_list_ops()) == 61L)
+stopifnot(nrow(wb_operation_packs()) == 7L, length(wb_list_ops()) == 62L)
 ```
 
 Before registration, activation checks the installed core instance, all seven

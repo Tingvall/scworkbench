@@ -13,7 +13,7 @@ sys.source(system.file("standard_profile", "activate.R",
   package = "scworkbench", lib.loc = library_path, mustWork = TRUE),
   envir = globalenv())
 profile <- scwb_standard_profile_activate(receipt_path, lib.loc = library_path)
-stopifnot(nrow(profile$packs) == 7L, length(wb_list_ops()) == 61L)
+stopifnot(nrow(profile$packs) == 7L, length(wb_list_ops()) == 62L)
 
 cells <- paste0("cell_", seq_len(24L))
 features <- paste0("gene_", seq_len(32L))

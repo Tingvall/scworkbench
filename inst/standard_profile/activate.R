@@ -66,11 +66,11 @@
   if (!identical(lock$schema_version, "scworkbench.standard_profile.v1") ||
       !is.list(lock$packs) || length(lock$packs) != 7L ||
       !is.list(lock$core_operations) || length(lock$core_operations) != 5L ||
-      !identical(as.integer(lock$packed_operation_count), 56L) ||
+      !identical(as.integer(lock$packed_operation_count), 57L) ||
       !identical(lock$core_start_commit,
         "0aaa68893e595993c2664e104f7e0dc20702f960") ||
       !identical(lock$pybench_source_commit,
-        "0e67612a915caf4168a6824084fe5c5446690567")) {
+        "e724f55f709c5f1f3e99e1afc5cf83301c7a86bd")) {
     .scwb_profile_fail("LOCK_INVALID", "profile shape or declared operation totals differ")
   }
   lock_path <- system.file("standard_profile", "profile.json",
@@ -155,8 +155,8 @@
   })
   all_packed <- unlist(lapply(validated, function(x)
     names(x$identity$operation_definition_sha256)), use.names = FALSE)
-  if (length(all_packed) != 56L || anyDuplicated(all_packed)) {
-    .scwb_profile_fail("OPERATION_COLLISION", "the seven packs do not define 56 distinct operations")
+  if (length(all_packed) != 57L || anyDuplicated(all_packed)) {
+    .scwb_profile_fail("OPERATION_COLLISION", "the seven packs do not define 57 distinct operations")
   }
   if (nrow(active)) {
     for (index in seq_len(nrow(active))) {
@@ -203,9 +203,9 @@
   operations <- scworkbench::wb_list_ops()
   if (!identical(sort(observed$namespace, method = "radix"),
                  sort(vapply(preflight$pinned, `[[`, character(1), "namespace"), method = "radix")) ||
-      length(operations) != 61L ||
+      length(operations) != 62L ||
       !setequal(operations, c(preflight$core, preflight$packed))) {
-    .scwb_profile_fail("PUBLICATION_INCOMPLETE", "activated catalog differs from the locked 61 operations")
+    .scwb_profile_fail("PUBLICATION_INCOMPLETE", "activated catalog differs from the locked 62 operations")
   }
   committed <- TRUE
   invisible(list(schema_version = "scworkbench.standard_profile.activation.v1",

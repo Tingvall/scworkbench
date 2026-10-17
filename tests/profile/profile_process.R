@@ -98,8 +98,9 @@ if (identical(mode, "core_only")) {
   stopifnot(nrow(wb_operation_packs()) == 0L, setequal(wb_list_ops(), core))
 
   result <- scwb_standard_profile_activate(receipt_path, lib.loc = library)
-  stopifnot(nrow(result$packs) == 7L, length(result$operations) == 61L,
-    sum(result$packs$operation_count) == 56L,
+  stopifnot(nrow(result$packs) == 7L, length(result$operations) == 62L,
+    sum(result$packs$operation_count) == 57L,
+    "scwbtrajectory::trajectory_single_changepoint_regions" %in% result$operations,
     all(!result$packs$used),
     setequal(names(table(result$packs$namespace)),
       vapply(lock$packs, `[[`, character(1), "namespace")))
@@ -129,7 +130,7 @@ if (identical(mode, "core_only")) {
   wb_session_discard(executed$session)
   wb_close_bundle(bundle)
   unlink(bundle_dir, recursive = TRUE)
-  cat("PASS profile: wrong pin, lock collision, publication rollback, 61 ops, exact run provenance, idempotence\n")
+  cat("PASS profile: wrong pin, lock collision, publication rollback, 62 ops, exact run provenance, idempotence\n")
 } else if (identical(mode, "active_collision")) {
   fixture <- "scwbV2Reference"
   manifest <- system.file("scworkbench", "operation-pack.json", package = fixture,

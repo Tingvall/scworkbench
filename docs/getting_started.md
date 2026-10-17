@@ -11,7 +11,7 @@ contracts and links only to maintained material.
 - **Recipient:** use [recipient audit](recipient_audit.md). Inspection is pack-free; running or replaying a method is not.
 
 The optional [standard profile](../inst/standard_profile/README.md) selects
-seven packs: five core operations plus 56 packed operations yield 61 after
+seven packs: five core operations plus 57 packed operations yield 62 after
 explicit activation. Installation alone leaves the core catalog unchanged.
 Dataset-specific collaborator workflows belong in their project documentation,
 not in generic package onboarding.

@@ -7,8 +7,8 @@
     "metadata_cell_vector",
     "slingshot_adopt"
   ],
-  "packed_operation_count": 56,
-  "pybench_source_commit": "0e67612a915caf4168a6824084fe5c5446690567",
+  "packed_operation_count": 57,
+  "pybench_source_commit": "e724f55f709c5f1f3e99e1afc5cf83301c7a86bd",
   "core_start_commit": "0aaa68893e595993c2664e104f7e0dc20702f960",
   "packs": [
     {
@@ -50,11 +50,11 @@
     {
       "package": "scwbTrajectory",
       "namespace": "scwbtrajectory",
-      "version": "0.1.1",
-      "source_commit": "b10bac7f3f90168eaea9fbd886802bb13a79ade6",
-      "manifest_source_sha256": "d425247347146998e5c987ba9bc09f8789c650af0f433dfbdd0864f51305c092",
-      "manifest_sha256": "b8fef84f0f5c90d53b4f34fd312811b10d89917bbbb553e8aefcb473c7f1c2b8",
-      "operation_count": 25
+      "version": "0.1.2",
+      "source_commit": "de6e0810578e918cf9425858eddd0549e41195be",
+      "manifest_source_sha256": "6351ce58546bb1fe563dc9d1916a009a70aac423c053a31f77a6b2660562e9bf",
+      "manifest_sha256": "34a51ffe86576525e251d7c54c19cc5234da717d337130847d3a8ce5815dac3b",
+      "operation_count": 26
     },
     {
       "package": "scwbLatent",

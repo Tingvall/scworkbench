@@ -62,7 +62,7 @@ if (identical(mode, "pack_free")) {
     cat("PHASE9_TRANSFER_UNSUPPORTED activation=",
       conditionMessage(activation), "\n", sep = "")
   } else {
-    stopifnot(nrow(activation$packs) == 7L, length(wb_list_ops()) == 61L)
+    stopifnot(nrow(activation$packs) == 7L, length(wb_list_ops()) == 62L)
     target <- copy_bundle(source_path, file.path(work_root, "replay_source"))
     original <- wb_open_bundle(final_path, read_only = TRUE)
     destination <- wb_open_bundle(target)

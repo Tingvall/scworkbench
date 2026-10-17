@@ -221,7 +221,7 @@ no-pack core exposes exactly five operations: `feature_set_import`,
 `feature_set_namespace_transfer`, `cell_set_derive`, `metadata_cell_vector`,
 and `slingshot_adopt`. The optional, explicitly activated
 [standard profile](inst/standard_profile/README.md) installs seven pinned R
-packs and exposes 61 normal operations (five core and 56 packed). R packs
+packs and exposes 62 normal operations (five core and 57 packed). R packs
 activate in-process; Python packs activate explicitly through the configured
 PyBench interpreter and then execute through the same catalog, session,
 promotion, provenance, replay, and recipient contracts.

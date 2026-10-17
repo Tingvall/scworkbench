@@ -9,7 +9,7 @@ issued readers, and emit primitives through scoped writers. The installed
 activation, centralized chunking, compatibility, and test ownership.
 
 Core alone exposes five operations; the optional seven-pack profile exposes
-61 after explicit process-local activation. Installation is inert. A primitive
+62 after explicit process-local activation. Installation is inert. A primitive
 kind does not automatically authorize every axis, cardinality, registry read,
 or model relationship. Check the SDK catalog's backend-specific policy support.
 
@@ -486,7 +486,7 @@ Core alone exposes five operations: `feature_set_import`,
 `feature_set_namespace_transfer`, `cell_set_derive`, `metadata_cell_vector`,
 and `slingshot_adopt`. This pack adds six namespaced definitions for a total
 of 11 when it alone is activated. The standard profile activates seven packs
-for 61 normal operations (five core and 56 packed). An unqualified prospective
+for 62 normal operations (five core and 57 packed). An unqualified prospective
 call resolves only when one active
 qualified definition has that short name, and the run records the qualified
 definition and pack identities. Historical unqualified records are never
