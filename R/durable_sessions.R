@@ -47,6 +47,7 @@
     con@ref$wb_session_source_observation <- NULL
     con@ref$wb_schema_structure_observation <- NULL
     con@ref$wb_manifest_publication_witness <- NULL
+    con@ref$wb_graph_retained_observation <- NULL
     context <- .wb_current_mutation_context(con)
     if (!is.null(context) && is.environment(context$observations))
       context$observations$registry <- NULL

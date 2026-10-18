@@ -1,8 +1,81 @@
+.wb_graph_retained_plain_budgets <- function(value) {
+  if (is.null(value)) return(TRUE)
+  if (!is.list(value) || is.object(value)) return(FALSE)
+  attrs <- attributes(value)
+  if (length(setdiff(names(attrs),c("names","wb_graph_session_copy_bytes")))) return(FALSE)
+  owned <- attr(value,"wb_graph_session_copy_bytes",exact=TRUE)
+  if (!is.null(owned) && (!is.numeric(owned) || length(owned)!=1L ||
+      !is.null(attributes(owned)) || !is.finite(owned))) return(FALSE)
+  all(vapply(value,function(item) is.atomic(item) && length(item)==1L &&
+    is.null(attributes(item)) && !is.object(item),logical(1)))
+}
+
+# A bounded observation of the exact main-DB dependencies, not a generic
+# database cache. Unsafe states return NULL and force actual graph verification.
+.wb_graph_retained_epoch <- function(con, artifact_id, budgets) {
+  tryCatch({
+    if (!DBI::dbIsValid(con) || isTRUE(RSQLite::sqliteIsTransacting(con)) ||
+        !.wb_graph_retained_plain_budgets(budgets)) return(NULL)
+    if (nrow(DBI::dbGetQuery(con,"SELECT 1 FROM sqlite_temp_schema LIMIT 1;"))) return(NULL)
+    # Only main/temp may participate. Do not fetch arbitrary attachment paths.
+    if (DBI::dbGetQuery(con,paste0("SELECT COUNT(*) AS n FROM pragma_database_list ",
+        "WHERE name NOT IN ('main','temp');"))$n[[1L]] != 0L) return(NULL)
+    databases <- DBI::dbGetQuery(con,
+      "SELECT seq,name FROM pragma_database_list ORDER BY seq LIMIT 2;")
+    if (any(!databases$name %in% c("main","temp"))) return(NULL)
+    exact <- function(value) {
+      if (length(value)!=1L || is.na(value)) return(NULL)
+      text <- as.character(value)
+      if (nchar(text,type="bytes")>16L || !grepl("^(0|[1-9][0-9]*)$",text)) return(NULL)
+      number <- suppressWarnings(as.numeric(text))
+      if (!is.finite(number) || number>2^53-1 ||
+          !identical(sprintf("%.0f",number),text)) return(NULL)
+      text
+    }
+    counters <- function() {
+      values <- list(changes=exact(DBI::dbGetQuery(con,
+        "SELECT CAST(total_changes() AS TEXT) AS n;")$n),
+        data=exact(DBI::dbGetQuery(con,"PRAGMA main.data_version;")[[1L]]),
+        schema=exact(DBI::dbGetQuery(con,"PRAGMA main.schema_version;")[[1L]]))
+      if (any(vapply(values,is.null,logical(1)))) NULL else values
+    }
+    before <- counters();if(is.null(before))return(NULL)
+    dependencies <- "name COLLATE NOCASE IN ('artifact_graph_meta','artifact_graph_rows','prov_run_outputs')"
+    bytes <- paste0("COALESCE(octet_length(",c("type","name","tbl_name","sql"),"),0)",collapse="+")
+    allowance <- min(32768,budgets$partition_bytes)
+    size <- DBI::dbGetQuery(con,paste0("SELECT COUNT(*) n,COALESCE(SUM(",bytes,
+      "),0) bytes FROM main.sqlite_schema WHERE ",dependencies,";"))
+    if (size$n[[1L]]!=3L || !is.finite(size$bytes[[1L]]) ||
+        size$bytes[[1L]]+3072>allowance) return(NULL)
+    definitions <- DBI::dbGetQuery(con,paste0(
+      "SELECT type,name,tbl_name,sql FROM main.sqlite_schema WHERE ",dependencies,
+      " AND (",bytes,")<=? ORDER BY name LIMIT 4;"),params=list(allowance))
+    if (nrow(definitions)!=3L || anyNA(definitions$sql) || any(definitions$type!="table") ||
+        any(grepl("CREATE[[:space:]]+VIRTUAL",definitions$sql,ignore.case=TRUE)) ||
+        sum(vapply(definitions,function(column)sum(nchar(column,type="bytes")),numeric(1)))+3072>allowance)
+      return(NULL)
+    after <- counters()
+    if (is.null(after) || !identical(before,after) ||
+        isTRUE(RSQLite::sqliteIsTransacting(con))) return(NULL)
+    list(connection=con@ref,artifact_id=artifact_id,budgets=budgets,counters=after,
+      databases=lapply(databases,identity),definitions=lapply(definitions,identity))
+  },error=function(e)NULL)
+}
+
 .wb_graph_retained_identities <- function(bundle, artifact_id, budgets = list()) {
-  budgets <- .wb_graph_effective_budgets(bundle$con, budgets)
+  con <- bundle$con
+  complete <- FALSE
+  on.exit(if(!complete)con@ref$wb_graph_retained_observation<-NULL,add=TRUE)
+  eligible <- .wb_graph_retained_plain_budgets(budgets) &&
+    .wb_graph_retained_plain_budgets(con@ref$wb_graph_policy)
+  budgets <- .wb_graph_effective_budgets(con, budgets)
   .wb_assert_observational_schema(bundle,
     c("artifact_graph_meta", "artifact_graph_rows"), "graph inspection")
-  observed <- .wb_graph_sql_identities(bundle$con, artifact_id, .wb_graph_budgets(budgets))
+  before <- if(eligible).wb_graph_retained_epoch(con,artifact_id,budgets) else NULL
+  prior <- con@ref$wb_graph_retained_observation
+  reusable <- !is.null(before) && is.list(prior) && identical(prior$key,before)
+  if(!reusable) {con@ref$wb_graph_retained_observation<-NULL;prior<-NULL}
+  verify_claims <- function(observed) {
   row <- DBI::dbGetQuery(bundle$con,
     paste0("SELECT * FROM artifact_graph_meta WHERE artifact_id=? AND ",
       "COALESCE(octet_length(content_identity_json),0)+COALESCE(octet_length(binding_identity_json),0)+",
@@ -26,7 +99,31 @@
     "GRAPH_CONTENT_IDENTITY_MISMATCH",
     "Graph claims disagree with independently retained promotion evidence."),
     .wb_graph_budgets(budgets))
-  observed
+    invisible(TRUE)
+  }
+  # A hit never supplies authority for a header or retained certificate. Both
+  # are freshly compared against the independently computed actual IDs.
+  for (attempt in seq_len(2L)) {
+    observed <- if(reusable)prior$value else
+      .wb_graph_sql_identities(con,artifact_id,.wb_graph_budgets(budgets))
+    checked <- tryCatch(verify_claims(observed),error=identity)
+    after <- if(eligible).wb_graph_retained_epoch(con,artifact_id,budgets) else NULL
+    stable <- !is.null(before) && identical(before,after)
+    if(reusable && !stable) {
+      con@ref$wb_graph_retained_observation<-NULL;prior<-NULL;reusable<-FALSE
+      .wb_assert_observational_schema(bundle,
+        c("artifact_graph_meta","artifact_graph_rows"),"graph inspection retry")
+      before <- if(eligible).wb_graph_retained_epoch(con,artifact_id,budgets) else NULL
+      next
+    }
+    if(inherits(checked,"error"))stop(checked)
+    con@ref$wb_graph_retained_observation<-NULL
+    candidate <- list(key=before,value=observed)
+    if(stable && as.numeric(utils::object.size(candidate))<=65536)
+      con@ref$wb_graph_retained_observation<-candidate
+    complete<-TRUE
+    return(observed)
+  }
 }
 
 .wb_graph_load_reference <- function(bundle, artifact_id) {
