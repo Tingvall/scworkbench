@@ -511,7 +511,8 @@ wb_bundle_writer_lock_info <- function(bundle_or_dir, stale_after_seconds = 3600
     !isTRUE(RSQLite::sqliteIsTransacting(bundle_or_dir$con))
   if ((isTRUE(outermost) || isTRUE(nested_handle_ready)) &&
       !identical(operation, "manifest refresh")) {
-    .wb_manifest_publish_current_locked(bundle_or_dir, result = result)
+    .wb_manifest_publish_current_locked(bundle_or_dir, result = result,
+      force = identical(operation, "bundle schema migration"))
     checkpoint_handle <- if (inherits(bundle_or_dir, "scworkbench_bundle")) bundle_or_dir else
       if (inherits(result, "scworkbench_bundle")) result else NULL
     if (!is.null(checkpoint_handle) && DBI::dbIsValid(checkpoint_handle$con) &&

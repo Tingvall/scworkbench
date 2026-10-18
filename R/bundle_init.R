@@ -351,8 +351,14 @@ wb_refresh_manifest <- function(bundle) {
 
 # Internal tail step for a canonical mutation route that has already committed
 # its SQLite transaction and still owns the bundle-writer lock.
-.wb_refresh_manifest_committed <- function(bundle) {
+.wb_refresh_manifest_committed <- function(bundle, reuse_publication = FALSE) {
   con <- bundle$con
+  .wb_assert(!isTRUE(RSQLite::sqliteIsTransacting(con)),
+    "Manifest publication cannot precede the committed SQLite transaction.")
+  if (isTRUE(reuse_publication) && .wb_manifest_publication_reusable(bundle))
+    return(invisible(NULL))
+  con@ref$wb_manifest_publication_witness <- NULL
+  before <- tryCatch(.wb_manifest_publication_epoch(bundle), error = function(error) NULL)
   man_old <- try(bundle$manifest, silent = TRUE)
   if (inherits(man_old, "try-error") || !is.list(man_old)) man_old <- list()
 
@@ -374,7 +380,13 @@ wb_refresh_manifest <- function(bundle) {
     created_at = as.character(creation$created_at %||% format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"))[1],
     id_policy = creation$id_policy %||% list()
   )
-  .wb_bundle_write_manifest(bundle$dir, manifest)
+  publication <- .wb_bundle_write_manifest(bundle$dir, manifest)
+  sha <- .wb_manifest_publication_sha256(bundle)
+  after <- tryCatch(.wb_manifest_publication_epoch(bundle), error = function(error) NULL)
+  if (!is.null(before) && identical(before, after) &&
+      identical(sha, attr(publication, "wb_manifest_sha256", exact = TRUE))) {
+    con@ref$wb_manifest_publication_witness <- list(epoch = after, sha256 = sha)
+  }
   invisible(manifest)
 }
 
@@ -592,7 +604,10 @@ wb_refresh_manifest <- function(bundle) {
   .wb_assert(!inherits(replaced, "try-error") && file.exists(final) && !file.exists(staged),
              "Atomic manifest publication failed; previous manifest was preserved and may disagree with committed registries until a guarded refresh succeeds.")
   .wb_manifest_test_hook("published", staged = staged, final = final, manifest = manifest)
-  invisible(TRUE)
+  # Reuse authority binds the bytes this writer actually serialized, not an
+  # unrelated replacement merely observed after the publication hook.
+  invisible(structure(TRUE, wb_manifest_sha256 = digest::digest(
+    charToRaw(enc2utf8(payload)), algo = "sha256", serialize = FALSE)))
 }
 
 .wb_manifest_test_hook <- function(event, ...) {
@@ -601,7 +616,7 @@ wb_refresh_manifest <- function(bundle) {
   invisible(TRUE)
 }
 
-.wb_manifest_publish_current_locked <- function(bundle_or_dir, result = NULL) {
+.wb_manifest_publish_current_locked <- function(bundle_or_dir, result = NULL, force = FALSE) {
   target <- .wb_writer_lock_target(bundle_or_dir)
   if (!dir.exists(target)) return(invisible(FALSE))
   manifest_status <- .wb_path_status(target,"manifest.json",expected_type="file",must_exist=TRUE,purpose="bundle manifest publication")
@@ -613,7 +628,7 @@ wb_refresh_manifest <- function(bundle) {
   if (!is.null(candidate) && DBI::dbIsValid(candidate$con)) {
     .wb_assert(!isTRUE(RSQLite::sqliteIsTransacting(candidate$con)),
                "Manifest publication cannot precede the committed SQLite transaction.")
-    .wb_refresh_manifest_committed(candidate)
+    .wb_refresh_manifest_committed(candidate, reuse_publication = !isTRUE(force))
     return(invisible(TRUE))
   }
 
