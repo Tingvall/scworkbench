@@ -279,11 +279,12 @@ SEXP scwb_matrix_market_projection(SEXP p, SEXP i, SEXP x, SEXP dimensions,
     if (TYPEOF(p) != INTSXP || TYPEOF(i) != INTSXP || TYPEOF(dimensions) != INTSXP ||
         XLENGTH(dimensions) != 2 || INTEGER(dimensions)[0] < 0 || INTEGER(dimensions)[1] < 0 ||
         TYPEOF(sorted) != INTSXP || TYPEOF(order) != INTSXP || TYPEOF(columns) != INTSXP ||
-        XLENGTH(sorted) != XLENGTH(order) || XLENGTH(sorted) > INT_MAX || XLENGTH(columns) >= INT_MAX ||
+        XLENGTH(sorted) != XLENGTH(order) || XLENGTH(sorted) > INT_MAX || XLENGTH(columns) > INT_MAX ||
         (x != R_NilValue && TYPEOF(x) != REALSXP && TYPEOF(x) != LGLSXP) ||
-        (x != R_NilValue && XLENGTH(x) != XLENGTH(i)) || XLENGTH(i) > INT_MAX ||
+        (x != R_NilValue && XLENGTH(x) != XLENGTH(i)) ||
         XLENGTH(p) != (R_xlen_t)INTEGER(dimensions)[1] + 1 ||
-        INTEGER_ELT(p,0) != 0 || INTEGER_ELT(p,XLENGTH(p)-1) != XLENGTH(i))
+        INTEGER_ELT(p,0) != 0 || INTEGER_ELT(p,XLENGTH(p)-1) < 0 ||
+        INTEGER_ELT(p,XLENGTH(p)-1) > XLENGTH(i))
         Rf_error("Invalid general CSC projection slots.");
     unsigned char *seen = (unsigned char *)R_alloc(XLENGTH(sorted), sizeof(unsigned char));
     if (XLENGTH(sorted)) memset(seen, 0, XLENGTH(sorted));

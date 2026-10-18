@@ -342,3 +342,50 @@ test_engine_matrix_market_projection_native_admission_contract <- function() {
     " source_entries=1000000 selected_entries=2\n", sep = "")
   TRUE
 }
+
+test_engine_matrix_market_csc_capacity_contract <- function() {
+  loadNamespace("Matrix")
+  root <- tempfile("matrix_market_capacity_"); dir.create(root)
+  on.exit(unlink(root, recursive = TRUE), add = TRUE)
+  write <- scworkbench:::.wb_operation_pack_v3_atomic_matrix_market
+  project <- scworkbench:::.wb_operation_pack_v3_matrix_market_projection
+  for (kind in c("dgCMatrix", "lgCMatrix", "ngCMatrix")) {
+    fields <- list(Class = kind, Dim = c(3L, 2L), p = c(0L, 2L, 3L),
+      i = c(0L, 2L, 1L, NA_integer_, -9L),
+      Dimnames = list(c("f3", "f1", "f2"), c("c2", "c1")))
+    if (kind == "dgCMatrix") fields$x <- c(1, 0, -2, NA_real_, Inf)
+    if (kind == "lgCMatrix") fields$x <- c(TRUE, FALSE, TRUE, NA, NA)
+    values <- do.call(methods::new, fields)
+    stopifnot(isTRUE(methods::validObject(values)),
+      tail(values@p, 1L) < length(values@i))
+    before <- serialize(values, NULL)
+    .matrix_market_oracle()(values, file.path(root, "old.mtx"))
+    write(values, file.path(root, "new.mtx"))
+    stopifnot(identical(readBin(file.path(root, "old.mtx"), "raw", 1e6),
+      readBin(file.path(root, "new.mtx"), "raw", 1e6)))
+    selected <- project(values, c(3L, 1L), c(2L, 1L))
+    expected <- as.matrix(values)[c(3L, 1L), c(2L, 1L), drop = FALSE]
+    stopifnot(isTRUE(methods::validObject(selected)),
+      identical(as.matrix(selected), expected),
+      identical(serialize(values, NULL), before),
+      identical(scworkbench:::.wb_operation_pack_v3_matrix_slice_content(selected,
+        rownames(expected), colnames(expected)),
+        scworkbench:::.wb_operation_pack_v3_matrix_slice_content(expected,
+          rownames(expected), colnames(expected))))
+    .matrix_market_oracle()(expected, file.path(root, "old.mtx"))
+    write(selected, file.path(root, "new.mtx"))
+    stopifnot(identical(readBin(file.path(root, "old.mtx"), "raw", 1e6),
+      readBin(file.path(root, "new.mtx"), "raw", 1e6)))
+    # Unused capacity is not payload; active non-finite values still reject.
+    if (kind == "dgCMatrix") {
+      invalid <- values; invalid@x[[1L]] <- Inf
+      before_error <- tryCatch(.matrix_market_oracle()(invalid, file.path(root, "invalid_old.mtx")), error = identity)
+      after_error <- tryCatch(write(invalid, file.path(root, "invalid_new.mtx")), error = identity)
+      stopifnot(inherits(after_error, "error"),
+        identical(class(after_error), class(before_error)),
+        identical(conditionMessage(after_error), conditionMessage(before_error)),
+        !file.exists(file.path(root, "invalid_new.mtx.pending")))
+    }
+  }
+  TRUE
+}

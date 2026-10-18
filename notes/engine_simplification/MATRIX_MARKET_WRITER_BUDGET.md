@@ -184,3 +184,35 @@ Logical/pattern projected SHA:
 `13fa30afc655a78aa3de63e95052d8efb90a1b6d690c378724bbc3ea97515d1c`;
 real-MM reloaded SHA:
 `0ccf01135ba7becc76a8b8652eb50cf4e43d2907cd17ebe62e0bb35fc7d9bd55`.
+
+## CSC capacity review correction
+
+Sable's subsequent capacity HOLD found a real supported-object compatibility
+defect: stock Matrix 1.7 permits unused trailing i/x slot capacity. The writer
+and projector now require last(p)<=length(i), and numeric/logical x capacity
+exactly equals i capacity. Only active entries are traversed and validated;
+unused NA, negative-index and nonfinite tails are not scientific payload and
+remain untouched. The three tiny valid dgC/lgC/ngC fixtures check validObject,
+old/new emitted bytes, reordered projection, projected identity, active
+nonfinite rejection and serialized source nonmutation. This follows the
+version-matched Matrix CsparseMatrix_validate and xgCMatrix_validate, not a
+relaxation of active pointer/index or payload validation.
+
+The native selected-column guard permits equality to INT_MAX because its
+p-array allocation and iteration use R_xlen_t; selected indices remain ordinary
+integer slots. This is not a new claim of executable INT_MAX-wide Matrix
+support or a repair of Matrix's own practical long-vector limitations.
+
+`matrix_market_capacity_install.log/.exit` ended0. The first six-test run
+`matrix_market_capacity_focused.log/.exit` ended1 solely because the new first
+alphabetical fixture constructed an S4 class before loading Matrix. Its explicit
+loadNamespace correction is fixture-only, and the failed raw log is retained.
+The final installed run `matrix_market_capacity_final_focused.log/.exit` ended0:
+
+```
+CONTRACT TEST SUMMARY files=1 discovered=6 executed=6 passed=6 skipped=0 failed=0 excluded=0 accounted=6
+```
+
+No performance measurement, full suite or frozen qualification-tree edit was
+performed by this isolated prototype. Independent final source review remains
+required before integration.

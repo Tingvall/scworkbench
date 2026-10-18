@@ -517,7 +517,8 @@
       indices <- values@i
       payload <- if (methods::is(values, "nMatrix")) NULL else values@x
       .wb_assert(length(pointers) == dimensions[[2L]] + 1 &&
-        pointers[[1L]] == 0L && pointers[[length(pointers)]] == length(indices) &&
+        pointers[[1L]] == 0L && !is.na(pointers[[length(pointers)]]) &&
+        pointers[[length(pointers)]] >= 0L && pointers[[length(pointers)]] <= length(indices) &&
         (is.null(payload) || length(payload) == length(indices)),
         "Invalid general CSC Matrix Market source slots.")
       column <- 1
