@@ -468,29 +468,93 @@
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   temporary <- paste0(path, ".pending")
   if (file.exists(temporary)) unlink(temporary, force = TRUE)
-  dense <- as.matrix(values)
-  storage.mode(dense) <- "double"
-  if (any(!is.finite(dense))) .wb_operation_pack_v3_error(
-    "PYBENCH_CAPABILITY_MISMATCH",
-    "Typed-slice Matrix Market values must be finite.", "staging")
-  indices <- which(dense != 0, arr.ind = TRUE)
-  if (length(indices)) indices <- indices[order(indices[, 2L],
-    indices[, 1L]), , drop = FALSE]
-  entries <- if (!nrow(indices)) character() else
-    vapply(seq_len(nrow(indices)), function(i) paste(
-      as.integer(indices[i, 1L]), as.integer(indices[i, 2L]),
-      .wb_operation_pack_canonical_number(.wb_operation_pack_number_token(
-        dense[indices[i, 1L], indices[i, 2L]]))), character(1))
-  lines <- c("%%MatrixMarket matrix coordinate real general",
-    paste(nrow(dense), ncol(dense), nrow(indices)), entries)
-  writeBin(charToRaw(paste0(paste(lines, collapse = "\n"), "\n")),
-    temporary)
+  on.exit(unlink(temporary, force = TRUE), add = TRUE)
+  if (!.wb_operation_pack_v3_matrix_market_standard(values)) {
+    # Preserve historical coercion for exotic inputs, without claiming that
+    # their own as.matrix methods are bounded or free of side effects.
+    values <- as.matrix(values)
+    storage.mode(values) <- "double"
+  }
+  dimensions <- dim(values)
+  limit <- as.numeric(getOption("scworkbench.max_dense_materialize_mb", 256)) * 1024^2
+  .wb_assert(length(limit) == 1L && is.finite(limit) && limit > 8192,
+    "Private matrix staging requires a valid dense materialization budget.")
+  # Conservative allowance for subsetting, dense/double coercion and fallback
+  # token carriers. Native output uses a fixed 4096-byte buffer. Very tall
+  # matrices use row blocks within one column, preserving column-major order.
+  elements <- max(1, floor((min(limit, 32 * 1024^2) - 8192) / 64))
+  rows_per_block <- max(1, min(dimensions[[1L]], elements))
+  columns_per_block <- max(1, min(128L, floor(elements / rows_per_block)))
+  visit <- function(emit) {
+    if (!all(dimensions > 0L)) return(invisible(NULL))
+    for (column in seq.int(1L, dimensions[[2L]], by = columns_per_block)) {
+      columns <- seq.int(column, min(dimensions[[2L]], column + columns_per_block - 1L))
+      for (row in seq.int(1L, dimensions[[1L]], by = rows_per_block)) {
+        rows <- seq.int(row, min(dimensions[[1L]], row + rows_per_block - 1L))
+        block <- as.matrix(values[rows, columns, drop = FALSE])
+        storage.mode(block) <- "double"
+        emit(block, row - 1L, column - 1L)
+      }
+    }
+  }
+  count <- 0
+  range_error <- NULL
+  visit(function(block, row, column) {
+    observation <- .Call(C_scwb_matrix_market_block, NULL, block, row, column)
+    if (!observation[[2L]]) .wb_operation_pack_v3_error(
+      "PYBENCH_CAPABILITY_MISMATCH",
+      "Typed-slice Matrix Market values must be finite.", "staging")
+    # Keep the existing typed range diagnostics (including rounding into the
+    # accepted exponent range), rather than replacing them with a C error.
+    if (observation[[3L]] && is.null(range_error))
+      for (x in block[block != 0 & abs(block) < 1e-307]) {
+        error <- tryCatch({
+          .wb_operation_pack_canonical_number(.wb_operation_pack_number_token(x))
+          NULL
+        }, error = identity)
+        if (!is.null(error)) { range_error <<- error; break }
+      }
+    count <<- count + observation[[1L]]
+  })
+  if (!is.null(range_error)) stop(range_error)
+  header <- paste0("%%MatrixMarket matrix coordinate real general\n",
+    paste(dimensions[[1L]], dimensions[[2L]], sprintf("%.0f", count)), "\n")
+  writeBin(charToRaw(header), temporary)
+  native <- identical(getOption("OutDec", "."), ".") &&
+    identical(Sys.localeconv()[["decimal_point"]], ".")
+  visit(function(block, row, column) {
+    if (native) .Call(C_scwb_matrix_market_block, temporary, block, row, column)
+    else {
+      # Locale-sensitive historical diagnostics remain authoritative.
+      indices <- which(block != 0, arr.ind = TRUE)
+      lines <- vapply(seq_len(nrow(indices)), function(i) paste(
+        row + indices[i, 1L], column + indices[i, 2L],
+        .wb_operation_pack_canonical_number(.wb_operation_pack_number_token(
+          block[indices[i, 1L], indices[i, 2L]]))), character(1))
+      if (length(lines)) {
+        con <- file(temporary, "ab")
+        tryCatch(writeBin(charToRaw(paste0(paste(lines, collapse = "\n"), "\n")), con),
+          finally = close(con))
+      }
+    }
+  })
   if (!file.rename(temporary, path)) {
     unlink(temporary, force = TRUE)
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "Could not atomically stage a typed-slice private source.", "staging")
   }
   invisible(path)
+}
+
+.wb_operation_pack_v3_matrix_market_standard <- function(values) {
+  if (is.matrix(values) && !is.object(values) &&
+      typeof(values) %in% c("double", "integer", "logical")) return(TRUE)
+  if (!isS4(values) || length(class(values)) != 1L) return(FALSE)
+  definition <- methods::getClassDef(as.character(class(values))[[1L]],
+    where = asNamespace("Matrix"))
+  !is.null(definition) && identical(definition@package, "Matrix") &&
+    (methods::is(values, "dMatrix") || methods::is(values, "lMatrix") ||
+      methods::is(values, "nMatrix"))
 }
 
 .wb_operation_pack_v3_typed_slice_grant <- function(bundle, declaration, input,
@@ -559,9 +623,11 @@
     source$matrix_id <- matrix_id
   } else {
     selected <- input
-    selected$values <- as.matrix(input$values[match(features,
+    selected$values <- input$values[match(features,
       as.character(input$feature_id)), match(cells,
-      as.character(input$cell_id)), drop = FALSE])
+      as.character(input$cell_id)), drop = FALSE]
+    if (!.wb_operation_pack_v3_matrix_market_standard(input$values))
+      selected$values <- as.matrix(selected$values)
     selected$feature_id <- features
     selected$cell_id <- cells
     selected$dimensions <- as.integer(c(length(features), length(cells)))

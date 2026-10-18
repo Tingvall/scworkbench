@@ -160,3 +160,67 @@ SEXP scwb_matrix_slice_append(SEXP path, SEXP rows, SEXP columns, SEXP values, S
     if (!context.file) Rf_error("Cannot open private matrix identity stream.");
     return R_UnwindProtect(append_body, &context, append_cleanup, &context, NULL);
 }
+
+typedef struct {
+    FILE *file;
+    SEXP values;
+    int rows, columns, row_offset, column_offset;
+} market_context;
+
+static void market_cleanup(void *data, Rboolean jump) {
+    market_context *context = data;
+    if (context->file) { fclose(context->file); context->file = NULL; }
+}
+
+static SEXP market_body(void *data) {
+    market_context *context = data;
+    char buffer[4096]; size_t used = 0;
+    for (int column = 0; column < context->columns; ++column) {
+        for (int row = 0; row < context->rows; ++row) {
+            double value = REAL(context->values)[row + (R_xlen_t)column * context->rows];
+            if (!R_FINITE(value)) Rf_error("Matrix Market values must be finite.");
+            if (value == 0) continue;
+            char token[64], record[128]; number(value, token);
+            int size = snprintf(record, sizeof(record), "%d %d %s\n",
+                row + context->row_offset + 1, column + context->column_offset + 1, token);
+            if (size < 0 || size >= (int)sizeof(record)) Rf_error("Matrix Market record overflow.");
+            if (used + size > sizeof(buffer)) {
+                if (fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix Market write failed.");
+                used = 0;
+            }
+            memcpy(buffer + used, record, size); used += size;
+            if (row % 8192 == 0) R_CheckUserInterrupt();
+        }
+    }
+    if (used && fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix Market write failed.");
+    if (fflush(context->file)) Rf_error("Matrix Market flush failed.");
+    return R_NilValue;
+}
+
+SEXP scwb_matrix_market_block(SEXP path, SEXP values, SEXP row_offset, SEXP column_offset) {
+    SEXP dimensions = Rf_getAttrib(values, R_DimSymbol);
+    int row = Rf_asInteger(row_offset), column = Rf_asInteger(column_offset);
+    if (TYPEOF(values) != REALSXP || TYPEOF(dimensions) != INTSXP || XLENGTH(dimensions) != 2 ||
+        row == NA_INTEGER || column == NA_INTEGER || row < 0 || column < 0 ||
+        row > INT_MAX - INTEGER(dimensions)[0] || column > INT_MAX - INTEGER(dimensions)[1])
+        Rf_error("Invalid Matrix Market block.");
+    if (path == R_NilValue) {
+        SEXP result = PROTECT(Rf_allocVector(REALSXP, 3));
+        double count = 0; int finite = 1, range_edge = 0;
+        for (R_xlen_t i = 0; i < XLENGTH(values); ++i) {
+            double x = REAL(values)[i];
+            if (!R_FINITE(x)) finite = 0;
+            if (x != 0) ++count;
+            if (x != 0 && fabs(x) < 1e-307) range_edge = 1;
+            if (i % 8192 == 0) R_CheckUserInterrupt();
+        }
+        REAL(result)[0] = count; REAL(result)[1] = finite; REAL(result)[2] = range_edge;
+        UNPROTECT(1); return result;
+    }
+    if (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING)
+        Rf_error("Invalid Matrix Market path.");
+    market_context context = {NULL, values, INTEGER(dimensions)[0], INTEGER(dimensions)[1], row, column};
+    context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
+    if (!context.file) Rf_error("Cannot open private Matrix Market stream.");
+    return R_UnwindProtect(market_body, &context, market_cleanup, &context, NULL);
+}
