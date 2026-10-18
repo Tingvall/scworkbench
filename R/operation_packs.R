@@ -245,6 +245,125 @@
     collapse = ","), "]")
 }
 
+# Ordinary homogeneous object rows share an immutable shape, not encoded
+# values. Everything is checked nonthrowingly before optimized assembly; the
+# caller retains the original encoder and its row-major error precedence.
+.wb_operation_pack_canonical_object_rows <- function(value, numeric_tokens) {
+  tryCatch({
+    if (!is.list(value) || !length(value) || !is.null(attributes(value)) || is.object(value)) return(NULL)
+    limit <- getOption("scworkbench.max_dense_materialize_mb",256)*1024^2
+    if (!is.numeric(limit) || length(limit)!=1L || !is.finite(limit) || limit<=0) return(NULL)
+    limit <- min(32*1024^2,limit)
+    state <- new.env(parent=emptyenv());state$keys<-0L;state$nodes<-0L;state$structure<-0
+    plain_object <- function(node) is.list(node) && !is.object(node) &&
+      !is.null(names(node)) && identical(names(attributes(node)),"names")
+    compile <- function(node,depth=1L) {
+      if(depth>8L)return(NULL)
+      state$nodes<-state$nodes+1L
+      if(plain_object(node)) {
+        names<-names(node)
+        if(anyNA(names)||anyDuplicated(names))return(NULL)
+        state$keys<-state$keys+length(names)
+        if(state$keys>128L || 32*sum(nchar(names,type="bytes"))>limit)return(NULL)
+        keys<-iconv(names,from="",to="UTF-8",sub=NA_character_)
+        if(anyNA(keys))return(NULL)
+        state$structure<-state$structure+2+max(0,length(keys)-1L)+
+          sum(6*nchar(keys,type="bytes")+3)
+        children<-lapply(node,function(child)compile(child,depth+1L))
+        if(any(vapply(children,is.null,logical(1))))return(NULL)
+        return(list(kind="object",names=names,keys=keys,order=order(keys,method="radix"),children=children))
+      }
+      if(is.null(node))return(list(kind="null"))
+      if(!is.null(attributes(node)) || is.object(node) || length(node)!=1L ||
+          !typeof(node)%in%c("integer","double","logical","character"))return(NULL)
+      kind<-if(is.numeric(node))"numeric" else typeof(node)
+      if(kind=="numeric" && !numeric_tokens)return(NULL)
+      list(kind=kind,type=typeof(node))
+    }
+    template<-compile(value[[1L]])
+    if(is.null(template)||template$kind!="object")return(NULL)
+    # This bounds temporary carriers even for many empty/narrow scalar leaves.
+    batch_rows<-min(1000L,max(0,floor((limit-65536)/(256*state$nodes+8*state$structure))))
+    if(batch_rows<1L)return(NULL)
+    batch_rows<-as.integer(batch_rows)
+    inspect <- function(nodes,plan) {
+      n<-length(nodes)
+      if(plan$kind=="object") {
+        if(!all(vapply(nodes,function(node)plain_object(node)&&identical(names(node),plan$names),logical(1))))return(NULL)
+        bytes<-rep(0,n)
+        for(j in seq_along(plan$children)) {
+          child<-inspect(lapply(nodes,`[[`,j),plan$children[[j]])
+          if(is.null(child))return(NULL)
+          bytes<-bytes+child
+        }
+        return(bytes)
+      }
+      if(plan$kind=="null")return(if(all(vapply(nodes,is.null,logical(1))))rep(4,n) else NULL)
+      if(!all(vapply(nodes,function(node)is.null(attributes(node))&&!is.object(node)&&length(node)==1L,
+          logical(1))))return(NULL)
+      types<-vapply(nodes,typeof,character(1))
+      # Integer and double scalars have DISTINCT canonical framing (1 vs1e0).
+      # Never let unlist coerce a heterogeneous numeric leaf column.
+      if(!all(types==plan$type))return(NULL)
+      column<-unlist(nodes,recursive=FALSE,use.names=FALSE)
+      if(plan$kind=="numeric") {
+        if(!all((is.finite(column)|is.na(column)) &
+            (is.na(column)|column==0|abs(column)>=1e-307)))return(NULL)
+        return(rep(32,n))
+      }
+      if(plan$kind=="logical")return(rep(5,n))
+      # Admit conversion before iconv; UTF8 can use at most four bytes per
+      # original byte. The later ledger uses actual converted UTF8 lengths.
+      if(32*sum(nchar(column,type="bytes"),na.rm=TRUE)+256*state$nodes*n>limit)return(NULL)
+      converted<-iconv(column,from="",to="UTF-8",sub=NA_character_)
+      if(any(!is.na(column)&is.na(converted)))return(NULL)
+      ifelse(is.na(converted),4,6*nchar(converted,type="bytes")+2)
+    }
+    starts<-seq.int(1L,length(value),by=batch_rows)
+    # ALL rows, including late invalid leaves, are eligible before any fast
+    # framing. A fallback therefore preserves the old first error exactly.
+    for(start in starts) {
+      selected<-seq.int(start,min(length(value),start+batch_rows-1L))
+      bytes<-inspect(value[selected],template)
+      if(is.null(bytes)||65536+256*state$nodes*length(selected)+
+          8*sum(bytes+state$structure)>limit)return(NULL)
+    }
+    prefixes<-function(plan) {
+      if(plan$kind=="object") {
+        plan$prefixes<-vapply(plan$order,function(j)paste0(
+          .wb_operation_pack_canonical_string(plan$keys[[j]]),":"),character(1))
+        plan$children<-lapply(plan$children,prefixes)
+      }
+      plan
+    }
+    template<-prefixes(template)
+    emit <- function(nodes,plan) {
+      n<-length(nodes)
+      if(plan$kind=="object") {
+        rows<-rep("{",n)
+        for(k in seq_along(plan$order)) {
+          j<-plan$order[[k]]
+          tokens<-emit(lapply(nodes,`[[`,j),plan$children[[j]])
+          rows<-paste0(rows,if(k==1L)"" else ",",plan$prefixes[[k]],tokens)
+        }
+        return(paste0(rows,"}"))
+      }
+      if(plan$kind=="null")return(rep("null",n))
+      column<-unlist(nodes,recursive=FALSE,use.names=FALSE)
+      if(plan$kind=="character")return(.wb_operation_pack_canonical_string_tokens(column))
+      if(plan$kind=="logical")return(ifelse(is.na(column),"null",ifelse(column,"true","false")))
+      tokens<-.Call(C_scwb_canonical_numeric_tokens,column)
+      if(is.null(tokens))stop("Numeric object-row eligibility changed.")
+      tokens
+    }
+    batches<-vapply(starts,function(start) {
+      selected<-seq.int(start,min(length(value),start+batch_rows-1L))
+      paste(emit(value[selected],template),collapse=",")
+    },character(1))
+    paste0("[",paste(batches,collapse=","),"]")
+  },error=function(e)NULL)
+}
+
 
 .wb_operation_pack_canonical_json <- function(x) {
   # A single invocation-local last-name plan. Never reuse encoded values;
@@ -338,6 +457,8 @@
               is.null(attributes(item)), logical(1))))
           return(.wb_operation_pack_canonical_string_array(
             vapply(value, identity, character(1), USE.NAMES = FALSE)))
+        rows <- .wb_operation_pack_canonical_object_rows(value,fast_numeric_tokens)
+        if(!is.null(rows))return(rows)
         return(paste0("[", paste(vapply(value, encode, character(1)), collapse = ","), "]"))
       }
       encoding <- Encoding(nms)
