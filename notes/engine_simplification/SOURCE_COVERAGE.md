@@ -16,15 +16,17 @@ Current implemented scope (not a final qualification disposition):
 - Selected-axis lazy matrix scratch projection, exact axis/native canonical
   encoding, and two plain typed-block copy removals with recursive
   mutable-reference fallback.
-- Trusted nonmixed Python typed-matrix broker readers authenticate once at
+- Trusted Python typed-matrix broker readers authenticate once at
   construction, keep supplemental file/registry guards around blocks, and close
   their selected-axis reader on success/error/timeout. Private projections use a
-  budgeted owned cache or disposable double BPCells spill. The existing Matrix
-  Market startup parse remains whole-object, not end-to-end bounded startup.
-  **Any graph read/write grant plus typed matrix grants selects the legacy
-  per-block full-check broker path**, including backed matrices. No new broker
-  scratch/cache/spill is admitted on that mixed path. This is a documented
-  performance exception, not an engine-wide no-per-block-scan claim.
+  budgeted owned cache or disposable double BPCells spill. Oversized private
+  Matrix Market payloads use bounded native import rather than whole-object
+  parsing. Mixed graph/matrix requests use the same scoped readers, with
+  aggregate admission for axes, physical plans, responses, owned scratch and
+  the existing graph connections. Original physical-axis metadata and native
+  row-selector maps are charged before decoding or opening a reader. Native
+  bounds are source-reviewed for the recorded BPCells build, not an OS quota
+  or a portability qualification of untested native implementations.
 - Connection-scoped unchanged-epoch registry/source observations; epochs
   invalidate content observations but do not authenticate backing-file bytes.
   Selected dependency ledger checks replace unrelated-history checks during
@@ -51,6 +53,10 @@ Current implemented scope (not a final qualification disposition):
 - Table promotion emits <=1000-row JSON batches and retains existing row/fold
   identities. Graph, special model, registry-request and persisted Python deep
   validation are not relaxed by these changes.
+- Graph SQL pages account for the response envelope before admitting a row.
+  Tiny byte budgets can therefore change transport partitions and consequent
+  observation/receipt-chain identities; graph content identity is unchanged.
+  No claim of byte-identical transport receipts is made for those partitions.
 
 Budgets and development probes are retained in `BLOCK_COPY_BUDGET.md`,
 `SELECTED_AXIS_BUDGET.md`, `MATRIX_ENCODING_BUDGET.md`, `BROKER_BUDGET.md`,
@@ -141,7 +147,7 @@ prior-audit timings on `96cbf880` must not be presented as `8f53e950` timings.
 | Graph | `R/graph_lifecycle.R:1/:69` separates full graph info from bounded public slice; pack reader verifies full authority at stream completion rather than each partition; graph writer `R/operation_pack_v4_graph_adapter.R:91` retains bounded SQL/carriers | Source-inspected; no realistic graph benchmark |
 | Registry metadata / feature sets / motifs | `R/operation_pack_registry_reads.R:298` and v3 `:477` reconstruct selected snapshots; genomic provider has additional semantic source associations | Source-inspected; old inventory measured only selected RNA annotations, not all registry types |
 | Producer lineage / G4/G5/G6/G7 | `R/operation_pack_v3_producer_lineage.R:147`; `R/operation_pack_v3_phase5_capabilities.R:1027`; `R/operation_pack_v3_derived_axes.R:1242` keep ancestry, ordered axes, grants and sealed closure independent of numerical method | Source-inspected; no new trajectory/derived-axis execution |
-| Mixed primitive dispatch | Shared executor composes grants and one transaction; `R/operation_pack_typed_slice_broker.R:490` retains legacy broker delivery for any graph+typed-matrix request | Source-inspected; focused routing/value/fault seams exist, not realistic-scale mixed-graph performance or full mixed-Python qualification |
+| Mixed primitive dispatch | Shared executor composes grants and one transaction; `R/operation_pack_typed_slice_broker.R` uses scoped matrix readers with aggregate existing graph-policy admission, not per-block whole-source authentication | Source-inspected and focused resource seams tested; final installed and actual mixed-Python publication remain separately required |
 | Provenance and promotion | `R/promote_primitives.R:247/:358` transaction and workspace; kind-specific identity generation can revisit values while registering ancestry | Source-inspected; root owns lifecycle measurement and changes |
 | Reopen / validation | `R/operation_pack_v2_transition.R:1132` recovery validates retained records without fresh seals; `R/validate.R:369` forces full schema structure verification; `R/schema_migrations.R:125` scopes ordinary successful verdict reuse to exact live SQL | Source-inspected with focused regression sources; final recovery/recipient qualification pending |
 
