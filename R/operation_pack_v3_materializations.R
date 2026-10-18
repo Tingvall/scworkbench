@@ -256,6 +256,9 @@
       n_features = length(features), n_cells = length(cells),
       stringsAsFactors = FALSE)
   }
+  source_reader <- if (nzchar(matrix_id))
+    .wb_matrix_stream_reader(bundle, matrix_id, "cells") else NULL
+  if (!is.null(source_reader)) on.exit(source_reader$close(), add = TRUE)
   records <- list(); cursor <- 1L
   for (i in seq_len(nrow(fragments))) {
     fragment_cells <- as.character(jsonlite::fromJSON(
@@ -269,9 +272,10 @@
         "Source matrix fragments do not form the authenticated typed-slice cell axis.",
         "resolution")
     payload <- .wb_operation_pack_matrix_stream_identity(features,
-      fragment_cells, function(columns) wb_slice(bundle,
-        matrix_id = matrix_id, features = features,
-        cells = fragment_cells[columns]),
+      fragment_cells, function(columns) if (!is.null(source_reader))
+        source_reader$read(features, fragment_cells[columns]) else
+          input$values[match(features, as.character(input$feature_id)),
+            match(fragment_cells[columns], as.character(input$cell_id)), drop = FALSE],
       min(as.integer(typed_grant$requested_chunk_size), 128L))
     tuple <- list(fragment_id = as.character(fragments$fragment_id[[i]]),
       path = as.character(fragments$path[[i]]),

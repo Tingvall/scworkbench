@@ -41,7 +41,7 @@ static SEXP scwb_sdk_publish_noreplace(SEXP source, SEXP destination)
 }
 
 extern SEXP scwb_graph_source_directory(SEXP, SEXP);
-extern SEXP scwb_matrix_slice_entries(SEXP, SEXP, SEXP);
+extern SEXP scwb_matrix_slice_append(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP scwb_graph_file_identity(SEXP);
 extern SEXP scwb_graph_readlink(SEXP, SEXP);
 extern SEXP scwb_graph_bytes_api_ready(void);
@@ -60,7 +60,7 @@ extern SEXP scwb_graph_json_position(SEXP);
 extern SEXP scwb_graph_json_close(SEXP);
 
 static const R_CallMethodDef sdk_calls[] = {
-    {"scwb_matrix_slice_entries", (DL_FUNC) &scwb_matrix_slice_entries, 3},
+    {"scwb_matrix_slice_append", (DL_FUNC) &scwb_matrix_slice_append, 5},
     {"scwb_graph_json_open", (DL_FUNC) &scwb_graph_json_open, 1},
     {"scwb_graph_json_file_open", (DL_FUNC) &scwb_graph_json_file_open, 2},
     {"scwb_graph_json_next", (DL_FUNC) &scwb_graph_json_next, 1},

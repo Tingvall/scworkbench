@@ -11,6 +11,7 @@
   emit(paste0('{"cell_id":', encode(unname(as.list(cells))),
     ',"dimensions":', encode(list(as.integer(length(features)),
       as.integer(length(cells)))), ',"entries":['))
+  close(con)
   first <- TRUE
   for (start in seq.int(1L, max(1L, length(cells)), by = chunk_size)) {
     if (!length(cells)) break
@@ -28,13 +29,13 @@
     for (offset in seq.int(1L, max(1L, length(keep)), by = 8192L)) {
       if (!length(keep)) break
       idx <- keep[seq.int(offset, min(length(keep), offset + 8191L))]
-      records <- .Call(C_scwb_matrix_slice_entries,
+      .Call(C_scwb_matrix_slice_append, path,
         as.integer(sparse@i[idx] + 1L), as.integer(columns[idx]),
-        as.double(sparse@x[idx]))
-      emit(paste0(if (first) "" else ",", paste(records, collapse = ",")))
+        as.double(sparse@x[idx]), first)
       first <- FALSE
     }
   }
+  con <- file(path, "ab")
   emit(paste0('],"feature_id":', encode(unname(as.list(features))),
     ',"kind":"matrix","schema":"scworkbench.operation_pack.matrix_slice.content.v1"}'))
   close(con)

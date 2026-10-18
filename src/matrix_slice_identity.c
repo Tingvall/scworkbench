@@ -43,21 +43,48 @@ static void number(double x, char *out) {
     sprintf(q, "e%d", adjusted);
 }
 
-SEXP scwb_matrix_slice_entries(SEXP rows, SEXP columns, SEXP values) {
-    R_xlen_t n = XLENGTH(values);
-    if (TYPEOF(rows) != INTSXP || TYPEOF(columns) != INTSXP ||
-        TYPEOF(values) != REALSXP || XLENGTH(rows) != n || XLENGTH(columns) != n)
-        Rf_error("Invalid matrix coordinate vectors.");
-    SEXP result = PROTECT(Rf_allocVector(STRSXP, n));
-    for (R_xlen_t i = 0; i < n; ++i) {
+typedef struct {
+    FILE *file;
+    SEXP rows, columns, values;
+    int first;
+} append_context;
+
+static void append_cleanup(void *data, Rboolean jump) {
+    append_context *context = data;
+    if (context->file) { fclose(context->file); context->file = NULL; }
+}
+
+static SEXP append_body(void *data) {
+    append_context *context = data;
+    char buffer[65536];
+    size_t used = 0;
+    for (R_xlen_t i = 0; i < XLENGTH(context->values); ++i) {
         char row[64], column[64], value[64], record[256];
-        number(INTEGER(rows)[i], row);
-        number(INTEGER(columns)[i], column);
-        number(REAL(values)[i], value);
-        snprintf(record, sizeof(record), "{\"column\":%s,\"row\":%s,\"value\":%s}", column, row, value);
-        SET_STRING_ELT(result, i, Rf_mkChar(record));
+        number(INTEGER(context->rows)[i], row);
+        number(INTEGER(context->columns)[i], column);
+        number(REAL(context->values)[i], value);
+        int bytes = snprintf(record, sizeof(record), "%s{\"column\":%s,\"row\":%s,\"value\":%s}",
+            context->first ? "" : ",", column, row, value);
+        if (used + bytes > sizeof(buffer)) {
+            if (fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix identity write failed.");
+            used = 0;
+        }
+        memcpy(buffer + used, record, bytes); used += bytes;
+        context->first = 0;
         if (i % 8192 == 0) R_CheckUserInterrupt();
     }
-    UNPROTECT(1);
-    return result;
+    if (used && fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix identity write failed.");
+    if (fflush(context->file)) Rf_error("Matrix identity flush failed.");
+    return R_NilValue;
+}
+
+SEXP scwb_matrix_slice_append(SEXP path, SEXP rows, SEXP columns, SEXP values, SEXP first) {
+    if (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING ||
+        TYPEOF(rows) != INTSXP || TYPEOF(columns) != INTSXP || TYPEOF(values) != REALSXP ||
+        XLENGTH(rows) != XLENGTH(values) || XLENGTH(columns) != XLENGTH(values))
+        Rf_error("Invalid matrix identity append vectors.");
+    append_context context = {NULL, rows, columns, values, Rf_asLogical(first) == TRUE};
+    context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
+    if (!context.file) Rf_error("Cannot open private matrix identity stream.");
+    return R_UnwindProtect(append_body, &context, append_cleanup, &context, NULL);
 }
