@@ -18,6 +18,17 @@ test_engine_provenance_file_sha256_digest_parity_contract <- function() {
       is.null(attributes(actual)), grepl("^[0-9a-f]{64}$", actual))
     unlink(path)
   }
+  # File identity authenticates compressed carrier bytes, never an implicitly
+  # decompressed stream. This must also hold for zero-byte scientific content.
+  for (bytes in list(raw(), rep(as.raw(0:255), 1024L))) {
+    path <- tempfile("provenance_compressed_payload_", fileext = ".gz")
+    con <- gzfile(path, "wb")
+    tryCatch(writeBin(bytes, con), finally = close(con))
+    actual <- scworkbench:::.wb_prov_sha256_file(path)
+    stopifnot(identical(actual, digest::digest(file = path, algo = "sha256")),
+      !identical(actual, digest::digest(bytes, algo = "sha256", serialize = FALSE)))
+    unlink(path)
+  }
   TRUE
 }
 
