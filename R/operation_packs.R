@@ -255,6 +255,8 @@
     identical(Sys.localeconv()[["decimal_point"]], ".")
   fast_numeric_tokens <- fast_numeric &&
     exists("C_scwb_canonical_numeric_tokens", inherits = TRUE)
+  fast_numeric_array <- fast_numeric &&
+    exists("C_scwb_canonical_numeric_array", inherits = TRUE)
   encode <- function(value) {
     if (is.null(value)) return("null")
     if (is.factor(value)) value <- as.character(value)
@@ -309,6 +311,10 @@
     if (is.atomic(value) && length(value) != 1L) {
       if (is.character(value) && is.null(attributes(value)))
         return(.wb_operation_pack_canonical_string_array(value))
+      if (fast_numeric_array) {
+        array <- .Call(C_scwb_canonical_numeric_array, value, FALSE)
+        if (!is.null(array)) return(array)
+      }
       if (fast_numeric_tokens) {
         batch <- .Call(C_scwb_canonical_numeric_tokens, value)
         if (!is.null(batch)) return(paste0("[",paste(batch,collapse=","),"]"))
@@ -319,6 +325,10 @@
     if (is.list(value)) {
       nms <- names(value)
       if (is.null(nms)) {
+        if (fast_numeric_array) {
+          array <- .Call(C_scwb_canonical_numeric_array, value, FALSE)
+          if (!is.null(array)) return(array)
+        }
         if (fast_numeric_tokens) {
           batch <- .Call(C_scwb_canonical_numeric_tokens, value)
           if (!is.null(batch)) return(paste0("[",paste(batch,collapse=","),"]"))

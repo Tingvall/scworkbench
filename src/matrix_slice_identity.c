@@ -110,6 +110,68 @@ SEXP scwb_canonical_numeric_tokens(SEXP value) {
     return result;
 }
 
+/* Same bounded tokens, emitted into one managed buffer instead of one R
+ * string per number followed by paste(). Row mode is private to the existing
+ * row-major space preimage; flat mode preserves ordinary array framing. */
+SEXP scwb_canonical_numeric_array(SEXP value, SEXP rows) {
+    if (TYPEOF(rows) != LGLSXP || XLENGTH(rows) != 1 ||
+        LOGICAL_ELT(rows, 0) == NA_LOGICAL || OBJECT(value)) return R_NilValue;
+    int row_mode = LOGICAL_ELT(rows, 0);
+    R_xlen_t n = XLENGTH(value), nr = 0, nc = 0;
+    if (n > (R_xlen_t)131072 || n > (R_xlen_t)INT_MAX / 256)
+        return R_NilValue;
+    if (row_mode) {
+        SEXP dimensions = Rf_getAttrib(value, R_DimSymbol);
+        if ((TYPEOF(value) != INTSXP && TYPEOF(value) != REALSXP) ||
+            TYPEOF(dimensions) != INTSXP || XLENGTH(dimensions) != 2)
+            return R_NilValue;
+        int r = INTEGER_ELT(dimensions, 0), c = INTEGER_ELT(dimensions, 1);
+        if (r == NA_INTEGER || c == NA_INTEGER || r < 0 || c <= 0 ||
+            r > 131072 || c > 131072 || (R_xlen_t)r * c != n)
+            return R_NilValue;
+        nr = r; nc = c;
+    } else if (ATTRIB(value) != R_NilValue ||
+        (TYPEOF(value) != INTSXP && TYPEOF(value) != REALSXP &&
+         TYPEOF(value) != VECSXP)) return R_NilValue;
+    double x;
+    for (R_xlen_t i = 0; i < n; ++i) {
+        if (!numeric_token_item(value, i, &x)) return R_NilValue;
+        if ((i & 8191) == 0) R_CheckUserInterrupt();
+    }
+    /* 64 bytes per scalar includes its comma; row brackets/separators add at
+     * most three per row. The ceiling keeps this below 9 MiB, within the
+     * existing 256-byte/element temporary ledger (including input/output). */
+    size_t capacity = 64 * (size_t)n + 3 * (size_t)nr + 3;
+    char *buffer = (char *)R_alloc(capacity, sizeof(char)), *p = buffer;
+    *p++ = '[';
+    R_xlen_t emitted = 0, row_count = row_mode ? nr : 1;
+    R_xlen_t columns = row_mode ? nc : n;
+    for (R_xlen_t row = 0; row < row_count; ++row) {
+        if (row_mode) {
+            if (row) *p++ = ',';
+            *p++ = '[';
+        }
+        for (R_xlen_t column = 0; column < columns; ++column) {
+            R_xlen_t at = row_mode ? row + column * nr : column;
+            if (!numeric_token_item(value, at, &x)) return R_NilValue;
+            char token[64];
+            if (ISNAN(x)) strcpy(token, "null"); else number(x, token);
+            size_t bytes = strlen(token);
+            if ((size_t)(p - buffer) + bytes + 4 >= capacity)
+                Rf_error("Canonical numeric buffer bound was exceeded.");
+            if (column) *p++ = ',';
+            memcpy(p, token, bytes); p += bytes;
+            if ((emitted++ & 8191) == 0) R_CheckUserInterrupt();
+        }
+        if (row_mode) *p++ = ']';
+    }
+    *p++ = ']';
+    SEXP text = PROTECT(Rf_mkCharLenCE(buffer, (int)(p-buffer), CE_UTF8));
+    SEXP result = PROTECT(Rf_ScalarString(text));
+    UNPROTECT(2);
+    return result;
+}
+
 /* PCRE-produced positions are already sorted. R 4.4 findInterval checks the
  * complete vector on every lookup, defeating pre-indexing of large snapshots. */
 SEXP scwb_json_index_floor(SEXP positions, SEXP value) {

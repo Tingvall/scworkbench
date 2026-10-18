@@ -86,8 +86,14 @@
       block <- read(selected)
       if (!identical(as.integer(dim(block)), as.integer(c(length(selected), dimensions))) ||
           !identical(rownames(block), selected)) stop("Typed-space identity reader returned misaligned values.", call. = FALSE)
-      rows <- lapply(seq_len(nrow(block)), function(i) unname(as.list(as.numeric(block[i, ]))))
-      json <- encode(rows)
+      json <- if (exists("C_scwb_canonical_numeric_array", inherits = TRUE) &&
+          identical(getOption("OutDec", "."), ".") &&
+          identical(Sys.localeconv()[["decimal_point"]], "."))
+        .Call(C_scwb_canonical_numeric_array, block, TRUE) else NULL
+      if (is.null(json)) {
+        rows <- lapply(seq_len(nrow(block)), function(i) unname(as.list(as.numeric(block[i, ]))))
+        json <- encode(rows)
+      }
       emit(paste0(if (first) "" else ",", substr(json, 2L, nchar(json)-1L)))
       first <- FALSE
     }
