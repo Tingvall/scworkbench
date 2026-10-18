@@ -20,9 +20,18 @@ wb_init_bundle <- function(out_dir,
              "out_dir must be a non-empty string")
 
   writer_lock <- .wb_bundle_writer_lock_acquire(out_dir, operation = "bundle initialization")
-  assembly_registered <- FALSE
+  returned <- FALSE
+  con <- NULL
   on.exit({
-    if (!isTRUE(assembly_registered)) .wb_bundle_writer_lock_release(writer_lock)
+    if (!returned) {
+      # Registration may have succeeded before a later publication/guard fault.
+      # Unregister only this connection and release its assembly ownership.
+      if (!is.null(con)) {
+        try(.wb_unregister_assembly_connection(con), silent = TRUE)
+        if (DBI::dbIsValid(con)) try(DBI::dbDisconnect(con), silent = TRUE)
+      }
+      .wb_bundle_writer_lock_release(writer_lock)
+    }
   }, add = TRUE)
 
   if (dir.exists(out_dir)) {
@@ -40,11 +49,36 @@ wb_init_bundle <- function(out_dir,
   dir.create(file.path(out_dir, "space_payloads", ".pending"), recursive = TRUE, showWarnings = FALSE)
 
   db_path <- file.path(out_dir, "db", "app.sqlite")
-  con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
-  on.exit(if (!is.null(con)) try(DBI::dbDisconnect(con), silent = TRUE), add = TRUE)
+  con <- DBI::dbConnect(RSQLite::SQLite(), db_path, cache_size = -2000L)
+  database_identity <- function() {
+    actual <- .wb_bundle_path_require(out_dir, "db/app.sqlite", expected_type = "file",
+      must_exist = TRUE, purpose = "fresh initialized database")
+    connected <- normalizePath(con@dbname, winslash = "/", mustWork = TRUE)
+    main <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+    main <- as.character(main$file[main$name == "main"])
+    .wb_assert(length(main) == 1L && identical(connected, normalizePath(actual,
+      winslash = "/", mustWork = TRUE)) && identical(connected,
+      normalizePath(main, winslash = "/", mustWork = TRUE)),
+      "Fresh initialized connection no longer names the contained database.")
+    # A path spelling alone cannot identify an open database replaced on disk.
+    # Device/inode detect replacement; SQL epochs below authenticate writes.
+    info <- fs::file_info(actual)
+    .wb_assert(all(c("device_id", "inode") %in% names(info)) &&
+      !anyNA(info[, c("device_id", "inode")]),
+      "Fresh initialized database file identity is unavailable.")
+    list(path = connected, device_id = info$device_id, inode = info$inode)
+  }
+  opened_database <- tryCatch(database_identity(), error = function(error) NULL)
 
   .wb_sqlite_configure_connection(con, writable = TRUE)
   .wb_schema_migrate_connection(con, bundle_dir = out_dir, backup = FALSE)
+  bundle <- structure(list(dir = out_dir, manifest = NULL, con = con, read_only = FALSE),
+    class = "scworkbench_bundle")
+  before <- tryCatch({
+    .wb_assert(!is.null(opened_database) && identical(opened_database, database_identity()),
+      "Fresh initialized database changed during migration.")
+    .wb_manifest_publication_epoch(bundle)
+  }, error = function(error) NULL)
 
   manifest <- .wb_bundle_build_manifest(
     bundle_dir = out_dir,
@@ -57,16 +91,49 @@ wb_init_bundle <- function(out_dir,
       source_adapter = "none"
     )
   )
-  .wb_bundle_write_manifest(out_dir, manifest)
+  publication <- .wb_bundle_write_manifest(out_dir, manifest)
+  generated_sha <- attr(publication, "wb_manifest_sha256", exact = TRUE)
+  reusable <- tryCatch({
+    .wb_assert(!is.null(before) && is.character(generated_sha) && length(generated_sha) == 1L,
+      "Fresh initialized publication observation is unavailable.")
+    sha <- .wb_manifest_publication_sha256(bundle)
+    published <- jsonlite::read_json(.wb_bundle_path_require(out_dir, "manifest.json",
+      expected_type = "file", purpose = "fresh published manifest"), simplifyVector = TRUE)
+    .wb_assert(identical(as.character(published$storage$sqlite$path), "db/app.sqlite"),
+      "Fresh published manifest no longer names the initialized database.")
+    after <- .wb_manifest_publication_epoch(bundle)
+    .wb_assert(identical(before, after) && identical(opened_database, database_identity()) &&
+      identical(sha, generated_sha), "Fresh initialized state changed during publication.")
+    bundle$manifest <- published
+    TRUE
+  }, error = function(error) FALSE)
 
+  if (reusable) {
+    .wb_register_assembly_bundle(bundle, writer_lock = writer_lock)
+    .wb_assert(identical(before, .wb_manifest_publication_epoch(bundle)) &&
+      identical(opened_database, database_identity()) &&
+      identical(generated_sha, .wb_manifest_publication_sha256(bundle)),
+      "Fresh initialized state changed during assembly registration.")
+    # Same successful-publication witness as the ordinary committed refresh;
+    # never a persisted payload or recovery authority.
+    con@ref$wb_manifest_publication_witness <- list(epoch = before, sha256 = generated_sha)
+    returned <- TRUE
+    return(bundle)
+  }
+
+  # Uncertain file/SQL/publication observations preserve the original complete
+  # open/migration/recovery/refresh route instead of blessing stale state.
   try(DBI::dbDisconnect(con), silent = TRUE)
   con <- NULL
   bundle <- wb_open_bundle(out_dir)
+  con <- bundle$con
   .wb_register_assembly_bundle(bundle, writer_lock = writer_lock)
-  assembly_registered <- TRUE
   # Writable open may install supported registry schemas. Publish their exact
   # committed state before returning the active assembly handle.
   .wb_refresh_manifest_committed(bundle)
+  bundle$manifest <- jsonlite::read_json(.wb_bundle_path_require(out_dir, "manifest.json",
+    expected_type = "file", purpose = "fresh reopened manifest"), simplifyVector = TRUE)
+  returned <- TRUE
   bundle
 }
 
