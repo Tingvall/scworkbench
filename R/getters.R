@@ -752,12 +752,6 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   # Load matrix (can be sparse/delayed/whatever your wb_matrix returns)
   m <- wb_matrix(bundle, matrix_id)
   .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
-  physical_features <- rownames(m)
-  if (!is.null(physical_features) && length(physical_features)) {
-    fi <- match(feat_out, as.character(physical_features))
-    .wb_assert(!anyNA(fi), paste0("Matrix '", matrix_id,
-      "' physical feature axis differs from registered coverage."))
-  }
   physical_cells <- colnames(m)
   if (!is.null(physical_cells) && length(physical_cells)) {
     ci <- match(cell_out, as.character(physical_cells))

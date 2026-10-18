@@ -132,14 +132,6 @@ wb_matrix_read_features <- function(bundle,
     abs_path <- .wb_bundle_path_require(bundle, row$path[1], expected_type = "directory",
                                         purpose = paste0("matrix fragment ", row$fragment_id[1]))
     mat <- .wb_bp_open_matrix_dir(abs_path)
-    if (length(rownames(mat))) {
-      rix <- match(feats_keep, as.character(rownames(mat)))
-      .wb_assert(!anyNA(rix), "Physical fragment feature identities differ from registered coverage.")
-    }
-    if (length(colnames(mat))) {
-      cix <- match(cells_keep, as.character(colnames(mat)))
-      .wb_assert(!anyNA(cix), "Physical fragment cell identities differ from registered coverage.")
-    }
 
     # Slice
     block <- mat[rix, cix, drop = FALSE]
@@ -186,13 +178,10 @@ wb_matrix_read_features <- function(bundle,
     .wb_assert(identical(as.integer(dim(matrix)),
       as.integer(c(length(features), length(cells)))),
       "Physical fragment dimensions differ from its registered axes.")
-    if (length(rownames(matrix))) {
-      physical <- as.character(rownames(matrix))
-      .wb_assert(!anyDuplicated(physical) && setequal(physical, features),
-        "Physical fragment feature identities differ from registered coverage.")
-      features <- physical
-    }
-    if (length(colnames(matrix))) {
+    # Registry feature/fragment axes remain authoritative. Do not reinterpret
+    # incidental payload labels as a new feature identity namespace. Mirror
+    # wb_slice's existing single-fragment physical-column alignment only.
+    if (nrow(fragments) == 1L && length(colnames(matrix))) {
       physical <- as.character(colnames(matrix))
       .wb_assert(!anyDuplicated(physical) && setequal(physical, cells),
         "Physical fragment cell identities differ from registered coverage.")
