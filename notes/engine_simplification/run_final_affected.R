@@ -24,6 +24,8 @@ files <- unique(c(files,
   "test_operation_pack_v1_contract.R",
   "test_operation_pack_v2_contract.R", "test_operation_pack_v3_contract.R",
   "test_operation_pack_v3_stage_matrix_source_binding_contract.R",
+  "test_operation_pack_v3_matrix_model_boundary_contract.R",
+  "test_operation_pack_v3_derived_fitted_axis_contract.R",
   "test_phase8_no_pack_core_surface_contract.R",
   "test_graph_primitive_contract.R"))
 stopifnot(all(file.exists(file.path("tests", files))))
