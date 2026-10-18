@@ -53,12 +53,13 @@ test_engine_graph_aggregate_growth_and_cursor_cleanup_contract <- function() {
   f<-.engine_graph_aggregate_fixture();stage<-f$stage
   on.exit(scworkbench:::.wb_graph_stage_discard(stage),add=TRUE)
   rows<-DBI::dbGetQuery(stage$con,"SELECT row_ordinal,record_json FROM artifact_graph_rows WHERE component='edges' ORDER BY row_ordinal")
-  for(mode in c("growth","nontext","fault")) {
+  for(mode in c("growth","nontext","fault","drop")) {
     fired<-FALSE
     saved<-options(scworkbench.graph_storage_test_hook=function(event,state) {
       if(event=="edge_aggregate_ready" && mode!="fault") {
         fired<<-TRUE
-        if(mode=="growth") DBI::dbExecute(state$con,
+        if(mode=="drop") DBI::dbExecute(state$con,
+          "DELETE FROM artifact_graph_rows WHERE component='edges'") else if(mode=="growth") DBI::dbExecute(state$con,
           "UPDATE artifact_graph_rows SET record_json=record_json||? WHERE component='edges'",
           params=list(strrep(" ",as.integer(state$observed_max_edge_bytes)+1L))) else
           DBI::dbExecute(state$con,"UPDATE artifact_graph_rows SET record_json=CAST(record_json AS BLOB) WHERE component='edges'")
@@ -71,17 +72,61 @@ test_engine_graph_aggregate_growth_and_cursor_cleanup_contract <- function() {
     options(saved)
     stopifnot(fired,inherits(failure,"error"))
     if(mode!="fault")stopifnot(inherits(failure,"wb_graph_error"),
-      identical(failure$code,"GRAPH_RESOURCE_EXCEEDED")) else
+      identical(failure$code,if(mode=="drop")"GRAPH_INCIDENCE_DANGLING" else "GRAPH_RESOURCE_EXCEEDED")) else
       stopifnot(grepl("GRAPH_AGGREGATE_BATCH_FAULT",conditionMessage(failure),fixed=TRUE))
     # An unclosed cursor would cause RSQLite's subsequent-query close warning.
     withCallingHandlers(stopifnot(DBI::dbGetQuery(stage$con,"SELECT 1 AS ok")$ok[[1L]]==1L),
       warning=function(w)stop(conditionMessage(w)))
-    for(i in seq_len(nrow(rows)))DBI::dbExecute(stage$con,
-      "UPDATE artifact_graph_rows SET record_json=? WHERE component='edges' AND row_ordinal=?",
-      params=list(rows$record_json[[i]],rows$row_ordinal[[i]]))
+    if(mode=="drop") DBI::dbAppendTable(stage$con,"artifact_graph_rows",data.frame(
+      artifact_id="staged",component="edges",row_ordinal=rows$row_ordinal,
+      record_json=rows$record_json,stringsAsFactors=FALSE)) else
+      for(i in seq_len(nrow(rows)))DBI::dbExecute(stage$con,
+        "UPDATE artifact_graph_rows SET record_json=? WHERE component='edges' AND row_ordinal=?",
+        params=list(rows$record_json[[i]],rows$row_ordinal[[i]]))
   }
   stopifnot(identical(scworkbench:::.wb_graph_sql_identities(stage$con,"staged",stage$budgets)$content_identity,
     wb_graph_identity(f$graph)$content_identity))
+  TRUE
+}
+
+test_engine_graph_aggregate_empty_mixed_and_caller_transaction_contract <- function() {
+  empty<-wb_prim_graph(list(),list(),list(),direction_mode="mixed")
+  nodes<-lapply(c("n1","n2","n3"),function(id)list(node_id=id))
+  edges<-list(list(edge_id="a",kind="ordinary",direction="directed"),
+    list(edge_id="long_雪_network",kind="hyper",direction="undirected"),
+    list(edge_id="c",kind="hyper",direction="directed"),
+    list(edge_id="self",kind="ordinary",direction="undirected"))
+  incidences<-list();add<-function(edge,participants,roles) {
+    for(j in seq_along(participants))incidences[[length(incidences)+1L]]<<-list(
+      incidence_id=paste0("i",length(incidences)),edge_id=edge,node_id=participants[[j]],
+      role=roles[[j]],ordinal=j-1L)
+  }
+  add("a",c("n1","n2"),c("tail","head"))
+  add("long_雪_network",c("n1","n3","n1"),rep("member",3L))
+  add("c",c("n1","n2","n3"),c("tail","tail","head"))
+  add("self",c("n1","n1"),c("member","member"))
+  mixed<-wb_prim_graph(nodes,edges,incidences,direction_mode="mixed")
+  for(graph in list(empty,mixed)) local({
+    stage<-scworkbench:::.wb_graph_stage_small(graph,list(partition_bytes=8192L,partition_rows=2L))
+    on.exit(scworkbench:::.wb_graph_stage_discard(stage),add=TRUE)
+    DBI::dbGetQuery(stage$con,"PRAGMA journal_mode=WAL;")
+    DBI::dbBegin(stage$con)
+    DBI::dbExecute(stage$con,"SAVEPOINT aggregate_caller;")
+    before<-DBI::dbGetQuery(stage$con,"SELECT total_changes();")
+    actual<-scworkbench:::.wb_graph_sql_identities(stage$con,"staged",stage$budgets)
+    stopifnot(identical(actual$content_identity,wb_graph_identity(graph)$content_identity),
+      isTRUE(RSQLite::sqliteIsTransacting(stage$con)),
+      identical(before,DBI::dbGetQuery(stage$con,"SELECT total_changes();")))
+    DBI::dbExecute(stage$con,"ROLLBACK TO aggregate_caller;")
+    DBI::dbExecute(stage$con,"RELEASE aggregate_caller;")
+    DBI::dbRollback(stage$con)
+    if(length(graph$content$edges)) {
+      DBI::dbExecute(stage$con,paste0("UPDATE artifact_graph_rows SET record_json=",
+        "json_set(record_json,'$.role','member') WHERE component='incidences' AND row_ordinal=1;"))
+      failure<-tryCatch(scworkbench:::.wb_graph_sql_identities(stage$con,"staged",stage$budgets),error=identity)
+      stopifnot(inherits(failure,"wb_graph_error"),failure$code=="GRAPH_ARITY_INVALID")
+    }
+  })
   TRUE
 }
 
