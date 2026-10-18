@@ -41,7 +41,52 @@
   sql <- paste0("INSERT INTO ", quote_ident(table), " (", paste(vapply(fields, quote_ident, character(1)), collapse = ", "), ") VALUES (", paste(rep("?", length(fields)), collapse = ", "), ");")
   stmt <- DBI::dbSendStatement(con, sql)
   on.exit(DBI::dbClearResult(stmt), add = TRUE)
-  for (i in seq_len(nrow(df))) DBI::dbBind(stmt, unname(as.list(df[i, fields, drop = FALSE])))
+  # RSQLite2.3.7 steps vector parameters in the SAME order on this statement,
+  # without owning a new transaction. Unknown/custom carriers retain the exact
+  # historical per-row bind path (including its warnings and first error).
+  allowance <- tryCatch({
+    guard <- getOption("scworkbench.max_dense_materialize_mb", 256)
+    ordinary <- inherits(con, "SQLiteConnection") &&
+      identical(class(con)[[1L]], "SQLiteConnection") &&
+      identical(as.character(getNamespaceVersion("RSQLite")), "2.3.7") &&
+      identical(as.character(getNamespaceVersion("DBI")), "1.2.3") &&
+      identical(class(df), "data.frame") &&
+      all(names(attributes(df)) %in% c("names", "row.names", "class")) &&
+      is.null(con@ref$wb_graph_policy) && is.numeric(guard) &&
+      length(guard) == 1L && !is.na(guard) && is.finite(guard) && guard > 0
+    if (ordinary) min(32 * 1024^2, guard * 1024^2 / 4) else 0
+  }, error = function(e) 0)
+  batch_ok <- function(indices) tryCatch({
+    carrier <- 65536 + 256 * length(indices) * length(fields)
+    if (!is.finite(carrier) || carrier > allowance) return(FALSE)
+    strings <- 0
+    for (column in df) {
+      if (is.object(column) || !is.null(attributes(column)) ||
+          !typeof(column) %in% c("integer", "double", "logical", "character") ||
+          length(column) != nrow(df)) return(FALSE)
+      if (is.character(column)) {
+        # Only bounded metadata vectors precede full dataframe subsetting.
+        # Their pointer/regex/length carriers are included in256*rows*columns.
+        values <- column[indices]
+        if (any(Encoding(values) == "bytes") ||
+            any(!is.na(values) & grepl("[^\\x01-\\x7f]", values,
+              perl = TRUE, useBytes = TRUE))) return(FALSE)
+        strings <- strings + sum(nchar(values, type = "bytes"), na.rm = TRUE)
+        if (!is.finite(strings) || carrier + 8 * strings > allowance) return(FALSE)
+      }
+    }
+    TRUE
+  }, error = function(e) FALSE)
+  size <- min(chunk_size, 1000L)
+  for (start in seq.int(1L, nrow(df), by = size)) {
+    indices <- seq.int(start, min(nrow(df), start + size - 1L))
+    if (allowance > 0 && batch_ok(indices)) {
+      # Do not catch/retry a failed batch: SQLite's actual partial prefix and
+      # caller transaction remain authoritative, just as in the original loop.
+      DBI::dbBind(stmt, unname(as.list(df[indices, fields, drop = FALSE])))
+    } else for (i in indices)
+      DBI::dbBind(stmt, unname(as.list(df[i, fields, drop = FALSE])))
+  }
   invisible(TRUE)
 }
 
