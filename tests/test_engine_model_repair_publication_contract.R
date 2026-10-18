@@ -73,13 +73,17 @@ test_engine_model_repair_postcommit_publication_retry_contract <- function() {
   on.exit(if (DBI::dbIsValid(f$b$con)) wb_close_bundle(f$b), add = TRUE)
   scworkbench:::.wb_with_mutation_context(f$b, route = "ingestion",
     code = wb_refresh_manifest(f$b))
-  manifest <- digest::digest(file = file.path(f$b$dir, "manifest.json"), algo = "sha256")
+  manifest_path <- file.path(f$b$dir, "manifest.json")
+  before_current_state <- jsonlite::read_json(manifest_path)$current_state
   before <- .engine_model_repair_state(f$b)
-  saw <- FALSE
+  saw <- FALSE; manifest <- NULL
   old <- options(scworkbench.manifest_test_hook = function(event, ...) {
     path <- DBI::dbGetQuery(f$b$con, "SELECT model_path FROM space_models WHERE space_id='source'")$model_path[[1L]]
     if (event == "before_publish" && identical(path, "models/imported/source.rds")) {
       stopifnot(!RSQLite::sqliteIsTransacting(f$b$con), file.exists(f$target))
+      stopifnot(identical(jsonlite::read_json(manifest_path)$current_state,
+        before_current_state))
+      manifest <<- digest::digest(file = manifest_path, algo = "sha256")
       saw <<- TRUE
       stop("repair publication fault")
     }
