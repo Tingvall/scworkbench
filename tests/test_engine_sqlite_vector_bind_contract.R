@@ -44,7 +44,7 @@
   active <- RSQLite::sqliteIsTransacting(con)
   # Hex comparisons preserve exact SQLite text/blob bytes, including NULL and
   # deliberately invalid UTF8 fixtures, without a decoder changing evidence.
-  actual <- DBI::dbGetQuery(con, paste("SELECT rowid,id,num,flag,hex(txt) txt_hex,",
+  actual <- DBI::dbGetQuery(con, paste("SELECT rowid,id,CAST(id AS TEXT) id_text,num,flag,hex(txt) txt_hex,",
     "typeof(id) id_type,typeof(txt) txt_type,typeof(num) num_type,typeof(flag) flag_type",
     "FROM target ORDER BY rowid"))
   audit <- DBI::dbGetQuery(con, "SELECT rowid,id FROM audit ORDER BY rowid")
@@ -139,18 +139,85 @@ test_engine_sqlite_vector_bind_extended_and_encoding_fallback_contract <- functi
   x <- base; x$id <- factor(c("a", "b")); variants[[1L]] <- x
   x <- base; x$num <- as.Date(c(1, 2), origin = "1970-01-01"); variants[[2L]] <- x
   x <- base; x$num <- as.POSIXct(c(1, 2), origin = "1970-01-01", tz = "UTC"); variants[[3L]] <- x
-  x <- base; x$id <- bit64::as.integer64(c("9007199254740993", "9007199254740994")); variants[[4L]] <- x
+  x <- base; x$id <- bit64::as.integer64(c("9007199254740993", "9007199254740994"))
+  attr(x$id, "cache") <- "unsupported"; variants[[4L]] <- x
   x <- base; x$txt <- I(list(as.raw(c(0, 255)), NULL)); variants[[5L]] <- x
   x <- base; attr(x$num, "custom") <- "preserve"; variants[[6L]] <- x
   x <- base; x$txt <- c("\u03bb", "\u96ea"); variants[[7L]] <- x
   x <- base; x$txt <- iconv(c("caf\u00e9", "plain"), to = "latin1"); variants[[8L]] <- x
   invalid <- rawToChar(as.raw(255)); Encoding(invalid) <- "UTF-8"
   x <- base; x$txt <- c("plain", invalid); variants[[9L]] <- x
+  x <- base; x$id <- bit64::as.integer64(c("9007199254740993", "9007199254740994"))
+  class(x$id) <- c("custom_integer64", "integer64"); variants[[10L]] <- x
+  x <- base; x$id <- bit64::as.integer64(c("9007199254740993", "9007199254740994"))
+  names(x$id) <- c("named_a", "named_b"); variants[[11L]] <- x
   for (rows in variants) {
     expected <- .engine_db_bind_case(.engine_db_bind_original, rows)
     spy <- .engine_db_bind_spy()
     actual <- tryCatch(.engine_db_bind_case(helper, rows), finally = spy$close())
     stopifnot(identical(expected, actual), all(spy$state$lengths == 1L))
+  }
+  TRUE
+}
+
+test_engine_sqlite_vector_bind_exact_integer64_contract <- function() {
+  helper <- scworkbench:::.wb_db_append_chunked
+  text <- c("9223372036854775807", "-9223372036854775807",
+    "9007199254740993", "-9007199254740993", "9007199254740992",
+    "-9007199254740992", "0", "1", NA_character_)
+  rows <- data.frame(id = bit64::as.integer64(text), txt = rep("plain", length(text)),
+    num = rep(1.25, length(text)), flag = rep(TRUE, length(text)))
+  eligible_version <- as.character(getNamespaceVersion("RSQLite")) == "2.3.7" &&
+    as.character(getNamespaceVersion("DBI")) == "1.2.3" &&
+    as.character(getNamespaceVersion("bit64")) == "4.0.5"
+  for (tx in c(FALSE, TRUE)) {
+    expected <- .engine_db_bind_case(.engine_db_bind_original, rows, transaction = tx)
+    spy <- .engine_db_bind_spy()
+    actual <- tryCatch(.engine_db_bind_case(helper, rows, transaction = tx), finally = spy$close())
+    stopifnot(identical(expected, actual), identical(actual$rows$id_text, text),
+      identical(actual$rows$id_type, ifelse(is.na(text), "null", "integer")))
+    if (eligible_version) stopifnot(any(spy$state$lengths > 1L), max(spy$state$lengths) <= 3L)
+  }
+  # Unknown bit64 never widens eligibility: a private function copy changes only
+  # version lookup, not installed namespaces, payload bits or method dispatch.
+  original_version <- getNamespaceVersion
+  fallback <- helper
+  environment(fallback) <- list2env(list(getNamespaceVersion = function(package) {
+    if (identical(package, "bit64")) "0.0.0" else original_version(package)
+  }), parent = environment(helper))
+  spy <- .engine_db_bind_spy()
+  actual <- tryCatch(.engine_db_bind_case(fallback, rows), finally = spy$close())
+  stopifnot(identical(actual, .engine_db_bind_case(.engine_db_bind_original, rows)),
+    all(spy$state$lengths == 1L))
+  for (bad in c(2L, 3L, 4L)) for (tx in c(FALSE, TRUE))
+      for (constraint in c("UNIQUE", "CHECK", "FK")) {
+    changed <- rows; setup <- character()
+    schema <- "id INTEGER UNIQUE,txt TEXT,num REAL,flag INTEGER"
+    changed$id[bad] <- rows$id[1L]
+    if (constraint == "CHECK") {
+      changed$id <- bit64::as.integer64(c("9223372036854775807", "9007199254740993",
+        "9007199254740992", "1", "0", "2", "3", "4", NA_character_))
+      changed$id[bad] <- bit64::as.integer64("-9223372036854775807")
+      schema <- "id INTEGER CHECK(id>=0),txt TEXT,num REAL,flag INTEGER"
+    } else if (constraint == "FK") {
+      schema <- "id INTEGER REFERENCES parent(id),txt TEXT,num REAL,flag INTEGER"
+      setup <- c("CREATE TABLE parent(id INTEGER PRIMARY KEY)",
+        paste0("INSERT INTO parent VALUES(", paste(text[!is.na(text)], collapse = "),("), ")"))
+      changed$id[bad] <- bit64::as.integer64("42")
+    }
+    expected <- .engine_db_bind_case(.engine_db_bind_original, changed, schema, setup, transaction = tx)
+    actual <- .engine_db_bind_case(helper, changed, schema, setup, transaction = tx)
+    stopifnot(!is.null(expected$error), identical(expected, actual),
+      is.null(actual$retry_error), actual$retry_count == 1L)
+  }
+  for (mode in c("ABORT", "FAIL", "ROLLBACK")) for (tx in c(FALSE, TRUE)) {
+    setup <- paste0("CREATE TRIGGER reject64 BEFORE INSERT ON target ",
+      "WHEN NEW.id=9007199254740993 BEGIN INSERT INTO audit VALUES(NEW.id); ",
+      "SELECT RAISE(", mode, ",'int64 bind fault'); END")
+    expected <- .engine_db_bind_case(.engine_db_bind_original, rows, setup = setup, transaction = tx)
+    actual <- .engine_db_bind_case(helper, rows, setup = setup, transaction = tx)
+    stopifnot(!is.null(expected$error), identical(expected, actual),
+      is.null(actual$retry_error), actual$retry_count == 1L)
   }
   TRUE
 }

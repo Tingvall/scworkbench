@@ -17,3 +17,18 @@ Required positive actualvectorlength and original orderedCAST(id AS TEXT)/typeof
 near±2^63 and±2^53/NA64; unique/check/triggerprefix/callerTX/rollback+retry.
 Former int64 fallback case becomes extra-attributed/subclassed int64, preserving
 unsupported fallback coverage. Source review BEFORE jobs/install/benchmarks.
+
+Primary exactbit64 source: CRAN Archive/bit64/bit64_4.0.5.tar.gz,
+R/integer64.R2128–2160 `[.integer64`: preserves oldClass around NextMethod's
+indexed subset; missing-index handling inspects INDEX only. Existing helper
+creates ordinary nonmissing bounded indices, never reads payload as real.
+RSQLitev2.3.7 src/SqliteResultImpl.cpp bind_parameter_pos distinguishes REAL
+carriers inheritinginteger64 before ordinaryREALSXP and binds signed64 values/
+NA64 via sqlite3_bind_int64/sqlite3_bind_null. No coercion/double arithmetic.
+
+One fifth test adds exact SQLite CAST(id AS TEXT)/typeof proof across signed
+extremes/2^53/NA64, supported actualbatchlength, unknownversion privatecopy
+fallback, UNIQUE/CHECK/FK and ABORT/FAIL/ROLLBACK prefixes/ownedTX/retry. Existing
+extendedfallback test now covers extra-attributed/cache, subclass and named
+integer64 rather than incorrectly demanding fallback for newlysupported exact
+class. No warning/assertion suppression; four earlier contract definitions stay.

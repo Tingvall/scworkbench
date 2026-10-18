@@ -62,7 +62,13 @@
     if (!is.finite(carrier) || carrier > allowance) return(FALSE)
     strings <- 0
     for (column in df) {
-      if (is.object(column) || !is.null(attributes(column)) ||
+      # bit64's indexed subset preserves the underlying signed64 bits. Never
+      # apply real-number tests/coercion: valid negative integers may look NaN
+      # through the REAL carrier. All other classes/attributes stay rowwise.
+      integer64 <- typeof(column) == "double" &&
+        identical(attributes(column), list(class = "integer64")) &&
+        identical(as.character(getNamespaceVersion("bit64")), "4.0.5")
+      if ((!integer64 && (is.object(column) || !is.null(attributes(column)))) ||
           !typeof(column) %in% c("integer", "double", "logical", "character") ||
           length(column) != nrow(df)) return(FALSE)
       if (is.character(column)) {
