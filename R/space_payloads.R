@@ -406,6 +406,13 @@
       paste0("SPACE_PAYLOAD_REGISTRY_MISSING: ", space_id))
     row
   }
+  logical_row <- function() {
+    row <- DBI::dbGetQuery(issuing_con,
+      "SELECT * FROM spaces WHERE space_id = ?;", params=list(space_id))
+    .wb_assert(nrow(row)==1L && identical(as.character(row$storage[[1L]]),
+      .wb_space_payload_storage()), "Typed-space logical storage is not native HDF.")
+    row
+  }
   budget <- .budget %||% .wb_operation_pack_v3_broker_projection_budget(bundle)
   owned <- 0; released <- FALSE; native_owned <- FALSE
   release <- function() {
@@ -443,6 +450,7 @@
     paste(paste0("COALESCE(length(CAST(",c("space_id","path","schema_version",
       "cell_ids_sha256","dim_labels_json","dtype","endianness","content_sha256",
       "content_identity_scheme","provenance_identity","created_at")," AS BLOB)),0)"),collapse="+"),
+    "+(SELECT COALESCE(length(CAST(space_id AS BLOB)),0)+COALESCE(length(CAST(source AS BLOB)),0)+COALESCE(length(CAST(storage AS BLOB)),0)+COALESCE(length(CAST(description AS BLOB)),0) FROM spaces WHERE spaces.space_id=space_payloads.space_id)",
     " AS bytes FROM space_payloads WHERE space_id=?;"),params=list(space_id))
   .wb_assert(nrow(counts)==1L,"Typed-space payload registry is missing or ambiguous.")
   n <- as.integer(counts$n_cells[[1L]]); d <- as.integer(counts$n_dims[[1L]])
@@ -451,10 +459,12 @@
     "Typed-space logical and payload dimensions disagree.")
   charge(64*as.double(n)+256*as.double(d)+32*as.double(counts$bytes[[1L]])+32768)
   registry <- registry_row()
+  logical <- logical_row()
   path <- .wb_space_payload_path(bundle, registry, must_exist = TRUE)
   # Authenticate the registered producer bytes before decoding variable-length
   # axes. Fixed-width R and VLEN Python payloads share this boundary.
-  .wb_assert(identical(tolower(.wb_prov_sha256_file(path)),
+  issuance_sha <- tolower(.wb_prov_sha256_file(path))
+  .wb_assert(identical(issuance_sha,
     tolower(as.character(registry$content_sha256[[1L]]))),
     "SPACE_PAYLOAD_CONTENT_HASH_MISMATCH: payload bytes differ from registry identity.")
   ids <- character(n)
@@ -503,7 +513,7 @@
   # Exact fresh binding/file observations remain per block. The already issued
   # getter does not re-admit the complete bundle schema before and after each
   # coordinate tile; the independent final reader does that at its boundary.
-  observe <- function() list(registry = registry_row(),
+  observe <- function() list(registry = registry_row(), logical = logical_row(),
     path = .wb_space_payload_path(bundle, registry, must_exist = TRUE),
     resolved = normalizePath(path, mustWork = TRUE),
     file = file.info(path)[, c("size", "mode", "mtime", "ctime"), drop = FALSE])
@@ -544,6 +554,27 @@
   }
   block_elements <- function() max(1L,floor((budget$memory-budget$used-8192)/512))
   logical_labels <- if (meta$n_dims==2L) c("dim1","dim2") else meta$dim_labels
+  # Only core-owned invocation state consumes this observation. It never
+  # supplies a digest: a newly admitted reader independently hashes current
+  # bytes and validates the complete current axes and logical/payload rows.
+  authority <- list(registry=registry, logical=logical, sha256=issuance_sha,
+    path=path, resolved=normalizePath(path,mustWork=TRUE), cells=cells,
+    physical_cells=meta$cell_ids, dimensions=as.integer(c(n,d)), labels=logical_labels)
+  authenticate <- function(current_bundle) {
+    .wb_assert(!released && DBI::dbIsValid(issuing_con) &&
+      identical(current_bundle$con@ref,issuing_con@ref),
+      "Typed-space authentication requires the issuing connection.")
+    guard()
+    local({
+      fresh <- .wb_space_payload_reader(current_bundle,space_id,.budget=budget)
+      on.exit(fresh$close(),add=TRUE)
+      .wb_assert(identical(authority,fresh$.authority()),
+        "Typed-space source differs from private issuance authority.")
+      fresh$guard()
+    })
+    guard()
+    invisible(TRUE)
+  }
   hold_memory <- function(bytes) {
     if (!is.finite(bytes) || bytes < 0 || bytes+8192 > budget$memory-budget$used)
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -568,6 +599,7 @@
   list(cells = cells, dimensions = as.integer(c(length(cells), meta$n_dims)),
     labels = logical_labels, guard = guard, admit = admission, close = release,
     block_elements = block_elements, hold_memory=hold_memory,
+    authenticate=authenticate, .authority=function() authority,
     read = function(cells, dims = seq_len(meta$n_dims)) {
       if (released) stop("Typed-space reader is closed.",call.=FALSE)
       if (64*as.double(length(cells))*length(dims)+8192 > budget$memory-budget$used)

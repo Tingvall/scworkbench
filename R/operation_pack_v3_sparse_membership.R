@@ -134,8 +134,9 @@
 }
 
 .wb_operation_pack_v3_full_space_sources_assert_current <- function(bundle,
-    request) {
+    request, .authenticated_native_spaces = character()) {
   for (grant in request$typed_space_grants %||% list()) {
+    if (as.character(grant$name)[1L] %in% .authenticated_native_spaces) next
     if (is.null(grant$full_source_cell_axis)) next
     source <- grant$source_reference
     .wb_operation_pack_v3_full_space_assert_current(bundle,
@@ -147,6 +148,42 @@
   invisible(TRUE)
 }
 
+# Invocation-private issued plans alone permit byte-authority consolidation.
+# Recovered/deserialized requests have no closures and use the old semantic
+# checks. This function is called afresh at BOTH execution boundaries.
+.wb_operation_pack_v3_native_space_sources_authenticate <- function(bundle, request) {
+  issued <- attr(request,"operation_pack_v3_typed_space_values") %||% list()
+  native_names <- names(Filter(function(entry) is.function(entry$plan$authenticate),issued))
+  current_names <- vapply(request$typed_space_grants %||% list(),
+    function(grant) as.character(grant$name)[1L],character(1))
+  if (anyDuplicated(current_names) || length(setdiff(native_names,current_names)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-space private issuance grant set changed.","audit")
+  authenticated <- character()
+  for (grant in request$typed_space_grants %||% list()) {
+    name <- as.character(grant$name)[1L]
+    entry <- issued[[name]]
+    if (is.null(entry$plan) || !is.function(entry$plan$authenticate)) next
+    records <- Filter(function(record) identical(as.character(record$name)[1L],
+      as.character(grant$input_name)[1L]),request$inputs)
+    valid <- identical(grant,entry$issued_grant) &&
+      length(records)==1L && identical(records,entry$issued_input_record) &&
+      identical(attr(grant,"operation_pack_v3_cells"),entry$cells) &&
+      identical(as.character(entry$input$space_id)[1L],
+        as.character(grant$source_reference$space_id)[1L]) &&
+      identical(as.character(entry$input$cell_id),entry$plan$cells) &&
+      identical(as.integer(entry$input$dimensions),entry$plan$dimensions)
+    if (!isTRUE(valid)) .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Typed-space private issuance binding changed for '",name,"'."),"audit")
+    result <- tryCatch(entry$plan$authenticate(bundle),error=identity)
+    if (inherits(result,"error")) .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Typed-space source changed after authentication for '",name,"': ",
+        conditionMessage(result)),"audit")
+    authenticated <- c(authenticated,name)
+  }
+  authenticated
+}
+
 .wb_operation_pack_v3_typed_space_grant <- function(bundle, declaration, input,
     input_record, params, transition_source_state_identity, stage_root,
     space_plan = NULL) {
@@ -155,7 +192,8 @@
   selection_policy <- as.character(declaration$selection$policy)[1]
   parameter <- if (identical(selection_policy, "full_input_axis_v1")) NULL else
     as.character(declaration$selection$parameter)[1]
-  if (identical(selection_policy, "full_input_axis_v1"))
+  if (identical(selection_policy, "full_input_axis_v1") &&
+      !is.function(space_plan$authenticate))
     .wb_operation_pack_v3_full_space_assert_current(bundle,
       as.character(input$space_id)[1])
   cells <- if (identical(selection_policy, "full_input_axis_v1")) available else

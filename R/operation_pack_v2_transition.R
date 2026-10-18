@@ -1579,10 +1579,12 @@
     operation, inputs, source_refs, request, params)
   if (abi_v3) .wb_operation_pack_v3_producer_lineage_assert_current(bundle,
     operation, inputs, source_refs, request)
+  native_spaces <- if (abi_v3) .wb_operation_pack_v3_native_space_sources_authenticate(
+    bundle,request) else character()
   if (abi_v3) .wb_operation_pack_v3_full_space_sources_assert_current(
-    bundle, request)
+    bundle, request, native_spaces)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
-    bundle, request)
+    bundle, request, native_spaces)
   if (abi_v3) .wb_operation_pack_v3_phase5_sources_assert_current(bundle,
     operation, request, params)
   if (abi_v3) .wb_operation_pack_v3_g3_sources_assert_current(bundle,
@@ -1850,10 +1852,12 @@
     operation, inputs, source_refs, request, params)
   if (abi_v3) .wb_operation_pack_v3_producer_lineage_assert_current(bundle,
     operation, inputs, source_refs, request)
+  native_spaces <- if (abi_v3) .wb_operation_pack_v3_native_space_sources_authenticate(
+    bundle,request) else character()
   if (abi_v3) .wb_operation_pack_v3_full_space_sources_assert_current(
-    bundle, request)
+    bundle, request, native_spaces)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
-    bundle, request)
+    bundle, request, native_spaces)
   if (abi_v3) .wb_operation_pack_v3_phase5_sources_assert_current(bundle,
     operation, request, params)
   if (abi_v3) .wb_operation_pack_v3_g3_sources_assert_current(bundle,

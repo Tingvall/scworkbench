@@ -1587,6 +1587,9 @@
     stats::setNames(lapply(typed_space_grants, function(grant) list(
       cells = attr(grant, "operation_pack_v3_cells"),
       input = inputs[[grant$input_name]],
+      issued_grant = grant,
+      issued_input_record = Filter(function(record) identical(
+        as.character(record$name)[1L], as.character(grant$input_name)[1L]), base$inputs),
       plan = (attr(inputs, "operation_pack_v3_space_plans") %||% list())[[grant$input_name]])), vapply(typed_space_grants, `[[`,
         character(1), "name"))
   base
@@ -1975,7 +1978,7 @@
 }
 
 .wb_operation_pack_v3_typed_slice_sources_assert_current <- function(bundle,
-                                                                       request) {
+    request, .authenticated_native_spaces = character()) {
   stage <- attr(request, "operation_pack_stage_root")
   graph_enabled <- length(request$graph_read_grants %||% list()) > 0L ||
     length(request$graph_write_grants %||% list()) > 0L
@@ -1997,6 +2000,7 @@
   for (grant in durable)
     .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant)
   for (grant in spaces) {
+    if (as.character(grant$name)[1L] %in% .authenticated_native_spaces) next
     source <- grant$source_reference
     cells <- attr(grant, "operation_pack_v3_cells") %||% character()
     identity <- tryCatch(.wb_operation_pack_v3_space_source_content(bundle,
