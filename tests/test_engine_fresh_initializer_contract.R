@@ -165,3 +165,42 @@ test_engine_fresh_initializer_assembly_recipient_contract <- function() {
     isTRUE(wb_bundle_validation_report(root, level = "recipient")$ok))
   TRUE
 }
+
+test_engine_fresh_initializer_nested_owner_failure_contract <- function() {
+  for (mode in c("registration", "publication")) {
+    root <- tempfile("fresh_initializer_nested_")
+    outer <- scworkbench:::.wb_bundle_writer_lock_acquire(root,
+      operation = "caller-owned initialization parent")
+    held <- scworkbench:::.wb_writer_lock_state$held
+    before <- get(outer$key, envir = held, inherits = FALSE)
+    before_owner <- scworkbench:::.wb_writer_lock_read_metadata(before$lock_path)
+    before_assembly <- scworkbench:::.wb_mutation_boundary_state$assembly_connections
+    spy <- .engine_initializer_spy(failure = mode)
+    hook <- getOption("scworkbench.manifest_test_hook")
+    tryCatch({
+      if (mode == "publication") options(scworkbench.manifest_test_hook = function(event, ...) {
+        if (identical(event, "before_publish")) stop("initializer nested publication fault")
+      })
+      failure <- tryCatch(wb_init_bundle(root), error = identity, finally = {
+        spy$restore(); options(scworkbench.manifest_test_hook = hook)
+      })
+      stopifnot(inherits(failure, "error"),
+        exists(outer$key, envir = held, inherits = FALSE),
+        identical(before, get(outer$key, envir = held, inherits = FALSE)),
+        identical(before_assembly, scworkbench:::.wb_mutation_boundary_state$assembly_connections),
+        length(spy$state$con) >= 1L,
+        all(!vapply(spy$state$con, DBI::dbIsValid, logical(1))))
+      info <- wb_bundle_writer_lock_info(root)
+      stopifnot(isTRUE(info$locked), isTRUE(info$held_by_current_process),
+        identical(info$owner, before_owner),
+        identical(as.character(info$owner$owner_token), as.character(outer$token)))
+    }, finally = {
+      spy$restore(); options(scworkbench.manifest_test_hook = hook)
+      scworkbench:::.wb_bundle_writer_lock_release(outer)
+      unlink(root, recursive = TRUE, force = TRUE)
+    })
+    stopifnot(!exists(outer$key, envir = held, inherits = FALSE),
+      !isTRUE(wb_bundle_writer_lock_info(root)$locked))
+  }
+  TRUE
+}

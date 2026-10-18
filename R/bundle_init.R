@@ -25,12 +25,18 @@ wb_init_bundle <- function(out_dir,
   on.exit({
     if (!returned) {
       # Registration may have succeeded before a later publication/guard fault.
-      # Unregister only this connection and release its assembly ownership.
+      # Its unregister owns the one acquired initialization-lock release. A
+      # second release would consume a caller's nested same-key ownership.
+      transferred <- FALSE
       if (!is.null(con)) {
-        try(.wb_unregister_assembly_connection(con), silent = TRUE)
+        entries <- .wb_mutation_boundary_state$assembly_connections
+        transferred <- any(vapply(entries, function(entry)
+          .wb_connection_matches(entry$con, con) &&
+            identical(entry$writer_lock, writer_lock), logical(1)))
+        if (transferred) try(.wb_unregister_assembly_connection(con), silent = TRUE)
         if (DBI::dbIsValid(con)) try(DBI::dbDisconnect(con), silent = TRUE)
       }
-      .wb_bundle_writer_lock_release(writer_lock)
+      if (!transferred) .wb_bundle_writer_lock_release(writer_lock)
     }
   }, add = TRUE)
 
