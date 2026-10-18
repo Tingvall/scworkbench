@@ -107,6 +107,14 @@ test_engine_space_boundary_fresh_counts_and_release_contract <- function() {
     for(boundary in seq_len(2L)) stopifnot(isTRUE(plan$authenticate(b)),budget$used==held)
   }
   stopifnot(counter$n==4L)
+  request<-.engine_space_auth_request(plan)
+  second<-request$typed_space_grants[[1L]];second$name<-"other_read"
+  request$typed_space_grants[[2L]]<-second
+  map<-attr(request,"operation_pack_v3_typed_space_values")
+  map$other_read<-map$read_source;map$other_read$issued_grant<-second
+  attr(request,"operation_pack_v3_typed_space_values")<-map
+  names<-scworkbench:::.wb_operation_pack_v3_native_space_sources_authenticate(b,request)
+  stopifnot(identical(names,c("read_source","other_read")),counter$n==5L,budget$used==held)
   plan$close();stopifnot(budget$used==0,
     inherits(try(plan$authenticate(b),silent=TRUE),"try-error"))
   TRUE

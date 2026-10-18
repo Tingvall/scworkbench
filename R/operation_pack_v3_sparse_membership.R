@@ -160,6 +160,7 @@
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       "Typed-space private issuance grant set changed.","audit")
   authenticated <- character()
+  authenticated_plans <- list()
   for (grant in request$typed_space_grants %||% list()) {
     name <- as.character(grant$name)[1L]
     entry <- issued[[name]]
@@ -175,10 +176,17 @@
       identical(as.integer(entry$input$dimensions),entry$plan$dimensions)
     if (!isTRUE(valid)) .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       paste0("Typed-space private issuance binding changed for '",name,"'."),"audit")
-    result <- tryCatch(entry$plan$authenticate(bundle),error=identity)
-    if (inherits(result,"error")) .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-      paste0("Typed-space source changed after authentication for '",name,"': ",
-        conditionMessage(result)),"audit")
+    # Several declarations can share one core-issued source plan. Every
+    # declaration binding is checked, but the identical source is independently
+    # authenticated only once in THIS boundary call, never across boundaries.
+    if (!any(vapply(authenticated_plans,function(authenticate)
+        identical(authenticate,entry$plan$authenticate),logical(1)))) {
+      result <- tryCatch(entry$plan$authenticate(bundle),error=identity)
+      if (inherits(result,"error")) .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        paste0("Typed-space source changed after authentication for '",name,"': ",
+          conditionMessage(result)),"audit")
+      authenticated_plans[[length(authenticated_plans)+1L]] <- entry$plan$authenticate
+    }
     authenticated <- c(authenticated,name)
   }
   authenticated
