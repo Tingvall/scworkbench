@@ -29,6 +29,16 @@ the actual normalization and PCA-input contracts independently before using it;
 retain all original scientific thresholds. Do not substitute a conditional
 UMAP rerun for end-to-end evidence.
 
+The subsequent read-only proof at
+`/tmp/scwb-engine-simplification-forge-20261018/unrounded_reference_ba351cd`
+exited 0: all 659,950 staged PCA values and all 26,398 staged UMAP values were
+bit-identical to the original reference, whose SHA-256 remains
+`bb8a84d8cd68c494f7735509539d2b5362a2f257f511f05ca3cabdf4874ee5fb`.
+All 1,000 sampled normalized values matched unrounded arithmetic exactly.
+These are reused-output diagnostic checks, not a new complete workflow or
+promotion/recipient-validation pass. Final qualification must use a fresh
+workflow with that original reference and unchanged thresholds.
+
 ## Historical preregistration (preserved verbatim below)
 
 Before any combined-candidate full Xenopus run (2026-10-18): the original
