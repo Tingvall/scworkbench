@@ -442,9 +442,16 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   # workspaces retain their prior state and are cleaned by the executor.
   owns_failed_workspace <- is.null(session$staging_bundle) && is.null(session$durable) &&
     !nzchar(as.character(session$staging_dir %||% "")[1L])
+  previous_run_ids <- names(session$runs %||% list())
   invocation_completed <- FALSE
-  on.exit(if (owns_failed_workspace && !invocation_completed)
-    wb_session_discard(session), add = TRUE)
+  on.exit(if (owns_failed_workspace && !invocation_completed) {
+    owned <- session
+    # A caller may attach retained runs before any execution has allocated a
+    # bundle overlay. Those runs' independent graph stages are borrowed, not
+    # owned by this failed invocation's newly allocated clone.
+    owned$runs <- session$runs[setdiff(names(session$runs), previous_run_ids)]
+    wb_session_discard(owned)
+  }, add = TRUE)
   staged <- .wb_session_stage_bundle(bundle, session)
   session <- staged$session
   work_bundle <- staged$bundle
