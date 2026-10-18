@@ -419,28 +419,64 @@
   invisible(TRUE)
 }
 
+.wb_graph_page_scope <- local({
+  counter <- 0
+  function() {
+    counter <<- counter + 1
+    paste0("wb_graph_page_", Sys.getpid(), "_", format(counter, scientific = FALSE, trim = TRUE))
+  }
+})
+
 .wb_graph_page <- function(con, artifact_id, component, after, page, bytes,
                            predicate = "", params = list()) {
-  # Measure encoded bytes inside SQLite before any payload crosses into R.
-  # The first window is row-bounded; only the byte-admitted prefix is decoded.
-  query <- paste0("WITH candidate AS (SELECT row_ordinal,",
-    "octet_length(record_json) n FROM artifact_graph_rows ",
-    "WHERE artifact_id=? AND component=? ", predicate,
-    " AND row_ordinal>=CAST(? AS INTEGER) ORDER BY row_ordinal LIMIT ?),",
-    "bounded AS (SELECT *,SUM(n) OVER (ORDER BY row_ordinal) used FROM candidate) ",
-    "SELECT g.row_ordinal,g.record_json FROM bounded b JOIN artifact_graph_rows g ",
-    "ON g.artifact_id=? AND g.component=? AND g.row_ordinal=b.row_ordinal ",
-    "WHERE b.used<=? ORDER BY g.row_ordinal;")
-  values <- c(list(artifact_id, component), params, list(after, page, artifact_id, component, bytes))
-  rows <- DBI::dbGetQuery(con, query, params = values)
-  if (!nrow(rows)) {
-    exists <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows ",
-      "WHERE artifact_id=? AND component=? ", predicate,
-      " AND row_ordinal>=CAST(? AS INTEGER) LIMIT 1;"),
-      params = c(list(artifact_id, component), params, list(after)))
-    .wb_graph_require(!nrow(exists), "GRAPH_RESOURCE_EXCEEDED",
+  .wb_graph_require(is.numeric(page) && length(page) == 1L &&
+    is.finite(page) && page > 0 && page == floor(page) && page <= 2147483647 &&
+    is.numeric(bytes) && length(bytes) == 1L && is.finite(bytes) && bytes > 0,
+    "GRAPH_RESOURCE_POLICY_INVALID", "Invalid graph page row/byte limit.")
+  # One private snapshot across the two bounded reads. SAVEPOINT nests without
+  # committing or rolling back caller-owned transactions, including RO handles.
+  scope <- .wb_graph_page_scope()
+  DBI::dbExecute(con, paste0("SAVEPOINT ", scope, ";"))
+  active <- TRUE
+  on.exit(if (active) {
+    try(DBI::dbExecute(con, paste0("ROLLBACK TO ", scope, ";")), silent = TRUE)
+    try(DBI::dbExecute(con, paste0("RELEASE ", scope, ";")), silent = TRUE)
+  }, add = TRUE)
+  # Ordinal/length carriers have their own finite allowance even for tiny JSON.
+  header_limit <- min(page, max(1, floor(bytes / 256)), 16384)
+  where <- paste0(" WHERE artifact_id=? AND component=? ", predicate,
+    " AND row_ordinal>=CAST(? AS INTEGER)")
+  values <- c(list(artifact_id, component), params, list(after))
+  header <- DBI::dbGetQuery(con, paste0("SELECT row_ordinal,octet_length(record_json) n",
+    " FROM artifact_graph_rows", where, " ORDER BY row_ordinal LIMIT ?;"),
+    params = c(values, list(header_limit)))
+  if (!nrow(header)) {
+    rows <- header[FALSE, "row_ordinal", drop = FALSE]
+    rows$record_json <- character()
+  } else {
+    lengths <- as.numeric(header$n)
+    .wb_graph_require(all(is.finite(lengths) & lengths >= 0 &
+      lengths == floor(lengths) & lengths <= 2147483647),
+      "GRAPH_SOURCE_PAYLOAD_INVALID", "Invalid graph encoded-record length.")
+    used <- 0; admitted <- 0L
+    for (n in lengths) {
+      if (n > bytes - used) break
+      used <- used + n; admitted <- admitted + 1L
+    }
+    .wb_graph_require(admitted > 0L, "GRAPH_RESOURCE_EXCEEDED",
       "Single graph record exceeds the admitted decoded-partition budget.")
+    ordinals <- as.character(header$row_ordinal[seq_len(admitted)])
+    rows <- DBI::dbGetQuery(con, paste0("SELECT row_ordinal,record_json",
+      " FROM artifact_graph_rows", where,
+      " AND row_ordinal<=CAST(? AS INTEGER) ORDER BY row_ordinal;"),
+      params = c(values, list(ordinals[[admitted]])))
+    .wb_graph_require(identical(as.character(rows$row_ordinal), ordinals) &&
+      identical(as.numeric(nchar(enc2utf8(rows$record_json), type = "bytes")),
+        lengths[seq_len(admitted)]), "GRAPH_SOURCE_PAYLOAD_INVALID",
+      "Graph page differs from its admitted ordinal/encoded-length header.")
   }
+  DBI::dbExecute(con, paste0("RELEASE ", scope, ";"))
+  active <- FALSE
   rows
 }
 
