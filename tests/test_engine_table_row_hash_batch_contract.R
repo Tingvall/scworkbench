@@ -119,6 +119,12 @@ test_engine_table_row_hash_partition_memory_and_rng_contract <- function() {
   admitted_shape <- rows[seq_len(1000L)]
   stopifnot(identical(scworkbench:::.wb_prov_table_fold(initial)(admitted_shape),
     .engine_row_fold_oracle(initial)(admitted_shape)), calls == 0L)
+  for (unsupported in list("not_numeric", NA_real_, structure(256, custom = TRUE))) {
+    options(scworkbench.max_dense_materialize_mb = unsupported)
+    withCallingHandlers(stopifnot(identical(scworkbench:::.wb_prov_table_fold(initial)(admitted_shape),
+      .engine_row_fold_oracle(initial)(admitted_shape)), calls == 0L),
+      warning = function(w) stop(conditionMessage(w)))
+  }
   after <- if (exists(".Random.seed", globalenv(), inherits = FALSE))
     get(".Random.seed", globalenv()) else NULL
   stopifnot(identical(seed, after))
