@@ -258,6 +258,43 @@ wb_matrix_read_features <- function(bundle,
     .wb_assert((is.null(selected_features) || all(features %in% selected_features)) &&
       (is.null(selected_cells) || all(cells %in% selected_cells)),
       "Requested matrix block is outside its selected reader projection.")
+    # A common logical matrix consists of disjoint full-feature cell fragments.
+    # Sparse indexed replacement is disproportionately expensive for this case.
+    # Decide eligibility using metadata only, before reading any values. Keep
+    # the old loop below for overlaps, partial rows and unusual selections.
+    if (length(matrices) > 1L && length(features) && length(cells) &&
+        !anyNA(features) && !anyNA(cells) &&
+        !anyDuplicated(features) && !anyDuplicated(cells)) {
+      selections <- lapply(matrices, function(source) {
+        ri <- match(features, source$features)
+        ci <- match(cells, source$cells)
+        list(ri = ri, ci = ci, columns = which(!is.na(ci)))
+      })
+      contributing <- which(vapply(selections, function(x)
+        any(!is.na(x$ri)) && length(x$columns) > 0L, logical(1)))
+      positions <- unlist(lapply(selections[contributing], `[[`, "columns"),
+        use.names = FALSE)
+      if (length(contributing) > 1L && length(positions) == length(cells) &&
+          !anyDuplicated(positions) && all(vapply(selections[contributing],
+            function(x) !anyNA(x$ri), logical(1)))) {
+        out <- NULL
+        for (i in contributing) {
+          selection <- selections[[i]]
+          block <- .wb_as_sparse(matrices[[i]]$matrix[
+            selection$ri, selection$ci[selection$columns], drop = FALSE])
+          dimnames(block) <- list(features, cells[selection$columns])
+          # Sequential ownership: prior out + replacement out + this block,
+          # as for the original sparse replacement. Never retain a blocks list
+          # or create concurrent native iterators for all physical fragments.
+          out <- if (is.null(out)) block else cbind(out, block)
+          block <- NULL
+        }
+        if (!identical(positions, seq_along(cells)))
+          out <- out[, match(seq_along(cells), positions), drop = FALSE]
+        dimnames(out) <- list(features, cells)
+        return(out)
+      }
+    }
     out <- NULL
     for (source in matrices) {
       ri <- match(features, source$features)

@@ -87,3 +87,55 @@ test_public_sparse_matrix_complete_and_overlap_contract <- function() {
   stopifnot(inherits(error, "error"), grepl("invalid", conditionMessage(error), fixed = TRUE))
   TRUE
 }
+
+test_private_sparse_matrix_disjoint_assembly_contract <- function() {
+  root <- tempfile("private_sparse_fragments_")
+  b <- wb_init_bundle(root)
+  on.exit({wb_close_bundle(b); unlink(root, recursive = TRUE)}, add = TRUE)
+  features <- c("g2", "g1", "g3"); cells <- c("c2", "c1", "zero", "c3")
+  values <- matrix(as.double(seq_len(12)), 3, dimnames = list(features, cells))
+  values[, "zero"] <- 0
+  wb_define_cells(b, cells)
+  wb_attach_matrix(b, "m", Matrix::Matrix(values, sparse = TRUE))
+  template <- wb_matrix_fragments(b, "m")
+  DBI::dbExecute(b$con, "DELETE FROM matrix_fragments WHERE matrix_id='m';")
+  add_fragment <- function(value, id, f = rownames(value), c = colnames(value)) {
+    row <- template; row$fragment_id <- id; row$path <- paste0("matrices/", id)
+    row$n_features <- nrow(value); row$n_cells <- ncol(value)
+    row$feature_ids_json <- jsonlite::toJSON(f); row$cell_ids_json <- jsonlite::toJSON(c)
+    # Incidental physical labels are not the logical multi-fragment namespace.
+    rownames(value) <- paste0("physical_", seq_len(nrow(value)))
+    BPCells::write_matrix_dir(Matrix::Matrix(value, sparse = TRUE),
+      dir = file.path(root, row$path[[1]]))
+    DBI::dbAppendTable(b$con, "matrix_fragments", row)
+  }
+  add_fragment(values[, c(4, 2), drop = FALSE], "one")
+  add_fragment(values[, 3, drop = FALSE], "two")
+  add_fragment(values[, 1, drop = FALSE], "three")
+  for (axis in c("cells", "features")) {
+    plan <- scworkbench:::.wb_matrix_stream_reader(b, "m", axis)
+    tryCatch({
+      for (f in list(features, rev(features), features[1]))
+        for (c in list(cells, rev(cells), cells[c(2, 1, 3)], cells[1])) {
+          actual <- plan$read(f, c)
+          stopifnot(inherits(actual, "sparseMatrix"), typeof(actual@x) == "double",
+            identical(as.matrix(actual), values[f, c, drop = FALSE]))
+        }
+      # Incomplete coverage and duplicates deliberately exercise legacy fallback.
+      absent <- plan$read(features, c(cells, "missing"))
+      stopifnot(identical(as.matrix(absent[, cells]), values),
+        all(absent[, "missing"] == 0))
+      stopifnot(identical(as.matrix(plan$read(features[c(1, 1, 2)], cells)),
+        values[c(1, 1, 2), , drop = FALSE]))
+    }, finally = plan$close())
+    stopifnot(!dir.exists(plan$root))
+  }
+  # Overlapping and partial-row fragments must use the original overwrite loop.
+  changed <- matrix(0, 1, dimnames = list("g1", "c2"))
+  add_fragment(changed, "partial")
+  plan <- scworkbench:::.wb_matrix_stream_reader(b, "m", "cells")
+  expected <- values; expected["g1", "c2"] <- 0
+  tryCatch(stopifnot(identical(as.matrix(plan$read(features, cells)), expected)),
+    finally = plan$close())
+  TRUE
+}
