@@ -152,7 +152,9 @@ wb_matrix_read_features <- function(bundle,
 
     # Normalize block to something we can write
     # If it's a base matrix -> ok; if it's a sparse Matrix -> ok; if BPCells returns S4 -> coerce
-    if (!inherits(block, "Matrix") && !is.matrix(block)) {
+    if (missing == "zero") {
+      block <- .wb_as_sparse(block)
+    } else if (!inherits(block, "Matrix") && !is.matrix(block)) {
       # many S4 numeric containers can be coerced via as.matrix
       block <- as.matrix(block)
     }
@@ -163,7 +165,7 @@ wb_matrix_read_features <- function(bundle,
 
     if (missing == "zero") {
       # Partial/duplicate selections retain the existing replacement semantics.
-      out[rr, cc] <- as.matrix(block)
+      out[rr, cc] <- block
     } else {
       # NA-mode: overwrite with values, leaving NA where still missing
       out[rr, cc] <- as.matrix(block)

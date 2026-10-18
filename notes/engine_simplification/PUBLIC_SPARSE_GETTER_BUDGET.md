@@ -28,3 +28,10 @@ carriers, as in the existing sparse replacement; drop the block before final
 column reordering. Overlaps, partial rows and unsupported selections retain the
 old loop. Many-fragment repeated concatenation still copies growing results;
 this is not a claim of optimal arbitrary-fragment scalability.
+
+Zero-mode partial reads also keep each selected block sparse during replacement;
+they no longer force a dense intermediate. The explicit NA-mode API still
+returns a dense missing-value matrix. This does not claim bounded sparse
+execution for NA-mode, unsupported coercions or caller-requested complete output
+materialization. The large-partial regression instruments dense coercion rather
+than inferring its absence from successful sparse output alone.

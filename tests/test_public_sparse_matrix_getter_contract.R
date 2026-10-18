@@ -145,3 +145,30 @@ test_private_sparse_matrix_disjoint_assembly_contract <- function() {
     finally = plan$close())
   TRUE
 }
+
+test_public_sparse_matrix_large_partial_no_dense_contract <- function() {
+  stopifnot(as.numeric(getOption("scworkbench.max_dense_materialize_mb", 256)) == 256)
+  root <- tempfile("public_sparse_large_partial_")
+  b <- wb_init_bundle(root)
+  on.exit({wb_close_bundle(b); unlink(root, recursive = TRUE)}, add = TRUE)
+  features <- paste0("f", seq_len(40000L)); cells <- paste0("c", seq_len(2002L))
+  wb_define_cells(b, cells)
+  value <- Matrix::sparseMatrix(i = c(1L, 40000L), j = c(1L, 1001L),
+    x = c(1, 2), dims = c(40000L, 1001L),
+    dimnames = list(features, cells[seq_len(1001L)]))
+  wb_attach_matrix(b, "m", value)
+  stopifnot(40000 * 1001 * 8 > 256 * 1024^2)
+  # The old partial read explicitly called as.matrix on this >256MiB logical
+  # BPCells block. A sparse final class alone would not detect that intermediate.
+  stopifnot(!inherits(get("as.matrix", baseenv()), "functionWithTrace"))
+  trace("as.matrix", where = baseenv(), print = FALSE, tracer = quote({
+    if (inherits(x, "IterableMatrix")) stop("Unexpected dense BPCells conversion")
+  }))
+  on.exit(untrace("as.matrix", where = baseenv()), add = TRUE)
+  actual <- wb_matrix_read_features(b, "m", features, cells)
+  stopifnot(inherits(actual, "sparseMatrix"), identical(dim(actual), c(40000L, 2002L)),
+    identical(dimnames(actual), list(features, cells)),
+    identical(actual[1, 1], 1), identical(actual[40000, 1001], 2),
+    Matrix::nnzero(actual) == 2L, all(actual[, 1002:2002] == 0))
+  TRUE
+}
