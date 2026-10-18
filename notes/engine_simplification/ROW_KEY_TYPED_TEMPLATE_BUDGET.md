@@ -36,3 +36,17 @@ encoder/authority/cache/RNG/state or scientific behavior.
 Focused frozen-original token byte/error tests and public promotion/finalize/
 read-only family identity are required after exact Sable source review. No
 installation, test, benchmark or qualification claimed in this budget commit.
+
+Source ledger: metadata65536+1024*C+8*field-byte-count, plus8*actual-template
+bytes after serialization. Field bytes are admitted BEFORE make.names/template.
+Complete actual returned-token ASCII payload and copy margin:64*N+2*E, whereE
+is exact fixed framing bytes plus all actual character value bytes counted in
+the first bounded pass. No8*E full-output multiplier. Current batch only adds
+256*C+8*max-row-token-bytes+256 per row; choose<=1000 batch to fit remaining
+allowance BEFORE output allocation/paste. Complete char-result API is existing
+materialized output; candidate returnsNULL if its complete conservative ledger
+does not fit. First pass validates every actual value and computes exactE plus
+one maximum; second pass rereads/rechecks actual values, rejects growth and
+requires complete emitted byte-count equality. No N*C carrier or source cache.
+All failed fast-function locals fall out of scope before old whole-row fallback.
+Singletons bypass the candidate altogether. No formatter/native dependency added.

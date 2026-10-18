@@ -158,8 +158,108 @@
   )
 }
 
+.wb_object_row_key_tokens_template <- function(keys) tryCatch(withCallingHandlers({
+  if (!is.data.frame(keys) || !identical(class(keys), "data.frame") ||
+      !identical(as.character(getRversion()), "4.4.1") ||
+      !identical(as.character(getNamespaceVersion("jsonlite")), "1.8.8")) return(NULL)
+  n <- nrow(keys); width <- ncol(keys)
+  if (n <= 1L || width < 1L || width > 4L) return(NULL)
+  guard <- getOption("scworkbench.max_dense_materialize_mb", 256)
+  if (is.object(guard) || !is.null(attributes(guard)) || !is.numeric(guard) ||
+      length(guard) != 1L || is.na(guard) || !is.finite(guard) || guard <= 0) return(NULL)
+  allowance <- min(32 * 1024^2, guard * 1024^2 / 4)
+  metadata <- 65536 + 1024 * width
+  if (metadata + 64 * n >= allowance) return(NULL)
+  if (!setequal(names(attributes(keys)), c("names", "row.names", "class"))) return(NULL)
+  fields <- names(keys)
+  field_bytes <- sum(nchar(fields, type = "bytes"))
+  metadata <- metadata + 8 * field_bytes
+  if (!is.finite(metadata) || metadata + 64 * n >= allowance || anyNA(fields) ||
+      any(!nzchar(fields)) || anyDuplicated(fields) ||
+      !identical(fields, make.names(fields, unique = TRUE))) return(NULL)
+  columns <- as.list(keys)
+  if (!all(vapply(columns, function(column) is.character(column) &&
+      is.null(attributes(column)) && length(column) == n, logical(1)))) return(NULL)
+
+  # Compile ONLY the original typed-list serializer's constant framing. Each
+  # raw marker must occur once in the ENTIRE template, including names metadata.
+  # No substitution ever runs over a token containing actual source values.
+  markers <- paste0("__scwb_row_key_template_", seq_len(width), "__")
+  template <- as.character(jsonlite::serializeJSON(setNames(as.list(markers), fields), digits = NA))
+  positions <- numeric(width)
+  for (j in seq_len(width)) {
+    at <- gregexpr(markers[[j]], template, fixed = TRUE)[[1L]]
+    quoted <- gregexpr(paste0('"', markers[[j]], '"'), template, fixed = TRUE)[[1L]]
+    if (length(at) != 1L || at[[1L]] < 1L || length(quoted) != 1L || quoted[[1L]] < 1L) return(NULL)
+    positions[[j]] <- at[[1L]]
+  }
+  if (is.unsorted(positions, strictly = TRUE)) return(NULL)
+  pieces <- character(width + 1L); cursor <- 1
+  for (j in seq_len(width)) {
+    pieces[[j]] <- substring(template, cursor, positions[[j]] - 1)
+    cursor <- positions[[j]] + nchar(markers[[j]])
+  }
+  pieces[[width + 1L]] <- substring(template, cursor)
+  fixed_bytes <- nchar(template, type = "bytes") - sum(nchar(markers, type = "bytes"))
+  metadata <- metadata + 8 * nchar(template, type = "bytes")
+  # First pass validates ALL actual values before any successful result. Only
+  # <=1000-row scratch, scalar totals and a <=4-column reference list survive.
+  initial_batch <- min(1000, floor((allowance - metadata - 64 * n) / (512 * width + 1024)))
+  if (!is.finite(initial_batch) || initial_batch < 1) return(NULL)
+  total_bytes <- as.double(n) * fixed_bytes; maximum_row_bytes <- as.double(fixed_bytes)
+  start <- 1
+  while (start <= n) {
+    end <- min(n, start + initial_batch - 1); indices <- seq.int(start, end)
+    row_bytes <- rep.int(fixed_bytes, length(indices))
+    for (column in columns) {
+      value <- column[indices]
+      if (anyNA(value) || !all(grepl("^[A-Za-z0-9_.:-]*$", value, perl = TRUE))) return(NULL)
+      bytes <- nchar(value, type = "bytes")
+      if (anyNA(bytes)) return(NULL)
+      row_bytes <- row_bytes + bytes
+    }
+    total_bytes <- total_bytes + sum(row_bytes) - length(indices) * fixed_bytes
+    maximum_row_bytes <- max(maximum_row_bytes, row_bytes)
+    if (!is.finite(total_bytes) || metadata + 64 * n + 2 * total_bytes >= allowance) return(NULL)
+    start <- end + 1
+  }
+  rm(column, value, bytes, row_bytes, indices)
+  # Returned strings/vector PLUS copy margin, then all live batch carriers and
+  # intermediate paste strings. The old materialized API remains the fallback
+  # if its complete token result cannot fit this narrow optimization allowance.
+  retained <- metadata + 64 * n + 2 * total_bytes
+  batch <- min(initial_batch, floor((allowance - retained) /
+    (256 * width + 8 * maximum_row_bytes + 256)))
+  if (!is.finite(batch) || batch < 1) return(NULL)
+  out <- character(n); observed_bytes <- 0; start <- 1
+  while (start <= n) {
+    end <- min(n, start + batch - 1); indices <- seq.int(start, end)
+    assembled <- rep.int(pieces[[1L]], length(indices))
+    row_bytes <- rep.int(fixed_bytes, length(indices))
+    for (j in seq_len(width)) {
+      value <- columns[[j]][indices]
+      if (anyNA(value) || !all(grepl("^[A-Za-z0-9_.:-]*$", value, perl = TRUE))) return(NULL)
+      bytes <- nchar(value, type = "bytes"); row_bytes <- row_bytes + bytes
+      if (anyNA(bytes) || any(row_bytes > maximum_row_bytes)) return(NULL)
+      assembled <- paste0(assembled, value, pieces[[j + 1L]])
+    }
+    observed_bytes <- observed_bytes + sum(row_bytes)
+    if (observed_bytes > total_bytes) return(NULL)
+    out[indices] <- assembled
+    rm(value, bytes, assembled, row_bytes, indices)
+    start <- end + 1
+  }
+  if (!identical(observed_bytes, total_bytes)) return(NULL)
+  out
+}, warning = function(w) stop("Original row-key serialization fallback.", call. = FALSE)),
+  error = function(e) NULL)
+
 .wb_object_row_key_tokens <- function(keys) {
   if (!nrow(keys)) return(character())
+  if (nrow(keys) > 1L) {
+    tokens <- .wb_object_row_key_tokens_template(keys)
+    if (!is.null(tokens)) return(tokens)
+  }
   vapply(seq_len(nrow(keys)), function(i) {
     jsonlite::serializeJSON(as.list(keys[i, , drop = FALSE]), digits = NA)
   }, character(1))
