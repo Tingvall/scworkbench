@@ -1,0 +1,9 @@
+Package: scwbEngineSpaceFixture
+Type: Package
+Title: Synthetic Bounded Space Reader Contract Fixture
+Version: 0.1.0
+Authors@R: person("Test", "Fixture", email = "fixture@example.invalid", role = c("aut", "cre"))
+Description: Synthetic method-free execution fixture for core typed-space lifecycle tests.
+License: MIT
+Encoding: UTF-8
+Imports: scworkbench

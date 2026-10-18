@@ -96,6 +96,16 @@
         unname(as.list(as.numeric(values[i, ]))))))
 }
 
+.wb_operation_pack_v3_space_source_content <- function(bundle, space_id, cells) {
+  if (identical(.Platform$OS.type, "unix") && .wb_space_payload_exists(bundle,space_id)) {
+    plan <- .wb_space_payload_reader(bundle, space_id)
+    on.exit(plan$close(), add = TRUE)
+    return(.wb_operation_pack_space_semantic_identity(cells,
+      plan$dimensions[[2L]], plan$read, plan))
+  }
+  .wb_operation_pack_v3_space_content(wb_space(bundle, space_id, cells = cells), cells)
+}
+
 .wb_operation_pack_v3_full_space_assert_current <- function(bundle, space_id,
     expected_semantic_identity = NULL, cells = NULL,
     expected_provenance_identity = NULL, phase = "resolution") {
@@ -108,8 +118,8 @@
         verify_hash = TRUE, validate_values = FALSE)
     }
     provenance <- .wb_prov_payload_identity(bundle, wb_prim_space(space_id))
-    semantic <- if (!is.null(cells)) .wb_operation_pack_v3_space_content(
-      wb_space(bundle, space_id, cells = cells), cells) else NULL
+    semantic <- if (!is.null(cells)) .wb_operation_pack_v3_space_source_content(
+      bundle, space_id, cells) else NULL
     list(provenance = provenance, semantic = semantic)
   }, error = identity)
   if (inherits(observed, "error") ||
@@ -141,7 +151,8 @@
 }
 
 .wb_operation_pack_v3_typed_space_grant <- function(bundle, declaration, input,
-    input_record, params, transition_source_state_identity, stage_root) {
+    input_record, params, transition_source_state_identity, stage_root,
+    space_plan = NULL) {
   name <- as.character(declaration$name)[1]
   available <- as.character(input$cell_id %||% rownames(input$values))
   selection_policy <- as.character(declaration$selection$policy)[1]
@@ -170,16 +181,17 @@
   if (is.na(requested) || requested < 1L)
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       "Typed-space chunk size must be positive.", "resolution")
-  dimensions <- as.integer(ncol(as.matrix(input$values)))
+  dimensions <- if (is.null(space_plan)) as.integer(ncol(as.matrix(input$values))) else
+    space_plan$dimensions[[2L]]
   source <- list(
     input_name = as.character(declaration$input)[1],
     space_id = as.character(input$space_id %||% "")[1],
     input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
       input_record$descriptor_identity),
     input_content_identity = input_record$content_identity,
-    selected_content_identity = .wb_operation_pack_v3_space_content(
-      input$values[match(cells, as.character(input$cell_id)), , drop = FALSE],
-      cells),
+    selected_content_identity = if (is.null(space_plan)) .wb_operation_pack_v3_space_content(
+      input$values[match(cells, as.character(input$cell_id)), , drop = FALSE], cells) else
+      .wb_operation_pack_space_semantic_identity(cells, dimensions, space_plan$read, space_plan),
     transition_source_state_identity = transition_source_state_identity)
   source$source_reference_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.typed_space_source_reference.v1",
@@ -260,7 +272,16 @@
       if (anyNA(index)) .wb_operation_pack_v3_error(
         "PYBENCH_INPUT_IDENTITY_MISMATCH",
         "Typed-space source changed after authentication.", "execution")
-      values <- as.matrix(input$values[index, , drop = FALSE])
+      plan <- sources[[name]]$plan
+      if (!is.null(plan)) {
+        restore <- plan$admit(0, as.double(length(cells))*grant$dimension_count)
+        on.exit(restore(), add = TRUE)
+      }
+      values <- if (is.null(plan)) as.matrix(input$values[index, , drop = FALSE]) else
+        tryCatch(plan$read(cells), error = function(e) {
+          if (inherits(e,"wb_operation_pack_v3_error")) stop(e)
+          .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH", conditionMessage(e), "execution")
+        })
       rownames(values) <- cells
       value <- structure(list(kind = "space", space_id = input$space_id,
         values = values, dimensions = as.integer(dim(values)),

@@ -1,0 +1,20 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "enginespacefixture",
+  "package": {"name": "scwbEngineSpaceFixture", "version": "0.1.0"},
+  "backend": "R",
+  "compatibility": {"scworkbench": {"minimum": "0.1.0", "maximum_exclusive": "0.2.0"}, "pack_abi": {"minimum": "3", "maximum": "3"}},
+  "entry_point": "scwbEngineSpaceFixture::register_operation_pack",
+  "operations": [{
+    "name": "row_sum", "qualified_name": "enginespacefixture::row_sum",
+    "title": "Synthetic space row sums", "description": "Core reader and publication contract fixture, not a scientific method.",
+    "runner": ".space_row_sum",
+    "inputs": [{"name": "source", "kind": "space", "required": true, "alignment": "cell_ordered"}],
+    "params_schema": {"type": "object", "properties": {"chunk_size": {"type": "integer", "minimum": 1}}, "required": ["chunk_size"], "additionalProperties": false},
+    "typed_space_reads": [{"name": "coordinates", "input": "source", "reader": "read_typed_space", "kind": "space", "role": "query", "selection": {"policy": "full_input_axis_v1"}, "chunk_size_parameter": "chunk_size", "call_discipline": "ordered_partition_exactly_once"}],
+    "outputs": [{"name": "sums", "category": "terminal_artifact", "kind": "cell_vector", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "sums_id", "required": true, "promotion_group": "sums", "value_kind": "continuous"}],
+    "dependencies": [], "promotion_closure": {"sums": ["sums"]}, "replay_equivalence": {"sums": "exact_canonical_value"}
+  }]
+}

@@ -941,7 +941,8 @@
       character()
   base <- .wb_operation_pack_v2_request(bundle, registration, projected,
     ordinary_inputs, params, transition_id, session_id, run_id, generation, preflight,
-    stage_root, g1_model_inputs = g1_model_inputs)
+    stage_root, g1_model_inputs = g1_model_inputs,
+    space_plans = attr(inputs, "operation_pack_v3_space_plans") %||% list())
   ancestry_inputs <- unique(vapply(operation$provenance_reads %||% list(),
     function(x) as.character(x$input)[1], character(1)))
   ancestry_inputs <- unique(c(ancestry_inputs, vapply(
@@ -1059,7 +1060,8 @@
       input_name <- as.character(declaration$input)[1]
       .wb_operation_pack_v3_typed_space_grant(bundle, declaration,
         inputs[[input_name]], input_records[[input_name]], params,
-        base$execution_capability$source_state_identity, stage_root)
+        base$execution_capability$source_state_identity, stage_root,
+        space_plan = (attr(inputs, "operation_pack_v3_space_plans") %||% list())[[input_name]])
     })
   typed_space_grants <- stats::setNames(typed_space_grants,
     vapply(typed_space_grants, `[[`, character(1), "name"))
@@ -1584,7 +1586,8 @@
   attr(base, "operation_pack_v3_typed_space_values") <-
     stats::setNames(lapply(typed_space_grants, function(grant) list(
       cells = attr(grant, "operation_pack_v3_cells"),
-      input = inputs[[grant$input_name]])), vapply(typed_space_grants, `[[`,
+      input = inputs[[grant$input_name]],
+      plan = (attr(inputs, "operation_pack_v3_space_plans") %||% list())[[grant$input_name]])), vapply(typed_space_grants, `[[`,
         character(1), "name"))
   base
 }
@@ -1996,13 +1999,9 @@
   for (grant in spaces) {
     source <- grant$source_reference
     cells <- attr(grant, "operation_pack_v3_cells") %||% character()
-    observed <- tryCatch(wb_space(bundle, source$space_id, cells = cells),
-      error = identity)
-    observed_matrix <- if (inherits(observed, "error")) NULL else
-      tryCatch(.wb_operation_pack_v3_space_matrix(observed), error = function(e) NULL)
-    identity <- if (is.null(observed_matrix)) NULL else
-      .wb_operation_pack_v3_space_content(observed_matrix, cells)
-    if (is.null(identity) || !identical(rownames(observed_matrix), cells) ||
+    identity <- tryCatch(.wb_operation_pack_v3_space_source_content(bundle,
+      source$space_id, cells), error = function(e) NULL)
+    if (is.null(identity) ||
         !identical(identity, source$selected_content_identity))
       .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
         paste0("Typed-space source changed after authentication for '",
@@ -3910,11 +3909,37 @@
       `[[`, character(1), "input"))
     typed_space_inputs <- unique(vapply(operation$typed_space_reads %||%
       list(), `[[`, character(1), "input"))
+    record <- .wb_operation_pack_registry$operations[[op_name]]
+    registration <- .wb_operation_pack_registry$packs[[record$namespace]]$registration
+    native_r <- identical(as.character(registration$identity$backend)[1], "R")
+    space_plans <- list()
+    graph_present <- identical(abi,"4") && (any(vapply(operation$inputs,
+      function(x) identical(x$kind,"graph"),logical(1))) || any(vapply(operation$outputs,
+      function(x) identical(x$kind,"graph"),logical(1))))
+    graph_policy <- if (graph_present) .wb_operation_pack_v4_lowest_graph_budgets(lapply(
+      Filter(function(x) identical(x$kind,"graph"),operation$outputs),`[[`,"resource_budgets")) else NULL
+    space_budget <- .wb_operation_pack_v3_broker_projection_budget(bundle,graph_policy)
+    on.exit(for (plan in space_plans) plan$close(), add = TRUE)
     bound <- stats::setNames(lapply(names(resolved), function(name) {
       value <- resolved[[name]]
       if (abi == "4" && identical(value$kind, "graph")) return(value)
       if (name %in% typed_space_inputs && identical(value$kind, "space")) {
         out <- .wb_operation_pack_v2_deep_copy(value)
+        # Fresh core-created map only: ordinary incoming primitive attributes
+        # cannot supply a plan or descriptor digest. Python transport stays
+        # on its established materialized path.
+        if (native_r && identical(.Platform$OS.type, "unix") && is.null(value$values) &&
+            .wb_space_payload_exists(bundle,value$space_id)) {
+          plan <- .wb_space_payload_reader(bundle, value$space_id, .budget=space_budget)
+          if (!length(plan$cells) || anyDuplicated(plan$cells))
+            .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+              "Typed-space input has no unique durable cell axis.", "resolution")
+          out$cell_id <- plan$cells
+          out$dimensions <- plan$dimensions
+          out$storage_profile <- "space_dense_v1"
+          space_plans[[name]] <<- plan
+          return(out)
+        }
         coordinates <- value$values
         if (is.null(coordinates)) coordinates <- wb_space(bundle,
           as.character(value$space_id)[1])
@@ -3974,6 +3999,12 @@
       "PYBENCH_CAPABILITY_MISMATCH",
       "ABI v3 execution requires a preallocated session run.",
       phase = "execution", class = "wb_operation_pack_v3_error")
+    attr(bound, "operation_pack_v3_space_plans") <- space_plans
+    if (length(space_plans) && !is.null(space_budget$policy)) {
+      restore_space_policy <- .wb_operation_pack_v3_broker_graph_reservation(bundle,
+        space_budget,space_budget$policy)
+      on.exit(restore_space_policy(),add=TRUE)
+    }
     params <- .wb_operation_pack_v2_bind_parameters(bundle, operation,
       params, bound, effective_cells)
     params <- .wb_operation_pack_v3_bind_cell_selectors(bundle, operation,

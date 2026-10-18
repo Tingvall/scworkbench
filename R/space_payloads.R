@@ -90,7 +90,7 @@
   ) |> paste0(".h5")
 }
 
-.wb_space_payload_h5_metadata <- function(path) {
+.wb_space_payload_h5_metadata <- function(path, .cell_ids = NULL, .dim_labels = NULL) {
   .wb_space_payload_require_runtime()
   listed <- tryCatch(rhdf5::h5ls(path, recursive = FALSE), error = function(e) data.frame())
   .wb_assert(nrow(listed) > 0L && all(c("coordinates", "cell_ids", "dim_labels") %in% listed$name),
@@ -113,17 +113,17 @@
     endianness = as.character(attrs$endianness %||% "")[1L],
     chunk_rows = as.integer(attrs$chunk_rows %||% NA_integer_)[1L],
     chunk_dims = as.integer(attrs$chunk_dims %||% NA_integer_)[1L],
-    cell_ids = as.character(rhdf5::h5read(path, "cell_ids")),
-    dim_labels = as.character(rhdf5::h5read(path, "dim_labels")),
+    cell_ids = .cell_ids %||% as.character(rhdf5::h5read(path, "cell_ids")),
+    dim_labels = .dim_labels %||% as.character(rhdf5::h5read(path, "dim_labels")),
     physical_dims = dims
   )
 }
 
 .wb_space_payload_validate_file <- function(path, expected = NULL, verify_hash = FALSE,
-                                            validate_values = FALSE) {
+                                            validate_values = FALSE, .meta = NULL) {
   .wb_assert(file.exists(path) && !dir.exists(path),
              "SPACE_PAYLOAD_MISSING: dense-space payload file is absent.")
-  meta <- .wb_space_payload_h5_metadata(path)
+  meta <- .meta %||% .wb_space_payload_h5_metadata(path)
   .wb_assert(identical(meta$schema_version, .wb_space_payload_schema()),
              "SPACE_PAYLOAD_VERSION_UNKNOWN: unsupported dense-space schema version.")
   .wb_assert(meta$n_cells > 0L && meta$n_dims > 0L &&
@@ -328,18 +328,20 @@
 }
 
 .wb_space_payload_read <- function(bundle, space_id, cells = NULL, dims = NULL,
-                                   drop_missing = FALSE) {
+                                   drop_missing = FALSE, .plan = NULL) {
   .wb_space_payload_require_runtime()
-  registry <- .wb_space_payload_registry_row(bundle, space_id)
-  path <- .wb_space_payload_path(bundle, registry, must_exist = TRUE)
-  meta <- .wb_space_payload_validate_file(path, expected = registry, verify_hash = FALSE,
-                                          validate_values = FALSE)
+  registry <- if (is.null(.plan)) .wb_space_payload_registry_row(bundle, space_id) else .plan$registry
+  path <- if (is.null(.plan)) .wb_space_payload_path(bundle, registry, must_exist = TRUE) else .plan$path
+  meta <- if (is.null(.plan)) .wb_space_payload_validate_file(path, expected = registry, verify_hash = FALSE,
+                                          validate_values = FALSE) else .plan$meta
   all_cells <- meta$cell_ids
   requested_cells <- if (is.null(cells)) {
     canonical <- wb_cells(bundle, cell_set = "all")
     canonical[canonical %in% all_cells]
   } else as.character(cells)
-  rows <- match(requested_cells, all_cells)
+  rows <- if (is.null(.plan$row_index)) match(requested_cells, all_cells) else
+    unname(vapply(requested_cells, function(cell) get0(cell, .plan$row_index,
+      inherits = FALSE, ifnotfound = NA_integer_), integer(1)))
   if (isTRUE(drop_missing)) {
     keep <- !is.na(rows); rows <- rows[keep]; requested_cells <- requested_cells[keep]
   } else {
@@ -365,6 +367,163 @@
     total_values = meta$n_cells * meta$n_dims, path = as.character(registry$path[[1L]])
   )
   out
+}
+
+# Getter-owned invocation plan: metadata only, no retained coordinate matrix or
+# persistent HDF handle. Full content authority remains at lifecycle boundaries.
+.wb_space_payload_exists <- function(bundle,space_id) {
+  if (!.wb_table_exists(bundle$con,"space_payloads")) return(FALSE)
+  nrow(DBI::dbGetQuery(bundle$con,"SELECT 1 FROM space_payloads WHERE space_id=? LIMIT 1;",
+    params=list(space_id))) == 1L
+}
+
+.wb_space_payload_reader <- function(bundle, space_id, .budget = NULL) {
+  budget <- .budget %||% .wb_operation_pack_v3_broker_projection_budget(bundle)
+  owned <- 0; released <- FALSE; native_owned <- FALSE
+  release <- function() {
+    if (!released) {
+      budget$used <- budget$used-owned
+      if (native_owned) {
+        budget$space_hdf_users <- budget$space_hdf_users-1L
+        if (budget$space_hdf_users==0L) budget$used <- budget$used-budget$space_hdf_bytes
+      }
+      released <<- TRUE
+    }
+    invisible(NULL)
+  }
+  ok <- FALSE
+  on.exit(if (!ok) release(), add = TRUE)
+  charge <- function(bytes) {
+    if (!is.finite(bytes) || bytes < 0 || budget$used + bytes > budget$limit)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-space axis metadata exceeds existing working-memory admission.","resolution")
+    budget$used <- budget$used+bytes; owned <<- owned+bytes
+  }
+  # Active HDF chunk/cache allowance, shared by this synchronous invocation's
+  # plans. Source-informed headroom, not an absolute rhdf5 RSS guarantee.
+  if (is.null(budget$space_hdf_users)) budget$space_hdf_users <- 0L
+  if (budget$space_hdf_users==0L) {
+    budget$space_hdf_bytes <- 8*1024^2
+    if (budget$used+budget$space_hdf_bytes > budget$limit)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-space HDF buffers exceed existing working-memory admission.","resolution")
+    budget$used <- budget$used+budget$space_hdf_bytes
+  }
+  budget$space_hdf_users <- budget$space_hdf_users+1L; native_owned <- TRUE
+  counts <- DBI::dbGetQuery(bundle$con,paste0(
+    "SELECT n_cells,n_dims, ",
+    paste(paste0("COALESCE(length(CAST(",c("space_id","path","schema_version",
+      "cell_ids_sha256","dim_labels_json","dtype","endianness","content_sha256",
+      "content_identity_scheme","provenance_identity","created_at")," AS BLOB)),0)"),collapse="+"),
+    " AS bytes FROM space_payloads WHERE space_id=?;"),params=list(space_id))
+  .wb_assert(nrow(counts)==1L,"Typed-space payload registry is missing or ambiguous.")
+  n <- as.integer(counts$n_cells[[1L]]); d <- as.integer(counts$n_dims[[1L]])
+  .wb_assert(!is.na(n) && n > 0L && !is.na(d) && d > 0L, "Invalid typed-space dimensions.")
+  charge(64*as.double(n)+256*as.double(d)+32*as.double(counts$bytes[[1L]])+32768)
+  registry <- .wb_space_payload_registry_row(bundle, space_id)
+  path <- .wb_space_payload_path(bundle, registry, must_exist = TRUE)
+  # Authenticate the registered producer bytes before decoding variable-length
+  # axes. Fixed-width R and VLEN Python payloads share this boundary.
+  .wb_assert(identical(tolower(.wb_prov_sha256_file(path)),
+    tolower(as.character(registry$content_sha256[[1L]]))),
+    "SPACE_PAYLOAD_CONTENT_HASH_MISMATCH: payload bytes differ from registry identity.")
+  ids <- character(n)
+  maximum <- DBI::dbGetQuery(bundle$con,
+    "SELECT COALESCE(MAX(length(CAST(cell_id AS BLOB))),0) AS n FROM cells;")$n[[1L]]
+  chunk <- max(1L,min(512L,floor((budget$memory-budget$used)/max(8192,64*(maximum+1)))))
+  .wb_assert(64*(maximum+1) <= budget$memory-budget$used,
+    "Typed-space axis decode exceeds existing working-memory admission.")
+  row_index <- new.env(hash=TRUE,parent=emptyenv())
+  for (start in seq.int(1L,n,by=chunk)) {
+    positions <- seq.int(start,min(n,start+chunk-1L))
+    part <- as.character(rhdf5::h5read(path,"cell_ids",index=list(positions)))
+    .wb_assert(length(part)==length(positions) && !anyNA(part) &&
+      all(nzchar(part)) && !anyDuplicated(part) &&
+      all(nchar(part,type="bytes") <= maximum), "Invalid typed-space cell axis.")
+    charge(256*length(part) + 32*sum(nchar(part,type="bytes")))
+    canonical <- DBI::dbGetQuery(bundle$con,
+      "SELECT cell_id FROM cells WHERE cell_id IN (SELECT value FROM json_each(?));",
+      params=list(jsonlite::toJSON(as.list(part),auto_unbox=TRUE)))
+    index <- match(part,canonical$cell_id)
+    .wb_assert(!anyNA(index),"Typed-space source contains foreign cells.")
+    ids[positions] <- part
+    for (j in seq_along(part)) {
+      .wb_assert(!exists(part[[j]],row_index,inherits=FALSE),"Duplicate typed-space cell axis.")
+      assign(part[[j]],as.integer(positions[[j]]),row_index)
+    }
+  }
+  labels <- as.character(jsonlite::fromJSON(registry$dim_labels_json[[1L]]))
+  charge(8*sum(nchar(labels,type="bytes")))
+  .wb_assert(length(labels)==d && !anyNA(labels),"Invalid typed-space dimension labels.")
+  physical_labels <- character(d)
+  max_label <- max(nchar(labels,type="bytes"))
+  dimension_chunk <- max(1L,min(512L,floor((budget$memory-budget$used)/max(8192,64*(max_label+1)))))
+  .wb_assert(64*(max_label+1)<=budget$memory-budget$used,
+    "Typed-space dimension-label decode exceeds existing working-memory admission.")
+  for (start in seq.int(1L,d,by=dimension_chunk)) {
+    positions <- seq.int(start,min(d,start+dimension_chunk-1L))
+    part <- as.character(rhdf5::h5read(path,"dim_labels",index=list(positions)))
+    .wb_assert(identical(part,labels[positions]),"Typed-space dimension labels changed.")
+    physical_labels[positions] <- part
+  }
+  meta <- .wb_space_payload_h5_metadata(path,.cell_ids=ids,.dim_labels=physical_labels)
+  meta <- .wb_space_payload_validate_file(path,expected=registry,
+    verify_hash=FALSE,validate_values=FALSE,.meta=meta)
+  plan <- list(registry=registry,path=path,meta=meta,row_index=row_index)
+  observe <- function() list(registry = .wb_space_payload_registry_row(bundle,
+    space_id), path = .wb_space_payload_path(bundle, registry, must_exist = TRUE),
+    resolved = normalizePath(path, mustWork = TRUE),
+    file = file.info(path)[, c("size", "mode", "mtime", "ctime"), drop = FALSE])
+  initial <- observe()
+  guard <- function() {
+    now <- tryCatch(observe(), error = function(e) NULL)
+    if (!identical(initial, now)) stop("Typed-space registry or file changed after authentication.", call. = FALSE)
+    invisible(TRUE)
+  }
+  # Let SQLite compare its own signed64 rowids; never narrow them to R doubles.
+  cells <- character(n)
+  query <- DBI::dbSendQuery(bundle$con,paste0("SELECT cell_id FROM cells WHERE cell_id IN ",
+    "(SELECT value FROM json_each(?)) ORDER BY rowid;"),params=list(
+      .wb_operation_pack_matrix_axis_json(ids)))
+  on.exit(if (DBI::dbIsValid(query)) DBI::dbClearResult(query),add=TRUE)
+  position <- 0L
+  repeat {
+    part <- DBI::dbFetch(query,n=512L)$cell_id
+    if (!length(part)) break
+    .wb_assert(position+length(part)<=n,"Typed-space canonical cell axis changed.")
+    cells[seq.int(position+1L,position+length(part))] <- as.character(part)
+    position <- position+length(part)
+  }
+  DBI::dbClearResult(query)
+  .wb_assert(position==n,"Typed-space canonical cell axis changed.")
+  admission <- function(bytes, elements = block_elements()) {
+    if (64*as.double(elements)+8192 > budget$memory-budget$used)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-space response exceeds existing working-memory admission.","execution")
+    if (is.null(budget$policy)) return(function() invisible(NULL))
+    reserved <- new.env(parent=emptyenv())
+    reserved$disk <- budget$disk+bytes
+    reserved$used <- budget$used + 8192 + 64*as.double(elements)
+    restore <- .wb_operation_pack_v3_broker_graph_reservation(bundle, reserved, budget$policy)
+    tryCatch(.wb_graph_disk_admit(bundle$con,
+      .wb_graph_effective_budgets(bundle$con)), error = function(e) {restore(); stop(e)})
+    restore
+  }
+  block_elements <- function() max(1L,floor((budget$memory-budget$used-8192)/128))
+  ok <- TRUE
+  list(cells = cells, dimensions = as.integer(c(length(cells), meta$n_dims)),
+    labels = meta$dim_labels, guard = guard, admit = admission, close = release,
+    block_elements = block_elements,
+    read = function(cells, dims = seq_len(meta$n_dims)) {
+      if (released) stop("Typed-space reader is closed.",call.=FALSE)
+      if (64*as.double(length(cells))*length(dims)+8192 > budget$memory-budget$used)
+        .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+          "Typed-space response exceeds existing working-memory admission.","execution")
+      guard()
+      result <- .wb_space_payload_read(bundle, space_id, cells = cells,
+        dims = dims, .plan = plan)
+      guard(); result
+    })
 }
 
 .wb_space_payload_summary <- function(bundle, space_id, verify_hash = FALSE,

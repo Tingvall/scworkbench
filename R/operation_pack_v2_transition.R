@@ -249,7 +249,8 @@
 
 .wb_operation_pack_v2_input_descriptor <- function(name, value, declaration,
                                                      transport_value = NULL,
-                                                     g1_model_read = FALSE) {
+                                                     g1_model_read = FALSE,
+                                                     space_plan = NULL) {
   kind <- as.character(declaration$kind)[1]
   identity_value <- transport_value %||% unclass(value)
   # Only an explicitly declared G1 read replaces this provisional identity
@@ -268,11 +269,17 @@
   # uses the same canonical encoder for its input name. Scheme labels remain
   # outside the digest, exactly as in identity_plain(). No seal/cache authority
   # is inferred from sharing these invocation-local immutable bytes.
-  value_json <- .wb_operation_pack_canonical_json(identity_value)
-  value_sha <- digest::digest(value_json, algo = "sha256", serialize = FALSE)
-  wrapped_json <- enc2utf8(paste0('{"input":',
-    .wb_operation_pack_canonical_json(name), ',"value":', value_json, '}'))
-  wrapped_sha <- digest::digest(wrapped_json, algo = "sha256", serialize = FALSE)
+  if (!is.null(space_plan)) {
+    stopifnot(identical(kind, "space"), is.null(transport_value), is.null(value$values))
+    identities <- .wb_operation_pack_space_envelope_identities(name, value, space_plan)
+    value_sha <- identities$value_sha; wrapped_sha <- identities$wrapped_sha
+  } else {
+    value_json <- .wb_operation_pack_canonical_json(identity_value)
+    value_sha <- digest::digest(value_json, algo = "sha256", serialize = FALSE)
+    wrapped_json <- enc2utf8(paste0('{"input":',
+      .wb_operation_pack_canonical_json(name), ',"value":', value_json, '}'))
+    wrapped_sha <- digest::digest(wrapped_json, algo = "sha256", serialize = FALSE)
+  }
   descriptor <- list(
     kind = kind, storage_profile = .wb_operation_pack_v2_input_profile(kind, value),
     reader = .wb_operation_pack_v2_reader_name(kind),
@@ -512,6 +519,10 @@
         unclass(inputs[[input_name]])
       input_identity <- .wb_operation_pack_v2_identity_plain(paste0("scworkbench.",
         inputs[[input_name]]$kind, ".content.v1"), identity_value)
+      space_plan <- (attr(inputs, "operation_pack_v3_space_plans") %||% list())[[input_name]]
+      if (!python_backend && !is.null(space_plan)) input_identity$sha256 <-
+        .wb_operation_pack_space_envelope_identities(input_name,
+          inputs[[input_name]], space_plan)$value_sha
       resolution <- list(
         requirement_id = id,
         selector_identity = .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.dynamic_dependency_selector.v2", dependency),
@@ -573,7 +584,8 @@
 .wb_operation_pack_v2_request <- function(bundle, registration, operation, inputs, params,
                                            transition_id, session_id, run_id, generation,
                                            preflight, stage_root,
-                                           g1_model_inputs = character()) {
+                                           g1_model_inputs = character(),
+                                           space_plans = list()) {
   op_name <- as.character(operation$qualified_name)[1]
   declarations <- stats::setNames(operation$inputs, vapply(operation$inputs, `[[`, character(1), "name"))
   python_backend <- identical(as.character(registration$identity$backend)[1], "Python")
@@ -588,7 +600,8 @@
       return(.wb_operation_pack_v4_graph_input(bundle, name, inputs[[name]], declarations[[name]]))
     .wb_operation_pack_v2_input_descriptor(name, inputs[[name]], declarations[[name]],
       if (python_backend) transport_inputs[[name]] else NULL,
-      g1_model_read = name %in% g1_model_inputs)
+      g1_model_read = name %in% g1_model_inputs,
+      space_plan = space_plans[[name]])
   })
   input_records <- input_records[order(vapply(input_records, `[[`, character(1), "name"), method = "radix")]
   registry_state <- .wb_operation_pack_v2_registry_read_records(
