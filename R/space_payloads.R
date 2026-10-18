@@ -390,6 +390,22 @@
 }
 
 .wb_space_payload_reader <- function(bundle, space_id, .budget = NULL) {
+  # Admission is observational and occurs once per issued plan, including the
+  # independently rebuilt final plan. Never enter a lazy schema creator here.
+  .wb_assert_observational_schema(bundle, c("space_payloads", "spaces", "cells"),
+    "typed-space reader")
+  issuing_con <- bundle$con
+  registry_row <- function() {
+    .wb_assert(DBI::dbIsValid(issuing_con) &&
+      identical(bundle$con@ref, issuing_con@ref),
+      "Typed-space issuing connection changed or closed.")
+    row <- DBI::dbGetQuery(issuing_con,
+      "SELECT * FROM space_payloads WHERE space_id = ?;",
+      params = list(as.character(space_id)[1L]))
+    .wb_assert(nrow(row) == 1L,
+      paste0("SPACE_PAYLOAD_REGISTRY_MISSING: ", space_id))
+    row
+  }
   budget <- .budget %||% .wb_operation_pack_v3_broker_projection_budget(bundle)
   owned <- 0; released <- FALSE; native_owned <- FALSE
   release <- function() {
@@ -434,7 +450,7 @@
   .wb_assert(identical(as.integer(counts$logical_dims[[1L]]),d),
     "Typed-space logical and payload dimensions disagree.")
   charge(64*as.double(n)+256*as.double(d)+32*as.double(counts$bytes[[1L]])+32768)
-  registry <- .wb_space_payload_registry_row(bundle, space_id)
+  registry <- registry_row()
   path <- .wb_space_payload_path(bundle, registry, must_exist = TRUE)
   # Authenticate the registered producer bytes before decoding variable-length
   # axes. Fixed-width R and VLEN Python payloads share this boundary.
@@ -484,8 +500,11 @@
   meta <- .wb_space_payload_validate_file(path,expected=registry,
     verify_hash=FALSE,validate_values=FALSE,.meta=meta)
   plan <- list(registry=registry,path=path,meta=meta,row_index=row_index)
-  observe <- function() list(registry = .wb_space_payload_registry_row(bundle,
-    space_id), path = .wb_space_payload_path(bundle, registry, must_exist = TRUE),
+  # Exact fresh binding/file observations remain per block. The already issued
+  # getter does not re-admit the complete bundle schema before and after each
+  # coordinate tile; the independent final reader does that at its boundary.
+  observe <- function() list(registry = registry_row(),
+    path = .wb_space_payload_path(bundle, registry, must_exist = TRUE),
     resolved = normalizePath(path, mustWork = TRUE),
     file = file.info(path)[, c("size", "mode", "mtime", "ctime"), drop = FALSE])
   initial <- observe()
