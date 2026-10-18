@@ -1,20 +1,26 @@
 # Current integrity-cost and source-coverage reconciliation
 
-Current source: **8614e198a6337ac45c5ad4a0fc664ba8d5a95af7**. This is a
-documentation-only descendant; the frozen runtime/performance worktree remains
+Current source: **0bf95bc13deb43b411997dae8404c8e59121ea19**;
+installed runtime **76e217a1342ade29b427bbbcba03e595861d474d**, not the earlier
+8614/ba351 candidate. This is a documentation-only descendant; the frozen
+runtime/performance worktree remains
 untouched. Only this Markdown and its CSV are updated. No runtime, protocol,
 schema, test, profile or pack change; no workload or qualification job.
 
-The serial performance run at
-`/tmp/scwb-engine-simplification-forge-20261018/final_ba351cd_measurements` is
-**pending**. Its partial logs have not been read for acceptance or copied into
-this record. Root must append terminal evidence and budget dispositions after it
-ends. No full Xenopus success or final engine-wide performance acceptance is
-claimed here.
+The old `final_ba351cd_measurements` supervisor is **terminal FAILED09**, not
+pending: an erroneous rounded supplemental reference caused the strict UMAP
+comparison to fail before promotion/finalization/reopen/recipient validation.
+The independently frozen full-precision reference subsequently matched every
+existing PCA/UMAP value exactly in a separately labeled read-only diagnosis.
+That does not turn failed09 into an end-to-end pass. The new serial
+`/tmp/scwb-engine-simplification-forge-20261018/final_76e217a_measurements`
+full workflow is **ACTIVE / terminal result pending**. Its active workflow logs
+are not acceptance evidence here; integrate this documentation only afterward.
+No full Xenopus success or final engine-wide acceptance is claimed.
 
 ## Evidence accounting, without relabeling earlier runs
 
-- Current discovery: **452 test definitions / 199 files**, discovery only.
+- Current discovery: **462 test definitions / 201 files**, discovery only.
 - Selected installed main group: raw **67 executed, 65 passed, 2 fixture failures**.
   The two corrected fixtures subsequently passed; four additional shared-source
   cases passed. This supports **71 distinct passing selected identities**
@@ -22,6 +28,10 @@ claimed here.
 - A separate **35-pass prototype group** covers the newly assembled numeric,
   manifest and issued-space authority changes. Do not add it to71 without an
   identity-level overlap reconciliation or call it the complete core suite.
+- Fresh installed graph/aggregate group: **22/22 passed**, runtime637e015.
+  Fresh installed object-row canonical group: **19/19 passed**, runtime76e217a.
+  These overlap older authority/canonical coverage; do not sum them with71 or35
+  without an identity-level reconciliation. Neither is a new complete suite.
 - The original full core run onfff50517 remains **382 executed / 370 passed /
   3 skipped / 9 failed**, exit1. Executed includes skipped invocations. Later
   focused passes do not turn it into a passing full suite.
@@ -29,6 +39,10 @@ claimed here.
   Neither discovery nor a source disposition establishes runtime or realistic-
   scale performance. [QUALIFICATION_CORRECTIONS.md](QUALIFICATION_CORRECTIONS.md)
   preserves original failures and corrections; final logs/sidecars remain separate.
+- PyBench0ef3c56f: **751 passed / 7 named skips / 3 warnings**,185.19s, exit0;
+  Ruff check and Python-only formatting pass. Global formatting remains exit1
+  for unchanged Markdown fences in three files, not all-green. Exact raw paths
+  and scope are in `T/quill/python_final_disposition.json` (`T` defined below).
 
 ## All36 checks and the trust boundary
 
@@ -36,7 +50,7 @@ claimed here.
 contains original IDs01–36 exactly once, with prevented failure, authoritative
 boundary, current frequency/data, disposition, implementation scope, source
 anchors, focused/measurement status and limitations. Every row was reconciled
-against8614 code; a kept check is not mislabeled as an implemented optimization.
+against0bf95 code; a kept check is not mislabeled as an implemented optimization.
 
 Packs are trusted scientific software, not a hostile native-R sandbox. Admission
 and publication authenticate actual consumed bytes; ordinary block reads use
@@ -49,7 +63,7 @@ provenance, atomic publication and rollback remain mandatory.
 
 Historical coordination inventory, `SOURCE_COVERAGE.md`, `inventory_remaining.csv`,
 budget notes and raw evidence are not rewritten. The original audit on96cbf880 is
-not a measurement of repaired8f53e950 or of8614. This pair describes **current**
+not a measurement of repaired8f53e950 or of0bf95. This pair describes **current**
 code; earlier records remain the chronology, not contradictory current claims.
 
 ## Current source scopes
@@ -66,6 +80,10 @@ BPCells bounds are not an OS memory quota or proof for untested native builds.
 
 `R/operation_pack_v3_transition.R:467` writes core-generated Matrix Market from
 bounded base-matrix tiles or eligible CSC slots, preserving 15-digit transport.
+This private-input transport is **not** native normalization output:
+`R/operation_pack_v3_materializations.R:3` writes continuous matrices directly
+as full-double BPCells; the RNA fragment writer calls it at:525. No scientific
+output rounding or parameter change was introduced.
 CSR/triplet/symmetric/triangular/diagonal and exotic normalization can still be
 whole-object preparation. Selected CSC output remains O(selected NNZ) storage.
 `R/operation_pack_v3_transition.R:3601` avoids deep copies only for fresh recursively
@@ -77,10 +95,27 @@ Bounded contiguous arrays/row emission avoid per-value R strings on eligible
 inputs; they do not make arbitrary ordinary-object JSON streaming. Ordinary
 vectors/families/tables and unsupported inputs remain complete in-memory values.
 
+`R/operation_packs.R:251` additionally batches homogeneous scalar-leaf object
+trees with one sorted-key template and ≤1,000-row batches. The conservative
+carrier/escaped-byte ledger stays within min(32MiB, ordinary guard); depth/key/
+type/UTF-8 eligibility is established for every row before fast emission.
+Unsupported/heterogeneous/attributed/decorated-number or invalid shapes fall
+back before emission, preserving canonical bytes and original first diagnostics.
+This is not a new identity scheme, API or streaming ordinary-object authority.
+
+For feature annotations, **all nine full row encodings remain**: initial
+payload plus source/content identities; predispatch pair; prepublication pair;
+fresh retained-record validation pair. `R/operation_pack_v3_registry_reads.R:216,
+:313,:477` and `R/operation_pack_v2_transition.R:1359` still independently
+reconstruct/recheck authority at those boundaries. No cross-boundary cache or
+pack-supplied digest replaces a check. Optional motif/genomic variants remain
+unmeasured. The selected-features HVG output remains all31,535 rows with flags,
+not a scientifically altered2,000-row table.
+
 ### Native HDF5 typed spaces and model metadata
 
 The previously identified2D-label and diagnostic-path defects are **corrected in
-current code**, not pending at8614. `R/space_payloads.R:392` creates fresh metadata-
+current code**, not pending. `R/space_payloads.R:392` creates fresh metadata-
 only native POSIX HDF plans with admitted axes/lookup and shared8MiB HDF allowance.
 Callbacks expose scientific values with getter diagnostics stripped. The frozen
 getter-chain semantics give full-source two-dimensional arrays `dim1`/`dim2`
@@ -179,6 +214,18 @@ full scans. Tiny transport partition changes may alter observations/receipt-chai
 identities, not graph content identity. Small cursor/storage fixtures do not prove
 realistic graph-scale speed or universal model/registry/graph performance.
 
+`R/graph_storage.R:568,:632` now consolidates the SQL edge/incidence aggregate
+into byte-admitted batches. It retains only maximum edge-record bytes from the
+already required validated scan, not another graph pass. A batch obeys existing
+partition rows/bytes with1024 bytes conservative carrier per aggregate row;
+single giant records retain prior scalar admission. SQL emits NULL for records
+that changed beyond the bound or ceased being text. The complete fetched batch
+is checked before R JSON parsing; per-edge direction, arity, roles and ordinal
+rules remain unchanged. Spill/policy admission runs per batch and at EOF/final
+boundaries, with cursor cleanup on failure. SQL's own json_extract processing is
+not a new hostile-parser quota. Fewer admission polls are proven by focused
+tests, **not separately timed as a20% aggregate-component improvement**.
+
 ## Historical correction chronology
 
 The original61dd50b/fe644e0 typed-space7/7 and combined21 focused passes missed
@@ -189,6 +236,9 @@ d380fe6) restored getter-chain labels, callback isolation, model metadata and
 template lifetime. Later5c4b/084/69/49c351d/4fa069c source changes further
 consolidated schema, numeric emission, manifest and byte authority; ba351cd
 integrates their ownership contracts and8614 changes only fixture/discovery data.
+637e015 adds reviewed bounded aggregate batches;6c79644/24c4c49 add reviewed
+homogeneous nested-object encoding and its carrier clarification.76e217a records
+the original-reference diagnosis;0bf95bc updates explicit ownership discovery.
 Current source readiness for affected qualification is not the withdrawn precursor
 and is not final performance acceptance. Earlier descriptions remain in Git
 history and [TYPED_SPACE_BUDGET.md](TYPED_SPACE_BUDGET.md),
@@ -197,33 +247,63 @@ history and [TYPED_SPACE_BUDGET.md](TYPED_SPACE_BUDGET.md),
 ## Budgets and measurement ledger
 
 Original targets stay unchanged. Earlier misses remain recorded even if a later
-descendant improves them. All below are historical component or prospective
-targets, **not terminal results of the active ba351 performance run**.
+descendant improves them. `T` means
+`/tmp/scwb-engine-simplification-forge-20261018`. Completed ba351 component
+metrics below are historical terminal evidence, not pending or measurements of
+every new76 path. The new76 full-workflow result remains pending. The raw source
+paths and full numerical ledger are in the separately prepared documentation
+commit `0b41cda75d6754ac97f32d6bcefa912570542ee0`
+(`notes/engine_simplification/TERMINAL_MEASUREMENT_LEDGER.md` and CSV); their
+failed/incomplete dispositions are not overwritten or assumed integrated here.
 
-| Scope | Original target | Retained status / final placeholder |
+| Scope | Original target | Retained terminal/component evidence and current limit |
 |---|---|---|
-| Fast history vector | <=1s overhead; history15<=1.5xempty+.1s; RSS<1GiB | Earlier absolute misses; final=**pending** |
-| Mixed complete storage | <=2s over complete direct read/compute/write/reopen | e9 profiled overhead18.925s MISS; final=**pending** |
-| Table hash | >=5x1000/5000rows;100rows fixed<=.05s | Earlier component evidence retained; final=**pending** |
-| Canonical/descriptor | Original>=3x arrays/table and>=2x descriptors; RSS+10% | Initial1.62x table/1.98x CVF misses retained; final=**pending** |
-| Numeric arrays | Original10x; subsequent<=.6*prior+.01s also recorded | Earlier vector/list/dataframe misses not erased; final=**pending** |
-| Selected matrix index | <=50%rchar and<=1.1xtime | Earlier11.9%rchar/79.6%time component result; final=**pending** |
-| Typed space | Zero retained symbolic coordinates;<=32MiB temporary target; operation<=5s; warm guard<=5ms and no per-block full schema admission | Earlier42.872/42.560 and20.981/20.577s MISS; final=**pending** |
-| Matrix Market writer | >=5x250kNNZ; extraRSS<=128MiB; small fixed<=.05s | Focused byte/resource checks do not establish speed; final=**pending** |
-| Graph pager | 1000pages<=1.2xold+.1s; headers<=partition+64KiB | Final=**pending** |
-| Manifest snapshot | >=4x46empty/tiny; <=3new concurrent connections | Prior measured one-row46 fixture .640/.390s=1.64x MISS; empty-only unmeasured; final=**pending** |
-| Exact publication witness | Warm guard<=.1s; zero unchanged-close snapshots | Prior100checks .739s=.00739/check component pass; final=**pending** |
-| Real Xenopus complete | <=direct*1.30+60s; >=25%faster repaired; RSS<=baseline+10%; admin>5s explained | Full fresh import-to-recipient time/scientific/IO/pass counts=**pending** |
+| Fast history vector | <=1s overhead; history15<=1.5xempty+.1s; RSS<1GiB | ba351 .364/.363/.399s at0/5/15 vs direct .020s PASS bounded criteria; larger history unmeasured |
+| Mixed complete storage | <=2s over complete direct read/compute/write/reopen | ba3518.879-.443=8.436s extra MISS; new76 terminal reconciliation pending |
+| Table hash | >=5x1000/5000rows;100rows fixed<=.05s | ba3514.53x at1000 MISS;5.60x at5000 PASS;100-row fixed PASS |
+| Canonical/descriptor | >=3x arrays/table and>=2x descriptors; RSS+10% | ba351 ordinary cases pass timing; descriptor independent extraRSS unmeasured; earlier misses retained |
+| Numeric arrays | Original10x; subsequent<=.6*prior+.01s separate | ba351 vector12.46x PASS; scalar-list9.52x and dataframe2.93x MISS10x; follow-on flat-array threshold passes |
+| New nested-object rows | >=5x31535 rows; exact bytes/errors |76 nested12.654x PASS; complete annotations11.920x PASS; flat11-field3.123x MISS; all9 authority encodings retained |
+| Selected matrix index | <=50%rchar and<=1.1xtime | Earlier11.9%rchar/79.6%time component result; no new76 index timing |
+| Typed space | <=32MiB temporary target; realistic operation<=5s; independent partition cost | ba351 realistic12.392/12.305s MISS5s; wide5.072/5.414s PASS10s; SHA3/3 at8/32 partitions; not full-workflow evidence |
+| Matrix Market writer | >=5x250kNNZ; extraRSS<=128MiB; small fixed<=.05s | Unchanged13de paired base300.62x/CSC249.06x PASS; small PASS; extraRSS unmeasured; no new76 writer benchmark |
+| Graph pager |1000pages<=1.2xold+.1s; headers<=partition+64KiB | Unchanged pager13de1.903/1.871/1.890s MISS all3; new aggregate result does not waive pager miss |
+| Manifest snapshot | >=4x46empty/tiny; <=3new concurrent connections | ba351 one-row fixture .640/.282s=2.27x MISS4x; observed DBI connections46→1; empty-only unmeasured |
+| Exact publication witness | Warm guard<=.1s; zero unchanged-close snapshots | ba351100checks .770s=.0077/check PASS; no payload authority |
+| New graph aggregate | Overall>=20% reduction; <=3s extra; component>=20% separate | New76 graph36.458 vs46.387=21.4% PASS overall;36.458-2.293=34.165s extra MISS; aggregate-component elapsed UNMEASURED |
+| Real Xenopus complete | <=direct*1.30+60s; >=25%faster repaired; RSS<=baseline+10%; admin>5s explained | ba351 FAILED09 before publication;76 fresh import-to-recipient ACTIVE/pending; no full success claim |
 
 The original direct-v3 main98.46s and separate metadata extension5.81s are two
 processes:104.27s is not an observed single-process end-to-end duration. Efficient
 direct keeps full import/output IO with faster equivalent table emission; its
-original observed timing is the performance denominator. Supplemental independent
-15-digit transport-matched science is correctness evidence, not a slower replacement
-denominator. Both retain the same algorithms/backends/settings; direct omits
+observed85.48s process time is the performance denominator, with complete reads
+and writes, not an arithmetic kernel. The supplemental15-digit variant is NOT
+input-matched to native R output: its source premise was wrong. Its strict UMAP
+failure and Sable's withdrawal remain preserved. An independently labeled
+read-only diagnosis proved all659,950 existing PCA and26,398 existing UMAP
+values bit-identical to the original/efficient full-precision reference, and
+1,000 sampled normalized values bit-identical to unrounded computation. That
+is diagnosis using existing outputs, not a completed workflow or waived gate.
+The reference SHA is `bb8a84d8cd68c494f7735509539d2b5362a2f257f511f05ca3cabdf4874ee5fb`.
+Direct keeps the same algorithms/backends/settings but omits
 categorical registries, provenance, durable recovery, atomic publication and
 recipient services. [TRANSPORT_MATCHED_REFERENCE_PLAN.md](TRANSPORT_MATCHED_REFERENCE_PLAN.md)
-retains strict matched criteria plus original full-double threshold diagnostics.
+retains the superseded plan, exact source contradiction, raw failures and strict
+original thresholds. Fresh76 must finish its own complete lifecycle unchanged.
+
+Completed new component raw records are
+`T/final_76e217a_object_profile/object_rows.csv` (numeric sidecar0),
+`T/final_76e217a_object_focus.log/.exit` (19/19,0),
+`T/graph_637e015_focused_retry.log/.exit` (22/22,0), and terminal
+`T/final_76e217a_measurements/graph/timings.csv` / `logs/04_graph.exit=0`.
+The full76 workflow log is still active, and no partial workflow result is read
+for acceptance. Source/behavior acceptance does not certify budget success.
+
+Graph and family comparisons are synthetic public primitive lifecycles, not
+scientific operation dispatch. Their direct references omit provenance,
+certificates, multi-output atomic publication, recovery and recipient checks;
+standalone SQLite metadata/registry and direct-only RDS services also differ.
+Thus extra time is a lower-service gap, not entirely removable framework cost.
 
 No partial pass is a complete source scan. SHA counters measure named helper calls;
 Linux rchar/wchar are logical syscall bytes, not physical IO; nested inclusive
