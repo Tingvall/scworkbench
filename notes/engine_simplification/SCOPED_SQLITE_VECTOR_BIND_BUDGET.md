@@ -52,7 +52,7 @@ SQLite partial prefix remain authoritative.
 
 Focused tests include a literal copy of original preparedstatement/per-rowloop,
 actual parameter vector-length spy with exact namespace cleanup, full ordered
-rowid/typeof/texthex/NULL/numeric parity,72constraint/trigger/TX cases at bounded
+rowid/typeof/texthex/NULL/numeric parity,48constraint/trigger/TX cases at bounded
 chunk boundaries, extended/classed/raw/encodingfallback, string/wide/tiny/unknown
 budgetfallback, and explicit caller rollback/retry/statementcleanup. They are
 not installed qualification yet. Per-artifact/promotion binding census still
