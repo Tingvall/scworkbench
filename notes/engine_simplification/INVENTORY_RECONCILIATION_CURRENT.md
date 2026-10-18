@@ -1,5 +1,35 @@
 # Current integrity-cost and source-coverage reconciliation
 
+## Subsequent source correction (qualification not inferred)
+
+The historical pin and withdrawn disposition below remain recorded. Follow-on
+`6548e070619af114e90bb040f2509fc3da766226`, corrected by
+`f507fa6de8acc9ba0f93e7561792fc33c1344fe8`, is now integrated. Independent
+Sable-role source review `d380fe6` accepts these corrections for installed affected
+qualification, not as measured performance or final runtime acceptance.
+
+The frozen old getter-chain oracle now enforces the full-source 2D `dim1`/`dim2`
+aliases while retaining labels for selections from higher-dimensional sources.
+Getter-only physical diagnostics are stripped from both typed and G1 callback
+responses. Metadata-only plans replace discarded full-coordinate model summaries;
+meaningful finite/extrema checks still inspect every value using row/dimension
+tiles, including writer and recipient validation. Request-time and independent
+final source authentication remain distinct. No identity/protocol schema changed.
+
+Promoted matrix-model recovery narrows deep payload inspection to bound run(s),
+but still enumerates transition directories and parses request headers: metadata
+work remains proportional to transition history. No durable direct locator exists
+in the accepted provenance schema; this is not a constant-history claim. A native
+`payload.rds` template still requires one admitted full materialization because its
+arbitrary metadata has no separately retained representation. Admission uses shape,
+uncompressed serialized extent, aggregate live template memory and scoped lifetime.
+Candidate-local templates are dropped before memory credits are released. This is
+an explicitly materialized compatibility boundary, not a bounded RDS reader API.
+Ordinary non-typed input binding and Python whole-value transport retain their
+materialized contracts; typed symbolic native space reads are the bounded route.
+
+Final terminal results must be appended separately; none are inferred here.
+
 Documentation-only reconciliation against exact core
 `0c493363abc0520a7d5c4b4c755b76c642d3ed38` (2026-10-18). This descendant of the
 repaired matrix engine includes the snapshot, publication, promotion and typed-space
