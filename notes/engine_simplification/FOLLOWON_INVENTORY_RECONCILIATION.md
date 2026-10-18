@@ -1,6 +1,9 @@
 # Follow-on integrity-cost inventory: source checkpoint, not final acceptance
 
-Source inspected: `afa91141d4043092393d7420fe742cc545ca3fe1`.
+Runtime source inspected: `37c6b945df6c917bff4ec3f81f6dbe43b985808f`;
+ownership-only descendant `34215271e109345a16765fa10a589b7fdd697f59` has
+identical R/src. This is a source checkpoint, not pending measurements relabeled
+as qualification.
 This documentation-only child preserves the historical
 [terminal242 inventory](INVENTORY_RECONCILIATION_CURRENT.md) and CSV unchanged.
 [The new CSV](FOLLOWON_INVENTORY_RECONCILIATION.csv) retains all original IDs
@@ -55,9 +58,55 @@ they are not measurements of this assembled follow-on source.
   committed copied payload survives postcommit publication failure for retry.
   Caller transactions reject. The separate dry-run branch uses observational
   schema admission, not migration/publication; real repair retains migration.
-  Its three new installed planner tests are **pending** at this source-record
-  point; exact-source review is not runtime qualification. Prospective small
-  fixture budget<=0.1s/zero migration/publication remains unmeasured.
+  The corrected planner observer ordering distinguishes observer-created SHM
+  changes from planner activity; strict full-filesystem equality is retained.
+  The measured a726 planner runs0.015/0.014/0.012/0.013/0.013s meet<=0.1s;
+  schema/planner changed zero files, with zero migration/publication calls.
+  This is a component record, not a new assembled workflow verdict.
+- **Append-local numeric tokens:** source28afd (integrated in this source)
+  reuses successful formatter tokens in a64-slot stack-local4672-byte array,
+  keyed by every double bit. The actual value and finite check still occur
+  before lookup; full-key collisions replace, integer coordinate path and
+  formatter remain unchanged. No scientific data or authority cache survives
+  append. Independent complete-byte/error source oracles exist; the current
+  combined installation and matched budgets are pending, not claimed passed.
+- **Scoped SQL binding:** [the shared append helper](../../R/promote_primitives.R)
+  uses <=1000-row admitted ordinary batches only for exactDBI1.2.3 and
+  RSQLite2.3.7; integer64 additionally requires exactbit64 4.0.5, sole exactclass
+  attribute, and never subjects its payload to numeric coercion or predicates.
+  Unknown versions/classes/encodings/resources retain original per-row binding.
+  A constant-state double cursor preserves ordering without an all-source batch
+  schedule. Existing statement/caller transaction/error-prefix authority stays.
+  Development plain-prototype50kfamily+50ktable promotion38.330→33.789s is one
+  instrumented comparison, **not** the25% median budget pass; the family still
+  made50000 length-one binds before the new integer64 follow-through. Exact
+  current integer64 runtime and promotion measurements remain pending.
+- **Ordinary table assembly:** [the getter](../../R/artifacts.R) keeps every
+  original JSON parse and NULL normalization, including parser error precedence.
+  Only ordinary scalar consistently ordered unique syntactic keys use typed
+  column assembly after admitted64N+1024C+65536+8keybytes working carriers;
+  unsupported/nested/mixed/classed/unknown-budget inputs use the original
+  already-parsed as.data.frame/rbind route without a second parser. TypedNA
+  normalization, metadata, table.v2 and stream.v1 retain literalold oracles.
+  The input parsed rows and returned table remain a **materialized table API**,
+  not a universal bounded whole-table getter. Source accepted, four new focused
+  definitions and>=5x/RSS+10% qualification are pending at this checkpoint.
+
+### Explicit remaining space/graph boundaries
+
+Actual a726 native typed-space component8/32partitions took10.320/10.761s,
+each with three sourceSHA passes and729772KiB peakRSS; identities match between
+partition schedules. Source scans are not multiplied by partitions, but the
+5s target is **MISS**, not waived or an engine-wide performance pass.
+
+Graph ABI4 fresh output record validation imports/discards the just-emitted
+NDJSON stage and output materialization imports it again. The proposed private
+same-validation stage handoff is **NOT implemented**: resource review holds it
+because retained graph connections would overlap later ordinary/model/RDS
+closure checks. It needs aggregate live-cache admission, one owned cleanup
+list installed before fault hooks, fresh actual file checks after both reopened
+hooks, and transfer only after the complete outer closure. The public primitive
+graph component is not evidence of ABI4 handoff performance or correctness.
 
 ## Deliberately excluded experiments
 
@@ -66,10 +115,12 @@ contracts and state/purity parity passed, but median5.971→5.933s is only0.636%
 improvement, **MISS25%**. No cross-new-token state handoff was implemented.
 The failed initial dependency-discovery installation is retained separately.
 The f74 ASCII whitelist experiment passed16/16 yet5.900→5.513s missed25%; it
-is not integrated. Fad and later dd alternatives remain isolated; dd's current
-16/17 focused failure is being diagnosed, **not part of afa9114** and not an
-accepted optimization. No proposed or measured experiment is silently counted
-as current runtime.
+is not integrated. Fad and later dd/c161 alternatives remain isolated. The
+original dd16/17 failure is retained; corrected c161 passed17/17 but gained
+only6.59%, **MISS25%**, and actual whole5000-row membership admission still
+failed its unchanged8P resource ceiling. The positive toy does not prove
+production whole-chunk adoption. These are **not part of runtime37c6** or
+accepted optimizations. No proposed/measured experiment is silently counted.
 
 ## Measurements versus behavior versus source inspection
 
@@ -96,7 +147,10 @@ workflow. Native RDS, ordinary Python transport, legacy paths, optional
 registry variants, all scientific methods/backends and large history/overwrite
 paths are not newly measured or universally bounded by these component results.
 
-Current ownership discovery is508 tests/212 files, **discovery only**.
+Current ownership discovery is520 tests/215 files, **discovery only**;
+the four new table definitions and five SQL definitions do not imply runtime
+qualification. The original frozen242/139 inventory and63 reference rows are
+unchanged. Current combined install/qualification and measurements are pending.
 The original full core result remains382 executed/370 passed/3 skipped/9 failed,
 exit1. Later focused groups overlap and are not summed into a new full suite.
 PyBench0ef remains751 passed/7 skips; Python-only formatting passes, while the
