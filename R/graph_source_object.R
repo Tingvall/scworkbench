@@ -324,10 +324,10 @@
     if (kind == "cell_vector_family") ",lineage_id" else "",
     " FROM ", table, " WHERE artifact_id=? ORDER BY payload_ordinal;"),
     params = list(artifact_id))
-  tokens <- function(rows) .wb_object_row_key_tokens(if (kind == "cell_vector")
+  row_keys <- function(rows) if (kind == "cell_vector")
     data.frame(cell_id = rows$cell_id) else
-    data.frame(key = rows$lineage_id, cell_id = rows$cell_id))
-  .wb_graph_require(identical(tokens(df), tokens(keys)), "GRAPH_SOURCE_PAYLOAD_INVALID",
+    data.frame(key = rows$lineage_id, cell_id = rows$cell_id)
+  .wb_graph_require(.wb_object_row_keys_identical(row_keys(df), row_keys(keys)), "GRAPH_SOURCE_PAYLOAD_INVALID",
     "Scientific payload ordinals disagree with the durable row-order descriptor.")
   header <- DBI::dbGetQuery(con,
     "SELECT meta_present,value_type FROM artifact_object_payload_meta WHERE artifact_id=?;",

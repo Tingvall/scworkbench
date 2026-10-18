@@ -6,9 +6,11 @@
   restore <- .wb_graph_aggregate_connection_budget(list(con), budgets)
   observer <- NULL; windows <- NULL; ready <- FALSE
   close <- function() {
+    # Each resource unwinds independently even if an earlier close reports an
+    # error; never strand the caller's cache/policy reservation on that path.
+    on.exit(restore(), add = TRUE)
+    on.exit(if (!is.null(observer)) observer$close(), add = TRUE, after = FALSE)
     if (!is.null(windows) && DBI::dbIsValid(windows)) DBI::dbDisconnect(windows)
-    if (!is.null(observer)) observer$close()
-    restore()
   }
   on.exit(if (!ready) close(), add = TRUE)
   observer <- .wb_matrix_native_byte_observer(con)

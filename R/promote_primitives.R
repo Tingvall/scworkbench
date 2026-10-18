@@ -297,7 +297,19 @@ wb_promote_analysis <- function(bundle,
   if (!is.null(ledger)) .wb_session_validate_payloads(list(
     durable = list(payload_identities = ledger), runs = runs,
     staging_bundle = staging_bundle), run_ids = topo)
-  wb_migrate_artifacts(bundle)
+  # Both production entry points already own the destination writer scope.
+  # Use its private full migration admission without publishing a no-op nested
+  # public migration before the scientific transaction starts.
+  .wb_migrate_artifacts_locked(bundle)
+
+  # One explicit schema admission owns this promotion. Ordinary subwriters
+  # still verify the current ledger/live definitions and FK enforcement, but
+  # do not rerun public migration for every artifact. Never carry this private
+  # admission beyond the current promotion, including failed publication.
+  previous_admission <- bundle$con@ref$wb_promotion_schema_admitted
+  bundle$con@ref$wb_promotion_schema_admitted <- TRUE
+  on.exit(bundle$con@ref$wb_promotion_schema_admitted <- previous_admission,
+    add = TRUE)
 
   available <- unique(unlist(lapply(heads, function(rid) {
     op <- .wb_get_op(runs[[rid]]$op_name)
@@ -629,9 +641,9 @@ wb_promote_analysis <- function(bundle,
   transaction_open <- FALSE
   .wb_promotion_workspace_retire(workspace)
   if (dir.exists(workspace$pending_root)) unlink(workspace$pending_root, recursive = TRUE, force = TRUE)
-  # Publish authoritative current state only after the scientific-state
-  # transaction and payload workspace have both committed.
-  .wb_refresh_manifest_committed(bundle)
+  # The enclosing successful writer scope publishes exactly after both the
+  # scientific-state transaction and payload workspace have committed. Both
+  # production callers own that scope; publication failure propagates there.
 
   list(
     artifact_pool = artifact_pool,
@@ -795,7 +807,7 @@ wb_promote_analysis <- function(bundle,
                                     parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
 
   .wb_assert(prim$kind == "cell_vector", "Expected kind=cell_vector")
   .wb_assert(!is.null(prim$cell_id) && !is.null(prim$value), "cell_vector missing fields")
@@ -860,7 +872,7 @@ wb_promote_analysis <- function(bundle,
                                         parent_artifacts = list(), workspace = NULL,
                                         sealed_content_identity = FALSE) {
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
 
   .wb_assert(prim$kind == "relation_family", "Expected kind=relation_family")
   .wb_assert(!is.null(prim$key) && !is.null(prim$cell_id), "relation_family missing fields")
@@ -921,7 +933,7 @@ wb_promote_analysis <- function(bundle,
                                            parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
 
   .wb_assert(prim$kind == "cell_vector_family", "Expected kind=cell_vector_family")
   .wb_assert(!is.null(prim$key) && !is.null(prim$cell_id) && !is.null(prim$value), "cell_vector_family missing fields")
@@ -988,7 +1000,7 @@ wb_promote_analysis <- function(bundle,
                                        parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
 
   .wb_assert(prim$kind == "path_2d_family", "Expected kind=path_2d_family")
   .wb_assert(!is.null(prim$key) && !is.null(prim$point) && !is.null(prim$x) && !is.null(prim$y),
@@ -1047,7 +1059,7 @@ wb_promote_analysis <- function(bundle,
                                           parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
   .wb_require_pkg("jsonlite", "space_path_family promotion")
 
   .wb_assert(prim$kind == "space_path_family", "Expected kind=space_path_family")
@@ -1117,7 +1129,7 @@ wb_promote_analysis <- function(bundle,
                                      parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
 
   .wb_assert(prim$kind == "space_2d", "Expected kind=space_2d")
   space_id <- prim$space_id
@@ -1164,7 +1176,7 @@ wb_promote_analysis <- function(bundle,
   # contract-note: Python writer fills artifact_model_ref row; file path ownership remains runtime-specific
 
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
 
   .wb_assert(prim$kind == "model_ref", "Expected kind=model_ref")
   space_id <- prim$space_id %||% prim$model_space_id %||% prim$in_space_id
@@ -1357,7 +1369,7 @@ wb_promote_analysis <- function(bundle,
   # pybench-counterpart: pybench.artifacts_payload.write_artifact_table_payload (planned)
   .wb_require_pkg("jsonlite", "tabular artifact promotion")
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_promotion_artifacts_schema(bundle)
 
   artifact_id <- .wb_new_artifact_id(artifact_type, bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
@@ -1408,6 +1420,26 @@ wb_promote_analysis <- function(bundle,
     .wb_db_append_chunked(con, "artifact_table_rows", row_df, chunk_size = 1000L)
   }
   artifact_id
+}
+
+.wb_promotion_artifacts_schema <- function(bundle) {
+  con <- bundle$con
+  if (isTRUE(con@ref$wb_promotion_schema_admitted) &&
+      is.null(con@ref$wb_graph_policy)) {
+    # The ordinary status path rereads the migration ledger and exact relevant
+    # live SQL; TEMP shadows bypass its structural reuse. A changed/invalid
+    # schema therefore cannot inherit promotion's initial successful verdict.
+    status <- .wb_schema_status(con)
+    .wb_assert(identical(status$status, "current"),
+      paste0("BUNDLE_SCHEMA_CORRUPT: promotion schema changed after admission. ",
+        status$message))
+    .wb_sqlite_configure_connection(con, writable = TRUE,
+      configure_journal = FALSE)
+    return(invisible(TRUE))
+  }
+  # Standalone private subwriters and graph-policy execution keep explicit
+  # migration/structural admission. Public migration remains unchanged.
+  wb_migrate_artifacts(bundle)
 }
 
 #' Migrate Artifact Registry Tables

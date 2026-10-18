@@ -165,6 +165,23 @@
   }, character(1))
 }
 
+# This is equality of already loaded ordered scientific keys, not construction
+# of a retained identity. Keep the original typed comparator for nonordinary
+# columns; descriptors still serialize every row with the original function.
+.wb_object_row_keys_identical <- function(left, right) {
+  ordinary <- function(keys) is.data.frame(keys) && nrow(keys) > 0L &&
+    all(vapply(keys, function(column) is.character(column) &&
+      is.null(attributes(column)) && {
+        converted <- tryCatch(iconv(column, from = "", to = "UTF-8", sub = NA_character_),
+          error = function(error) NULL)
+        !is.null(converted) && !any(!is.na(column) & is.na(converted))
+      }, logical(1)))
+  if (ordinary(left) && ordinary(right))
+    return(identical(names(left), names(right)) &&
+      identical(as.list(left), as.list(right)))
+  identical(.wb_object_row_key_tokens(left), .wb_object_row_key_tokens(right))
+}
+
 .wb_object_primitive_payload_descriptor <- function(prim,
     sealed_content_identity = FALSE) {
   kind <- as.character(prim$kind)[1L]
