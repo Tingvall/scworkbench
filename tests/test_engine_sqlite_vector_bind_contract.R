@@ -142,7 +142,8 @@ test_engine_sqlite_vector_bind_resource_and_cleanup_fallback_contract <- functio
   helper <- scworkbench:::.wb_db_append_chunked
   rows <- data.frame(id = rep(1L, 5L), txt = rep(strrep("x", 10000L), 5L),
     num = rep(1.25, 5L), flag = rep(TRUE, 5L))
-  for (guard in list(.001, "unknown", NA_real_, list(256), Inf)) {
+  for (guard in list(.001, "unknown", NA_real_, list(256), Inf,
+      setNames(256, "unknown"), bit64::as.integer64(256))) {
     options_before <- options(scworkbench.max_dense_materialize_mb = guard)
     expected <- .engine_db_bind_case(.engine_db_bind_original, rows)
     spy <- .engine_db_bind_spy()

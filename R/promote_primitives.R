@@ -53,6 +53,7 @@
       identical(class(df), "data.frame") &&
       all(names(attributes(df)) %in% c("names", "row.names", "class")) &&
       is.null(con@ref$wb_graph_policy) && is.numeric(guard) &&
+      !is.object(guard) && is.null(attributes(guard)) &&
       length(guard) == 1L && !is.na(guard) && is.finite(guard) && guard > 0
     if (ordinary) min(32 * 1024^2, guard * 1024^2 / 4) else 0
   }, error = function(e) 0)
