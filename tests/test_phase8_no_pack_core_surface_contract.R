@@ -130,6 +130,7 @@ test_phase8_test_ownership_inventory_contract <- function() {
     all(additions$source_checkpoint_commit == "441297513b9a1b41fae23764c9a85c3b129cf0b7"),
     !anyDuplicated(current$test_identity),
     identical(sort(current$test_identity), sort(discovered)),
+    identical(sort(unique(current$source_path)), files),
     all(nzchar(current$key_assertions)),
     all(current$owner == "core_engine"),
     all(current$disposition == "retain_core"),
