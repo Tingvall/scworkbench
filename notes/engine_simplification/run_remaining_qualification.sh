@@ -71,6 +71,15 @@ for kind in base csc; do
   done
 done
 gate 07a_pager Rscript notes/engine_simplification/profile_graph_pager.R "$library" "$evidence/pager"
+for kind in realistic wide; do
+  gate "07a_space_${kind}_engine" env SCWB_SPACE_SOURCE_ROOT="$core" \
+    SCWB_SPACE_BENCH_CASE="$kind" SCWB_SPACE_BENCH_MODE=engine \
+    Rscript "$task_root/profile_typed_space_final.R" "$library" "$evidence/space-${kind}-engine"
+  gate "07a_space_${kind}_oracle" env SCWB_SPACE_SOURCE_ROOT="$core" \
+    SCWB_SPACE_BENCH_CASE="$kind" SCWB_SPACE_BENCH_MODE=oracle \
+    SCWB_SPACE_BENCH_BUNDLE="$evidence/space-${kind}-engine/bundle" \
+    Rscript "$task_root/profile_typed_space_final.R" "$library" "$evidence/space-${kind}-oracle"
+done
 for kind in graph remaining_families; do
   case "$kind" in graph) script=representative_graph_storage.R;; remaining_families) script=representative_remaining_families.R;; esac
   gate "07a_${kind}_before" Rscript "$task_root/$script" \
@@ -80,9 +89,16 @@ done
 gate 07b_efficient_direct Rscript "$task_root/direct_xenopus_efficient.R" \
   /tmp/scwb-matrix-streaming-forge-20261018/verified-library \
   "$evidence/direct-xenopus-efficient" "$task_root/direct-xenopus-v3"
+gate 07c_transport_matched_direct Rscript "$task_root/direct_xenopus_transport_matched.R" \
+  /tmp/scwb-matrix-streaming-forge-20261018/verified-library \
+  "$evidence/direct-xenopus-transport-matched" "$task_root/direct-xenopus-v3"
+sha256sum "$evidence/direct-xenopus-transport-matched/scientific_reference.rds" \
+  > "$evidence/matched_reference_before_engine.sha256"
+export SCWB_DIRECT_REFERENCE_SHA256
+SCWB_DIRECT_REFERENCE_SHA256=$(cut -d' ' -f1 "$evidence/matched_reference_before_engine.sha256")
 gate 08_xenopus bash -c '
   set -u
-  Rscript notes/engine_simplification/full_engine_xenopus.R "$1" "$2" "$3" "$4" &
+  Rscript notes/engine_simplification/full_engine_xenopus.R "$1" "$2" "$3" "$4" "$6" &
   workflow_pid=$!
   while [[ ! -d "$2" ]] && kill -0 "$workflow_pid" 2>/dev/null; do sleep 0.1; done
   sampler_pid=
@@ -94,8 +110,9 @@ gate 08_xenopus bash -c '
   wait "$workflow_pid"; result=$?
   if [[ -n "$sampler_pid" ]]; then wait "$sampler_pid" || exit 74; fi
   exit "$result"
-' bash "$library" "$evidence/xenopus" "$task_root/direct-xenopus-v3" \
-  /tmp/scwb-matrix-streaming-forge-20261018/verified-library "$evidence/xenopus_resources.csv"
+' bash "$library" "$evidence/xenopus" "$evidence/direct-xenopus-transport-matched" \
+  /tmp/scwb-matrix-streaming-forge-20261018/verified-library "$evidence/xenopus_resources.csv" \
+  "$task_root/direct-xenopus-v3"
 gate 08b_raw_alignment Rscript "$task_root/final_raw_alignment.R" "$library" \
   "$evidence/xenopus/xenopus.bundle" "$evidence/raw_alignment"
 gate 09_install_unchanged sha256sum -c "$evidence/installed_core.sha256"

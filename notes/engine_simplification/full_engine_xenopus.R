@@ -1,12 +1,13 @@
 # Frozen-candidate affected-workflow harness. Root reviews/pins before running.
-# Usage: Rscript THIS.R INSTALLED_CORE_LIBRARY NEW_CHAMBER DIRECT_REFERENCE_ROOT [PACK_LIBRARY]
-args<-commandArgs(TRUE);stopifnot(length(args)%in%c(3L,4L))
-pack_library<-if(length(args)==4L)args[[4L]] else
+# Usage: Rscript THIS.R INSTALLED_CORE_LIBRARY NEW_CHAMBER DIRECT_REFERENCE_ROOT [PACK_LIBRARY [ORIGINAL_REFERENCE_ROOT]]
+args<-commandArgs(TRUE);stopifnot(length(args)%in%c(3L,4L,5L))
+pack_library<-if(length(args)>=4L)args[[4L]] else
   '/tmp/scwb-matrix-streaming-forge-20261018/verified-library'
 .libPaths(c(args[[1]],pack_library,.libPaths()))
 suppressPackageStartupMessages(library(scworkbench))
 `%||%`<-function(x,y)if(is.null(x))y else x
 root<-args[[2]];direct<-args[[3]]
+original_direct<-if(length(args)==5L)args[[5L]] else direct
 stopifnot(!dir.exists(root),file.exists(file.path(direct,'completion.json')))
 dir.create(root,recursive=TRUE)
 writeLines(capture.output(sessionInfo()),file.path(root,'session_info.txt'))
@@ -17,11 +18,22 @@ source_path<-'/home/dirk/Projects/.scworkbench-experiments/rc38_axolotl_definiti
 guard_before<-getOption('scworkbench.max_dense_materialize_mb',256)
 stopifnot(identical(as.numeric(guard_before),256))
 cat('ORDINARY_DENSE_GUARD_MB ',guard_before,'\n',sep='')
-stopifnot(identical(digest::digest(file=file.path(direct,'scientific_reference.rds'),algo='sha256'),
-  'bb8a84d8cd68c494f7735509539d2b5362a2f257f511f05ca3cabdf4874ee5fb'),
+expected_reference_sha<-Sys.getenv('SCWB_DIRECT_REFERENCE_SHA256',
+  'bb8a84d8cd68c494f7735509539d2b5362a2f257f511f05ca3cabdf4874ee5fb')
+stopifnot(grepl('^[a-f0-9]{64}$',expected_reference_sha),
+  identical(digest::digest(file=file.path(direct,'scientific_reference.rds'),algo='sha256'),
+  expected_reference_sha),
   identical(digest::digest(file=file.path(direct,'axes.rds'),algo='sha256'),
     '3eff7c4344afbf4a5f58c7643a167bf454f9160bcad5351945d9aa1d0e398ed5'))
+if(!identical(original_direct,direct)) {
+  direct_record<-jsonlite::read_json(file.path(direct,'completion.json'))
+  stopifnot(identical(direct_record$normalization_transport,
+    'existing_native_matrix_market_15g_roundtrip_v1'),
+    identical(digest::digest(file=file.path(original_direct,'scientific_reference.rds'),algo='sha256'),
+      'bb8a84d8cd68c494f7735509539d2b5362a2f257f511f05ca3cabdf4874ee5fb'))
+}
 reference<-readRDS(file.path(direct,'scientific_reference.rds'))
+original_reference<-readRDS(file.path(original_direct,'scientific_reference.rds'))
 axes<-readRDS(file.path(direct,'axes.rds'));cells<-axes$cells;features<-axes$features
 stopifnot(identical(c(length(features),length(cells)),c(31535L,13199L)))
 rows<-list();census<-new.env(parent=emptyenv());census$counts<-list();census$elapsed<-list()
@@ -147,6 +159,12 @@ measure('scientific_direct_comparison',{
     numeric_equal(as.numeric(tab[[n]]),as.numeric(reference$hvg[[n]]),1e-12,1e-10,paste0('HVG_',n))
   coords<-space_values(view,'rna.pca');expected<-reference$pca$coords
   stopifnot(identical(dimnames(coords),dimnames(expected)))
+  jsonlite::write_json(list(
+    reference_sha256=expected_reference_sha,
+    exact_input=identical(unname(coords[,1:30,drop=FALSE]),unname(expected[,1:30,drop=FALSE])),
+    max_abs_input_difference=max(abs(coords[,1:30,drop=FALSE]-expected[,1:30,drop=FALSE])),
+    interpretation='Actual leading PCA coordinates consumed by each end-to-end UMAP; no conditional rerun substituted'),
+    file.path(root,'umap_input_comparison.json'),auto_unbox=TRUE,pretty=TRUE,digits=NA)
   signs<-sign(colSums(coords*expected));stopifnot(all(signs!=0))
   numeric_equal(sweep(coords,2L,signs,'*'),expected,1e-7,1e-6,'PCA_signed_coordinates')
   loadings<-pca$run$outputs$loadings$table;expected_loadings<-reference$pca$loadings
@@ -166,16 +184,62 @@ measure('scientific_direct_comparison',{
   numeric_equal(coords,reference$umap,1e-6,0,'UMAP_coordinates')
   for(i in seq_len(7L)){
     mat<-BPCells::open_matrix_dir(file.path(direct,paste0('norm_',i)))
+    original_mat<-if(identical(original_direct,direct))mat else
+      BPCells::open_matrix_dir(file.path(original_direct,paste0('norm_',i)))
     ids<-colnames(mat)
     for(part in wb_partition_axis(ids,128L)){
       actual<-as.matrix(wb_slice(view,'RNA_log_norm',features,part))
       expected<-as.matrix(mat[,match(part,colnames(mat)),drop=FALSE])
       stopifnot(identical(dimnames(actual),dimnames(expected)))
       numeric_equal(actual,expected,1e-14,0,paste0('normalization_',i,'_',part[1]))
+      if(!identical(original_direct,direct)) {
+        old_expected<-as.matrix(original_mat[,match(part,colnames(original_mat)),drop=FALSE])
+        stopifnot(identical(dimnames(actual),dimnames(old_expected)))
+        numeric_equal(actual,old_expected,1e-14,0,
+          paste0('original_full_precision_normalization_',i,'_',part[1]))
+      }
     }
   }
   saveRDS(list(signs=signs,staged_hvg=tab,staged_loadings=loadings,staged_variance=variance),
     file.path(root,'scientific_comparison.rds'),compress=FALSE)
+})
+# This supplemental record does not turn an unmatched-input comparison into a
+# passing end-to-end gate. Preserve every original threshold and disclose MISS.
+original_thresholds<-list()
+measure('original_reference_scientific_thresholds',{
+  check_original<-function(label,code){
+    outcome<-tryCatch({force(code);NULL},error=identity)
+    original_thresholds[[length(original_thresholds)+1L]]<<-data.frame(
+      output=label,status=if(inherits(outcome,'error'))'threshold_not_met' else 'passed',
+      message=if(inherits(outcome,'error'))conditionMessage(outcome) else 'Original criteria met')
+    write.csv(do.call(rbind,original_thresholds),file.path(root,'original_reference_thresholds.csv'),row.names=FALSE)
+    invisible(NULL)
+  }
+  check_original('HVG',{
+    got<-hvg$run$outputs$selected_features$table;old<-original_reference$hvg
+    stopifnot(identical(names(got),names(old)))
+    for(n in c('feature_id','rank','selected','method','matrix_id'))stopifnot(identical(got[[n]],old[[n]]))
+    for(n in c('mean','variance','dispersion','score','detected_cells','detected_fraction'))
+      numeric_equal(as.numeric(got[[n]]),as.numeric(old[[n]]),1e-12,1e-10,paste0('original_HVG_',n))
+  })
+  check_original('PCA',{
+    got<-space_values(view,'rna.pca');old<-original_reference$pca
+    stopifnot(identical(dimnames(got),dimnames(old$coords)))
+    old_signs<-sign(colSums(got*old$coords));stopifnot(all(old_signs!=0))
+    numeric_equal(sweep(got,2L,old_signs,'*'),old$coords,1e-7,1e-6,'original_PCA_coordinates')
+    load<-pca$run$outputs$loadings$table
+    for(n in setdiff(names(load),'loading'))stopifnot(identical(load[[n]],old$loadings[[n]]))
+    numeric_equal(as.numeric(load$loading)*old_signs[as.integer(load$component)],
+      as.numeric(old$loadings$loading),1e-7,1e-6,'original_PCA_loadings')
+    variance<-pca$run$outputs$variance$table
+    for(n in c('PC','component','matrix_id','space_id'))stopifnot(identical(variance[[n]],old$variance[[n]]))
+    for(n in c('stdev','variance','variance_explained','cumulative_variance_explained'))
+      numeric_equal(as.numeric(variance[[n]]),as.numeric(old$variance[[n]]),0,1e-8,paste0('original_PCA_',n))
+  })
+  check_original('UMAP_1e-6_absolute',{
+    got<-space_values(view,'rna.umap');stopifnot(identical(dimnames(got),dimnames(original_reference$umap)))
+    numeric_equal(got,original_reference$umap,1e-6,0,'original_UMAP_coordinates')
+  })
 })
 dag<-wb_session_dag(s,bundle=b,include_artifacts=TRUE,include_active=TRUE)
 saveRDS(dag,file.path(root,'session_dag.rds'),compress=FALSE)
@@ -258,6 +322,8 @@ jsonlite::write_json(list(ok=TRUE,recipient_status=report$status,
   source_sha256=source$sha256,source_file_size=file.info(source_path)$size,
   trace_missing=missing,trace_inclusive_times_are_nested=TRUE,
   numerical_criteria='notes/engine_simplification/baselines/BUDGETS.md',
+  original_reference_root=original_direct,
+  original_reference_thresholds_met=all(do.call(rbind,original_thresholds)$status=='passed'),
   direct_reference_sha256=digest::digest(file=file.path(direct,'scientific_reference.rds'),algo='sha256')),
   file.path(root,'completion.json'),auto_unbox=TRUE,pretty=TRUE)
 cat('FULL_XENOPUS_IMPORT_ANALYSIS_PROMOTION_FINALIZE_REOPEN_RECIPIENT_DIRECT_OK\n')
