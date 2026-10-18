@@ -230,9 +230,10 @@
         # fields retain the existing incremental byte-reader path unchanged.
         first_deferred <- any(vapply(seq_len(nrow(fields)), function(j)
           batch[[nrow(fields) + 1L + j]][[i]] %in% c("text_deferred", "blob_deferred"), logical(1)))
+        candidate_limit <- min(512L, budgets$partition_rows, nrow(batch) - i + 1L)
         if (!first_deferred && 4096 + 576 * nrow(fields) +
-          64 * min(64L, budgets$partition_rows) <= 8 * budgets$partition_bytes) {
-          candidate <- seq.int(i, min(nrow(batch), i + min(64L, budgets$partition_rows) - 1L))
+          64 * candidate_limit <= 8 * budgets$partition_bytes) {
+          candidate <- seq.int(i, i + candidate_limit - 1L)
           eligible <- rep(TRUE, length(candidate))
           charge <- rep(key_charge, length(candidate))
           for (j in seq_len(nrow(fields))) {
@@ -241,6 +242,11 @@
             scalar_charge <- if (is.character(rows[[j]])) {
               bytes <- nchar(rows[[j]][candidate], type = "bytes")
               ifelse(is.na(bytes), 4, 6 * bytes + 2)
+            } else if (is.integer(rows[[j]]) && !is.object(rows[[j]]) &&
+                is.null(attributes(rows[[j]]))) {
+              # Ordinary SQLite int32: sign + at most ten decimal digits.
+              # Extended integer64/date/time and doubles keep the old bound.
+              ifelse(is.na(rows[[j]][candidate]), 4, 16)
             } else if (is.list(rows[[j]])) rep(512, length(candidate)) else
               ifelse(is.na(rows[[j]][candidate]), 4, 512)
             charge <- charge + scalar_charge
@@ -249,7 +255,7 @@
           # date/time and small coerced raw-vector representations are charged
           # before serializing. The output/copies fit within the existing
           # eight-partition reservation. No logical hash chunk is changed.
-          admissible <- cumprod(eligible) == 1L & cumsum(charge) <= budgets$partition_bytes / 8
+          admissible <- cumprod(eligible) == 1L & cumsum(charge) <= budgets$partition_bytes / 2
           take <- sum(admissible)
           # Bound the selected dataframe/list/type carriers plus row indices,
           # eligibility/charge vectors and serializer intermediates separately

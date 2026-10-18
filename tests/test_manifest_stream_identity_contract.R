@@ -134,12 +134,14 @@ test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract <- fun
   before <- list(cache = DBI::dbGetQuery(con, "PRAGMA cache_size;")[[1L]][[1L]],
     temp = DBI::dbGetQuery(con, "PRAGMA temp_store;")[[1L]][[1L]],
     policy = con@ref$wb_graph_policy, cap = con@ref$wb_graph_cache_kib)
-  batches <- 0L; max_reserved <- 0
+  batches <- 0L; max_reserved <- 0; max_batch_rows <- 0L
   hook <- options(scworkbench.graph_storage_test_hook = function(event, state) {
     if (event == "manifest_scalar_batch") {
       batches <<- batches + 1L
+      max_batch_rows <<- max(max_batch_rows, state$rows)
       max_reserved <<- max(max_reserved, state$reservation_bytes)
-      stopifnot(state$rows <= 64L, state$budgets$memory_bytes == "8388608",
+      stopifnot(state$rows <= min(512L, state$budgets$partition_rows),
+        state$budgets$memory_bytes == "8388608",
         state$reservation_bytes <= state$decoded_reservation_bytes,
         state$fetched_carrier_bytes + state$budgets$sqlite_cache_kib * 1024 +
           state$decoded_reservation_bytes + 65536 <= as.numeric(state$budgets$memory_bytes),
@@ -159,7 +161,7 @@ test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract <- fun
       temp = DBI::dbGetQuery(con, "PRAGMA temp_store;")[[1L]][[1L]],
       policy = con@ref$wb_graph_policy, cap = con@ref$wb_graph_cache_kib)))
   }
-  stopifnot(batches > 0L)
+  stopifnot(batches > 0L, max_batch_rows > 64L)
   options(scworkbench.graph_storage_test_hook = function(event, state) {
     if (event == "manifest_scalar_batch") stop("BATCH_ACCOUNTING_INJECTED")
   })

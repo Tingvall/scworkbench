@@ -43,6 +43,14 @@ test_engine_manifest_small_chunk_boundaries_contract <- function() {
     stopifnot(identical(.engine_manifest_small_oracle(con, "boundary"),
       scworkbench:::.wb_manifest_table_identity(con, "boundary")))
   }
+  # The tightened plain-int32 token admission covers both signed endpoints and
+  # nulls. Real/extended/mixed columns must retain their independent old route.
+  DBI::dbExecute(con, "DELETE FROM boundary;")
+  DBI::dbAppendTable(con, "boundary", data.frame(
+    id = rep(c(-.Machine$integer.max, .Machine$integer.max, NA_integer_, 0L), 1251L),
+    label = "plain_int32", value = 0))
+  stopifnot(identical(.engine_manifest_small_oracle(con, "boundary"),
+    scworkbench:::.wb_manifest_table_identity(con, "boundary")))
   # Rowid order is signed int64, independent of an ordinary scientific id field.
   DBI::dbExecute(con, "DELETE FROM boundary;")
   DBI::dbExecute(con, "INSERT INTO boundary(rowid,id,label,value) VALUES(-4,1,'negative',1),(9007199254740993,2,'large',2);")
