@@ -169,6 +169,6 @@ test_public_sparse_matrix_large_partial_no_dense_contract <- function() {
   stopifnot(inherits(actual, "sparseMatrix"), identical(dim(actual), c(40000L, 2002L)),
     identical(dimnames(actual), list(features, cells)),
     identical(actual[1, 1], 1), identical(actual[40000, 1001], 2),
-    Matrix::nnzero(actual) == 2L, all(actual[, 1002:2002] == 0))
+    Matrix::nnzero(actual) == 2L, Matrix::nnzero(actual[, 1002:2002]) == 0L)
   TRUE
 }
