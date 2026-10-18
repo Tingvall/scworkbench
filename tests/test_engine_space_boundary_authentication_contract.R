@@ -77,9 +77,15 @@ test_engine_space_boundary_actual_bytes_and_rows_contract <- function() {
 test_engine_space_boundary_connection_and_storage_contract <- function() {
   f<-.engine_space_auth_fixture();b<-f$b
   plan<-scworkbench:::.wb_space_payload_reader(b,"source")
-  other<-wb_open_bundle(f$root,validate=FALSE,read_only=TRUE)
-  on.exit({plan$close();wb_close_bundle(other);wb_close_bundle(b);unlink(f$root,recursive=TRUE)},add=TRUE)
-  stopifnot(inherits(try(plan$authenticate(other),silent=TRUE),"try-error"))
+  other<-NULL
+  on.exit({plan$close();if(!is.null(other)&&DBI::dbIsValid(other))DBI::dbDisconnect(other)
+    wb_close_bundle(b);unlink(f$root,recursive=TRUE)},add=TRUE)
+  # A second connection is a diagnostic substitute, not a second public
+  # recipient open while the rightful bundle writer remains live.
+  databases<-DBI::dbGetQuery(b$con,"PRAGMA database_list;")
+  other<-DBI::dbConnect(RSQLite::SQLite(),databases$file[databases$name=="main"][[1L]])
+  replacement<-b;replacement$con<-other
+  stopifnot(inherits(try(plan$authenticate(replacement),silent=TRUE),"try-error"))
   DBI::dbBegin(b$con);DBI::dbExecute(b$con,"UPDATE spaces SET storage='table'")
   invalid<-try(scworkbench:::.wb_space_payload_reader(b,"source"),silent=TRUE)
   if(!inherits(invalid,"try-error")) invalid$close()
@@ -163,8 +169,10 @@ test_engine_space_boundary_lifecycle_rollback_retry_contract <- function() {
       }
       original(bundle,request)
     })
-    failure<-try(run(),silent=TRUE);replace(original)
-    stopifnot(inherits(failure,"try-error"),grepl("PYBENCH_INPUT_IDENTITY_MISMATCH",as.character(failure)),
+    failure<-tryCatch(run(),error=identity);replace(original)
+    stopifnot(inherits(failure,"wb_operation_pack_v3_error"),
+      identical(as.character(failure$code),"PYBENCH_INPUT_IDENTITY_MISMATCH"),
+      identical(as.character(failure$phase),"audit"),
       calls==failed_boundary,length(initial$runs)==0L,nrow(wb_art_list(b))==0L,
       identical(before,list.files(file.path(b$dir,"operation_pack_v2"),recursive=TRUE,all.files=TRUE)))
   }
