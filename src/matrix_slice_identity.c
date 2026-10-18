@@ -56,6 +56,60 @@ SEXP scwb_canonical_numeric(SEXP value) {
     return Rf_mkString(result);
 }
 
+/* Private bounded batching of the SAME scalar number() tokens. No caller
+ * framing, parsing or identity semantics live here. A NULL result requests
+ * the existing recursive R path, including its original first diagnostic. */
+static int numeric_token_value(SEXP value, R_xlen_t index, double *out) {
+    if (TYPEOF(value) == INTSXP) {
+        int x = INTEGER_ELT(value, index);
+        *out = x == NA_INTEGER ? NA_REAL : (double)x;
+    } else if (TYPEOF(value) == REALSXP) {
+        *out = REAL_ELT(value, index);
+    } else return 0;
+    return ISNAN(*out) || (R_FINITE(*out) &&
+        (*out == 0 || fabs(*out) >= 1e-307));
+}
+
+static int numeric_token_item(SEXP value, R_xlen_t index, double *out) {
+    if (TYPEOF(value) == VECSXP) {
+        SEXP item = VECTOR_ELT(value, index);
+        if ((TYPEOF(item) != INTSXP && TYPEOF(item) != REALSXP) ||
+            OBJECT(item) || ATTRIB(item) != R_NilValue || XLENGTH(item) != 1)
+            return 0;
+        return numeric_token_value(item, 0, out);
+    }
+    return numeric_token_value(value, index, out);
+}
+
+SEXP scwb_canonical_numeric_tokens(SEXP value) {
+    if (OBJECT(value) || ATTRIB(value) != R_NilValue ||
+        (TYPEOF(value) != INTSXP && TYPEOF(value) != REALSXP &&
+         TYPEOF(value) != VECSXP)) return R_NilValue;
+    R_xlen_t n = XLENGTH(value);
+    /* This ceiling also bounds all length/index and 256-byte ledger arithmetic
+     * well below INT_MAX. ELT access never forces whole-vector DATAPTR. */
+    if (n > (R_xlen_t)131072 || n > (R_xlen_t)INT_MAX / 256)
+        return R_NilValue;
+    double x;
+    for (R_xlen_t i = 0; i < n; ++i)
+        if (!numeric_token_item(value, i, &x)) return R_NilValue;
+    SEXP result = PROTECT(Rf_allocVector(STRSXP, n));
+    for (R_xlen_t i = 0; i < n; ++i) {
+        /* Recheck on access as well: an unusual mutable ALTREP carrier cannot
+         * make number() emit a partial invalid block to its caller. */
+        if (!numeric_token_item(value, i, &x)) {
+            UNPROTECT(1); return R_NilValue;
+        }
+        if (ISNAN(x)) SET_STRING_ELT(result, i, Rf_mkChar("null"));
+        else {
+            char token[64]; number(x, token);
+            SET_STRING_ELT(result, i, Rf_mkChar(token));
+        }
+    }
+    UNPROTECT(1);
+    return result;
+}
+
 /* PCRE-produced positions are already sorted. R 4.4 findInterval checks the
  * complete vector on every lookup, defeating pre-indexing of large snapshots. */
 SEXP scwb_json_index_floor(SEXP positions, SEXP value) {

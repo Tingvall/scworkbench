@@ -253,6 +253,8 @@
   fast_numeric <- exists("C_scwb_canonical_numeric", inherits = TRUE) &&
     identical(getOption("OutDec", "."), ".") &&
     identical(Sys.localeconv()[["decimal_point"]], ".")
+  fast_numeric_tokens <- fast_numeric &&
+    exists("C_scwb_canonical_numeric_tokens", inherits = TRUE)
   encode <- function(value) {
     if (is.null(value)) return("null")
     if (is.factor(value)) value <- as.character(value)
@@ -288,9 +290,14 @@
           rows <- rep("", length(selected))
           for (j in seq_along(ord)) {
             column <- value[[ord[[j]]]][selected]
-            tokens <- if (is.character(column))
-              .wb_operation_pack_canonical_string_tokens(column) else
-              vapply(seq_along(column), function(i) encode(column[[i]]), character(1))
+            tokens <- if (is.character(column)) {
+              .wb_operation_pack_canonical_string_tokens(column)
+            } else {
+              batch <- if (fast_numeric_tokens && is.numeric(column))
+                .Call(C_scwb_canonical_numeric_tokens, column) else NULL
+              if (!is.null(batch)) batch else
+                vapply(seq_along(column), function(i) encode(column[[i]]), character(1))
+            }
             rows <- paste0(rows, if (j == 1L) "" else ",", prefixes[[j]], tokens)
           }
           paste(paste0("{", rows, "}"), collapse = ",")
@@ -302,12 +309,20 @@
     if (is.atomic(value) && length(value) != 1L) {
       if (is.character(value) && is.null(attributes(value)))
         return(.wb_operation_pack_canonical_string_array(value))
+      if (fast_numeric_tokens) {
+        batch <- .Call(C_scwb_canonical_numeric_tokens, value)
+        if (!is.null(batch)) return(paste0("[",paste(batch,collapse=","),"]"))
+      }
       return(paste0("[", paste(vapply(seq_along(value), function(i) encode(value[[i]]), character(1)), collapse = ","), "]"))
     }
     if (is.atomic(value) && length(value) == 1L && is.na(value)) return("null")
     if (is.list(value)) {
       nms <- names(value)
       if (is.null(nms)) {
+        if (fast_numeric_tokens) {
+          batch <- .Call(C_scwb_canonical_numeric_tokens, value)
+          if (!is.null(batch)) return(paste0("[",paste(batch,collapse=","),"]"))
+        }
         if (length(value) && all(vapply(value, function(item)
             is.character(item) && length(item) == 1L &&
               is.null(attributes(item)), logical(1))))
