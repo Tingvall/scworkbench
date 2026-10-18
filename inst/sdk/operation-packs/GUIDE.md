@@ -105,7 +105,12 @@ lightweight invalidation signals, never content authority.
 Each issued typed-space plan admits the current schema and migration ledger
 observationally once. Block reads freshly compare the exact registered binding
 and issuing connection, without repeating complete schema admission. A new final
-plan repeats full admission and content authentication. Canonical numeric tokens
+plan repeats full admission and content authentication. At dispatch and publication,
+a current full-byte hash and complete logical/payload registry and ordered-axis
+comparison against private issuance authority prove unchanged selected semantics;
+the same numerical JSON need not be reconstructed again. Each boundary authenticates
+freshly; no prior invocation or recovered request inherits that exemption. Legacy
+and transferred state retain independent semantic checks. Canonical numeric tokens
 may be formatted in bounded native batches; byte rules and identity schemes are
 unchanged, and unsupported carriers retain the existing encoder and diagnostics.
 
