@@ -2,8 +2,29 @@
 # type promotion, logical 5000-row chunks and previous/rows_sha256 framing.
 # Only physical reads and JSON emission change. Large TEXT/BLOB is never fetched
 # through RSQLite or sent to jsonlite as a whole column/cell/chunk.
+.wb_manifest_observation_resources <- function(con, budgets) {
+  restore <- .wb_graph_aggregate_connection_budget(list(con), budgets)
+  observer <- NULL; windows <- NULL; ready <- FALSE
+  close <- function() {
+    if (!is.null(windows) && DBI::dbIsValid(windows)) DBI::dbDisconnect(windows)
+    if (!is.null(observer)) observer$close()
+    restore()
+  }
+  on.exit(if (!ready) close(), add = TRUE)
+  observer <- .wb_matrix_native_byte_observer(con)
+  if (is.null(observer)) return(NULL)
+  database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+  read_path <- database$file[database$name == "main"][[1L]]
+  windows <- DBI::dbConnect(RSQLite::SQLite(), read_path, flags = RSQLite::SQLITE_RO,
+    bigint = con@bigint, extended_types = con@extended_types)
+  DBI::dbExecute(windows, "PRAGMA cache_size=-64;")
+  DBI::dbExecute(windows, "PRAGMA temp_store=FILE;")
+  ready <- TRUE
+  list(observer = observer, windows = windows, close = close)
+}
+
 .wb_manifest_table_identity <- function(con, table, chunk_size = 5000L,
-                                       observer = NULL, budgets = list()) {
+                                       observer = NULL, budgets = list(), windows = NULL) {
   budgets <- .wb_graph_effective_budgets(con, budgets)
   if (RSQLite::sqliteIsTransacting(con) || con@dbname %in% c("", ":memory:")) {
     .wb_graph_require(is.null(con@ref$wb_graph_policy), "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE",
@@ -12,11 +33,11 @@
   }
   owned <- is.null(observer)
   if (owned) {
-    restore <- .wb_graph_aggregate_connection_budget(list(con), budgets)
-    on.exit(restore(), add = TRUE)
-    observer <- .wb_matrix_native_byte_observer(con)
-    if (is.null(observer)) return(.wb_manifest_table_identity_materialized(con, table, chunk_size))
-    on.exit(observer$close(), add = TRUE)
+    resources <- .wb_manifest_observation_resources(con, budgets)
+    if (is.null(resources)) return(.wb_manifest_table_identity_materialized(con, table, chunk_size))
+    on.exit(resources$close(), add = TRUE)
+    observer <- resources$observer
+    windows <- resources$windows
   }
   fields <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", DBI::dbQuoteIdentifier(con, table), ");"))
   # Expressions lose SQLite declared-type metadata. Capture only empty
@@ -34,6 +55,10 @@
     budgets$sqlite_cache_kib * 1024 + 8 * budgets$partition_bytes + 65536 <=
       as.numeric(budgets$memory_bytes), "GRAPH_RESOURCE_EXCEEDED",
     "Manifest projected type carriers exceed working-memory admission.")
+  if (!count) {
+    if (owned) observer$finish()
+    return(list(row_count = 0L, content_sha256 = state))
+  }
   quoted <- as.character(DBI::dbQuoteIdentifier(con, fields$name))
   projected <- vapply(quoted, function(column) paste0("CASE typeof(", column,
     ") WHEN 'text' THEN CASE WHEN octet_length(", column, ")<=256 THEN ", column,
@@ -41,13 +66,15 @@
   types <- paste0("CASE WHEN typeof(", quoted, ")='text' AND octet_length(", quoted,
     ")>256 THEN 'text_deferred' WHEN typeof(", quoted,
     ")='blob' THEN 'blob_deferred' ELSE typeof(", quoted, ") END")
-  database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
-  read_path <- database$file[database$name == "main"][[1L]]
-  windows <- DBI::dbConnect(RSQLite::SQLite(), read_path, flags = RSQLite::SQLITE_RO,
-    bigint = con@bigint, extended_types = con@extended_types)
-  on.exit(DBI::dbDisconnect(windows), add = TRUE)
-  DBI::dbExecute(windows, "PRAGMA cache_size=-64;")
-  DBI::dbExecute(windows, "PRAGMA temp_store=FILE;")
+  if (is.null(windows)) {
+    database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+    read_path <- database$file[database$name == "main"][[1L]]
+    windows <- DBI::dbConnect(RSQLite::SQLite(), read_path, flags = RSQLite::SQLITE_RO,
+      bigint = con@bigint, extended_types = con@extended_types)
+    on.exit(DBI::dbDisconnect(windows), add = TRUE)
+    DBI::dbExecute(windows, "PRAGMA cache_size=-64;")
+    DBI::dbExecute(windows, "PRAGMA temp_store=FILE;")
+  }
   text_charge <- paste(vapply(quoted, function(column) paste0("CASE WHEN typeof(", column,
     ")='text' AND octet_length(", column, ")<=256 THEN octet_length(", column,
     ")+64 ELSE 0 END"), character(1)), collapse = "+")

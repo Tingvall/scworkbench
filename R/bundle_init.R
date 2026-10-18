@@ -428,10 +428,21 @@ wb_refresh_manifest <- function(bundle) {
 }
 
 .wb_manifest_registry_snapshot <- function(con) {
+  # One invocation owns the observation resources. Never retain a registry
+  # fingerprint or a source verdict beyond this snapshot.
+  resources <- NULL
+  if (!RSQLite::sqliteIsTransacting(con) && !con@dbname %in% c("", ":memory:")) {
+    budgets <- .wb_graph_effective_budgets(con, list())
+    resources <- .wb_manifest_observation_resources(con, budgets)
+    if (!is.null(resources)) on.exit(resources$close(), add = TRUE)
+  }
   present <- intersect(.wb_manifest_registry_table_names(), DBI::dbListTables(con))
   tables <- setNames(lapply(present, function(table) {
-    .wb_manifest_table_identity(con, table)
+    if (is.null(resources)) .wb_manifest_table_identity(con, table) else
+      .wb_manifest_table_identity(con, table, observer = resources$observer,
+        budgets = budgets, windows = resources$windows)
   }), present)
+  if (!is.null(resources)) resources$observer$finish()
   list(
     schema = "scworkbench.manifest.registry-state.v1",
     fingerprint = .wb_prov_sha256_object(tables),
