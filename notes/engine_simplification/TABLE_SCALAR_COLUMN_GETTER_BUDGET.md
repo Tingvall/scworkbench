@@ -28,3 +28,18 @@ Other mixed types/reserved names/missing keys/duplicate names retain old behavio
 Source review required before installation/tests/performance. Focused literal
 old-helper differentials, malformedlateJSON/errorprecedence, bounds/fallback,
 complete legacyidentities and publicgetter filesystempurity must precede claims.
+
+Implementation source scope: R/artifacts.R only, plus four focused test
+definitions. No parser, serializer, hash scheme, SQL, storage or validation
+authority changes. No R/jsonlite version-specific allocation optimization:
+ordinary public base dataframe attributes and parsed scalar types are used;
+the unchanged parser still determines integer/double/logical/string carriers.
+The candidate calls make.names only after the complete key-byte envelope is
+admitted, and requires its result to be identical (no repair or reordering).
+Reserved data.frame formal names retain the original as.data.frame.list route.
+The compact row.names representation is the ordinary public dataframe form.
+No source-extent schedule or N*C type matrix is built. A C-length kind vector
+and a single current output column are working carriers; completed columns
+are the existing materialized return payload. This is not a bounded-output
+API or a universal process-RSS claim; matched RSS remains an independent gate.
+The original whole-row parser and its precedence over assembly errors remain.

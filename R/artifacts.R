@@ -60,6 +60,60 @@ wb_art_list <- function(bundle, type = NULL, include_history = FALSE) {
   list(sql = clauses, params = params)
 }
 
+.wb_art_table_scalar_columns <- function(rr) tryCatch(withCallingHandlers({
+  n <- length(rr)
+  if (!n || !is.list(rr[[1L]]) || is.object(rr[[1L]])) return(NULL)
+  keys <- names(rr[[1L]]); width <- length(keys)
+  guard <- getOption("scworkbench.max_dense_materialize_mb", 256)
+  if (is.object(guard) || !is.null(attributes(guard)) || !is.numeric(guard) ||
+      length(guard) != 1L || is.na(guard) || !is.finite(guard) || guard <= 0) return(NULL)
+  allowance <- min(32 * 1024^2, guard * 1024^2 / 4)
+  carrier <- 64 * n + 1024 * width + 65536
+  if (!width || !is.finite(carrier) || carrier > allowance) return(NULL)
+  key_bytes <- sum(nchar(keys, type = "bytes"))
+  if (!is.finite(key_bytes) || carrier + 8 * key_bytes > allowance) return(NULL)
+  # Name repair may allocate strings: admit their byte envelope first. Keep
+  # base's repaired/reserved/duplicate-name behavior on the original route.
+  if (anyNA(keys) || any(!nzchar(keys)) || anyDuplicated(keys) ||
+      !identical(keys, make.names(keys, unique = TRUE)) ||
+      any(keys %in% names(formals(data.frame))[-1L])) return(NULL)
+  kinds <- rep.int("", width)
+  for (i in seq_len(n)) {
+    row <- rr[[i]]
+    if (!is.list(row) || is.object(row) ||
+        any(!names(attributes(row)) %in% "names") ||
+        !identical(names(row), keys)) return(NULL)
+    for (j in seq_len(width)) {
+      value <- row[[j]]
+      if (length(value) != 1L || is.object(value) || !is.null(attributes(value)) ||
+          !typeof(value) %in% c("integer", "double", "logical", "character")) return(NULL)
+      if (is.logical(value) && is.na(value)) next
+      kind <- typeof(value)
+      if (!nzchar(kinds[[j]])) kinds[[j]] <- kind else if (kinds[[j]] != kind) {
+        if (all(c(kinds[[j]], kind) %in% c("integer", "double")))
+          kinds[[j]] <- "double" else return(NULL)
+      }
+    }
+  }
+  rm(row, value)
+  out <- vector("list", width)
+  for (j in seq_len(width)) {
+    kind <- kinds[[j]]
+    column <- switch(kind, integer = rep.int(NA_integer_, n),
+      double = rep.int(NA_real_, n), character = rep.int(NA_character_, n),
+      rep.int(NA, n))
+    for (i in seq_len(n)) {
+      value <- rr[[i]][[j]]
+      if (!(is.logical(value) && is.na(value))) column[[i]] <- value
+    }
+    out[[j]] <- column
+    rm(column, value)
+  }
+  structure(out, names = keys, row.names = c(NA_integer_, -as.integer(n)),
+    class = "data.frame")
+}, warning = function(w) stop("Ordinary table assembly fallback.", call. = FALSE)),
+  error = function(e) NULL)
+
 .wb_art_table_rows_to_df <- function(rows) {
   if (!is.data.frame(rows) || !nrow(rows)) {
     return(data.frame(stringsAsFactors = FALSE))
@@ -74,6 +128,8 @@ wb_art_list <- function(bundle, type = NULL, include_history = FALSE) {
     }
     x
   })
+  assembled <- .wb_art_table_scalar_columns(rr)
+  if (!is.null(assembled)) return(assembled)
   rr <- lapply(rr, as.data.frame, stringsAsFactors = FALSE)
   out <- do.call(rbind, rr)
   rownames(out) <- NULL
