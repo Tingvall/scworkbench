@@ -160,7 +160,7 @@
   before_recipient <- .engine_registry_runner_inventory(bundle)
   loaded <- wb_art_load(bundle, artifact, expected_kind = "cell_vector_family")
   retained_reads <- wb_operation_pack_transition_registry_reads(bundle, transition)
-  report <- wb_validate_bundle(bundle, level = "recipient")
+  report <- wb_bundle_validation_report(root, level = "recipient")
   stopifnot(identical(loaded$value, retry$run$outputs$scores$value),
     identical(retained_reads, staged_reads), isTRUE(report$ok),
     identical(before_recipient, .engine_registry_runner_inventory(bundle)))
