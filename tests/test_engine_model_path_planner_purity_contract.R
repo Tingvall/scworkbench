@@ -36,13 +36,16 @@
       original(...)
     })
   })
-  before <- .engine_model_planner_files(b$dir)
+  # Establish the SQL observer first: its initial WAL read can move SQLite's
+  # shared-memory read marker without any scientific or registry mutation.
+  # Keep both complete inventories strict; do not exclude the SHM file.
   sql_before <- DBI::dbGetQuery(b$con,
     "SELECT total_changes() AS changes, (SELECT * FROM pragma_data_version) AS version")
+  before <- .engine_model_planner_files(b$dir)
   result <- tryCatch(force(expression), error = identity)
-  after <- .engine_model_planner_files(b$dir)
   sql_after <- DBI::dbGetQuery(b$con,
     "SELECT total_changes() AS changes, (SELECT * FROM pragma_data_version) AS version")
+  after <- .engine_model_planner_files(b$dir)
   stopifnot(identical(before, after), identical(sql_before, sql_after), all(counts == 0L))
   result
 }
