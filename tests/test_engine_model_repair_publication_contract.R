@@ -29,6 +29,29 @@ test_engine_model_repair_transaction_rollback_contract <- function() {
   f <- .engine_model_repair_fixture()
   on.exit(if (DBI::dbIsValid(f$b$con)) wb_close_bundle(f$b), add = TRUE)
   before <- .engine_model_repair_state(f$b)
+  ns <- asNamespace("scworkbench")
+  original <- get(".wb_repair_model_ref_paths_locked", ns)
+  partial <- original
+  environment(partial) <- list2env(list(file.copy = function(from, to, ...) {
+    writeBin(as.raw(c(1, 2, 3)), to)
+    FALSE
+  }), parent = environment(original))
+  restore <- function() {
+    unlockBinding(".wb_repair_model_ref_paths_locked", ns)
+    assign(".wb_repair_model_ref_paths_locked", original, ns)
+    lockBinding(".wb_repair_model_ref_paths_locked", ns)
+  }
+  on.exit(restore(), add = TRUE, after = FALSE)
+  unlockBinding(".wb_repair_model_ref_paths_locked", ns)
+  assign(".wb_repair_model_ref_paths_locked", partial, ns)
+  lockBinding(".wb_repair_model_ref_paths_locked", ns)
+  partial_error <- tryCatch(wb_repair_model_ref_paths(f$b, dry_run = FALSE,
+    import_external = TRUE), error = identity)
+  restore()
+  stopifnot(inherits(partial_error, "error"),
+    grepl("Failed to copy legacy external model", conditionMessage(partial_error)),
+    !file.exists(f$target), identical(before, .engine_model_repair_state(f$b)),
+    identical(digest::digest(file = f$source, algo = "sha256"), f$sha))
   DBI::dbExecute(f$b$con, paste("CREATE TRIGGER reject_repair BEFORE UPDATE ON space_models",
     "BEGIN SELECT RAISE(ABORT,'repair transaction fault'); END"))
   error <- tryCatch(wb_repair_model_ref_paths(f$b, dry_run = FALSE,

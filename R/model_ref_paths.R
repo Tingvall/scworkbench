@@ -361,9 +361,11 @@ wb_repair_model_ref_paths <- function(bundle, dry_run = TRUE, import_external = 
                                             purpose = "imported model destination")
           .wb_assert(!file.exists(target) && !dir.exists(target), paste0("Imported model destination already exists: ", new))
           dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
+          # The destination was absent and is ours even if file.copy creates
+          # only a partial payload before returning FALSE or signalling error.
+          created_targets <- c(created_targets, target)
           copied <- isTRUE(file.copy(old, target, recursive = dir.exists(old), copy.mode = TRUE))
           .wb_assert(copied, paste0("Failed to copy legacy external model into bundle: ", old))
-          created_targets <- c(created_targets, target)
           imported_status <- if (dir.exists(target)) {
             .wb_path_tree_status(bundle$dir,new,purpose="imported legacy model tree")
           } else .wb_path_status(bundle$dir,new,expected_type="file",must_exist=TRUE,purpose="imported legacy model")
