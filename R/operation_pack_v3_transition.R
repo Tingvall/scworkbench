@@ -622,19 +622,8 @@
 
 .wb_operation_pack_v3_matrix_slice_content <- function(values, features,
                                                          cells) {
-  dense <- as.matrix(values)
-  indices <- which(dense != 0, arr.ind = TRUE)
-  if (length(indices)) indices <- indices[order(indices[, 2L],
-    indices[, 1L]), , drop = FALSE]
-  entries <- lapply(seq_len(nrow(indices)), function(i) list(
-    row = as.integer(indices[i, 1L]), column = as.integer(indices[i, 2L]),
-    value = unname(dense[indices[i, 1L], indices[i, 2L]])))
-  value <- list(schema = "scworkbench.operation_pack.matrix_slice.content.v1",
-    kind = "matrix", dimensions = list(as.integer(length(features)),
-      as.integer(length(cells))), feature_id = unname(as.list(features)),
-    cell_id = unname(as.list(cells)), entries = entries)
-  .wb_operation_pack_v2_identity_plain(
-    "scworkbench.operation_pack.matrix_slice.content.v1", value)
+  .wb_operation_pack_matrix_stream_identity(features, cells,
+    function(columns) values[, columns, drop = FALSE], 128L)
 }
 
 .wb_operation_pack_v3_private_source_validate <- function(stage, grant) {
@@ -3498,10 +3487,22 @@
   base$readers <- c(base$readers, lineage_readers)
   slice_values <- attr(request, "operation_pack_v3_typed_slice_values") %||%
     list()
+  state$matrix_reader_plans <- list()
+  base$close_matrix_readers <- function() {
+    for (plan in state$matrix_reader_plans) plan$close()
+    invisible(TRUE)
+  }
   typed_slice_readers <- stats::setNames(lapply(
     request$typed_slice_grants %||% list(), function(grant) {
       name <- as.character(grant$name)[1]
       force(name); force(grant)
+      # Trusted in-process R: full byte authentication remains at dispatch and
+      # publication. Between chunks inspect registry/file evidence, not all
+      # matrix bytes. Python's supervised broker retains its existing policy.
+      source_check <- if (!is.null(bundle) && identical(
+          grant$source_reference$source_kind, "bundle_matrix"))
+        .wb_operation_pack_matrix_light_guard(bundle,
+          grant$source_reference$matrix_id) else NULL
       function(features = NULL, cells = NULL) {
       if (isTRUE(state$used)) .wb_operation_pack_v3_error(
         "PYBENCH_CAPABILITY_MISMATCH",
@@ -3572,13 +3573,15 @@
         if (is.null(bundle)) .wb_operation_pack_v3_error(
           "PYBENCH_INPUT_IDENTITY_MISMATCH",
           "Typed-slice bundle source has no core binding.", "execution")
-        .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle,
-          grant, "execution")
-        value <- as.matrix(wb_slice(bundle,
-          matrix_id = grant$source_reference$matrix_id,
-          features = features, cells = cells))
-        .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle,
-          grant, "execution")
+        source_check()
+        plan <- state$matrix_reader_plans[[name]]
+        if (is.null(plan)) {
+          plan <- .wb_matrix_stream_reader(bundle,
+            grant$source_reference$matrix_id, grant$chunk_axis)
+          state$matrix_reader_plans[[name]] <- plan
+        }
+        value <- as.matrix(plan$read(features, cells))
+        source_check()
         value
       } else input$values[match(features, as.character(input$feature_id)),
         match(cells, as.character(input$cell_id)), drop = FALSE]

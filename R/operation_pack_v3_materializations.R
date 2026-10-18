@@ -268,9 +268,11 @@
       .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
         "Source matrix fragments do not form the authenticated typed-slice cell axis.",
         "resolution")
-    payload <- .wb_operation_pack_v3_matrix_slice_content(
-      wb_slice(bundle, matrix_id = matrix_id, features = features,
-        cells = fragment_cells), features, fragment_cells)
+    payload <- .wb_operation_pack_matrix_stream_identity(features,
+      fragment_cells, function(columns) wb_slice(bundle,
+        matrix_id = matrix_id, features = features,
+        cells = fragment_cells[columns]),
+      min(as.integer(typed_grant$requested_chunk_size), 128L))
     tuple <- list(fragment_id = as.character(fragments$fragment_id[[i]]),
       path = as.character(fragments$path[[i]]),
       source = as.character(fragments$source[[i]]),

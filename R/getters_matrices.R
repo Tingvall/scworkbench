@@ -132,6 +132,14 @@ wb_matrix_read_features <- function(bundle,
     abs_path <- .wb_bundle_path_require(bundle, row$path[1], expected_type = "directory",
                                         purpose = paste0("matrix fragment ", row$fragment_id[1]))
     mat <- .wb_bp_open_matrix_dir(abs_path)
+    if (length(rownames(mat))) {
+      rix <- match(feats_keep, as.character(rownames(mat)))
+      .wb_assert(!anyNA(rix), "Physical fragment feature identities differ from registered coverage.")
+    }
+    if (length(colnames(mat))) {
+      cix <- match(cells_keep, as.character(colnames(mat)))
+      .wb_assert(!anyNA(cix), "Physical fragment cell identities differ from registered coverage.")
+    }
 
     # Slice
     block <- mat[rix, cix, drop = FALSE]
@@ -158,4 +166,66 @@ wb_matrix_read_features <- function(bundle,
   }
 
   out
+}
+
+# Core-owned, invocation-local physical read plan. Pack callbacks never receive
+# it or its paths. A feature-partitioned scan gets one row-major scratch index
+# rather than decoding the complete column-major source for every partition.
+# This is a disposable equivalent representation, not a new logical fragment.
+.wb_matrix_stream_reader <- function(bundle, matrix_id, chunk_axis) {
+  fragments <- wb_matrix_fragments(bundle, matrix_id)
+  root <- tempfile("scwb_matrix_reader_")
+  dir.create(root)
+  ready <- FALSE
+  on.exit(if (!ready) unlink(root, recursive = TRUE), add = TRUE)
+  matrices <- lapply(seq_len(nrow(fragments)), function(i) {
+    matrix <- .wb_bp_open_matrix_dir(.wb_bundle_path_require(bundle,
+      fragments$path[[i]], expected_type = "directory", purpose = "matrix reader"))
+    features <- as.character(jsonlite::fromJSON(fragments$feature_ids_json[[i]]))
+    cells <- as.character(jsonlite::fromJSON(fragments$cell_ids_json[[i]]))
+    .wb_assert(identical(as.integer(dim(matrix)),
+      as.integer(c(length(features), length(cells)))),
+      "Physical fragment dimensions differ from its registered axes.")
+    if (length(rownames(matrix))) {
+      physical <- as.character(rownames(matrix))
+      .wb_assert(!anyDuplicated(physical) && setequal(physical, features),
+        "Physical fragment feature identities differ from registered coverage.")
+      features <- physical
+    }
+    if (length(colnames(matrix))) {
+      physical <- as.character(colnames(matrix))
+      .wb_assert(!anyDuplicated(physical) && setequal(physical, cells),
+        "Physical fragment cell identities differ from registered coverage.")
+      cells <- physical
+    }
+    if (identical(chunk_axis, "features") &&
+        identical(BPCells::storage_order(matrix), "col"))
+      matrix <- BPCells::transpose_storage_order(matrix,
+        outdir = file.path(root, paste0("fragment_", i)), tmpdir = root,
+        load_bytes = 4194304L, sort_bytes = 67108864L)
+    list(matrix = matrix, features = features, cells = cells)
+  })
+  read <- function(features, cells) {
+    out <- NULL
+    for (source in matrices) {
+      ri <- match(features, source$features)
+      ci <- match(cells, source$cells)
+      rr <- which(!is.na(ri)); cc <- which(!is.na(ci))
+      if (!length(rr) || !length(cc)) next
+      block <- .wb_as_sparse(source$matrix[ri[rr], ci[cc], drop = FALSE])
+      if (length(rr) == length(features) && length(cc) == length(cells)) {
+        dimnames(block) <- list(features, cells)
+        return(block)
+      }
+      if (is.null(out)) out <- Matrix::sparseMatrix(i = integer(),
+        j = integer(), x = numeric(), dims = c(length(features), length(cells)),
+        dimnames = list(features, cells))
+      out[rr, cc] <- block
+    }
+    if (is.null(out)) out <- Matrix::sparseMatrix(i = integer(), j = integer(), x = numeric(),
+      dims = c(length(features), length(cells)), dimnames = list(features, cells))
+    out
+  }
+  ready <- TRUE
+  list(read = read, close = function() unlink(root, recursive = TRUE), root = root)
 }

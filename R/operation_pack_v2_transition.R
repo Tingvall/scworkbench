@@ -1537,6 +1537,7 @@
       .wb_operation_pack_v2_capability_adapter(request, operation, inputs,
         stage, bundle = bundle, registry_read_values = attr(request,
           "operation_pack_v2_registry_read_values") %||% list())
+    if (abi_v3) on.exit(adapter$close_matrix_readers(), add = TRUE)
     if (abi_v4) adapter <- .wb_operation_pack_v4_graph_adapter(adapter, request, bundle, stage)
     if (abi_v4) on.exit(adapter$consume(), add = TRUE, after = FALSE)
     runner <- registration$runners[[op_name]]

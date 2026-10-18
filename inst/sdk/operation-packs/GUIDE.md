@@ -51,6 +51,25 @@ from admitted params. `wb_operation_pack_map_partitions` only delegates
 `wb_partition_axis` and the issued reader; it supplies no new reader authority.
 Never reslice storage using SQL or paths; never construct receipt hashes.
 
+### Trusted in-process R matrix streaming
+
+Matrix callbacks retain bounded selections and exact partition/coverage checks.
+Core prepares physical readers once per invocation; feature-partitioned scans
+may build one disposable row-major BPCells index, removed on success or failure.
+This does not add a logical source fragment or change scientific parameters.
+Matrix-slice content identities stream the existing canonical JSON v1 bytes;
+they do not allocate a dense complete fragment or one R list per nonzero.
+
+For trusted in-process R packs, complete source bytes are authenticated during
+request preparation, before dispatch and before publication. Between chunks,
+core checks source registry and file inventory/size/timestamps/resolved paths,
+not repeated whole-file hashes. An enduring source change rejects and rolls
+back publication. A transient in-process mutation restored before final
+authentication is **not guaranteed to be detected**. This approved trust model
+is not a sandbox against malicious R code or concurrent host writers. Python's
+supervised broker retains its existing per-read authentication policy. Alignment,
+source provenance, receipt verification and atomic publication remain enforced.
+
 Declare required outputs, allocation keys, dimension policies and complete
 promotion closures. Writer calls use fixed methods plus declared output names,
 and return opaque acknowledgments, not receipts. Finish all handles and reads
