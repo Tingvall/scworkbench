@@ -253,7 +253,13 @@ wb_repair_model_ref_paths <- function(bundle, dry_run = TRUE, import_external = 
   .wb_assert(!is.null(con), "wb_repair_model_ref_paths(): bundle$con is NULL.")
   if (!isTRUE(dry_run)) .wb_assert(!RSQLite::sqliteIsTransacting(con),
     "Model reference repair requires committed SQLite state, not a caller-owned transaction.")
-  wb_migrate_artifacts(bundle)
+  if (isTRUE(dry_run)) {
+    .wb_assert_observational_schema(bundle,
+      c("artifact_model_ref", "artifact_umap_model", "space_models"),
+      action = "model reference repair planning")
+  } else {
+    wb_migrate_artifacts(bundle)
+  }
 
   rows <- list()
   if (.wb_table_exists(con,"artifact_model_ref")) {
