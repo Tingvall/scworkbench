@@ -6,6 +6,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Do not force deferred string carriers while deciding whether a whole batch
+ * can be observed before its ordered state fold. */
+SEXP scwb_table_row_hash_eligible(SEXP value) {
+    if (TYPEOF(value) != STRSXP || OBJECT(value) || ATTRIB(value) != R_NilValue ||
+        ALTREP(value)) return Rf_ScalarLogical(0);
+    R_xlen_t n = XLENGTH(value);
+    if (n < 1 || n > 1000) return Rf_ScalarLogical(0);
+    for (R_xlen_t i = 0; i < n; ++i)
+        if (STRING_ELT(value, i) == NA_STRING) return Rf_ScalarLogical(0);
+    return Rf_ScalarLogical(1);
+}
+
 /* Canonical JSON v1's 15-significant-digit scientific representation, using
  * the same %.15g conversion as formatC(digits=15, format="g"). No R object
  * per coordinate and no whole-matrix representation are constructed. */

@@ -44,8 +44,31 @@
   first <- strsplit(template, previous, fixed = TRUE)[[1L]]
   rest <- strsplit(first[[2L]], row, fixed = TRUE)[[1L]]
   function(row_json) {
-    for (text in row_json) {
-      sha <- digest::digest(text, algo = "sha256", serialize = FALSE)
+    # Compute only independent row digests in one bounded call. The predicate
+    # rejects deferred/unsupported carriers BEFORE any element preflight, so an
+    # ineligible input still reaches the untouched ordered loop/error boundary.
+    hashes <- tryCatch({
+      if (!isTRUE(.Call("scwb_table_row_hash_eligible", row_json,
+          PACKAGE = "scworkbench"))) NULL else {
+        limit <- as.numeric(getOption("scworkbench.max_dense_materialize_mb", 256)) * 1024^2
+        bytes <- nchar(row_json, type = "bytes")
+        reservation <- sum(bytes) + 256 * length(bytes) + 4096
+        if (length(limit) != 1L || !is.finite(limit) || limit <= 0 ||
+            anyNA(bytes) || !is.finite(reservation) ||
+            reservation > min(32 * 1024^2, limit / 4)) NULL else {
+          value <- unclass(as.character(openssl::sha256(row_json)))
+          if (!is.character(value) || length(value) != length(row_json) ||
+              anyNA(value) || !all(grepl("^[0-9a-f]{64}$", value))) NULL else value
+        }
+      }
+    }, error = function(e) NULL)
+    if (is.null(hashes)) {
+      for (text in row_json) {
+        sha <- digest::digest(text, algo = "sha256", serialize = FALSE)
+        state <<- digest::digest(paste0(first[[1L]], state, rest[[1L]],
+          sha, rest[[2L]]), algo = "sha256", serialize = FALSE)
+      }
+    } else for (sha in hashes) {
       state <<- digest::digest(paste0(first[[1L]], state, rest[[1L]],
         sha, rest[[2L]]), algo = "sha256", serialize = FALSE)
     }
