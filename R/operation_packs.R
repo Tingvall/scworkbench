@@ -302,8 +302,8 @@
       if(!all(vapply(nodes,function(node)is.null(attributes(node))&&!is.object(node)&&length(node)==1L,
           logical(1))))return(NULL)
       types<-vapply(nodes,typeof,character(1))
-      # Integer and double scalars have DISTINCT canonical framing (1 vs1e0).
-      # Never let unlist coerce a heterogeneous numeric leaf column.
+      # Keep exact ordinary scalar carrier types; do not implicitly broaden
+      # eligibility through unlist's integer-to-double coercion.
       if(!all(types==plan$type))return(NULL)
       column<-unlist(nodes,recursive=FALSE,use.names=FALSE)
       if(plan$kind=="numeric") {

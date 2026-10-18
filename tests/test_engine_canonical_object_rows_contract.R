@@ -49,7 +49,7 @@ test_engine_canonical_object_rows_complete_fallback_contract <- function() {
   rows<-.engine_object_rows_fixture(3L);rows[[1L]]$score<-Inf
   names(rows[[3L]])[2L]<-names(rows[[3L]])[1L]
   stopifnot(is.null(fast(rows,TRUE)),.engine_object_rows_compare(rows))
-  # Integer versus double cannot be coerced by a column gather: 1 != 1e0.
+  # Mixed scalar carrier types conservatively keep the original encoder.
   rows<-list(list(value=1L),list(value=1))
   stopifnot(is.null(fast(rows,TRUE)),.engine_object_rows_compare(rows))
   invalid_utf8<-rawToChar(as.raw(c(0xc3,0x28)));Encoding(invalid_utf8)<-"UTF-8"
