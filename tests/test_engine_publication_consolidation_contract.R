@@ -151,3 +151,24 @@ test_engine_target_reproduction_single_publication_contract <- function() {
     published == 1L, nrow(replay$verification) == 1L)
   TRUE
 }
+
+test_engine_publication_witness_source_forget_contract <- function() {
+  root <- tempfile("scwb_publication_forget_")
+  b <- wb_init_bundle(root)
+  on.exit({if (DBI::dbIsValid(b$con)) wb_close_bundle(b)
+    unlink(root, recursive = TRUE, force = TRUE)}, add = TRUE)
+  wb_refresh_manifest(b)
+  stopifnot(scworkbench:::.wb_manifest_publication_reusable(b))
+  scworkbench:::.wb_session_source_forget(b$con)
+  stopifnot(is.null(b$con@ref$wb_manifest_publication_witness),
+    !scworkbench:::.wb_manifest_publication_reusable(b))
+  count <- 0L
+  old <- options(scworkbench.manifest_test_hook = function(event, ...) {
+    if (event == "published") count <<- count + 1L
+  })
+  on.exit(options(old), add = TRUE)
+  scworkbench:::.wb_with_bundle_writer_lock(b, operation = "forgotten publication",
+    code = TRUE)
+  stopifnot(count == 1L, scworkbench:::.wb_manifest_publication_reusable(b))
+  TRUE
+}
