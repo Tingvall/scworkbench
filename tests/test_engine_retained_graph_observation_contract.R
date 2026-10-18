@@ -49,7 +49,7 @@ test_engine_retained_graph_warm_actual_and_fresh_claims_contract <- function() {
   source <- scworkbench:::.wb_graph_sources_assert
   restore <- .engine_retained_graph_replace(".wb_graph_sources_assert",
     function(...) stop("fresh association fault"))
-  on.exit(restore(), add = TRUE)
+  on.exit(restore(), add = TRUE, after = FALSE)
   stopifnot(identical(wb_art_graph_info(f$b, f$id)$source_authority$status,
     "unverified"), spy$state$actual == 1L)
   TRUE
@@ -64,7 +64,8 @@ test_engine_retained_graph_mutation_transaction_and_certificate_contract <- func
   wb_art_graph_info(f$b, f$id)
   stopifnot(spy$state$actual == 2L)
   DBI::dbBegin(f$b$con)
-  on.exit(if (RSQLite::sqliteIsTransacting(f$b$con)) DBI::dbRollback(f$b$con), add = TRUE)
+  on.exit(if (DBI::dbIsValid(f$b$con) && RSQLite::sqliteIsTransacting(f$b$con))
+    DBI::dbRollback(f$b$con), add = TRUE, after = FALSE)
   DBI::dbExecute(f$b$con, "SAVEPOINT observation_owner")
   wb_art_graph_info(f$b, f$id)
   stopifnot(spy$state$actual == 3L,
@@ -86,7 +87,7 @@ test_engine_retained_graph_mutation_transaction_and_certificate_contract <- func
   restore <- .engine_retained_graph_replace(".wb_graph_certificate_scan",
     function(con, artifact_id, callback, ...) certificate(con, artifact_id,
       function(row) { row$content_sha256 <- "different_independent_claim"; callback(row) }, ...))
-  on.exit(restore(), add = TRUE)
+  on.exit(restore(), add = TRUE, after = FALSE)
   failure <- tryCatch(wb_art_graph_info(f$b, f$id), error = identity)
   stopifnot(inherits(failure, "wb_graph_error"),
     identical(failure$code, "GRAPH_CONTENT_IDENTITY_MISMATCH"),
@@ -142,7 +143,7 @@ test_engine_retained_graph_private_budgets_and_compact_cap_contract <- function(
   restore <- .engine_retained_graph_replace(".wb_graph_sql_identities", function(...) {
     value <- actual(...); value$observation_test_padding <- strrep("x", 65536L); value
   })
-  on.exit(restore(), add = TRUE)
+  on.exit(restore(), add = TRUE, after = FALSE)
   wb_art_graph_info(f$b, f$id); wb_art_graph_info(f$b, f$id)
   stopifnot(spy$state$actual == 6L, is.null(f$b$con@ref$wb_graph_retained_observation))
   TRUE
@@ -163,7 +164,7 @@ test_engine_retained_graph_post_claim_epoch_full_retry_contract <- function() {
     }
     value
   })
-  on.exit(restore(), add = TRUE)
+  on.exit(restore(), add = TRUE, after = FALSE)
   got <- wb_art_graph_info(f$b, f$id)
   stopifnot(fired, identical(got$content_identity, expected), spy$state$actual == 2L,
     spy$state$certificates == 3L, !is.null(f$b$con@ref$wb_graph_retained_observation))
