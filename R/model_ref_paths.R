@@ -251,6 +251,8 @@ wb_repair_model_ref_paths <- function(bundle, dry_run = TRUE, import_external = 
                                                import_external = FALSE) {
   con <- bundle$con
   .wb_assert(!is.null(con), "wb_repair_model_ref_paths(): bundle$con is NULL.")
+  if (!isTRUE(dry_run)) .wb_assert(!RSQLite::sqliteIsTransacting(con),
+    "Model reference repair requires committed SQLite state, not a caller-owned transaction.")
   wb_migrate_artifacts(bundle)
 
   rows <- list()
@@ -392,9 +394,11 @@ wb_repair_model_ref_paths <- function(bundle, dry_run = TRUE, import_external = 
           .wb_record_declared_ingestion(bundle, transaction_name="import_legacy_model_ref", source="legacy_external_model", additional_outputs=list(imported_model=prim), transaction_open=TRUE, source_identity=list(source_type="legacy_external_model", inputs=list(list(path=old, role="model_payload", format=as.character(row$model_type[1] %||% row$engine[1]), checksum=.wb_prov_path_identity(old)$content_sha256, checksum_algorithm="sha256", bundled=FALSE))))
         }
       }
-      wb_refresh_manifest(bundle)
     })
+    # A successful transaction transfers copied-payload ownership to committed
+    # registry/provenance state. Publication failure must not delete those bytes.
     publication_complete <- TRUE
+    wb_refresh_manifest(bundle)
   }
 
   out
