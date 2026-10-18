@@ -51,6 +51,10 @@ test_engine_table_scalar_columns_types_order_and_positive_contract <- function()
   rr <- list(list(x = 1L, y = NA_real_), list(x = 1.25, y = NA))
   stopifnot(identical(scworkbench:::.wb_art_table_scalar_columns(rr),
     data.frame(x = c(1, 1.25), y = c(NA_real_, NA_real_))))
+  boundaries <- c('{"x":-0.0,"y":1.7976931348623157e308}',
+    '{"x":0.0,"y":-1.7976931348623157e308}', '{"x":1e-300,"y":null}')
+  stopifnot(identical(.engine_table_columns_observe(actual, boundaries),
+    .engine_table_columns_observe(.engine_table_columns_old, boundaries)))
   TRUE
 }
 
@@ -62,6 +66,7 @@ test_engine_table_scalar_columns_fallback_and_error_precedence_contract <- funct
     c('{"a":1,"a":2}', '{"a":3,"a":4}'),
     c('{"a b":1,"row.names":2}', '{"a b":3,"row.names":4}'),
     c('{"stringsAsFactors":1}', '{"stringsAsFactors":2}'),
+    c('{"...":1,"check.names":2}', '{"...":3,"check.names":4}'),
     c('{"a":true}', '{"a":2}'), c('{"a":"1"}', '{"a":2}'),
     c('{"a":[]}', '{"a":1}'), c('{"a":[]}', '{broken'),
     c('{"a":null,"a":1}', '{"a":2,"a":null}'))
@@ -106,7 +111,8 @@ test_engine_table_scalar_columns_public_identity_and_purity_contract <- function
   root <- tempfile("table_scalar_columns_"); b <- wb_init_bundle(root)
   on.exit(wb_close_bundle(b), add = TRUE)
   table <- data.frame(feature_id = c("f_2", "f_10", "f_1"),
-    score = c(.2, NA_real_, .8), label = c("雪", "", "quote\"\\\n"))
+    score = c(-0, NA_real_, .8), ordinal = c(NA_integer_, 2L, 1L),
+    empty = rep(NA_real_, 3L), label = c("雪", "", "quote\"\\\n"))
   prim <- wb_prim_feature_table(table, table_type = "generic", meta = list(label = "retained"))
   run <- wb_new_run("metadata_cell_vector", outputs = list(vector = prim),
     notes = "Synthetic table storage fixture; no scientific method execution.")
@@ -131,10 +137,19 @@ test_engine_table_scalar_columns_public_identity_and_purity_contract <- function
   unlockBinding(".wb_art_table_rows_to_df", ns)
   assign(".wb_art_table_rows_to_df", .engine_table_columns_old, ns)
   lockBinding(".wb_art_table_rows_to_df", ns)
-  expected <- wb_art_load(b, id); restore()
+  expected <- wb_art_load(b, id)
+  # Capture BOTH legacy identities while the literal OLD normalizer is active,
+  # including typed NA normalization and the original presentation metadata.
+  legacy_payload <- scworkbench:::.wb_prov_table_payload(expected)
+  legacy_original_payload <- scworkbench:::.wb_prov_table_payload(prim)
+  legacy_content <- scworkbench:::.wb_prov_table_content_sha256(expected)
+  legacy_original_content <- scworkbench:::.wb_prov_table_content_sha256(prim)
+  restore()
   stopifnot(identical(actual, expected), identical(actual$table, table),
-    identical(scworkbench:::.wb_prov_table_payload(actual), scworkbench:::.wb_prov_table_payload(expected)),
-    identical(scworkbench:::.wb_prov_table_content_sha256(actual),
-      scworkbench:::.wb_prov_table_content_sha256(expected)), identical(before, fingerprint()))
+    identical(scworkbench:::.wb_prov_table_payload(actual), legacy_payload),
+    identical(scworkbench:::.wb_prov_table_payload(prim), legacy_original_payload),
+    identical(scworkbench:::.wb_prov_table_content_sha256(actual), legacy_content),
+    identical(scworkbench:::.wb_prov_table_content_sha256(prim), legacy_original_content),
+    identical(before, fingerprint()))
   TRUE
 }
