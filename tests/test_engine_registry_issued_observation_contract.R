@@ -72,6 +72,10 @@ test_engine_registry_issued_fresh_reads_and_recovery_contract <- function() {
 
 test_engine_registry_issued_changes_reject_and_retry_contract <- function() {
   f <- .engine_registry_issued_fixture(); on.exit(.engine_registry_issued_close(f), add = TRUE)
+  counts <- function() c(runs = DBI::dbGetQuery(f$bundle$con,
+    "SELECT COUNT(*) n FROM prov_runs;")$n, artifacts = DBI::dbGetQuery(f$bundle$con,
+    "SELECT COUNT(*) n FROM artifacts;")$n)
+  inherited <- counts()
   reject <- function(request = f$request, operation = f$operation) {
     error <- tryCatch(.engine_registry_issued_check(f, request, operation), error = identity)
     stopifnot(inherits(error, "wb_operation_pack_error"),
@@ -105,8 +109,7 @@ test_engine_registry_issued_changes_reject_and_retry_contract <- function() {
   changed$registry_reads[[1L]]$descriptor$source_identity <- ids$source
   reject(changed)
   stopifnot(isTRUE(.engine_registry_issued_check(f)),
-    DBI::dbGetQuery(f$bundle$con, "SELECT COUNT(*) n FROM prov_runs;")$n == 0L,
-    DBI::dbGetQuery(f$bundle$con, "SELECT COUNT(*) n FROM artifacts;")$n == 0L)
+    identical(counts(), inherited))
   TRUE
 }
 
