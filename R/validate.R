@@ -248,7 +248,40 @@ wb_bundle_validation_report <- function(bundle_dir,
   }
   if (has_level("recipient")) emit_progress("start","recipient_fingerprint_before")
 
-  fingerprint <- function() {
+  file_observations <- list()
+  remember_file <- function(path, sha256, bytes) tryCatch({
+    # Initial actual observations only. Size chooses which work fits the cap;
+    # it is NEVER content authority or a substitute for the final full SHA.
+    key <- normalizePath(path, winslash = "/", mustWork = TRUE)
+    if (nchar(key, type = "bytes") > 32768) return(invisible(NULL))
+    entry <- list(sha256 = sha256, bytes = as.numeric(bytes))
+    entry_bytes <- as.numeric(utils::object.size(stats::setNames(list(entry), key)))
+    if (entry_bytes > 65536 || !is.finite(bytes)) return(invisible(NULL))
+    candidate <- file_observations
+    candidate[[key]] <- NULL
+    while (length(candidate) &&
+        as.numeric(utils::object.size(candidate)) + entry_bytes > 65536) {
+      smallest <- order(vapply(candidate, `[[`, numeric(1), "bytes"), names(candidate))[[1L]]
+      if (candidate[[smallest]]$bytes > bytes) return(invisible(NULL))
+      candidate[[smallest]] <- NULL
+    }
+    candidate[[key]] <- entry
+    file_observations <<- candidate
+    invisible(NULL)
+  }, error = function(e) invisible(NULL))
+  claim_file_sha256 <- if (identical(level, "recipient")) function(path) {
+    relative <- path
+    if (.wb_path_is_absolute(path)) {
+      .wb_assert(.wb_path_inside(path, root), paste0("Contained validation file required: ", path))
+      relative <- substring(path, nchar(root) + 2L)
+    }
+    checked <- .wb_validation_path(root, relative, "file")
+    .wb_assert(isTRUE(checked$ok), paste0("Contained validation file required: ", path))
+    key <- normalizePath(checked$absolute, winslash = "/", mustWork = TRUE)
+    observed <- file_observations[[key]]
+    if (!is.null(observed)) observed$sha256 else .wb_prov_sha256_file(checked$absolute)
+  } else NULL
+  fingerprint <- function(remember = FALSE) {
     if (!dir.exists(root)) return(NA_character_)
     files <- sort(as.character(fs::dir_ls(root, recurse = TRUE, type = "file", all = TRUE, follow = FALSE)))
     safe <- vapply(files, function(path) {
@@ -257,13 +290,20 @@ wb_bundle_validation_report <- function(bundle_dir,
     }, logical(1))
     files <- files[safe]
     info <- file.info(files)
+    i <- 0L
+    actual <- vapply(files, function(path) {
+      i <<- i + 1L
+      sha256 <- .wb_prov_sha256_file(path)
+      if (remember) remember_file(path, sha256, info$size[[i]])
+      sha256
+    }, character(1))
     .wb_prov_sha256_object(list(
       paths = substring(files, nchar(root) + 2L),
       size = as.numeric(info$size), mode = as.character(info$mode),
-      sha256 = vapply(files,.wb_prov_sha256_file,character(1))
+      sha256 = actual
     ))
   }
-  before_fingerprint <- if (has_level("recipient")) fingerprint() else NA_character_
+  before_fingerprint <- if (has_level("recipient")) fingerprint(remember = TRUE) else NA_character_
   if (has_level("recipient")) emit_progress("complete","recipient_fingerprint_before")
   manifest <- NULL
   con <- NULL
@@ -1168,9 +1208,9 @@ wb_bundle_validation_report <- function(bundle_dir,
           actual_identity <- tryCatch({
             atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(aid))$type[1]
             if (as.character(atype) %in% c("feature_table","obs_table")) stored_table_actual_identity(aid) else if (as.character(atype) == "model_ref") {
-              mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(aid)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
+              mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(aid)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute,.file_sha256=claim_file_sha256) else NULL
             } else {
-              prim <- wb_art_load(bundle, aid); .wb_prov_payload_identity(bundle, prim)
+              prim <- wb_art_load(bundle, aid); .wb_prov_payload_identity(bundle, prim,.file_sha256=claim_file_sha256)
             }
           }, error = function(e) NULL)
           if (!is.null(actual_identity)) {
@@ -1206,11 +1246,11 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (present && .wb_validation_nonempty(recorded_hash) && grepl("^[A-Fa-f0-9]{64}$", recorded_hash)) {
             actual_identity <- tryCatch({
               if (kind == "matrix") {
-                .wb_prov_payload_identity(bundle, wb_prim_matrix(id))
+                .wb_prov_payload_identity(bundle, wb_prim_matrix(id),.file_sha256=claim_file_sha256)
               } else if (kind == "space") {
                 sr <- DBI::dbGetQuery(con, "SELECT dims FROM spaces WHERE space_id=?;", params=list(id))
                 prims <- if (nrow(sr) && identical(as.integer(sr$dims[1]), 2L)) list(wb_prim_space(id), wb_prim_space_2d(id)) else list(wb_prim_space(id))
-                identities <- lapply(prims, function(prim) .wb_prov_payload_identity(bundle, prim))
+                identities <- lapply(prims, function(prim) .wb_prov_payload_identity(bundle, prim,.file_sha256=claim_file_sha256))
                 hashes <- vapply(identities, function(x) as.character(x$content_sha256), character(1))
                 hit <- which(tolower(hashes) == tolower(recorded_hash))
                 identities[[if(length(hit)) hit[1] else 1L]]
@@ -1224,12 +1264,12 @@ wb_bundle_validation_report <- function(bundle_dir,
                   candidate <- .wb_validation_model_payload_path(con, id)
                 if (!.wb_validation_nonempty(candidate)) candidate <- bound_path
                 checked <- if (.wb_path_is_absolute(candidate)) list(ok=FALSE,absolute=NA_character_) else .wb_validation_path(root, candidate, "either")
-                if (isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
+                if (isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute,.file_sha256=claim_file_sha256) else NULL
               } else if (kind == "artifact") {
                 atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]
                 if (as.character(atype) %in% c("feature_table","obs_table")) stored_table_actual_identity(id) else if (as.character(atype) == "model_ref") {
-                  mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
-                } else .wb_prov_payload_identity(bundle,wb_art_load(bundle,id))
+                  mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute,.file_sha256=claim_file_sha256) else NULL
+                } else .wb_prov_payload_identity(bundle,wb_art_load(bundle,id),.file_sha256=claim_file_sha256)
               } else if (kind %in% c("cell_set","feature_set")) {
                 list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]]))
               } else if (kind == "external_source") {
@@ -1284,7 +1324,7 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (isTRUE(checked$ok) && "content_sha256" %in% names(mats)) {
             sha <- as.character(mats$content_sha256[i] %||% "")[1]
             if (.wb_validation_nonempty(sha)) {
-              actual_identity <- .wb_prov_path_identity(checked$absolute)
+              actual_identity <- .wb_prov_path_identity(checked$absolute,.file_sha256=claim_file_sha256)
               scheme <- if ("content_identity_scheme" %in% names(mats)) mats$content_identity_scheme[i] else NA_character_
               scheme_state <- identity_scheme_state(scheme,actual_identity$content_identity_scheme,"materialization",id,"prov_materializations")
               actual <- actual_identity$content_sha256
@@ -1356,7 +1396,7 @@ wb_bundle_validation_report <- function(bundle_dir,
           source_status <- "structurally_checked_only"; actual_scheme <- NA_character_; recorded_scheme <- if(valid_sha) unname(.wb_content_identity_schemes()[["raw_file"]]) else NA_character_
           checked_source <- if (bundled) .wb_validation_path(root, raw, "file") else NULL
           if (bundled && !isTRUE(checked_source$ok)) add(if(identical(checked_source$code,"PAYLOAD_MISSING")) "BUNDLED_SOURCE_MISSING" else checked_source$code, check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = "contained bundled source file", observed = checked_source$observed, message = "A bundled source path is unavailable or outside the bundle.")
-          else if (bundled && isTRUE(checked_source$ok) && valid_sha) { actual <- .wb_prov_sha256_file(checked_source$absolute); actual_scheme <- unname(.wb_content_identity_schemes()[["raw_file"]]); source_status <- if(identical(tolower(actual),tolower(sha))) "content_verified" else "content_mismatch"; if (!identical(tolower(actual),tolower(sha))) add("SOURCE_CHECKSUM_MISMATCH", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = sha, observed = actual, message = "Bundled immutable source does not match its recorded checksum.") }
+          else if (bundled && isTRUE(checked_source$ok) && valid_sha) { actual <- if(is.null(claim_file_sha256)) .wb_prov_sha256_file(checked_source$absolute) else claim_file_sha256(checked_source$absolute); actual_scheme <- unname(.wb_content_identity_schemes()[["raw_file"]]); source_status <- if(identical(tolower(actual),tolower(sha))) "content_verified" else "content_mismatch"; if (!identical(tolower(actual),tolower(sha))) add("SOURCE_CHECKSUM_MISMATCH", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = sha, observed = actual, message = "Bundled immutable source does not match its recorded checksum.") }
           else if (!bundled && scope %in% c("public_file","external_file","legacy_external")) { source_status <- "external_uninspected"; add("EXTERNAL_SOURCE_UNVERIFIABLE", severity = "warning", check_class = "source_inputs", entity_kind = entity_kind, entity_id = id, path = raw, observed = "external path deliberately not accessed", message = "External source is outside the recipient trust boundary and was not inspected.") }
           else if (identical(scope,"in_memory")) source_status <- "nonportable_in_memory_boundary"
           add_source_coverage(id,recorded_scheme,actual_scheme,source_status)
@@ -1503,10 +1543,10 @@ wb_bundle_validation_report <- function(bundle_dir,
         }
         actual_rows <- function(kind,id) {
           identities <- tryCatch({
-            if(kind=="matrix") list(.wb_prov_payload_identity(bundle,wb_prim_matrix(id)))
-            else if(kind=="space") { sr<-DBI::dbGetQuery(con,"SELECT dims FROM spaces WHERE space_id=?;",params=list(id)); if(nrow(sr)&&identical(as.integer(sr$dims[1]),2L)) list(.wb_prov_payload_identity(bundle,wb_prim_space(id)),.wb_prov_payload_identity(bundle,wb_prim_space_2d(id))) else list(.wb_prov_payload_identity(bundle,wb_prim_space(id))) }
-            else if(kind=="model") { model_path<-.wb_validation_model_payload_path(con,id); if(nzchar(model_path)){ checked<-.wb_validation_path(root,model_path,"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list() }
-            else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(stored_table_actual_identity(id)) else if(as.character(at)=="model_ref") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked<-if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
+            if(kind=="matrix") list(.wb_prov_payload_identity(bundle,wb_prim_matrix(id),.file_sha256=claim_file_sha256))
+            else if(kind=="space") { sr<-DBI::dbGetQuery(con,"SELECT dims FROM spaces WHERE space_id=?;",params=list(id)); if(nrow(sr)&&identical(as.integer(sr$dims[1]),2L)) list(.wb_prov_payload_identity(bundle,wb_prim_space(id),.file_sha256=claim_file_sha256),.wb_prov_payload_identity(bundle,wb_prim_space_2d(id),.file_sha256=claim_file_sha256)) else list(.wb_prov_payload_identity(bundle,wb_prim_space(id),.file_sha256=claim_file_sha256)) }
+            else if(kind=="model") { model_path<-.wb_validation_model_payload_path(con,id); if(nzchar(model_path)){ checked<-.wb_validation_path(root,model_path,"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute,.file_sha256=claim_file_sha256)) else list() } else list() }
+            else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(stored_table_actual_identity(id)) else if(as.character(at)=="model_ref") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked<-if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute,.file_sha256=claim_file_sha256)) else list() } else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id),.file_sha256=claim_file_sha256)) }
             else if(kind%in%c("cell_set","feature_set")) list(list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]])))
             else if(kind=="metadata_field") list(.wb_metadata_field_content_identity(con,id))
             else list()

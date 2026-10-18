@@ -385,9 +385,9 @@
   )
 }
 
-.wb_prov_path_identity <- function(path) {
+.wb_prov_path_identity <- function(path, .file_sha256 = NULL) {
   list(
-    content_sha256 = .wb_prov_file_tree_sha256(path),
+    content_sha256 = .wb_prov_file_tree_sha256(path, .file_sha256 = .file_sha256),
     content_identity_scheme = if (dir.exists(path)) {
       unname(.wb_content_identity_schemes()[["file_tree"]])
     } else {
@@ -557,9 +557,10 @@
   ), call. = FALSE)
 }
 
-.wb_prov_file_tree_sha256 <- function(root) {
+.wb_prov_file_tree_sha256 <- function(root, .file_sha256 = NULL) {
+  file_sha256 <- .file_sha256 %||% .wb_prov_sha256_file
   .wb_assert(file.exists(root), paste0("Missing payload path for SHA-256: ", root))
-  if (!dir.exists(root)) return(.wb_prov_sha256_file(root))
+  if (!dir.exists(root)) return(file_sha256(root))
   root_abs <- normalizePath(root, winslash="/", mustWork=TRUE)
   entries <- sort(as.character(fs::dir_ls(root_abs, recurse=TRUE, type="any", all=TRUE, follow=FALSE)))
   resolved <- vapply(entries, normalizePath, character(1), winslash="/", mustWork=TRUE)
@@ -567,12 +568,12 @@
              "PATH_SYMLINK_ESCAPE: payload tree contains an entry resolving outside its durable root.")
   files <- entries[!dir.exists(entries)]
   .wb_prov_sha256_object(lapply(files, function(f) list(
-    path = substring(f, nchar(root_abs) + 2L), sha256 = .wb_prov_sha256_file(f)
+    path = substring(f, nchar(root_abs) + 2L), sha256 = file_sha256(f)
   )))
 }
 
 .wb_prov_payload_identity <- function(bundle, prim, workspace = NULL, staging_bundle = NULL,
-                                      graph_budgets = list()) {
+                                      graph_budgets = list(), .file_sha256 = NULL) {
   structural <- .wb_prov_structural_fingerprint(prim)
   if (!.wb_is_primitive(prim)) return(list(structural_fingerprint = structural, content_sha256 = NA_character_, content_identity_scheme = NA_character_, verification_level = "structural", verification_status = "unavailable"))
   kind <- as.character(prim$kind)[1]
@@ -612,7 +613,7 @@
         )
         list(
           fragment = as.list(frags[i, logical_columns, drop = FALSE]),
-          payload_sha256 = .wb_prov_file_tree_sha256(abs)
+          payload_sha256 = .wb_prov_file_tree_sha256(abs, .file_sha256 = .file_sha256)
         )
       })
       return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(kind = kind, matrix_id = prim$matrix_id, fragments = rows)), content_identity_scheme = unname(.wb_content_identity_schemes()[["matrix"]]), verification_level = "content", verification_status = "content_verified"))
@@ -651,7 +652,7 @@
       abs <- .wb_prov_resolve_payload_location(bundle, rel, workspace = workspace, staging_bundle = staging_bundle, kind = "model reference", id = as.character(prim$model_space_id %||% "")[1])
       # Model payload integrity is the raw file/tree byte identity. Replay
       # equivalence is deliberately recorded and evaluated separately.
-      path_identity <- .wb_prov_path_identity(abs)
+      path_identity <- .wb_prov_path_identity(abs, .file_sha256 = .file_sha256)
       return(list(structural_fingerprint = structural, content_sha256 = path_identity$content_sha256, content_identity_scheme = path_identity$content_identity_scheme, verification_level = "content", verification_status = "content_verified"))
     }
   }
