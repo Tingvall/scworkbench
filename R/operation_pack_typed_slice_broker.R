@@ -118,6 +118,8 @@
   budget <- new.env(parent = emptyenv())
   limit <- as.numeric(getOption("scworkbench.max_dense_materialize_mb", 256)) * 1024^2
   if (is.null(policy) && !is.null(bundle$con)) policy <- bundle$con@ref$wb_graph_policy
+  if (!is.null(policy) && !is.null(bundle$con))
+    policy <- .wb_graph_effective_budgets(bundle$con, policy)
   if (!is.null(policy)) limit <- min(limit, as.numeric(policy$memory_bytes) -
     as.numeric(policy$sqlite_cache_kib) * 1024 -
     8 * as.numeric(policy$partition_bytes) - 65536 -

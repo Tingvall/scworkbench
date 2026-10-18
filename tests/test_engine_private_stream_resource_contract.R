@@ -48,6 +48,28 @@
 .engine_private_roots <- function() sort(list.files(tempdir(),
   '^scwb_broker_projection_', full.names = TRUE))
 
+test_engine_private_active_policy_intersection_contract <- function() {
+  .engine_private_support(); fixture <- .engine_broker_fixture()
+  on.exit(.engine_broker_close(fixture), add = TRUE)
+  con <- fixture$staged$bundle$con
+  before <- con@ref$wb_graph_policy
+  on.exit(con@ref$wb_graph_policy <- before, add = TRUE)
+  declared <- scworkbench:::.wb_graph_budgets()
+  active <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "33554432",
+    token_bytes = "134217728"))
+  con@ref$wb_graph_policy <- active
+  budget <- .engine_private_get('.wb_operation_pack_v3_broker_projection_budget')(
+    fixture$staged$bundle, declared)
+  stopifnot(identical(budget$policy$memory_bytes, active$memory_bytes),
+    identical(budget$policy$token_bytes, active$token_bytes),
+    budget$memory < as.numeric(active$memory_bytes),
+    identical(con@ref$wb_graph_policy, active))
+  implicit <- .engine_private_get('.wb_operation_pack_v3_broker_projection_budget')(fixture$staged$bundle)
+  stopifnot(identical(implicit$memory, budget$memory),
+    identical(implicit$policy, budget$policy))
+  TRUE
+}
+
 test_engine_private_forced_spill_no_readmm_constant_auth_contract <- function() {
   .engine_private_support(); fixture <- .engine_broker_fixture()
   on.exit(.engine_broker_close(fixture), add = TRUE)
