@@ -57,3 +57,9 @@ chunk boundaries, extended/classed/raw/encodingfallback, string/wide/tiny/unknow
 budgetfallback, and explicit caller rollback/retry/statementcleanup. They are
 not installed qualification yet. Per-artifact/promotion binding census still
 needed; earlier final242 trace did not instrument this helper or dbBind.
+
+Source-review corrections: guard OBJECT/attributes checked BEFORE any generic
+numeric/finite/operator dispatch; a method-bearing guard fixture asserts no
+methods execute. Constant-state double start/end cursor replaces all-source
+chunk-start schedule. Only current<=1000indices exist; actual endpoint expression
+is tested atINTMAX using compact row-count metadata, without a giant fixture.

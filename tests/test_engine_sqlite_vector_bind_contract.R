@@ -85,6 +85,23 @@ test_engine_sqlite_vector_bind_order_types_and_positive_contract <- function() {
   for (tx in c(FALSE, TRUE)) stopifnot(identical(
     .engine_db_bind_case(.engine_db_bind_original, rows, transaction = tx, chunk = 1L),
     .engine_db_bind_case(helper, rows, transaction = tx, chunk = 10000L)))
+  # Evaluate the actual endpoint expression with metadata-only row cardinality;
+  # no giant data allocation or execution is needed to cover INTMAX arithmetic.
+  endpoint <- NULL
+  visit <- function(x) {
+    if (!is.call(x)) return(invisible(NULL))
+    if (identical(x[[1L]], as.name("<-")) && identical(x[[2L]], as.name("end")))
+      endpoint <<- x[[3L]]
+    if (length(x) > 1L) for (i in seq.int(2L, length(x)))
+      if (!is.symbol(x[[i]]) || nzchar(as.character(x[[i]]))) visit(x[[i]])
+  }
+  visit(body(helper))
+  stopifnot(!is.null(endpoint))
+  metadata <- structure(list(), class = "data.frame",
+    row.names = c(NA_integer_, -.Machine$integer.max))
+  boundary <- eval(endpoint, list(df = metadata, start = .Machine$integer.max - 2L, size = 1000L))
+  stopifnot(identical(boundary, as.double(.Machine$integer.max)),
+    identical(boundary + 1, as.double(.Machine$integer.max) + 1))
   TRUE
 }
 
@@ -152,6 +169,25 @@ test_engine_sqlite_vector_bind_resource_and_cleanup_fallback_contract <- functio
     })
     stopifnot(identical(expected, actual), all(spy$state$lengths == 1L))
   }
+  methods <- paste0(c("is.numeric.", "is.finite.", "Ops."), "engine_memory_guard_probe")
+  had_method <- vapply(methods, exists, logical(1), envir = globalenv(), inherits = FALSE)
+  previous <- lapply(methods, function(name) get0(name, globalenv(), inherits = FALSE))
+  on.exit(for (i in seq_along(methods)) {
+    if (!had_method[[i]]) {
+      if (exists(methods[[i]], globalenv(), inherits = FALSE)) rm(list = methods[[i]], envir = globalenv())
+    } else assign(methods[[i]], previous[[i]], globalenv())
+  }, add = TRUE)
+  called <- FALSE
+  probe <- function(...) {called <<- TRUE; warning("unexpected guard dispatch"); stop("GUARD_METHOD_MUST_NOT_RUN")}
+  for (name in methods) assign(name, probe, globalenv())
+  old_probe_option <- options(scworkbench.max_dense_materialize_mb =
+    structure(256, class = "engine_memory_guard_probe"))
+  spy <- .engine_db_bind_spy()
+  actual <- tryCatch(.engine_db_bind_case(helper, rows), finally = {
+    spy$close(); options(old_probe_option)
+  })
+  stopifnot(!called, all(spy$state$lengths == 1L),
+    identical(actual, .engine_db_bind_case(.engine_db_bind_original, rows)))
   # Admission must consider string bytes as well as row/column cardinality.
   long <- rows; long$txt <- rep(strrep("x", 100000L), 5L)
   old_option <- options(scworkbench.max_dense_materialize_mb = 4)

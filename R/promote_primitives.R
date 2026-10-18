@@ -52,8 +52,8 @@
       identical(as.character(getNamespaceVersion("DBI")), "1.2.3") &&
       identical(class(df), "data.frame") &&
       all(names(attributes(df)) %in% c("names", "row.names", "class")) &&
-      is.null(con@ref$wb_graph_policy) && is.numeric(guard) &&
-      !is.object(guard) && is.null(attributes(guard)) &&
+      is.null(con@ref$wb_graph_policy) && !is.object(guard) &&
+      is.null(attributes(guard)) && is.numeric(guard) &&
       length(guard) == 1L && !is.na(guard) && is.finite(guard) && guard > 0
     if (ordinary) min(32 * 1024^2, guard * 1024^2 / 4) else 0
   }, error = function(e) 0)
@@ -79,14 +79,17 @@
     TRUE
   }, error = function(e) FALSE)
   size <- min(chunk_size, 1000L)
-  for (start in seq.int(1L, nrow(df), by = size)) {
-    indices <- seq.int(start, min(nrow(df), start + size - 1L))
+  start <- 1
+  while (start <= nrow(df)) {
+    end <- min(nrow(df), as.double(start) + size - 1)
+    indices <- seq.int(start, end)
     if (allowance > 0 && batch_ok(indices)) {
       # Do not catch/retry a failed batch: SQLite's actual partial prefix and
       # caller transaction remain authoritative, just as in the original loop.
       DBI::dbBind(stmt, unname(as.list(df[indices, fields, drop = FALSE])))
     } else for (i in indices)
       DBI::dbBind(stmt, unname(as.list(df[i, fields, drop = FALSE])))
+    start <- end + 1
   }
   invisible(TRUE)
 }
