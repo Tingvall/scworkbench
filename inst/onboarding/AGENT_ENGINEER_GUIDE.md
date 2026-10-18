@@ -123,6 +123,24 @@ state unchanged. Host absolute paths are never persisted.
 
 ## Long-running operation safety
 
+Native R packs are trusted scientific software, not hostile-code sandboxes.
+Core authenticates sources at lifecycle boundaries and enforces exact alignment,
+declared reads, complete output closures and atomic scientific publication.
+Ordinary matrix/typed-space blocks do not trigger whole-dataset verification.
+Lightweight intervening file observations cannot prove content identity or
+guarantee detection of a transient mutation restored before final verification.
+Recovery, transferred inputs and explicit deep/recipient validation retain
+independent verification; fresh invocation seals are not recovery authority.
+
+Successful writer scopes publish committed manifest state. An unchanged close
+may reuse only the same live connection/writer ownership, exact SQL/schema epoch
+and exact already-published manifest bytes. Explicit refresh and migration stay
+fresh; SQL writes, reconnects, observation invalidation or manifest changes force
+reconstruction. A manifest publication error is not public success: retain its
+diagnostic and use guarded refresh/recovery rather than assuming committed SQL
+was rolled back. Closing an assembly with an open transaction refuses to publish
+uncommitted state. Read-only inspection does not refresh or migrate the bundle.
+
 `wb_session_run_op()` returns a list containing `session`, `run`, and `result`.
 `run` is a structured `wb_run`, not a `data.frame` or `data.table`: do not
 coerce or serialize it wholesale while a result is still staged. For expensive

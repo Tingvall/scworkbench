@@ -79,13 +79,36 @@ back publication. A transient in-process mutation restored before final
 authentication is **not guaranteed to be detected**. This approved trust model
 is not a sandbox against malicious R code or concurrent host writers. Python's
 non-mixed typed-matrix broker uses the same boundary-authentication model, with
-independent response/acknowledgement validation. Private Matrix Market inputs
-still parse as a whole at startup, then use an aggregate-budgeted cache or owned
-temporary double-valued BPCells spill. Requests mixing graph grants and typed
-matrix reads retain their previous per-read authentication/delivery path; no
-mixed graph/spill peak guarantee or throughput improvement is claimed.
+independent response/acknowledgement validation. Small private Matrix Market
+inputs may use an admitted in-memory cache; larger inputs use bounded BPCells
+import and an owned temporary double-valued spill. Mixed graph/matrix requests
+also prepare scoped readers rather than reauthenticate the complete matrix on
+each block. Existing aggregate graph budgets admit caches, source axes, spills
+and response carriers. These are scoped resource admissions, not an OS-level
+quota or a global combined R/Python peak-RSS guarantee.
 Alignment, source provenance, receipt verification and atomic publication remain
 enforced.
+
+### Native R typed-space streaming
+
+For symbolic registered HDF5 spaces on the native POSIX R path, core issues a
+metadata-only reader plan and reads coordinates in bounded row/dimension tiles.
+The existing generic input identity and selected-space identity are streamed
+with their distinct original canonical preimages; they are not new schemes.
+Ordered cells and dimension labels are retained under aggregate admission.
+HDF5 UTF-8 variable-length axes from Python remain supported, including the
+existing HDF5/R-order portability boundary. Registered producer bytes are
+authenticated before axis decoding; each block checks the source binding and
+independent final authentication remains required. File observations are only
+lightweight invalidation signals, never content authority.
+
+This is not a Python typed-space execution capability: schema parity does not
+supply a Python reader transport. Ordinary full-value readers, caller-provided
+coordinate matrices, legacy storage and non-POSIX compatibility paths retain
+their materialized contracts. Existing native RDS transport can likewise require
+materializing a retained primitive on reopen; a bounded getter does not make RDS
+a streaming format. Plans, scratch files and connection handles are private to
+core and do not enter pack context, primitives, receipts or checkpoints.
 
 Declare required outputs, allocation keys, dimension policies and complete
 promotion closures. Writer calls use fixed methods plus declared output names,
