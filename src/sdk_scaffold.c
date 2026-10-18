@@ -43,6 +43,8 @@ static SEXP scwb_sdk_publish_noreplace(SEXP source, SEXP destination)
 extern SEXP scwb_graph_source_directory(SEXP, SEXP);
 extern SEXP scwb_matrix_slice_append(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP scwb_matrix_market_block(SEXP, SEXP, SEXP, SEXP);
+extern SEXP scwb_matrix_market_sparse(SEXP, SEXP, SEXP, SEXP);
+extern SEXP scwb_matrix_market_projection(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP scwb_canonical_numeric(SEXP);
 extern SEXP scwb_json_index_floor(SEXP, SEXP);
 extern SEXP scwb_graph_file_identity(SEXP);
@@ -65,6 +67,8 @@ extern SEXP scwb_graph_json_close(SEXP);
 static const R_CallMethodDef sdk_calls[] = {
     {"scwb_matrix_slice_append", (DL_FUNC) &scwb_matrix_slice_append, 5},
     {"scwb_matrix_market_block", (DL_FUNC) &scwb_matrix_market_block, 4},
+    {"scwb_matrix_market_sparse", (DL_FUNC) &scwb_matrix_market_sparse, 4},
+    {"scwb_matrix_market_projection", (DL_FUNC) &scwb_matrix_market_projection, 7},
     {"scwb_canonical_numeric", (DL_FUNC) &scwb_canonical_numeric, 1},
     {"scwb_json_index_floor", (DL_FUNC) &scwb_json_index_floor, 2},
     {"scwb_graph_json_open", (DL_FUNC) &scwb_graph_json_open, 1},

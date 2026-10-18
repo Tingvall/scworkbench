@@ -474,6 +474,28 @@
     # their own as.matrix methods are bounded or free of side effects.
     values <- as.matrix(values)
     storage.mode(values) <- "double"
+    if (is.object(values)) {
+      # An exotic as.matrix method can retain custom scalar/subset behavior.
+      # Preserve the historical whole-object encoder for that unsupported case;
+      # changing its dispatch to bounded block subsetting could change values.
+      if (any(!is.finite(values))) .wb_operation_pack_v3_error(
+        "PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-slice Matrix Market values must be finite.", "staging")
+      indices <- which(values != 0, arr.ind = TRUE)
+      if (length(indices)) indices <- indices[order(indices[, 2L], indices[, 1L]), , drop = FALSE]
+      entries <- if (!nrow(indices)) character() else
+        vapply(seq_len(nrow(indices)), function(i) paste(
+          as.integer(indices[i, 1L]), as.integer(indices[i, 2L]),
+          .wb_operation_pack_canonical_number(.wb_operation_pack_number_token(
+            values[indices[i, 1L], indices[i, 2L]]))), character(1))
+      lines <- c("%%MatrixMarket matrix coordinate real general",
+        paste(nrow(values), ncol(values), nrow(indices)), entries)
+      writeBin(charToRaw(paste0(paste(lines, collapse = "\n"), "\n")), temporary)
+      if (!file.rename(temporary, path)) .wb_operation_pack_v3_error(
+        "PYBENCH_CAPABILITY_MISMATCH",
+        "Could not atomically stage a typed-slice private source.", "staging")
+      return(invisible(path))
+    }
   }
   dimensions <- dim(values)
   limit <- as.numeric(getOption("scworkbench.max_dense_materialize_mb", 256)) * 1024^2
@@ -487,19 +509,54 @@
   columns_per_block <- max(1, min(128L, floor(elements / rows_per_block)))
   visit <- function(emit) {
     if (!all(dimensions > 0L)) return(invisible(NULL))
+    if (isS4(values)) {
+      # General CSC slots are already column-major and strictly row-ordered.
+      # Matrix's two-dimensional `[` allocates source-height workspaces even
+      # for tiny slices; never dispatch it or normalize the whole CSC here.
+      pointers <- values@p
+      indices <- values@i
+      payload <- if (methods::is(values, "nMatrix")) NULL else values@x
+      .wb_assert(length(pointers) == dimensions[[2L]] + 1 &&
+        pointers[[1L]] == 0L && pointers[[length(pointers)]] == length(indices) &&
+        (is.null(payload) || length(payload) == length(indices)),
+        "Invalid general CSC Matrix Market source slots.")
+      column <- 1
+      while (column <= dimensions[[2L]]) {
+        first <- as.double(pointers[[column]]) + 1
+        last <- as.double(pointers[[column + 1L]])
+        .wb_assert(!is.na(first) && !is.na(last) && first >= 1 &&
+          last >= first - 1 && last <= length(indices),
+          "Invalid general CSC Matrix Market column pointers.")
+        previous <- -1L
+        while (first <= last) {
+          selected <- seq.int(first, min(last, first + min(8192, elements) - 1))
+          rows <- indices[selected]
+          .wb_assert(!anyNA(rows) && all(rows >= 0L & rows < dimensions[[1L]]) &&
+            rows[[1L]] > previous && !is.unsorted(rows, strictly = TRUE),
+            "Invalid general CSC Matrix Market row order.")
+          previous <- rows[[length(rows)]]
+          block <- matrix(if (is.null(payload)) rep(1, length(selected)) else
+            as.double(payload[selected]), ncol = 1L)
+          emit(block, 0L, column - 1L, rows)
+          first <- first + length(selected)
+        }
+        column <- column + 1L
+      }
+      return(invisible(NULL))
+    }
     for (column in seq.int(1L, dimensions[[2L]], by = columns_per_block)) {
       columns <- seq.int(column, min(dimensions[[2L]], column + columns_per_block - 1L))
       for (row in seq.int(1L, dimensions[[1L]], by = rows_per_block)) {
         rows <- seq.int(row, min(dimensions[[1L]], row + rows_per_block - 1L))
         block <- as.matrix(values[rows, columns, drop = FALSE])
         storage.mode(block) <- "double"
-        emit(block, row - 1L, column - 1L)
+        emit(block, row - 1L, column - 1L, NULL)
       }
     }
   }
   count <- 0
   range_error <- NULL
-  visit(function(block, row, column) {
+  visit(function(block, row, column, indices) {
     observation <- .Call(C_scwb_matrix_market_block, NULL, block, row, column)
     if (!observation[[2L]]) .wb_operation_pack_v3_error(
       "PYBENCH_CAPABILITY_MISMATCH",
@@ -522,15 +579,18 @@
   writeBin(charToRaw(header), temporary)
   native <- identical(getOption("OutDec", "."), ".") &&
     identical(Sys.localeconv()[["decimal_point"]], ".")
-  visit(function(block, row, column) {
-    if (native) .Call(C_scwb_matrix_market_block, temporary, block, row, column)
+  visit(function(block, row, column, indices) {
+    if (native && !is.null(indices))
+      .Call(C_scwb_matrix_market_sparse, temporary, indices, as.double(block), column + 1L)
+    else if (native) .Call(C_scwb_matrix_market_block, temporary, block, row, column)
     else {
       # Locale-sensitive historical diagnostics remain authoritative.
-      indices <- which(block != 0, arr.ind = TRUE)
-      lines <- vapply(seq_len(nrow(indices)), function(i) paste(
-        row + indices[i, 1L], column + indices[i, 2L],
+      coordinates <- which(block != 0, arr.ind = TRUE)
+      lines <- vapply(seq_len(nrow(coordinates)), function(i) paste(
+        if (is.null(indices)) row + coordinates[i, 1L] else indices[[coordinates[i, 1L]]] + 1L,
+        column + coordinates[i, 2L],
         .wb_operation_pack_canonical_number(.wb_operation_pack_number_token(
-          block[indices[i, 1L], indices[i, 2L]]))), character(1))
+          block[coordinates[i, 1L], coordinates[i, 2L]]))), character(1))
       if (length(lines)) {
         con <- file(temporary, "ab")
         tryCatch(writeBin(charToRaw(paste0(paste(lines, collapse = "\n"), "\n")), con),
@@ -550,11 +610,32 @@
   if (is.matrix(values) && !is.object(values) &&
       typeof(values) %in% c("double", "integer", "logical")) return(TRUE)
   if (!isS4(values) || length(class(values)) != 1L) return(FALSE)
-  definition <- methods::getClassDef(as.character(class(values))[[1L]],
+  name <- as.character(class(values))[[1L]]
+  if (!name %in% c("dgCMatrix", "lgCMatrix", "ngCMatrix")) return(FALSE)
+  definition <- methods::getClassDef(name,
     where = asNamespace("Matrix"))
-  !is.null(definition) && identical(definition@package, "Matrix") &&
-    (methods::is(values, "dMatrix") || methods::is(values, "lMatrix") ||
-      methods::is(values, "nMatrix"))
+  !is.null(definition) && identical(definition@package, "Matrix")
+}
+
+.wb_operation_pack_v3_matrix_market_projection <- function(values, rows, columns) {
+  .wb_assert(.wb_operation_pack_v3_matrix_market_standard(values) && isS4(values) &&
+    is.numeric(rows) && is.numeric(columns) &&
+    !anyNA(rows) && !anyNA(columns) && !anyDuplicated(rows) && !anyDuplicated(columns) &&
+    all(rows == floor(rows)) && all(columns == floor(columns)) &&
+    all(rows >= 1 & rows <= nrow(values)) && all(columns >= 1 & columns <= ncol(values)),
+    "Invalid general CSC private projection axes.")
+  order <- order(rows, method = "radix")
+  selected <- .Call(C_scwb_matrix_market_projection, values@p, values@i,
+    if (methods::is(values, "nMatrix")) NULL else values@x,
+    values@Dim, as.integer(rows[order] - 1L), as.integer(order - 1L),
+    as.integer(columns - 1L))
+  fields <- list(Class = as.character(class(values))[[1L]],
+    Dim = as.integer(c(length(rows), length(columns))),
+    Dimnames = list(if (is.null(rownames(values))) NULL else rownames(values)[rows],
+      if (is.null(colnames(values))) NULL else colnames(values)[columns]),
+    p = selected$p, i = selected$i)
+  if (!is.null(selected$x)) fields$x <- selected$x
+  do.call(methods::new, fields)
 }
 
 .wb_operation_pack_v3_typed_slice_grant <- function(bundle, declaration, input,
@@ -623,11 +704,22 @@
     source$matrix_id <- matrix_id
   } else {
     selected <- input
-    selected$values <- input$values[match(features,
-      as.character(input$feature_id)), match(cells,
-      as.character(input$cell_id)), drop = FALSE]
-    if (!.wb_operation_pack_v3_matrix_market_standard(input$values))
-      selected$values <- as.matrix(selected$values)
+    complete <- identical(features, as.character(input$feature_id)) &&
+      identical(cells, as.character(input$cell_id))
+    if (complete && .wb_operation_pack_v3_matrix_market_standard(input$values)) {
+      selected$values <- input$values
+    } else if (isS4(input$values) &&
+        .wb_operation_pack_v3_matrix_market_standard(input$values)) {
+      selected$values <- .wb_operation_pack_v3_matrix_market_projection(input$values,
+        match(features, as.character(input$feature_id)),
+        match(cells, as.character(input$cell_id)))
+    } else {
+      # Base selected objects retain their ordinary matrix contract. Unproved
+      # classes retain one historical selection/coercion, not per-block work.
+      selected$values <- as.matrix(input$values[
+        match(features, as.character(input$feature_id)),
+        match(cells, as.character(input$cell_id)), drop = FALSE])
+    }
     selected$feature_id <- features
     selected$cell_id <- cells
     selected$dimensions <- as.integer(c(length(features), length(cells)))

@@ -163,7 +163,7 @@ SEXP scwb_matrix_slice_append(SEXP path, SEXP rows, SEXP columns, SEXP values, S
 
 typedef struct {
     FILE *file;
-    SEXP values;
+    SEXP values, indices;
     int rows, columns, row_offset, column_offset;
 } market_context;
 
@@ -182,7 +182,9 @@ static SEXP market_body(void *data) {
             if (value == 0) continue;
             char token[64], record[128]; number(value, token);
             int size = snprintf(record, sizeof(record), "%d %d %s\n",
-                row + context->row_offset + 1, column + context->column_offset + 1, token);
+                context->indices == R_NilValue ? row + context->row_offset + 1 :
+                    INTEGER(context->indices)[row] + 1,
+                column + context->column_offset + 1, token);
             if (size < 0 || size >= (int)sizeof(record)) Rf_error("Matrix Market record overflow.");
             if (used + size > sizeof(buffer)) {
                 if (fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix Market write failed.");
@@ -219,8 +221,126 @@ SEXP scwb_matrix_market_block(SEXP path, SEXP values, SEXP row_offset, SEXP colu
     }
     if (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING)
         Rf_error("Invalid Matrix Market path.");
-    market_context context = {NULL, values, INTEGER(dimensions)[0], INTEGER(dimensions)[1], row, column};
+    market_context context = {NULL, values, R_NilValue, INTEGER(dimensions)[0], INTEGER(dimensions)[1], row, column};
     context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
     if (!context.file) Rf_error("Cannot open private Matrix Market stream.");
     return R_UnwindProtect(market_body, &context, market_cleanup, &context, NULL);
+}
+
+SEXP scwb_matrix_market_sparse(SEXP path, SEXP indices, SEXP values, SEXP column) {
+    int current_column = Rf_asInteger(column);
+    if (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING ||
+        TYPEOF(indices) != INTSXP || TYPEOF(values) != REALSXP ||
+        XLENGTH(indices) != XLENGTH(values) || XLENGTH(values) > 8192 ||
+        current_column == NA_INTEGER || current_column < 1)
+        Rf_error("Invalid Matrix Market sparse batch.");
+    for (R_xlen_t i = 0; i < XLENGTH(indices); ++i)
+        if (INTEGER(indices)[i] == NA_INTEGER || INTEGER(indices)[i] < 0 || INTEGER(indices)[i] == INT_MAX)
+            Rf_error("Invalid Matrix Market sparse row.");
+    market_context context = {NULL, values, indices, (int)XLENGTH(values), 1, 0, current_column - 1};
+    context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
+    if (!context.file) Rf_error("Cannot open private Matrix Market stream.");
+    return R_UnwindProtect(market_body, &context, market_cleanup, &context, NULL);
+}
+
+static int projection_row(SEXP sorted, SEXP order, int value) {
+    R_xlen_t left = 0, right = XLENGTH(sorted);
+    while (left < right) {
+        R_xlen_t middle = left + (right - left) / 2;
+        if (INTEGER(sorted)[middle] < value) left = middle + 1; else right = middle;
+    }
+    return left < XLENGTH(sorted) && INTEGER(sorted)[left] == value ? INTEGER(order)[left] : -1;
+}
+
+static void projection_swap(SEXP rows, SEXP values, R_xlen_t left, R_xlen_t right) {
+    int row = INTEGER(rows)[left]; INTEGER(rows)[left] = INTEGER(rows)[right]; INTEGER(rows)[right] = row;
+    if (values == R_NilValue) return;
+    if (TYPEOF(values) == REALSXP) {
+        double value = REAL(values)[left]; REAL(values)[left] = REAL(values)[right]; REAL(values)[right] = value;
+    } else {
+        int value = LOGICAL(values)[left]; LOGICAL(values)[left] = LOGICAL(values)[right]; LOGICAL(values)[right] = value;
+    }
+}
+
+static void projection_sift(SEXP rows, SEXP values, R_xlen_t start, R_xlen_t root, R_xlen_t size) {
+    while (root < size / 2) {
+        R_xlen_t child = root * 2 + 1;
+        if (child + 1 < size && INTEGER(rows)[start + child] < INTEGER(rows)[start + child + 1]) ++child;
+        if (INTEGER(rows)[start + root] >= INTEGER(rows)[start + child]) return;
+        projection_swap(rows, values, start + root, start + child); root = child;
+    }
+}
+
+/* The final selected CSC slots are ordinary selected-object storage. Aside
+ * from them, only selected-axis metadata is retained. No source-height map,
+ * whole dense projection, Matrix subset dispatch or per-column sort carrier. */
+SEXP scwb_matrix_market_projection(SEXP p, SEXP i, SEXP x, SEXP dimensions,
+                                   SEXP sorted, SEXP order, SEXP columns) {
+    if (TYPEOF(p) != INTSXP || TYPEOF(i) != INTSXP || TYPEOF(dimensions) != INTSXP ||
+        XLENGTH(dimensions) != 2 || INTEGER(dimensions)[0] < 0 || INTEGER(dimensions)[1] < 0 ||
+        TYPEOF(sorted) != INTSXP || TYPEOF(order) != INTSXP || TYPEOF(columns) != INTSXP ||
+        XLENGTH(sorted) != XLENGTH(order) || XLENGTH(sorted) > INT_MAX || XLENGTH(columns) >= INT_MAX ||
+        (x != R_NilValue && TYPEOF(x) != REALSXP && TYPEOF(x) != LGLSXP) ||
+        (x != R_NilValue && XLENGTH(x) != XLENGTH(i)) || XLENGTH(i) > INT_MAX ||
+        XLENGTH(p) != (R_xlen_t)INTEGER(dimensions)[1] + 1 ||
+        INTEGER_ELT(p,0) != 0 || INTEGER_ELT(p,XLENGTH(p)-1) != XLENGTH(i))
+        Rf_error("Invalid general CSC projection slots.");
+    unsigned char *seen = (unsigned char *)R_alloc(XLENGTH(sorted), sizeof(unsigned char));
+    if (XLENGTH(sorted)) memset(seen, 0, XLENGTH(sorted));
+    int previous = -1;
+    for (R_xlen_t j = 0; j < XLENGTH(sorted); ++j) {
+        if (INTEGER(sorted)[j] <= previous || INTEGER(sorted)[j] >= INTEGER(dimensions)[0] ||
+            INTEGER(order)[j] < 0 || INTEGER(order)[j] >= XLENGTH(sorted) || seen[INTEGER(order)[j]])
+            Rf_error("Invalid general CSC projection row selection.");
+        previous = INTEGER(sorted)[j];
+        seen[INTEGER(order)[j]] = 1;
+    }
+    SEXP result = PROTECT(Rf_allocVector(VECSXP, 3));
+    SEXP names = PROTECT(Rf_allocVector(STRSXP, 3));
+    SET_STRING_ELT(names,0,Rf_mkChar("p")); SET_STRING_ELT(names,1,Rf_mkChar("i")); SET_STRING_ELT(names,2,Rf_mkChar("x"));
+    Rf_setAttrib(result,R_NamesSymbol,names);
+    SEXP output_p = PROTECT(Rf_allocVector(INTSXP, XLENGTH(columns)+1));
+    SET_VECTOR_ELT(result,0,output_p); INTEGER(output_p)[0] = 0;
+    R_xlen_t count = 0;
+    for (R_xlen_t column = 0; column < XLENGTH(columns); ++column) {
+        int selected = INTEGER(columns)[column];
+        if (selected < 0 || selected >= INTEGER(dimensions)[1]) Rf_error("Invalid general CSC projection column.");
+        int start = INTEGER_ELT(p,selected), end = INTEGER_ELT(p,selected+1);
+        if (start < 0 || end < start || end > XLENGTH(i)) Rf_error("Invalid general CSC projection pointers.");
+        previous = -1;
+        for (R_xlen_t at = start; at < end; ++at) {
+            int row = INTEGER_ELT(i,at);
+            if (row <= previous || row >= INTEGER(dimensions)[0]) Rf_error("Invalid general CSC projection source row.");
+            previous = row;
+            if (projection_row(sorted,order,row) >= 0 && ++count > INT_MAX)
+                Rf_error("General CSC projection exceeds its existing integer slot limit.");
+            if (at % 8192 == 0) R_CheckUserInterrupt();
+        }
+        INTEGER(output_p)[column+1] = (int)count;
+    }
+    SEXP output_i = PROTECT(Rf_allocVector(INTSXP,count)); SET_VECTOR_ELT(result,1,output_i);
+    SEXP output_x = R_NilValue;
+    if (x != R_NilValue) { output_x = PROTECT(Rf_allocVector(TYPEOF(x),count)); SET_VECTOR_ELT(result,2,output_x); }
+    R_xlen_t target = 0;
+    for (R_xlen_t column = 0; column < XLENGTH(columns); ++column) {
+        int selected = INTEGER(columns)[column];
+        for (R_xlen_t at = INTEGER_ELT(p,selected); at < INTEGER_ELT(p,selected+1); ++at) {
+            if (at % 8192 == 0) R_CheckUserInterrupt();
+            int row = projection_row(sorted,order,INTEGER_ELT(i,at));
+            if (row < 0) continue;
+            INTEGER(output_i)[target] = row;
+            if (x != R_NilValue) {
+                if (TYPEOF(x) == REALSXP) REAL(output_x)[target] = REAL_ELT(x,at);
+                else LOGICAL(output_x)[target] = LOGICAL_ELT(x,at);
+            }
+            ++target;
+        }
+        R_xlen_t start = INTEGER(output_p)[column], size = INTEGER(output_p)[column+1] - start;
+        for (R_xlen_t root = size / 2; root > 0;) projection_sift(output_i,output_x,start,--root,size);
+        for (R_xlen_t end = size; end > 1;) {
+            --end; projection_swap(output_i,output_x,start,start+end);
+            projection_sift(output_i,output_x,start,0,end);
+        }
+    }
+    UNPROTECT(x == R_NilValue ? 4 : 5); return result;
 }
