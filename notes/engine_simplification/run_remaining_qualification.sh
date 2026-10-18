@@ -22,6 +22,7 @@ unset SCWB_CONTRACT_INSTALLED_LIBRARY SCWORKBENCH_TEST_INSTALLED
 export SCWORKBENCH_TEST_PYBENCH_COMMIT=0ef3c56f9d300e7813ac5a555e6d2ac7cb64a57e
 export SCWORKBENCH_SCWBRNA_ROOT=/home/dirk/Projects/operation_packs/scwbRNA
 export SCWORKBENCH_PYBENCH_PYTHON=/tmp/quill-engine-simplification-venv/bin/python
+export PYBENCH_PYTHON="$SCWORKBENCH_PYBENCH_PYTHON"
 site=/tmp/quill-engine-simplification-venv/lib/python3.11/site-packages
 export SCWORKBENCH_PYTHON_PACK_MANIFEST="$site/scwbpython/operation-pack.json"
 export SCWORKBENCH_GRAPH_PYTHON="$SCWORKBENCH_PYBENCH_PYTHON"
