@@ -626,8 +626,21 @@
   # Reuse the maximum observed by the complete validated scan, never another
   # graph pass. A single giant record retains the historical scalar admission.
   aggregate_carrier_bytes <- 1024
-  aggregate_rows <- as.integer(max(1,min(budgets$partition_rows,
-    floor(budgets$partition_bytes/(max_edge_bytes+aggregate_carrier_bytes)))))
+  .wb_graph_require(is.numeric(max_edge_bytes) && length(max_edge_bytes)==1L &&
+    is.finite(max_edge_bytes) && max_edge_bytes>=0 && max_edge_bytes==floor(max_edge_bytes) &&
+    is.numeric(budgets$partition_bytes) && length(budgets$partition_bytes)==1L &&
+    is.finite(budgets$partition_bytes) && budgets$partition_bytes>0 &&
+    max_edge_bytes<=budgets$partition_bytes && is.numeric(budgets$partition_rows) &&
+    length(budgets$partition_rows)==1L && is.finite(budgets$partition_rows) &&
+    budgets$partition_rows>=1 && budgets$partition_rows<=2147483647 &&
+    budgets$partition_rows==floor(budgets$partition_rows),
+    "GRAPH_RESOURCE_EXCEEDED","Invalid graph aggregate byte-bound observation.")
+  aggregate_rows <- max(1,min(budgets$partition_rows,
+    floor(budgets$partition_bytes/(max_edge_bytes+aggregate_carrier_bytes))))
+  .wb_graph_require(is.finite(aggregate_rows) && aggregate_rows>=1 &&
+    aggregate_rows<=budgets$partition_rows && aggregate_rows==floor(aggregate_rows),
+    "GRAPH_RESOURCE_EXCEEDED","Invalid graph aggregate fetch bound.")
+  aggregate_rows <- as.integer(aggregate_rows)
   .wb_graph_storage_fault("edge_aggregate_ready",list(con=con,artifact_id=artifact_id,
     observed_max_edge_bytes=max_edge_bytes,max_rows=aggregate_rows))
   edge_sql <- paste0("SELECT CASE WHEN typeof(e.record_json)='text' AND ",

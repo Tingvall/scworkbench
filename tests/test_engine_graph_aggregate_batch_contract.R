@@ -133,6 +133,18 @@ test_engine_graph_aggregate_empty_mixed_and_caller_transaction_contract <- funct
 test_engine_graph_aggregate_policy_and_eof_admission_contract <- function() {
   f<-.engine_graph_aggregate_fixture(3L,8192L,2L);stage<-f$stage
   on.exit(scworkbench:::.wb_graph_stage_discard(stage),add=TRUE)
+  # Inject an invalid private observation into a local function copy, not a
+  # pack-supplied bound or a new production override. Guard must precede fetch.
+  faulty<-scworkbench:::.wb_graph_validate_sql
+  rewrite<-function(expr) {
+    if(identical(expr,quote(max_edge_bytes <- 0)))return(quote(max_edge_bytes <- NA_real_))
+    if(!is.call(expr))return(expr)
+    as.call(lapply(as.list(expr),rewrite))
+  }
+  body(faulty)<-rewrite(body(faulty))
+  invalid<-tryCatch(faulty(stage$con,"staged",stage$budgets),error=identity)
+  stopifnot(inherits(invalid,"wb_graph_error"),invalid$code=="GRAPH_RESOURCE_EXCEEDED",
+    grepl("Invalid graph aggregate byte-bound observation",conditionMessage(invalid),fixed=TRUE))
   control<-new.env(parent=emptyenv());control$active<-FALSE;control$count<-0L
   saved_control<-options(scworkbench.graph_aggregate_admission_probe=control)
   on.exit(options(saved_control),add=TRUE)

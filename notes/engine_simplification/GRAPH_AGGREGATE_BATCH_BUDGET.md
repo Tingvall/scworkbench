@@ -23,7 +23,8 @@ a previously admitted record.
 
 SQL emits a NULL sentinel instead of a record that grew beyond the observed
 maximum or ceased being TEXT. Entire fetched batch type/length/sum is checked
-before JSON parsing. There is no additional scan, cache, new identity, policy,
+before R JSON parsing. Existing SQL json_extract joins still parse inside
+SQLite; this is not a new hostile SQL-parser quota. There is no additional scan, cache, new identity, policy,
 source authority or public interface. Existing global SQL aggregate remains.
 Allocation bounds are source-informed conservative accounting, not an absolute
 cross-version RSQLite/R RSS guarantee. Source review precedes any tests.
