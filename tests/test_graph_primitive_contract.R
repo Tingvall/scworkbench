@@ -256,8 +256,9 @@ test_graph_padded_edge_byte_admission_contract <- function() {
   })
   on.exit(options(old), add = TRUE)
   result <- scworkbench:::.wb_graph_sql_identities(stage$con, "staged", stage$budgets)
-  stopifnot(length(batches) >= 9L,
-    all(vapply(batches, function(x) x$rows == 1L && x$encoded_bytes <= 4096, logical(1))),
+  stopifnot(sum(vapply(batches, `[[`, integer(1), "rows")) == 9L,
+    all(vapply(batches, function(x) x$rows == 1L && x$max_rows == 1L &&
+      x$encoded_bytes <= 4096, logical(1))),
     identical(result$content_identity, wb_graph_identity(graph)$content_identity))
   DBI::dbExecute(stage$con, "PRAGMA ignore_check_constraints=ON;")
   for (field in c("profile", "direction_mode", "canonical_bytes")) {

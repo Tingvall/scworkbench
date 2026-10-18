@@ -609,6 +609,7 @@
     "json_extract(record_json,'$.binding_id'),json_extract(record_json,'$.axis_id') ",
     "HAVING COUNT(*)>1 LIMIT 1;"), params = list(artifact_id))
   .wb_graph_require(!nrow(duplicate), "GRAPH_BINDINGS_INVALID", "Noninjective axis mapping.")
+  max_edge_bytes <- 0
   for (component in .wb_graph_components()) {
     expected <- "0"
     .wb_graph_scan(con, artifact_id, component, function(rows) {
@@ -616,11 +617,21 @@
         .wb_graph_i64(expected) + bit64::as.integer64(seq_len(nrow(rows)) - 1L))),
         "GRAPH_PART_ORDER_INVALID", "Missing/gapped stored partition rows.")
       for (json in rows$record_json) .wb_graph_row_validate(component, .wb_graph_parse(json))
+      if (component == "edges" && nrow(rows))
+        max_edge_bytes <<- max(max_edge_bytes,nchar(rows$record_json,type="bytes"))
       expected <<- .wb_graph_add_count(expected, nrow(rows))
     }, page = budgets$partition_rows, bytes = budgets$partition_bytes)
   }
   # The disk join computes arity/counts, not a per-edge in-memory incidence list.
-  edge_sql <- paste0("SELECT e.record_json edge_json,COUNT(i.row_ordinal) n,",
+  # Reuse the maximum observed by the complete validated scan, never another
+  # graph pass. A single giant record retains the historical scalar admission.
+  aggregate_carrier_bytes <- 1024
+  aggregate_rows <- as.integer(max(1,min(budgets$partition_rows,
+    floor(budgets$partition_bytes/(max_edge_bytes+aggregate_carrier_bytes)))))
+  .wb_graph_storage_fault("edge_aggregate_ready",list(con=con,artifact_id=artifact_id,
+    observed_max_edge_bytes=max_edge_bytes,max_rows=aggregate_rows))
+  edge_sql <- paste0("SELECT CASE WHEN typeof(e.record_json)='text' AND ",
+    "octet_length(e.record_json)<=? THEN e.record_json ELSE NULL END edge_json,COUNT(i.row_ordinal) n,",
     "MIN(json_extract(i.record_json,'$.ordinal')) lo,MAX(json_extract(i.record_json,'$.ordinal')) hi,",
     "SUM(json_extract(i.record_json,'$.role')='tail') tails,",
     "SUM(json_extract(i.record_json,'$.role')='head') heads,",
@@ -628,16 +639,22 @@
     "FROM artifact_graph_rows e LEFT JOIN artifact_graph_rows i ON i.artifact_id=e.artifact_id ",
     "AND i.component='incidences' AND json_extract(i.record_json,'$.edge_id')=json_extract(e.record_json,'$.edge_id') ",
     "WHERE e.artifact_id=? AND e.component='edges' GROUP BY e.row_ordinal ORDER BY e.row_ordinal;")
-  cursor <- DBI::dbSendQuery(con, edge_sql, params = list(artifact_id))
+  cursor <- DBI::dbSendQuery(con, edge_sql, params = list(max_edge_bytes,artifact_id))
   tryCatch(repeat {
     .wb_graph_transient_admit(budgets, database_path)
-    # Each edge can occupy the entire admitted byte partition. A row-count
-    # limit alone would permit partition_rows times that memory, especially
-    # with whitespace-padded but valid JSON. Keep this aggregate cursor scalar.
-    batch <- DBI::dbFetch(cursor, n = 1L)
+    batch <- DBI::dbFetch(cursor, n = aggregate_rows)
     if (!nrow(batch)) break
+    .wb_graph_require(is.character(batch$edge_json) && !anyNA(batch$edge_json),
+      "GRAPH_RESOURCE_EXCEEDED", "Graph aggregate record changed after byte admission.")
+    encoded <- nchar(batch$edge_json,type="bytes")
+    .wb_graph_require(all(encoded<=max_edge_bytes) &&
+      all(encoded<=budgets$partition_bytes) &&
+      (nrow(batch)==1L || sum(encoded)+aggregate_carrier_bytes*nrow(batch)<=budgets$partition_bytes),
+      "GRAPH_RESOURCE_EXCEEDED", "Graph aggregate batch exceeds decoded byte admission.")
     .wb_graph_storage_fault("edge_aggregate_batch", list(
-      rows = nrow(batch), encoded_bytes = sum(nchar(batch$edge_json, type = "bytes"))))
+      rows = nrow(batch), encoded_bytes = sum(encoded),
+      carrier_bytes=aggregate_carrier_bytes*nrow(batch),max_rows=aggregate_rows,
+      observed_max_edge_bytes=max_edge_bytes))
     for (i in seq_len(nrow(batch))) {
       edge <- .wb_graph_parse(batch$edge_json[[i]])
       n <- bit64::as.integer64(batch$n[[i]])
@@ -655,6 +672,7 @@
       .wb_graph_require(valid, "GRAPH_ARITY_INVALID", edge$edge_id)
     }
   }, finally = DBI::dbClearResult(cursor))
+  .wb_graph_transient_admit(budgets,database_path)
   # Existence/order are independently checked against indexed durable rows.
   bad <- DBI::dbGetQuery(con, paste0("SELECT 1 FROM artifact_graph_rows i ",
     "LEFT JOIN artifact_graph_rows n ON n.artifact_id=i.artifact_id AND n.component='nodes' ",
