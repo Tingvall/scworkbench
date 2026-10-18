@@ -164,7 +164,7 @@ test_engine_sqlite_vector_bind_exact_integer64_contract <- function() {
   helper <- scworkbench:::.wb_db_append_chunked
   text <- c("9223372036854775807", "-9223372036854775807",
     "9007199254740993", "-9007199254740993", "9007199254740992",
-    "-9007199254740992", "0", "1", NA_character_)
+    "-9007199254740992", "0", "1", "-1", "-2", NA_character_)
   rows <- data.frame(id = bit64::as.integer64(text), txt = rep("plain", length(text)),
     num = rep(1.25, length(text)), flag = rep(TRUE, length(text)))
   eligible_version <- as.character(getNamespaceVersion("RSQLite")) == "2.3.7" &&
@@ -175,7 +175,9 @@ test_engine_sqlite_vector_bind_exact_integer64_contract <- function() {
     spy <- .engine_db_bind_spy()
     actual <- tryCatch(.engine_db_bind_case(helper, rows, transaction = tx), finally = spy$close())
     stopifnot(identical(expected, actual), identical(actual$rows$id_text, text),
-      identical(actual$rows$id_type, ifelse(is.na(text), "null", "integer")))
+      identical(actual$rows$id_type, ifelse(is.na(text), "null", "integer")),
+      is.na(tail(actual$rows$id_text, 1L)),
+      identical(tail(actual$rows$id_type, 1L), "null"))
     if (eligible_version) stopifnot(any(spy$state$lengths > 1L), max(spy$state$lengths) <= 3L)
   }
   # Unknown bit64 never widens eligibility: a private function copy changes only
@@ -196,7 +198,7 @@ test_engine_sqlite_vector_bind_exact_integer64_contract <- function() {
     changed$id[bad] <- rows$id[1L]
     if (constraint == "CHECK") {
       changed$id <- bit64::as.integer64(c("9223372036854775807", "9007199254740993",
-        "9007199254740992", "1", "0", "2", "3", "4", NA_character_))
+        "9007199254740992", "1", "0", "2", "3", "4", "5", "6", NA_character_))
       changed$id[bad] <- bit64::as.integer64("-9223372036854775807")
       schema <- "id INTEGER CHECK(id>=0),txt TEXT,num REAL,flag INTEGER"
     } else if (constraint == "FK") {

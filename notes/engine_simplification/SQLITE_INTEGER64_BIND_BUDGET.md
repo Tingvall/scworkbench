@@ -32,3 +32,18 @@ fallback, UNIQUE/CHECK/FK and ABORT/FAIL/ROLLBACK prefixes/ownedTX/retry. Existi
 extendedfallback test now covers extra-attributed/cache, subclass and named
 integer64 rather than incorrectly demanding fallback for newlysupported exact
 class. No warning/assertion suppression; four earlier contract definitions stay.
+
+Pre-integer64 source motivation now has ACTUAL development evidence (not final
+budget acceptance): one instrumented public50000-cell-vector-family plus50000
+obs-table pair, old28 versus plaina726, retained at external
+sql_binding_a726_development_retry. New actual histogram:artifact_pseudotime
+50000 bindings of length1, artifact_table_rows50 bindings of length1000,
+prov_materializations1 binding of length2; old both scientific tables50000x1.
+Publicpromotion38.330→33.789s singleinstrumented (~11.85%), NOT matchedmedian
+25%budgetPASS. Promoted/reloadedprimitives and contentidentities exact; RO+
+contentvalidation~32s both. Familyfallback exposure therefore measured at caller,
+not inferred from schema. No integer64 candidate timing/qualification yet.
+
+Test-only strengthening adds signed-1/-2 (negative NaN-like doublecarriers)
+and explicit SQLCAST NA64→NULL text/type assertion. Same fifthtest, no new
+runtimeclass/identity/ABI/storage support beyond source-reviewed8ec gate.
