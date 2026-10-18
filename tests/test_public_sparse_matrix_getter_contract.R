@@ -17,7 +17,7 @@ test_public_sparse_matrix_complete_and_overlap_contract <- function() {
     row$n_features <- nrow(value); row$n_cells <- ncol(value)
     row$feature_ids_json <- jsonlite::toJSON(rownames(value))
     row$cell_ids_json <- jsonlite::toJSON(colnames(value))
-    BPCells::write_matrix_dir(Matrix::Matrix(value, sparse = TRUE),
+    BPCells::write_matrix_dir(methods::as(Matrix::Matrix(value, sparse = TRUE), "dgCMatrix"),
       dir = file.path(root, row$path[[1]]))
     DBI::dbAppendTable(b$con, "matrix_fragments", row)
   }
@@ -98,6 +98,9 @@ test_private_sparse_matrix_disjoint_assembly_contract <- function() {
   wb_define_cells(b, cells)
   wb_attach_matrix(b, "m", Matrix::Matrix(values, sparse = TRUE))
   template <- wb_matrix_fragments(b, "m")
+  for (table in c("matrix_fragment_cells", "matrix_fragment_features"))
+    DBI::dbExecute(b$con, paste0("DELETE FROM ", table, " WHERE fragment_id=?;"),
+      params = list(template$fragment_id[[1]]))
   DBI::dbExecute(b$con, "DELETE FROM matrix_fragments WHERE matrix_id='m';")
   add_fragment <- function(value, id, f = rownames(value), c = colnames(value)) {
     row <- template; row$fragment_id <- id; row$path <- paste0("matrices/", id)
@@ -105,7 +108,7 @@ test_private_sparse_matrix_disjoint_assembly_contract <- function() {
     row$feature_ids_json <- jsonlite::toJSON(f); row$cell_ids_json <- jsonlite::toJSON(c)
     # Incidental physical labels are not the logical multi-fragment namespace.
     rownames(value) <- paste0("physical_", seq_len(nrow(value)))
-    BPCells::write_matrix_dir(Matrix::Matrix(value, sparse = TRUE),
+    BPCells::write_matrix_dir(methods::as(Matrix::Matrix(value, sparse = TRUE), "dgCMatrix"),
       dir = file.path(root, row$path[[1]]))
     DBI::dbAppendTable(b$con, "matrix_fragments", row)
   }
