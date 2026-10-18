@@ -101,8 +101,32 @@ test_operation_pack_v3_genomic_registry_contract <- function() {
   stopifnot(inherits(promotion_error, "wb_operation_pack_error"),
     identical(promotion_error$code, "OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED"))
 
+  # All three generic genomic registry kinds also use fresh boundary reads
+  # before an exactly equal private issuance can avoid identity reconstruction.
+  declarations <- Map(function(value, name, reader) {
+    value$name <- name; value$reader <- reader
+    value$category <- "authenticated_core_registry_snapshot"
+    value$call_discipline <- "single_use"
+    value
+  }, list(genomic_decl, library_decl, match_decl),
+    c("genomic", "library", "matches"),
+    c("read_genomic_matrix_source", "read_motif_library", "read_motif_match_set"))
+  registry_operation <- list(registry_reads = unname(declarations))
+  registry_params <- list(motif_library = "motifs", motif_match_set = "matches")
+  issued <- scworkbench:::.wb_operation_pack_v3_registry_read_records(bundle,
+    registry_operation, input, records, registry_params, stage_root, cells,
+    "session", "run", "ephemeral", NULL)
+  registry_request <- list(registry_reads = issued$records,
+    inputs = list(list(name = "matrix", descriptor = records$matrix)),
+    execution_capability = list(source_state_identity = NULL))
+  attr(registry_request, "operation_pack_v3_registry_observations") <- issued$observations
+  check_registry <- function() scworkbench:::.wb_operation_pack_v3_registry_reads_assert_current(
+    bundle, registry_operation, input, registry_params, registry_request, cells,
+    "session", "run", "ephemeral")
+  stopifnot(isTRUE(check_registry()))
   wb_matrix_set_genome(bundle, "ATAC", organism = "human",
     genome_build = "hg19", genome_provider = "BSgenome.Hsapiens.UCSC.hg38")
+  stopifnot(inherits(try(check_registry(), silent = TRUE), "try-error"))
   stopifnot(!identical(fingerprint(first_genomic, "genomic_matrix_source"),
     fingerprint(genomic(), "genomic_matrix_source")))
   wb_matrix_set_genome(bundle, "ATAC", organism = "human",

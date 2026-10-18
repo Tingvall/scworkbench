@@ -79,15 +79,19 @@ test_operation_pack_v3_ordered_cell_metadata_resolution_contract <- function() {
   dir.create(stage)
   on.exit(unlink(stage, recursive = TRUE, force = TRUE), add = TRUE)
   operation <- list(registry_reads = list(declaration))
-  records <- .wb_operation_pack_v3_registry_read_records(bundle,
+  issued <- .wb_operation_pack_v3_registry_read_records(bundle,
     operation, list(matrix = input), list(matrix = record), params,
     stage, cells, "session", "run", "generation",
     list(scheme = "scworkbench.scientific_state.v1",
-      sha256 = strrep("c", 64L)))$records
-  request <- list(registry_reads = records,
+      sha256 = strrep("c", 64L)))
+  request <- list(registry_reads = issued$records,
     inputs = list(list(name = "matrix", descriptor = record)),
     execution_capability = list(source_state_identity = list(scheme =
       "scworkbench.scientific_state.v1", sha256 = strrep("c", 64L))))
+  .wb_operation_pack_v3_registry_reads_assert_current(bundle, operation,
+    list(matrix = input), params, request, cells, "session", "run",
+    "generation")
+  attr(request, "operation_pack_v3_registry_observations") <- issued$observations
   .wb_operation_pack_v3_registry_reads_assert_current(bundle, operation,
     list(matrix = input), params, request, cells, "session", "run",
     "generation")

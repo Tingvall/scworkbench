@@ -858,6 +858,13 @@ test_operation_pack_v3_session_annotation_and_bounded_axes_contract <- function(
       unname(as.list(fixture$cells))),
     identical(vapply(made$values$feature_annotations$rows, `[[`,
       character(1), "feature_id"), fixture$features))
+  registry_request <- list(registry_reads = made$records,
+    inputs = list(list(name = "matrix", descriptor = records$matrix)),
+    execution_capability = list(source_state_identity = state_id))
+  attr(registry_request, "operation_pack_v3_registry_observations") <- made$observations
+  stopifnot(isTRUE(scworkbench:::.wb_operation_pack_v3_registry_reads_assert_current(
+    fixture$bundle, operation, list(matrix = matrix), list(), registry_request,
+    fixture$cells, "session_test", "run_test", "ephemeral")))
 
   record_map <- stats::setNames(made$records, vapply(made$records, `[[`,
     character(1), "name"))
