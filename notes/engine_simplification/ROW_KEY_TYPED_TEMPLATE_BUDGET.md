@@ -50,3 +50,8 @@ one maximum; second pass rereads/rechecks actual values, rejects growth and
 requires complete emitted byte-count equality. No N*C carrier or source cache.
 All failed fast-function locals fall out of scope before old whole-row fallback.
 Singletons bypass the candidate altogether. No formatter/native dependency added.
+
+Source correction before any execution: both passes require Encoding unknown
+and byte-oriented PCRE absolute anchors\\A/\\z. Dollar end-anchors can match
+before a final newline and are NOT sufficient. Trailing LF/CRLF, Unicode,
+Latin1, CE_BYTES and invalid UTF8 are explicit whole-fallback regressions.

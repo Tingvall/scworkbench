@@ -213,7 +213,8 @@
     row_bytes <- rep.int(fixed_bytes, length(indices))
     for (column in columns) {
       value <- column[indices]
-      if (anyNA(value) || !all(grepl("^[A-Za-z0-9_.:-]*$", value, perl = TRUE))) return(NULL)
+      if (anyNA(value) || any(Encoding(value) != "unknown") ||
+          !all(grepl("\\A[A-Za-z0-9_.:-]*\\z", value, perl = TRUE, useBytes = TRUE))) return(NULL)
       bytes <- nchar(value, type = "bytes")
       if (anyNA(bytes)) return(NULL)
       row_bytes <- row_bytes + bytes
@@ -238,7 +239,8 @@
     row_bytes <- rep.int(fixed_bytes, length(indices))
     for (j in seq_len(width)) {
       value <- columns[[j]][indices]
-      if (anyNA(value) || !all(grepl("^[A-Za-z0-9_.:-]*$", value, perl = TRUE))) return(NULL)
+      if (anyNA(value) || any(Encoding(value) != "unknown") ||
+          !all(grepl("\\A[A-Za-z0-9_.:-]*\\z", value, perl = TRUE, useBytes = TRUE))) return(NULL)
       bytes <- nchar(value, type = "bytes"); row_bytes <- row_bytes + bytes
       if (anyNA(bytes) || any(row_bytes > maximum_row_bytes)) return(NULL)
       assembled <- paste0(assembled, value, pieces[[j + 1L]])

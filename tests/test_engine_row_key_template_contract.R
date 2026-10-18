@@ -62,7 +62,13 @@ test_engine_row_key_template_whole_fallback_and_errors_contract <- function() {
   actual <- scworkbench:::.wb_object_row_key_tokens
   base <- data.frame(key = rep("ordinary", 1001L), cell_id = paste0("cell_", seq_len(1001L)))
   variants <- list()
-  for (bad in c(NA_character_, "雪", "quote\"", "slash/", "apostrophe'", "back\\slash", "new\nline", "</script>")) {
+  for (bad in c(NA_character_, "雪", "quote\"", "slash/", "apostrophe'", "back\\slash", "new\nline",
+      "cell_1\n", "cell_2\n", "cell_3\r\n", "</script>")) {
+    x <- base; x$key[[1001L]] <- bad; variants[[length(variants) + 1L]] <- x
+  }
+  encoded <- c(enc2utf8("雪"), iconv("café", to = "latin1"), rawToChar(as.raw(255L)), rawToChar(as.raw(255L)))
+  Encoding(encoded[[3L]]) <- "bytes"; Encoding(encoded[[4L]]) <- "UTF-8"
+  for (bad in encoded) {
     x <- base; x$key[[1001L]] <- bad; variants[[length(variants) + 1L]] <- x
   }
   x <- base; x$key <- seq_len(nrow(x)); variants[[length(variants) + 1L]] <- x
@@ -78,9 +84,13 @@ test_engine_row_key_template_whole_fallback_and_errors_contract <- function() {
   x <- base; names(x) <- c("x__scwb_row_key_template_1__", "cell_id"); variants[[length(variants) + 1L]] <- x
   x <- base; class(x) <- c("custom_frame", "data.frame"); variants[[length(variants) + 1L]] <- x
   x <- base; names(x) <- c(NA_character_, "cell_id"); variants[[length(variants) + 1L]] <- x
-  for (keys in variants) stopifnot(is.null(fast(keys)), identical(
-    .engine_row_key_template_observe(actual, keys),
-    .engine_row_key_template_observe(.engine_row_key_template_old, keys)))
+  for (keys in variants) {
+    expected <- .engine_row_key_template_observe(.engine_row_key_template_old, keys)
+    observed <- .engine_row_key_template_observe(actual, keys)
+    stopifnot(is.null(fast(keys)), identical(observed, expected))
+    if (is.character(expected$value)) stopifnot(identical(
+      .engine_row_key_template_raw(observed$value), .engine_row_key_template_raw(expected$value)))
+  }
   # Exact typed JSON metadata/order rather than a toJSON-shaped token.
   tokens <- actual(base[1:2, ])
   parsed <- jsonlite::fromJSON(tokens[[1L]], simplifyVector = FALSE)
