@@ -46,3 +46,21 @@ actual tests are present. Run the same current-only command, yielding403 when
 the six writer definitions are present, then the focused ownership contract.
 Never copy writer tests into an ownership commit or regenerate frozen baseline,
 graph decisions, reference catalog or official packs to make the gate pass.
+
+## Separate writer ownership follow-up
+
+The follow-up adds exactly six explicit writer rows pinned to independently
+frozen `bd093af49a503924cbbb23a5b0cdcb361ce51b71`, each with a generic core
+authority/serialization reason. It copies no writer test, fixture or runtime
+implementation. Engine ledger now67 rows. This isolated ownership tree still
+contains397 test definitions, so its current CSV intentionally remains the
+first commit's coherent397 snapshot. The follow-up is an integration prerequisite,
+not a claimed standalone ownership-contract pass without the writer tests.
+
+Coordinator has already imported the writer into its combined descendant.
+After cherry-picking both ownership commits, run current-only regeneration
+there and the focused ownership contract: expected403 definitions,188 files,
+163 introduced and2 moved. This expectation follows the six explicit named
+rows; unknown further tests still fail closed. All six definitions were checked
+against their exact existing writer checkpoint using Git source inspection;
+no scientific/performance test was rerun by this ownership task.
