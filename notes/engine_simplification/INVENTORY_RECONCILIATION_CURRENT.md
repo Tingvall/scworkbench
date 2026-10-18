@@ -1,11 +1,16 @@
-# Current integrity-cost and source-coverage reconciliation
+# Frozen terminal242 integrity-cost and source-coverage reconciliation
 
-Current source: **1f853b6a3fb18480c1fe8504877f3b8f839d3fd0**;
+Historical qualification source: **1f853b6a3fb18480c1fe8504877f3b8f839d3fd0**;
 installed runtime **242fdf071335b54c8ca78793b23982990733b7d4**, not the earlier
 8614/ba351 candidate. This is a documentation-only descendant; the frozen
-runtime/performance worktree remains
-untouched. This documentation descendant also records final242 metrics; runtime remains unchanged. No runtime, protocol,
-schema, test, profile or pack change; no workload or qualification job.
+runtime/performance worktree remains untouched. The accompanying CSV and this
+report describe that checkpoint, not a qualification of later source changes.
+Its documentation-only recording commit is83f8c74; subsequent component
+experiments retain separate source pins, logs and dispositions. In particular,
+the nine-encoding observation below is historical: the later registry issuance
+change still reads actual values at both boundaries but can avoid equivalent
+canonical reconstruction. None of those component results retroactively changes
+the terminal242 measurements.
 
 The old `final_ba351cd_measurements` supervisor is **terminal FAILED09**, not
 pending: an erroneous rounded supplemental reference caused the strict UMAP

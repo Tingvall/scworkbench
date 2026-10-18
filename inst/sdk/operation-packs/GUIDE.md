@@ -40,6 +40,14 @@ runs. Source associations, alignment, receipts and atomic rollback remain
 core responsibilities; SQLite counters and file observations are not payload
 content authority.
 
+Registry readers retain an invocation-private, validated issued snapshot. Core
+still obtains the actual registry snapshot before dispatch and publication.
+Only exact equality of that value, its declaration, input descriptors and the
+complete privately issued registry descriptor permits reuse of its already
+computed canonical identities. This avoids re-encoding unchanged values, not
+fresh registry reads. The private observation is not part of the protocol;
+recovered and retained requests independently validate their persisted data.
+
 Run `scripts/tutorial.R` with an installed scworkbench from any directory.
 The script scaffolds, checks, installs into an isolated library, proves inert
 namespace loading, validates then explicitly loads, inspects the interface,

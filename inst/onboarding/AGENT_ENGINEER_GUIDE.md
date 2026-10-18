@@ -132,6 +132,14 @@ guarantee detection of a transient mutation restored before final verification.
 Recovery, transferred inputs and explicit deep/recipient validation retain
 independent verification; fresh invocation seals are not recovery authority.
 
+Registry boundary checks still read actual current values. Exact equality with
+the privately issued validated snapshot and all its bindings can avoid another
+canonical encoding within that invocation. No private observation is accepted
+from a pack or carried into recovery. Recipient validation can compute one
+actual stored-table identity for multiple claims within its fresh immutable
+report; every claim is compared independently, filesystem fingerprints remain
+mandatory, and the next report starts without those observations.
+
 Successful writer scopes publish committed manifest state. An unchanged close
 may reuse only the same live connection/writer ownership, exact SQL/schema epoch
 and exact already-published manifest bytes. Explicit refresh and migration stay

@@ -45,6 +45,14 @@ The levels are cumulative:
   workspace, failed ingestion marker, or SQLite WAL/SHM/journal sidecar; a
   successful immutable SQLite open; and equal pre/post filesystem fingerprints.
 
+Within one fresh recipient report, repeated claims about the same unchanged
+stored table can share its independently computed actual identity. This is a
+bounded report-local observation, not a cached expected verdict: each output,
+entity binding and durable-content claim is still checked independently. Fresh
+headers, connection/schema observations and the full filesystem checks remain
+in force. Nothing is carried to another report, content-only validation,
+promotion or recovery, and a failed observation is not reused.
+
 Content identities are typed and versioned. Current producers persist distinct
 scheme identifiers for canonical objects, streamed tables, matrix fragment
 trees, spaces, raw files, file trees, and registry values. Promotion,
