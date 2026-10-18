@@ -363,9 +363,10 @@
 }
 
 .wb_prov_sha256_file <- function(path) {
-  .wb_require_pkg("digest", "SHA-256 provenance payload identity")
+  .wb_require_pkg("openssl", "SHA-256 provenance payload identity")
   .wb_assert(file.exists(path) && !dir.exists(path), paste0("Missing payload file for SHA-256: ", path))
-  digest::digest(file = path, algo = "sha256")
+  input <- file(path, "rb")
+  tryCatch(unclass(as.character(openssl::sha256(input))), finally = close(input))
 }
 
 .wb_content_identity_schemes <- function() {
