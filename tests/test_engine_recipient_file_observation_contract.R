@@ -12,8 +12,14 @@
     file.path(tree, sprintf("file_%03d.bin", i)))
   prim <- wb_prim_model_ref("fixture.source", "fixture.source", engine = "contract")
   prim$model_path <- tree
-  run <- wb_new_run("metadata_cell_vector", outputs = list(model = prim),
-    notes = "Synthetic model-file storage fixture; no fitting or method execution.")
+  # Controlled advanced run construction exercises storage, not scientific
+  # execution. Use an actual declared model terminal rather than inventing a
+  # model output on metadata_cell_vector (whose terminal is vector).
+  stopifnot("model" %in% names(wb_op_interface("slingshot_adopt")$produces))
+  run <- wb_new_run("slingshot_adopt", outputs = list(model = prim),
+    inputs = list(user_inputs = list(fit_space = wb_prim_space("fixture.source"))),
+    notes = paste("Synthetic model-file storage fixture using the declared model terminal;",
+      "no Slingshot adoption, fitting or method execution."))
   promoted <- wb_promote_analysis(b, setNames(list(run), run$run_id),
     head_run_id = run$run_id, outputs = "model")
   id <- promoted$promoted$artifact_id[[1L]]
