@@ -622,65 +622,44 @@
 
 .wb_operation_pack_v3_matrix_slice_content <- function(values, features,
                                                          cells) {
+  # Bound conversion/coordinate work as well as the returned column block.
+  # The canonical concatenation and global column ordinals are unchanged.
+  allowance <- min(33554432, as.numeric(getOption(
+    "scworkbench.max_dense_materialize_mb", 256)) * 1024^2 / 8)
+  width <- max(1L, min(128L, floor(allowance / max(1, 64 * length(features)))))
   .wb_operation_pack_matrix_stream_identity(features, cells,
-    function(columns) values[, columns, drop = FALSE], 128L)
+    function(columns) values[, columns, drop = FALSE], width)
 }
 
-.wb_operation_pack_v3_private_source_validate <- function(stage, grant) {
+.wb_operation_pack_v3_private_source_validate <- function(stage, grant,
+    bounded = FALSE, return_reader = FALSE, budget = NULL) {
   source <- grant$source_reference
   if (!identical(source$source_kind, "in_memory_selected_projection"))
     return(NULL)
-  relative <- sub("^private_projection:", "typed_slice_sources/",
-    paste0(source$input_reference, "/matrix.mtx"))
-  path <- file.path(stage, relative)
-  if (!file.exists(path) || dir.exists(path) || nzchar(Sys.readlink(path)))
-    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-      "Typed-slice private projection is absent, non-regular, or linked.",
-      "staging")
-  payload_identity <- .wb_operation_pack_v2_identity_scoped(
-    "scworkbench.operation_pack.payload_manifest.v2",
-    "registry read payload manifest", list(path = relative,
-      size = as.numeric(file.info(path)$size),
-      sha256 = .wb_operation_pack_v2_file_sha256(path)))
-  if (!identical(payload_identity, source$private_source_payload_identity))
-    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-      "Typed-slice private projection bytes differ from the grant.",
-      "staging")
-  axis_ids <- function(descriptor) {
-    axis_path <- file.path(stage, descriptor$relative_path)
-    value <- jsonlite::read_json(axis_path, simplifyVector = FALSE)
-    as.character(unlist(value$ids, use.names = FALSE))
+  if (isTRUE(bounded)) {
+    if (is.null(budget)) budget <-
+      .wb_operation_pack_v3_broker_projection_budget(NULL)
+    reader <- .wb_operation_pack_v3_private_stream_open(stage, grant, budget)
+    if (isTRUE(return_reader)) return(reader)
+    on.exit(reader$close(), add = TRUE)
+    return(invisible(NULL))
   }
-  features <- axis_ids(grant$features_axis)
-  cells <- axis_ids(grant$cells_axis)
-  matrix <- tryCatch(methods::as(Matrix::readMM(path), "CsparseMatrix"),
+  # Explicit whole-object compatibility for private diagnostic/test callers.
+  # Ordinary execution/revalidation requests the bounded path above.
+  info <- .wb_operation_pack_v3_private_source_info(stage, grant)
+  matrix <- tryCatch(methods::as(Matrix::readMM(info$path), "CsparseMatrix"),
     error = function(error) .wb_operation_pack_v3_error(
       "PYBENCH_INPUT_IDENTITY_MISMATCH",
       paste0("Typed-slice private projection is unreadable: ",
         conditionMessage(error)), "staging"))
   if (!identical(as.integer(dim(matrix)),
-      as.integer(c(length(features), length(cells)))))
+      as.integer(c(length(info$features), length(info$cells)))))
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       "Typed-slice private projection dimensions differ from its axes.",
       "staging")
   projected <- .wb_operation_pack_v3_matrix_slice_content(matrix,
-    features, cells)
-  projection <- list(schema =
-      "scworkbench.operation_pack.typed_slice_source_projection.v1",
-    original_input_content_identity = source$input_content_identity,
-    features_axis_manifest_identity =
-      grant$features_axis$axis_manifest_identity,
-    cells_axis_manifest_identity = grant$cells_axis$axis_manifest_identity,
-    projected_content_identity = projected,
-    private_source_payload_identity = payload_identity)
-  projection$projection_identity <- .wb_operation_pack_v2_identity_scoped(
-    "scworkbench.operation_pack.typed_slice_source_projection.v1",
-    "projection excluding projection_identity", projection)
-  if (!identical(projected, source$projected_content_identity) ||
-      !identical(projection$projection_identity, source$projection_identity))
-    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-      "Typed-slice private projection content differs from its grant.",
-      "staging")
+    info$features, info$cells)
+  .wb_operation_pack_v3_private_projection_assert(grant, info, projected)
   matrix
 }
 
@@ -1551,7 +1530,7 @@
           "Typed-slice axis manifest differs from its grant.", "staging")
     }
     .wb_operation_pack_v3_private_source_validate(
-      attr(request, "operation_pack_stage_root"), grant)
+      attr(request, "operation_pack_stage_root"), grant, bounded = TRUE)
   }
   for (grant in request$derived_fitted_axis_grants %||% list()) {
     .wb_operation_pack_v3_assert_self_identity(grant$parent_snapshot,
@@ -1810,7 +1789,7 @@
   for (grant in Filter(function(x) identical(
       x$source_reference$source_kind, "in_memory_selected_projection"),
       request$typed_slice_grants %||% list()))
-    .wb_operation_pack_v3_private_source_validate(stage, grant)
+    .wb_operation_pack_v3_private_source_validate(stage, grant, bounded = TRUE)
   durable <- Filter(function(x) identical(
     x$source_reference$source_kind, "bundle_matrix"),
     request$typed_slice_grants %||% list())

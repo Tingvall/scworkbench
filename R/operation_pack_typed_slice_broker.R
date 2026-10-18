@@ -117,10 +117,11 @@
 .wb_operation_pack_v3_broker_projection_budget <- function(bundle, policy = NULL) {
   budget <- new.env(parent = emptyenv())
   limit <- as.numeric(getOption("scworkbench.max_dense_materialize_mb", 256)) * 1024^2
-  if (is.null(policy)) policy <- bundle$con@ref$wb_graph_policy
+  if (is.null(policy) && !is.null(bundle$con)) policy <- bundle$con@ref$wb_graph_policy
   if (!is.null(policy)) limit <- min(limit, as.numeric(policy$memory_bytes) -
     as.numeric(policy$sqlite_cache_kib) * 1024 -
-    8 * as.numeric(policy$partition_bytes) - 65536)
+    8 * as.numeric(policy$partition_bytes) - 65536 -
+      .wb_graph_fd_metadata_reservation(policy))
   # Keep half of the remaining existing allowance for delivery and transient
   # allocations. This is an aggregate cache admission, not a new user limit.
   budget$limit <- if (length(limit) == 1L && is.finite(limit) && limit > 0)
@@ -194,113 +195,26 @@
   }
 }
 
-# Retain the exact pre-consolidation delivery path for mixed graph/matrix
-# requests. Its per-block full checks and existing resource behavior are an
-# explicit performance exception, not a new mixed scratch-accounting claim.
-.wb_operation_pack_v3_broker_legacy_source <- function(bundle, stage, grant,
-                                                      features, cells) {
-  source <- grant$source_reference
-  if (identical(source$source_kind, "bundle_matrix")) {
-    .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant, "execution")
-    values <- as.matrix(wb_slice(bundle, source$matrix_id,
-      features = features, cells = cells))
-    .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant, "execution")
-    return(values)
-  }
-  matrix <- .wb_operation_pack_v3_private_source_validate(stage, grant)
-  all_features <- .wb_operation_pack_v3_broker_axis_ids(stage, grant$features_axis)
-  all_cells <- .wb_operation_pack_v3_broker_axis_ids(stage, grant$cells_axis)
-  matrix[match(features, all_features), match(cells, all_cells), drop = FALSE]
-}
-
 .wb_operation_pack_v3_broker_reader <- function(bundle, stage, grant, axes,
                                                budget = NULL) {
   source <- grant$source_reference
-  plan <- NULL; matrix <- NULL; guard <- NULL; charged <- 0; closed <- FALSE
-  spill_root <- NULL; spill <- NULL; spill_guard <- NULL; disk_charge <- 0
   if (is.null(budget)) budget <- .wb_operation_pack_v3_broker_projection_budget(bundle)
-  if (isTRUE(budget$legacy_mixed)) {
-    read <- function(features, cells) {
-      if (closed) .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-        "Broker source reader has already closed.", "execution")
-      .wb_operation_pack_v3_broker_legacy_source(bundle, stage, grant, features, cells)
-    }
-    return(list(read = read, close = function() { closed <<- TRUE; invisible(TRUE) },
-      mode = "legacy_mixed", spill_root = NULL))
-  }
+  if (!identical(source$source_kind, "bundle_matrix"))
+    return(.wb_operation_pack_v3_private_source_validate(stage, grant,
+      bounded = TRUE, return_reader = TRUE, budget = budget))
+  plan <- NULL; closed <- FALSE
   close <- function() {
     if (!closed) {
       if (!is.null(plan)) plan$close()
-      plan <<- NULL; matrix <<- NULL
-      spill <<- NULL
-      if (!is.null(spill_root)) unlink(spill_root, recursive = TRUE)
-      budget$used <- max(0, budget$used - charged)
-      budget$disk <- max(0, budget$disk - disk_charge)
-      charged <<- 0; closed <<- TRUE
+      plan <<- NULL; closed <<- TRUE
     }
     invisible(TRUE)
   }
   ready <- FALSE
   on.exit(if (!ready) close(), add = TRUE)
-  if (identical(source$source_kind, "bundle_matrix")) {
-    .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant,
-      "execution")
-    guard <- .wb_operation_pack_matrix_light_guard(bundle, source$matrix_id)
-    mode <- "bundle_stream"
-  } else {
-    relative <- sub("^private_projection:", "typed_slice_sources/",
-      paste0(source$input_reference, "/matrix.mtx"))
-    size <- as.numeric(file.info(file.path(stage, relative))$size)
-    # Reserve sparse/triplet/conversion/token working copies before decoding.
-    # The initial readMM validation is still a whole-object startup boundary.
-    # Only post-validation reader memory is bounded by cache/spill admission.
-    estimate <- 64 * as.double(length(axes$features)) * length(axes$cells) +
-      4 * size + 128 * (length(axes$features) + length(axes$cells)) + 1024^2
-    if (length(estimate) == 1L && is.finite(estimate) && estimate >= 0 &&
-        estimate <= budget$limit - budget$used) {
-      budget$used <- budget$used + estimate; charged <- estimate
-      mode <- "cached_projection"
-    } else mode <- "spilled_projection"
-    guard <- .wb_operation_pack_v3_broker_projection_guard(stage, grant)
-    matrix <- .wb_operation_pack_v3_private_source_validate(stage, grant)
-    guard()
-    if (identical(mode, "spilled_projection")) {
-      load <- min(4194304, floor(budget$memory / 16))
-      sort <- min(67108864, floor(budget$memory / 4))
-      working <- 2 * as.numeric(object.size(matrix)) + load + sort
-      if (load < 65536 || sort < 65536 || working > budget$memory - budget$used)
-        .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-          "Private projection spill build exceeds the existing working-memory allowance.", "execution")
-      payload <- 32 * length(matrix@x) + 64 * sum(dim(matrix)) + 1048576
-      peak <- payload * if (identical(grant$chunk_axis, "features")) 4 else 2
-      peak <- peak + max(16777216, payload / 10)
-      available <- .wb_operation_pack_v3_broker_free_bytes(tempdir())
-      if (length(available) != 1L || !is.finite(available) ||
-          available < peak + budget$disk) .wb_operation_pack_v3_error(
-        "PYBENCH_CAPABILITY_MISMATCH", "Insufficient private projection spill capacity.", "execution")
-      if (!is.null(budget$policy)) {
-        usage <- .wb_graph_disk_admit(bundle$con, budget$policy)
-        if (usage$owned_spill_bytes + budget$disk + peak +
-            .wb_graph_session_copy_reservation(budget$policy) >
-            as.numeric(budget$policy$token_bytes))
-          .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-            "Private projection spill exceeds the graph scratch allowance.", "execution")
-      }
-      budget$disk <- budget$disk + peak; disk_charge <- peak
-      spill_root <- tempfile("scwb_broker_projection_")
-      dir.create(spill_root)
-      spill <- .wb_matrix_write_continuous(matrix, file.path(spill_root, "columns"))
-      if (identical(grant$chunk_axis, "features")) spill <-
-        BPCells::transpose_storage_order(spill, outdir = file.path(spill_root, "rows"),
-          tmpdir = spill_root, load_bytes = load, sort_bytes = sort)
-      matrix <- NULL
-      bytes <- sum(file.info(as.character(fs::dir_ls(spill_root, recurse = TRUE,
-        type = "file", all = TRUE)))$size)
-      if (!is.finite(bytes) || bytes > peak) .wb_operation_pack_v3_error(
-        "PYBENCH_CAPABILITY_MISMATCH", "Private projection spill exceeded admitted storage.", "execution")
-      spill_guard <- .wb_operation_pack_v3_broker_spill_guard(spill_root)
-    }
-  }
+  .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant, "execution")
+  guard <- .wb_operation_pack_matrix_light_guard(bundle, source$matrix_id)
+  mode <- if (isTRUE(budget$mixed_graph)) "bundle_slice" else "bundle_stream"
   read <- function(features, cells) {
     tryCatch({
       if (closed) .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -308,25 +222,19 @@
       if (anyNA(match(features, axes$features)) || anyNA(match(cells, axes$cells)))
         .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
           "Broker read is outside its admitted projection.", "execution")
-      if (!is.null(guard)) guard()
-      if (!is.null(spill_guard)) spill_guard()
+      guard()
       values <- if (identical(mode, "bundle_stream")) {
         if (is.null(plan)) plan <<- .wb_matrix_stream_reader(bundle,
           source$matrix_id, grant$chunk_axis %||% "cells",
           features = axes$features, cells = axes$cells)
         as.matrix(plan$read(features, cells))
-      } else {
-        if (identical(mode, "cached_projection"))
-          matrix[match(features, axes$features), match(cells, axes$cells), drop = FALSE] else
-          .wb_as_sparse(spill[match(features, axes$features), match(cells, axes$cells), drop = FALSE])
-      }
-      if (!is.null(guard)) guard()
-      if (!is.null(spill_guard)) spill_guard()
+      } else as.matrix(wb_slice(bundle, source$matrix_id, features = features, cells = cells))
+      guard()
       values
     }, error = function(error) { close(); stop(error) })
   }
   ready <- TRUE
-  list(read = read, close = close, mode = mode, spill_root = spill_root)
+  list(read = read, close = close, mode = mode, spill_root = NULL)
 }
 
 .wb_operation_pack_v3_broker_source <- function(bundle, stage, grant,
@@ -446,6 +354,49 @@
   invisible(TRUE)
 }
 
+.wb_operation_pack_v3_broker_graph_reservation <- function(bundle, budget, policy) {
+  reserved <- policy
+  for (field in c("memory_bytes", "token_bytes")) {
+    available <- as.numeric(policy[[field]]) -
+      if (field == "memory_bytes") budget$used else budget$disk
+    if (!is.finite(available) || available <= 0)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Private matrix reservations exhaust the graph working allowance.", "execution")
+    reserved[[field]] <- format(floor(available), scientific = FALSE, trim = TRUE)
+  }
+  reserved <- .wb_graph_budgets(reserved)
+  .wb_graph_fd_metadata_reservation(reserved)
+  .wb_operation_pack_v4_scoped_graph_budgets(bundle, reserved)
+}
+
+.wb_operation_pack_v3_broker_response_admit <- function(budget, features, cells) {
+  # Response values, sparse/dense conversions, identity tokens and the bounded
+  # Matrix Market writer coexist. Graph response carriers have been released.
+  elements <- as.double(length(features)) * length(cells)
+  # Four dense-value widths cover input/returned copies and conversion. Writer
+  # and canonical slice work are separately block-capped, not 128 bytes for
+  # every element of a wide response (which would reject valid bounded reads).
+  memory <- 32 * elements + min(33554432, 64 * elements) +
+    256 * (length(features) + length(cells)) + 65536
+  # The ordinary max_dense option guards fallback coercion/cache admission;
+  # it is not a newly imposed process-wide RAM cap. Nonmixed responses retain
+  # their authenticated max_elements/response-byte limits. Mixed graph requests
+  # additionally own the existing declared aggregate working-memory budget.
+  if (!is.finite(memory) || (!is.null(budget$policy) &&
+      memory > budget$memory - budget$used))
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Typed matrix response exceeds its bounded working-memory admission.", "execution")
+  if (!is.null(budget$policy)) {
+    bytes <- 128 * elements + 8 * sum(nchar(c(features, cells), type = "bytes")) + 16384
+    usage <- .wb_graph_transient_usage(budgets = budget$policy)
+    if (!is.finite(bytes) || usage$owned_spill_bytes + budget$disk + bytes +
+        .wb_graph_session_copy_reservation(budget$policy) > as.numeric(budget$policy$token_bytes))
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Typed matrix response exceeds the shared graph scratch admission.", "execution")
+  }
+  invisible(TRUE)
+}
+
 .wb_operation_pack_v3_broker_main <- function(stage, bundle_dir,
                                                 source_bundle_dir = bundle_dir) {
   stage <- normalizePath(stage, winslash = "/", mustWork = TRUE)
@@ -478,21 +429,31 @@
       on.exit(wb_close_bundle(source_bundle), add = TRUE)
       bundle$staging_source_bundle <- source_bundle
     }
-    graph_cursors <- stats::setNames(lapply(request$graph_read_grants %||% list(),
-      function(grant) .wb_operation_pack_v4_graph_cursor(bundle, grant)),
-      vapply(request$graph_read_grants %||% list(), `[[`, character(1), "input_name"))
     readers <- list()
     on.exit(for (reader in readers) reader$close(), add = TRUE)
-    graph_policy <- if (identical(request$pack_abi_version, "4"))
+    graph_enabled <- length(request$graph_read_grants %||% list()) > 0L ||
+      length(request$graph_write_grants %||% list()) > 0L
+    graph_policy <- if (graph_enabled)
       .wb_operation_pack_v4_lowest_graph_budgets(lapply(request$graph_write_grants %||%
         list(), `[[`, "resource_budgets")) else NULL
+    if (graph_enabled) {
+      restore_graph <- .wb_operation_pack_v4_scoped_graph_budgets(bundle, graph_policy)
+      on.exit(restore_graph(), add = TRUE, after = FALSE)
+      graph_policy <- .wb_graph_effective_budgets(bundle$con, graph_policy)
+    }
     projection_budget <- .wb_operation_pack_v3_broker_projection_budget(bundle, graph_policy)
-    projection_budget$legacy_mixed <- length(grants) > 0L &&
-      (length(request$graph_read_grants %||% list()) > 0L ||
-       length(request$graph_write_grants %||% list()) > 0L)
+    projection_budget$mixed_graph <- graph_enabled && length(grants) > 0L
     for (name in names(grants)) readers[[name]] <-
       .wb_operation_pack_v3_broker_reader(bundle, stage, grants[[name]],
         axes[[name]], projection_budget)
+    if (graph_enabled) {
+      restore_reservation <- .wb_operation_pack_v3_broker_graph_reservation(
+        bundle, projection_budget, graph_policy)
+      on.exit(restore_reservation(), add = TRUE, after = FALSE)
+    }
+    graph_cursors <- stats::setNames(lapply(request$graph_read_grants %||% list(),
+      function(grant) .wb_operation_pack_v4_graph_cursor(bundle, grant)),
+      vapply(request$graph_read_grants %||% list(), `[[`, character(1), "input_name"))
     ordinals <- stats::setNames(rep(0L, length(grants)), names(grants))
     records <- list()
     deadline <- Sys.time() + timeout
@@ -530,6 +491,8 @@
       control <- .wb_operation_pack_v3_broker_read_control(control_path,
         token, request, grant, ordinal, axes[[name]], prior)
       unlink(control_path, force = TRUE)
+      .wb_operation_pack_v3_broker_response_admit(projection_budget,
+        control$features, control$cells)
       values <- readers[[name]]$read(control$features, control$cells)
       published <- .wb_operation_pack_v3_broker_publish_response(spool,
         grant, request, ordinal, control$features, control$cells, values)
@@ -538,6 +501,9 @@
       ordinals[[name]] <- ordinal
       records[[length(records) + 1L]] <- list(name = name,
         result = published$result, chunk_values = published$chunk_values)
+      # The broker is serial. Do not retain the previous matrix payload and
+      # response/control carriers while the next graph branch is serviced.
+      rm(values, published, control, raw, prior)
     }
     .wb_operation_pack_v2_atomic_json(records,
       file.path(stage, "broker-observations.json"))
