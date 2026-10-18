@@ -1,10 +1,10 @@
 # Current integrity-cost and source-coverage reconciliation
 
-Current source: **0bf95bc13deb43b411997dae8404c8e59121ea19**;
-installed runtime **76e217a1342ade29b427bbbcba03e595861d474d**, not the earlier
+Current source: **1f853b6a3fb18480c1fe8504877f3b8f839d3fd0**;
+installed runtime **242fdf071335b54c8ca78793b23982990733b7d4**, not the earlier
 8614/ba351 candidate. This is a documentation-only descendant; the frozen
 runtime/performance worktree remains
-untouched. Only this Markdown and its CSV are updated. No runtime, protocol,
+untouched. This documentation descendant also records final242 metrics; runtime remains unchanged. No runtime, protocol,
 schema, test, profile or pack change; no workload or qualification job.
 
 The old `final_ba351cd_measurements` supervisor is **terminal FAILED09**, not
@@ -12,15 +12,11 @@ pending: an erroneous rounded supplemental reference caused the strict UMAP
 comparison to fail before promotion/finalization/reopen/recipient validation.
 The independently frozen full-precision reference subsequently matched every
 existing PCA/UMAP value exactly in a separately labeled read-only diagnosis.
-That does not turn failed09 into an end-to-end pass. The new serial
-`/tmp/scwb-engine-simplification-forge-20261018/final_76e217a_measurements`
-full workflow is **ACTIVE / terminal result pending**. Its active workflow logs
-are not acceptance evidence here; integrate this documentation only afterward.
-No full Xenopus success or final engine-wide acceptance is claimed.
+That does not turn failed09 into an end-to-end pass. Both later serial full workflows are terminal: final76 completed in1095.94s; final242 completed in769.22s. Final242 has13/13 numeric gate sidecars0, including fresh public source-aware import through recipient validation, original scientific comparisons, raw104-block alignment, installed/harness/reference byte checks and documentation checks. Correctness completion is not all-budget acceptance: the original171.124s full-workflow target is still missed by598.096s; independent review remains pending. Exact terminal evidence and limitations are in [FINAL242_MEASUREMENT_ACCOUNTING.md](FINAL242_MEASUREMENT_ACCOUNTING.md).
 
 ## Evidence accounting, without relabeling earlier runs
 
-- Current discovery: **462 test definitions / 201 files**, discovery only.
+- Current1f853b6 generated ownership inventory: **471 test definitions / 203 files**, discovery only; historical0bf95 was462/201. Neither is a complete-suite rerun.
 - Selected installed main group: raw **67 executed, 65 passed, 2 fixture failures**.
   The two corrected fixtures subsequently passed; four additional shared-source
   cases passed. This supports **71 distinct passing selected identities**
@@ -31,7 +27,7 @@ No full Xenopus success or final engine-wide acceptance is claimed.
 - Fresh installed graph/aggregate group: **22/22 passed**, runtime637e015.
   Fresh installed object-row canonical group: **19/19 passed**, runtime76e217a.
   These overlap older authority/canonical coverage; do not sum them with71 or35
-  without an identity-level reconciliation. Neither is a new complete suite.
+  without an identity-level reconciliation. Neither is a new complete suite. Final242 adds an actual installed19/19 canonical/object/ownership gate, separate getter19/19 and graph28/28 affected groups; overlap prevents blind addition. Fixture failures and corrected retries remain raw evidence.
 - The original full core run onfff50517 remains **382 executed / 370 passed /
   3 skipped / 9 failed**, exit1. Executed includes skipped invocations. Later
   focused passes do not turn it into a passing full suite.
@@ -50,7 +46,7 @@ No full Xenopus success or final engine-wide acceptance is claimed.
 contains original IDs01–36 exactly once, with prevented failure, authoritative
 boundary, current frequency/data, disposition, implementation scope, source
 anchors, focused/measurement status and limitations. Every row was reconciled
-against0bf95 code; a kept check is not mislabeled as an implemented optimization.
+against current242 runtime code; a kept check is not mislabeled as an implemented optimization.
 
 Packs are trusted scientific software, not a hostile native-R sandbox. Admission
 and publication authenticate actual consumed bytes; ordinary block reads use
@@ -63,14 +59,14 @@ provenance, atomic publication and rollback remain mandatory.
 
 Historical coordination inventory, `SOURCE_COVERAGE.md`, `inventory_remaining.csv`,
 budget notes and raw evidence are not rewritten. The original audit on96cbf880 is
-not a measurement of repaired8f53e950 or of0bf95. This pair describes **current**
+not a measurement of repaired8f53e950 or of242. This pair describes **current**
 code; earlier records remain the chronology, not contradictory current claims.
 
 ## Current source scopes
 
 ### Matrices, selected plans and transport
 
-`R/getters_matrices.R:167` supplies one scoped selected-axis BPCells plan.
+`R/getters_matrices.R:182` supplies one scoped selected-axis BPCells plan.
 `R/operation_pack_typed_slice_broker.R` and
 `R/operation_pack_private_matrix_stream.R:150` admit physical axes/native maps,
 private caches/spills, source/session-copy disk and live response buffers before
@@ -84,6 +80,8 @@ This private-input transport is **not** native normalization output:
 `R/operation_pack_v3_materializations.R:3` writes continuous matrices directly
 as full-double BPCells; the RNA fragment writer calls it at:525. No scientific
 output rounding or parameter change was introduced.
+Public `wb_matrix_read_features()` now coerces the whole selected sparse block once instead of column-wise sparse replacement; disjoint fragment concatenation in scoped reader plans similarly avoids repeated replacement. Exact overlap/newest, duplicate requests, missing/NA and ordering fallbacks remain. Matched public128-cell read .296s vs2.920s and private256-feature median .063s vs.486s pass their scoped budgets; final104-block normalized comparison69.323s includes other scientific comparisons and passes120s. No memoized scientific values or verification-harness chunk changes were introduced.
+
 CSR/triplet/symmetric/triangular/diagonal and exotic normalization can still be
 whole-object preparation. Selected CSC output remains O(selected NNZ) storage.
 `R/operation_pack_v3_transition.R:3601` avoids deep copies only for fresh recursively
@@ -212,7 +210,7 @@ preservation and cleanup. Full graph identities, associations, incidence/attribu
 structure and complete closure remain lifecycle checks. They were not per-page
 full scans. Tiny transport partition changes may alter observations/receipt-chain
 identities, not graph content identity. Small cursor/storage fixtures do not prove
-realistic graph-scale speed or universal model/registry/graph performance.
+realistic graph-scale speed or universal model/registry/graph performance. Current `R/graph_lifecycle.R:61` reuses only a privately independently verified retained observation on the same live connection and exact SQL/schema/attachment/manifest epoch; no active-transaction reuse, policy admission still runs, explicit full checks remain fresh, and recovery forgets the observation. This is not a persisted content fingerprint or cross-connection cache.
 
 `R/graph_storage.R:568,:632` now consolidates the SQL edge/incidence aggregate
 into byte-admitted batches. It retains only maximum edge-record bytes from the
@@ -250,7 +248,7 @@ Original targets stay unchanged. Earlier misses remain recorded even if a later
 descendant improves them. `T` means
 `/tmp/scwb-engine-simplification-forge-20261018`. Completed ba351 component
 metrics below are historical terminal evidence, not pending or measurements of
-every new76 path. The new76 full-workflow result remains pending. The raw source
+every new242 path. Both76 and242 full-workflow results are terminal, with timing-budget misses retained. The raw source
 paths and full numerical ledger are in the separately prepared documentation
 commit `0b41cda75d6754ac97f32d6bcefa912570542ee0`
 (`notes/engine_simplification/TERMINAL_MEASUREMENT_LEDGER.md` and CSV); their
@@ -259,19 +257,19 @@ failed/incomplete dispositions are not overwritten or assumed integrated here.
 | Scope | Original target | Retained terminal/component evidence and current limit |
 |---|---|---|
 | Fast history vector | <=1s overhead; history15<=1.5xempty+.1s; RSS<1GiB | ba351 .364/.363/.399s at0/5/15 vs direct .020s PASS bounded criteria; larger history unmeasured |
-| Mixed complete storage | <=2s over complete direct read/compute/write/reopen | ba3518.879-.443=8.436s extra MISS; new76 terminal reconciliation pending |
+| Mixed complete storage | <=2s over complete direct read/compute/write/reopen | ba3518.879-.443=8.436s extra MISS; final2429.101-.462=8.639s extra MISS |
 | Table hash | >=5x1000/5000rows;100rows fixed<=.05s | ba3514.53x at1000 MISS;5.60x at5000 PASS;100-row fixed PASS |
 | Canonical/descriptor | >=3x arrays/table and>=2x descriptors; RSS+10% | ba351 ordinary cases pass timing; descriptor independent extraRSS unmeasured; earlier misses retained |
 | Numeric arrays | Original10x; subsequent<=.6*prior+.01s separate | ba351 vector12.46x PASS; scalar-list9.52x and dataframe2.93x MISS10x; follow-on flat-array threshold passes |
 | New nested-object rows | >=5x31535 rows; exact bytes/errors |76 nested12.654x PASS; complete annotations11.920x PASS; flat11-field3.123x MISS; all9 authority encodings retained |
-| Selected matrix index | <=50%rchar and<=1.1xtime | Earlier11.9%rchar/79.6%time component result; no new76 index timing |
+| Selected matrix index | <=50%rchar and<=1.1xtime | Earlier11.9%rchar/79.6%time component result; matched a0 plan/index2.308 vs76_2.333s measured separately; no index speedup claim |
 | Typed space | <=32MiB temporary target; realistic operation<=5s; independent partition cost | ba351 realistic12.392/12.305s MISS5s; wide5.072/5.414s PASS10s; SHA3/3 at8/32 partitions; not full-workflow evidence |
 | Matrix Market writer | >=5x250kNNZ; extraRSS<=128MiB; small fixed<=.05s | Unchanged13de paired base300.62x/CSC249.06x PASS; small PASS; extraRSS unmeasured; no new76 writer benchmark |
 | Graph pager |1000pages<=1.2xold+.1s; headers<=partition+64KiB | Unchanged pager13de1.903/1.871/1.890s MISS all3; new aggregate result does not waive pager miss |
 | Manifest snapshot | >=4x46empty/tiny; <=3new concurrent connections | ba351 one-row fixture .640/.282s=2.27x MISS4x; observed DBI connections46→1; empty-only unmeasured |
 | Exact publication witness | Warm guard<=.1s; zero unchanged-close snapshots | ba351100checks .770s=.0077/check PASS; no payload authority |
-| New graph aggregate | Overall>=20% reduction; <=3s extra; component>=20% separate | New76 graph36.458 vs46.387=21.4% PASS overall;36.458-2.293=34.165s extra MISS; aggregate-component elapsed UNMEASURED |
-| Real Xenopus complete | <=direct*1.30+60s; >=25%faster repaired; RSS<=baseline+10%; admin>5s explained | ba351 FAILED09 before publication;76 fresh import-to-recipient ACTIVE/pending; no full success claim |
+| New graph aggregate | Overall>=20% reduction; <=3s extra; component>=20% separate | 76 graph36.458 PASS21.4%; final24221.204 vs46.387 PASS54.29%;21.204-2.301=18.903s extra MISS3s; RO+recipient6.913 vs22.159 PASS68.80% against30%; aggregate-component elapsed UNMEASURED |
+| Real Xenopus complete | <=direct*1.30+60s; >=25%faster repaired; RSS<=baseline+10%; admin>5s explained | ba351 FAILED09 preserved;76 complete1095.94s;242 complete769.22s vs direct85.48 target171.124 MISS598.096s; four matching operations369.663 vs repaired1276.093 PASS71.03% scoped; repaired full end-to-end/RSS budget unmeasured |
 
 The original direct-v3 main98.46s and separate metadata extension5.81s are two
 processes:104.27s is not an observed single-process end-to-end duration. Efficient
@@ -289,15 +287,14 @@ Direct keeps the same algorithms/backends/settings but omits
 categorical registries, provenance, durable recovery, atomic publication and
 recipient services. [TRANSPORT_MATCHED_REFERENCE_PLAN.md](TRANSPORT_MATCHED_REFERENCE_PLAN.md)
 retains the superseded plan, exact source contradiction, raw failures and strict
-original thresholds. Fresh76 must finish its own complete lifecycle unchanged.
+original thresholds. Fresh76 and242 subsequently completed their own full unchanged lifecycles. The strict original PCA/UMAP and normalization results are exact in242; HVG summaries satisfy original predeclared tolerances rather than a universal bit-identical claim.
 
 Completed new component raw records are
 `T/final_76e217a_object_profile/object_rows.csv` (numeric sidecar0),
 `T/final_76e217a_object_focus.log/.exit` (19/19,0),
 `T/graph_637e015_focused_retry.log/.exit` (22/22,0), and terminal
 `T/final_76e217a_measurements/graph/timings.csv` / `logs/04_graph.exit=0`.
-The full76 workflow log is still active, and no partial workflow result is read
-for acceptance. Source/behavior acceptance does not certify budget success.
+Final242 terminal evidence is `T/final_242f_measurements`, all13 gate sidecars0; no partial log is treated as success. A metadata-only lossless report export is in `T/terminal242_metadata`;24 coverage rows are content_verified and5 external_uninspected, not29 verified. The earlier completed76 prose claiming all29 verified was an accounting error: its raw report has the same24+5 split, and the raw report is unchanged. Source/behavior acceptance does not certify budget success.
 
 Graph and family comparisons are synthetic public primitive lifecycles, not
 scientific operation dispatch. Their direct references omit provenance,
