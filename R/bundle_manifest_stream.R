@@ -21,8 +21,52 @@
     bigint = con@bigint, extended_types = con@extended_types)
   DBI::dbExecute(windows, "PRAGMA cache_size=-64;")
   DBI::dbExecute(windows, "PRAGMA temp_store=FILE;")
+  # Small in-memory chunks create no token spill, but the snapshot still owns
+  # aggregate FD/scratch/session-copy admission at both lifecycle boundaries.
+  .wb_graph_spill_admit(budgets)
+  finish <- observer$finish
+  observer$finish <- function() {
+    .wb_graph_spill_admit(budgets)
+    finish()
+  }
+  attr(observer, "wb_manifest_spill_boundaries") <- TRUE
   ready <- TRUE
   list(observer = observer, windows = windows, close = close)
+}
+
+.wb_manifest_small_chunk_bound <- function(rows, storage_types, key_tokens, budgets) {
+  nr <- nrow(rows); nc <- ncol(rows)
+  # Reject dimensions before creating any row-sized escaping/type vectors.
+  carrier <- 4096 + 1024 * nc + 256 * nr * nc + 128 * nr
+  if (!nr || !nc || !is.finite(carrier) || carrier > 8 * budgets$partition_bytes) return(NULL)
+  if (any(vapply(storage_types, function(types)
+      any(types %in% c("text_deferred", "blob_deferred")), logical(1)))) return(NULL)
+  encoded <- 2 + max(0, nr - 1) + nr * (2 + max(0, nc - 1) +
+    sum(nchar(key_tokens, type = "bytes") + 1))
+  for (column in rows) {
+    # Only actual SQLite scalar columns or its documented extended types.
+    # Unknown/list/custom columns retain the existing streaming route.
+    if (!is.atomic(column) || !typeof(column) %in% c("integer", "double", "logical", "character") ||
+        (is.object(column) && !inherits(column, c("Date", "POSIXct", "difftime", "integer64"))))
+      return(NULL)
+    if (is.character(column)) {
+      bytes <- nchar(column, type = "bytes")
+      encoded <- encoded + sum(ifelse(is.na(bytes), 4, 6 * bytes + 2))
+    } else {
+      # Generous bound for jsonlite's finite/nonfinite/NA, signed int64 and
+      # DATE/TIME/TIMESTAMP scalar representations; options/types stay unchanged.
+      encoded <- encoded + sum(ifelse(is.na(column), 4, 512))
+    }
+    if (!is.finite(encoded) || carrier + 8 * encoded > 8 * budgets$partition_bytes ||
+        encoded > as.numeric(budgets$token_bytes)) return(NULL)
+  }
+  # Cover the selected dataframe/type vectors, sanitizer/serializer carriers,
+  # scalar lists, bounds and hash intermediates separately from fetched rows.
+  reservation <- carrier + 8 * encoded
+  if (!is.finite(reservation) || reservation > 8 * budgets$partition_bytes ||
+      encoded > as.numeric(budgets$token_bytes)) return(NULL)
+  list(carrier_bytes = carrier, encoded_bytes = encoded,
+    reservation_bytes = reservation)
 }
 
 .wb_manifest_table_identity <- function(con, table, chunk_size = 5000L,
@@ -135,6 +179,7 @@
   }
   after <- NULL
   repeat {
+    if (n == count) break
     admission <- DBI::dbGetQuery(windows, paste0("SELECT COUNT(*) n,COALESCE(SUM(charge),0) bytes FROM ",
       "(SELECT ", text_charge, " charge FROM ", DBI::dbQuoteIdentifier(con, table),
       if (is.null(after)) "" else " WHERE rowid>?", " ORDER BY rowid LIMIT ?);"),
@@ -144,8 +189,14 @@
       8 * budgets$partition_bytes + 65536 <= as.numeric(budgets$memory_bytes),
       "GRAPH_RESOURCE_EXCEEDED", "Manifest scalar/type carriers exceed admission before decoding.")
     batch <- DBI::dbFetch(query, n = as.integer(chunk_size))
-    if (!nrow(batch)) break
+    .wb_graph_require(nrow(batch) > 0L, "GRAPH_SOURCE_PAYLOAD_INVALID",
+      "Manifest cursor ended before its admitted row count.")
+    .wb_graph_require(nrow(batch) == min(chunk_size, count - n),
+      "GRAPH_SOURCE_PAYLOAD_INVALID",
+      "Manifest logical chunk did not match its admitted row count.")
     n <- n + nrow(batch)
+    .wb_graph_require(n <= count, "GRAPH_SOURCE_PAYLOAD_INVALID",
+      "Manifest cursor exceeded its admitted row count.")
     after <- bit64::as.integer64(utils::tail(batch[[1L]], 1L))
     rows <- batch[seq.int(2L, nrow(fields) + 1L)]
     names(rows) <- fields$name
@@ -155,7 +206,21 @@
         attributes(rows[[j]]) <- attributes(prototypes[[j]])
       }
     }
-    sha <- .wb_graph_token_hash(function(emit) {
+    small <- if (isTRUE(attr(observer, "wb_manifest_spill_boundaries", exact = TRUE)))
+      .wb_manifest_small_chunk_bound(rows,
+        batch[seq.int(nrow(fields) + 2L, 2L * nrow(fields) + 1L)], key_tokens, budgets) else NULL
+    if (!is.null(small)) {
+      .wb_graph_storage_fault("manifest_small_chunk", c(list(con = con, table = table,
+        budgets = budgets, rows = nrow(batch), decoded_reservation_bytes = 8 * budgets$partition_bytes,
+        fetched_carrier_bytes = as.numeric(admission$n[[1L]]) * (24 * nrow(fields) + 32) +
+          as.numeric(admission$bytes[[1L]])), small))
+      json <- enc2utf8(as.character(jsonlite::toJSON(.wb_json_sanitize(rows),
+        dataframe = "rows", auto_unbox = TRUE, null = "null", na = "null")))
+      .wb_graph_require(nchar(json, type = "bytes") <= small$encoded_bytes &&
+        nchar(json, type = "bytes") <= as.numeric(budgets$token_bytes),
+        "GRAPH_RESOURCE_EXCEEDED", "Manifest small chunk exceeded pre-admitted encoded size.")
+      sha <- digest::digest(json, algo = "sha256", serialize = FALSE)
+    } else sha <- .wb_graph_token_hash(function(emit) {
       emit("[")
       i <- 1L
       key_charge <- 2 + sum(nchar(key_tokens, type = "bytes") + 2L) + max(0L, nrow(fields) - 1L)
@@ -245,6 +310,8 @@
     .wb_graph_storage_fault("manifest_chunk", list(con = con, table = table,
       rows = nrow(batch), after = as.character(after), budgets = budgets))
   }
+  .wb_graph_require(n == count, "GRAPH_SOURCE_PAYLOAD_INVALID",
+    "Manifest cursor did not cover its admitted row count.")
   DBI::dbClearResult(query)
   query <- NULL
   if (owned) {
