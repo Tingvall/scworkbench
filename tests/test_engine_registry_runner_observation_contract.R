@@ -219,13 +219,16 @@
 }
 
 test_engine_registry_runner_predispatch_change_contract <- function() {
-  .engine_registry_runner_failure_and_retry(target = 1L)
+  stopifnot(isTRUE(.engine_registry_runner_failure_and_retry(target = 1L)))
+  TRUE
 }
 
 test_engine_registry_runner_prepublication_change_contract <- function() {
-  .engine_registry_runner_failure_and_retry(target = 2L)
+  stopifnot(isTRUE(.engine_registry_runner_failure_and_retry(target = 2L)))
+  TRUE
 }
 
 test_engine_registry_runner_publication_rollback_contract <- function() {
-  .engine_registry_runner_failure_and_retry(publication_fault = TRUE)
+  stopifnot(isTRUE(.engine_registry_runner_failure_and_retry(publication_fault = TRUE)))
+  TRUE
 }
