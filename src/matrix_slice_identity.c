@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 /* Do not force deferred string carriers while deciding whether a whole batch
  * can be observed before its ordered state fold. */
@@ -235,6 +236,12 @@ static SEXP append_body(void *data) {
     char column[64];
     int previous_column = 0, have_column = 0;
     size_t column_bytes = 0;
+    /* Invocation-local formatter workspace only: <=5KiB. Every actual value
+     * is still read and finite-checked; exact bits distinguish even signed0.
+     * Collisions replace a successful token, never a scientific observation. */
+    uint64_t token_keys[64];
+    unsigned char token_valid[64] = {0};
+    char token_values[64][64];
     for (R_xlen_t i = 0; i < XLENGTH(context->values); ++i) {
         char row[64], value[64], record[256];
         size_t row_bytes = coordinate(INTEGER(context->rows)[i], row);
@@ -251,7 +258,20 @@ static SEXP append_body(void *data) {
              * This changes token construction only; nonintegers retain %.15g. */
             if (x >= 1 && x <= INT_MAX && x == (int)x)
                 coordinate((int)x, value);
-            else number(x, value);
+            else if (!R_FINITE(x)) number(x, value);
+            else if (sizeof(double) == sizeof(uint64_t)) {
+                uint64_t bits;
+                memcpy(&bits, &x, sizeof(bits));
+                size_t slot = (size_t)((bits ^ (bits >> 32)) & UINT64_C(63));
+                if (token_valid[slot] && token_keys[slot] == bits)
+                    strcpy(value, token_values[slot]);
+                else {
+                    number(x, value);
+                    token_keys[slot] = bits;
+                    strcpy(token_values[slot], value);
+                    token_valid[slot] = 1;
+                }
+            } else number(x, value);
         }
         char *p = record;
         if (!context->first) *p++ = ',';

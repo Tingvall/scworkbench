@@ -22,3 +22,18 @@ prefix, unique values and integerbypass. Actual hit/count evidence requires an
 external development instrumented copy of the unchanged production Csource,
 never new public telemetry/bindings or a test-only authority shortcut. Runtime
 tests/compile/install/benchmarks await exact source review and serial release.
+
+Implementation source:64*(8-byte key+64-byte token+1-byte valid)=4672-byte
+separate stackarrays, no structpadding/globalstate. sizeof(double)==sizeof(uint64_t)
+guards bitcopy; finitecheck always precedeshit. Slot = low6(bits XOR(bits>>32));
+exactfull64bit comparison determineshit. Quarter-integer fixture values all
+collide atslot0, exercising eviction without changingindependentbyteoracle.
+number() itself remains unchanged. Wholeprimitive/sourceidentity checks untouched.
+
+Three focused definitions cover fullrawbytes/SHA, independently constructed
+complete matrix-slice framing for repeatednormalized/randomvalues and chunks,
+and exactoldfinite/rangeerrors plus flushed64KiBprefix/cleanup/retry. Tests add
+no productioncounter or native/publicbinding. Repeatedactualfixture plus source
+proof and subsequent matchedinstalled measurement establish use/benefit; any
+optional number-call census must instrument only a separatelycompiled development
+copy after review, never the final installedruntime or authorityobservations.
