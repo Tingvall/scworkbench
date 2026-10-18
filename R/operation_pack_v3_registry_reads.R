@@ -314,8 +314,10 @@
     inputs, input_records, params, stage_root, effective_cells, session_id, run_id,
     generation, source_state_identity) {
   declarations <- .wb_operation_pack_v3_new_registry_declarations(operation)
-  if (!length(declarations)) return(list(records = list(), values = list()))
+  if (!length(declarations)) return(list(records = list(), values = list(),
+    observations = list()))
   records <- vector("list", length(declarations)); values <- list()
+  observations <- list()
   for (i in seq_along(declarations)) {
     declaration <- declarations[[i]]
     name <- as.character(declaration$name)[1]
@@ -333,6 +335,7 @@
         inputs, input_records, params, effective_cells) else
       .wb_operation_pack_v3_feature_annotation_snapshot(bundle, declaration,
         inputs, input_records)
+    snapshot <- .wb_operation_pack_v3_registry_snapshot_validate(snapshot, kind)
     value_dir <- file.path(stage_root, "registry_reads", name)
     dir.create(value_dir, recursive = TRUE, showWarnings = FALSE)
     payload <- file.path(value_dir, "payload.json")
@@ -466,12 +469,18 @@
       "descriptor excluding descriptor_identity", descriptor)
     records[[i]] <- list(name = name, descriptor = descriptor)
     values[[name]] <- snapshot
+    # Private invocation evidence, never a pack-supplied digest or durable
+    # authority. Snapshot/descriptor lists share owned copy-on-modify values;
+    # native callback delivery still makes its separate deep copy.
+    observations[[name]] <- list(declaration = declaration,
+      input_records = input_records, descriptor = descriptor, snapshot = snapshot)
   }
   order_index <- order(vapply(records, `[[`, character(1), "name"),
     method = "radix")
   ordered <- records[order_index]
   list(records = ordered,
-    values = values[vapply(ordered, `[[`, character(1), "name")])
+    values = values[vapply(ordered, `[[`, character(1), "name")],
+    observations = observations[vapply(ordered, `[[`, character(1), "name")])
 }
 
 .wb_operation_pack_v3_registry_reads_assert_current <- function(bundle,
@@ -491,6 +500,7 @@
   input_records <- stats::setNames(lapply(request$inputs, `[[`, "descriptor"),
     vapply(request$inputs, `[[`, character(1), "name"))
   source_state <- request$execution_capability$source_state_identity
+  observations <- attr(request, "operation_pack_v3_registry_observations", exact = TRUE)
   for (declaration in declarations) {
     name <- as.character(declaration$name)[1]
     kind <- as.character(declaration$kind)[1]
@@ -506,11 +516,20 @@
           inputs, input_records, params, effective_cells) else
       .wb_operation_pack_v3_feature_annotation_snapshot(bundle, declaration,
         inputs, input_records)
+    expected <- records[[name]]$descriptor
+    issued <- observations[[name]]
+    # Always obtain the real current getter snapshot above. Reuse only the
+    # independently issued identity of an exactly equal, validated value with
+    # all current bindings equal to private issuance. Recovery and uncertain
+    # paths have no such observation and retain independent validation/hash.
+    if (!is.null(issued) && identical(declaration, issued$declaration) &&
+        identical(input_records, issued$input_records) &&
+        identical(expected, issued$descriptor) &&
+        identical(snapshot, issued$snapshot)) next
     identities <- .wb_operation_pack_v3_registry_snapshot_identities(
       snapshot, kind)
     observed_content <- identities$content
     observed_source <- identities$source
-    expected <- records[[name]]$descriptor
     if (!identical(observed_content, expected$content_identity) ||
         !identical(observed_source, expected$source_identity))
       .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",

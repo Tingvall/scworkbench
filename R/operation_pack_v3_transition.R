@@ -1546,6 +1546,8 @@
   attr(base, "operation_pack_v2_registry_read_values") <- c(
     attr(base, "operation_pack_v2_registry_read_values") %||% list(),
     v3_registry$values)
+  attr(base, "operation_pack_v3_registry_observations") <-
+    v3_registry$observations
   attr(base, "operation_pack_v3_provenance_read_values") <- provenance$values
   attr(base, "operation_pack_v3_producer_lineage_values") <-
     stats::setNames(producer_lineage, vapply(producer_lineage, `[[`,
