@@ -364,9 +364,88 @@ wb_bundle_validation_report <- function(bundle_dir,
   })
   on.exit(if (!is.null(con)) try(DBI::dbDisconnect(con), silent = TRUE), add = TRUE)
 
+  # Only this fresh recipient report owns these observations. The immutable
+  # SQL view and complete before/after filesystem proof remain authoritative;
+  # expected provenance/physical claims are NEVER retained as actual evidence.
+  table_observations <- list()
+  table_report_epoch <- NULL
+  table_epoch <- function() tryCatch({
+    if (!identical(level, "recipient") || is.null(con) || !DBI::dbIsValid(con) ||
+        isTRUE(RSQLite::sqliteIsTransacting(con))) return(NULL)
+    if (DBI::dbGetQuery(con, "SELECT EXISTS(SELECT 1 FROM sqlite_temp_schema) AS n")$n[[1L]] ||
+        DBI::dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM pragma_database_list ",
+          "WHERE name NOT IN ('main','temp')"))$n[[1L]] != 0L) return(NULL)
+    exact <- function(value) {
+      text <- as.character(value)
+      if (length(text) != 1L || is.na(text) || nchar(text, type = "bytes") > 16L ||
+          !grepl("^(0|[1-9][0-9]*)$", text)) return(NULL)
+      number <- suppressWarnings(as.numeric(text))
+      if (!is.finite(number) || number > 2^53 - 1 ||
+          !identical(sprintf("%.0f", number), text)) return(NULL)
+      text
+    }
+    epochs <- list(changes = exact(DBI::dbGetQuery(con,
+      "SELECT CAST(total_changes() AS TEXT) AS n")$n),
+      data = exact(DBI::dbGetQuery(con, "PRAGMA main.data_version")[[1L]]),
+      schema = exact(DBI::dbGetQuery(con, "PRAGMA main.schema_version")[[1L]]))
+    if (any(vapply(epochs, is.null, logical(1)))) return(NULL)
+    list(connection = con@ref, epochs = epochs)
+  }, error = function(e) NULL)
+  stored_table_actual_identity <- function(id) {
+    complete <- FALSE
+    on.exit(if (!complete) table_observations <<- list(), add = TRUE)
+    actual <- function() list(content_sha256 = .wb_prov_stored_table_content_sha256(con, id),
+      content_identity_scheme = unname(.wb_content_identity_schemes()[["table"]]))
+    key <- function() {
+      tryCatch({
+        epoch <- table_epoch()
+        if (is.null(epoch) || is.null(table_report_epoch) ||
+            !identical(epoch, table_report_epoch) || length(id) != 1L || is.na(id) ||
+            nchar(id, type = "bytes") > 32768) return(NULL)
+        # Bound the actual header BEFORE fetching it; oversized metadata still
+        # follows the original folding route, without a new artifact rejection.
+        header <- DBI::dbGetQuery(con, paste0(
+          "SELECT a.type,t.table_type,t.entity_kind,t.meta_json FROM artifacts a ",
+          "JOIN artifact_tables t ON t.artifact_id=a.artifact_id WHERE a.artifact_id=? AND ",
+          "COALESCE(octet_length(a.type),0)+COALESCE(octet_length(t.table_type),0)+",
+          "COALESCE(octet_length(t.entity_kind),0)+COALESCE(octet_length(t.meta_json),0)<=32768 LIMIT 2"),
+          params = list(id))
+        if (nrow(header) != 1L || !header$type[[1L]] %in% c("feature_table", "obs_table") ||
+            !identical(epoch, table_epoch())) return(NULL)
+        result <- list(epoch = epoch, artifact_id = id, header = as.list(header))
+        if (as.numeric(utils::object.size(result)) > 65536) return(NULL)
+        result
+      }, error = function(e) NULL)
+    }
+    before <- key()
+    prior <- table_observations[[id]]
+    if (!is.null(before) && !is.null(prior) && identical(before, prior$key)) {
+      if (identical(before, key())) {
+        complete <- TRUE
+        return(prior$value)
+      }
+      table_observations <<- list()
+      before <- key()
+    } else if (is.null(before)) table_observations <<- list()
+    value <- actual()
+    if (!is.null(before) && identical(before, key())) {
+      entry <- list(key = before, value = value)
+      candidate <- table_observations
+      candidate[[id]] <- entry
+      if (as.numeric(utils::object.size(candidate)) <= 65536) table_observations <<- candidate else {
+        candidate <- setNames(list(entry), id)
+        table_observations <<- if (as.numeric(utils::object.size(candidate)) <= 65536)
+          candidate else list()
+      }
+    } else table_observations <<- list()
+    complete <- TRUE
+    value
+  }
+
   if (!is.null(con)) timed("schema_and_registry", {
     tables <- DBI::dbListTables(con)
     schema_status <- .wb_schema_status(con, verify_structure = TRUE)
+    if (identical(schema_status$status, "current")) table_report_epoch <- table_epoch()
     if (!identical(schema_status$status, "current")) {
       add(
         "BUNDLE_SCHEMA_UPGRADE_REQUIRED", check_class = "schema",
@@ -1088,7 +1167,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         if (.wb_validation_nonempty(aid) && .wb_validation_nonempty(sha) && has("artifacts")) {
           actual_identity <- tryCatch({
             atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(aid))$type[1]
-            if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,aid),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else if (as.character(atype) == "model_ref") {
+            if (as.character(atype) %in% c("feature_table","obs_table")) stored_table_actual_identity(aid) else if (as.character(atype) == "model_ref") {
               mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(aid)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
             } else {
               prim <- wb_art_load(bundle, aid); .wb_prov_payload_identity(bundle, prim)
@@ -1148,7 +1227,7 @@ wb_bundle_validation_report <- function(bundle_dir,
                 if (isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
               } else if (kind == "artifact") {
                 atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]
-                if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else if (as.character(atype) == "model_ref") {
+                if (as.character(atype) %in% c("feature_table","obs_table")) stored_table_actual_identity(id) else if (as.character(atype) == "model_ref") {
                   mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
                 } else .wb_prov_payload_identity(bundle,wb_art_load(bundle,id))
               } else if (kind %in% c("cell_set","feature_set")) {
@@ -1427,7 +1506,7 @@ wb_bundle_validation_report <- function(bundle_dir,
             if(kind=="matrix") list(.wb_prov_payload_identity(bundle,wb_prim_matrix(id)))
             else if(kind=="space") { sr<-DBI::dbGetQuery(con,"SELECT dims FROM spaces WHERE space_id=?;",params=list(id)); if(nrow(sr)&&identical(as.integer(sr$dims[1]),2L)) list(.wb_prov_payload_identity(bundle,wb_prim_space(id)),.wb_prov_payload_identity(bundle,wb_prim_space_2d(id))) else list(.wb_prov_payload_identity(bundle,wb_prim_space(id))) }
             else if(kind=="model") { model_path<-.wb_validation_model_payload_path(con,id); if(nzchar(model_path)){ checked<-.wb_validation_path(root,model_path,"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list() }
-            else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]]))) else if(as.character(at)=="model_ref") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked<-if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
+            else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(stored_table_actual_identity(id)) else if(as.character(at)=="model_ref") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked<-if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
             else if(kind%in%c("cell_set","feature_set")) list(list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]])))
             else if(kind=="metadata_field") list(.wb_metadata_field_content_identity(con,id))
             else list()
