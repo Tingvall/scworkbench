@@ -83,6 +83,13 @@ for kind in base csc; do
   done
 done
 gate 07a_pager Rscript notes/engine_simplification/profile_graph_pager.R "$library" "$evidence/pager"
+gate 07a_publication_before Rscript notes/engine_simplification/profile_publication_resources.R \
+  "$task_root/library_frozen" "$evidence/publication-before" baseline
+gate 07a_publication_after Rscript notes/engine_simplification/profile_publication_resources.R \
+  "$library" "$evidence/publication-after" candidate
+gate 07a_publication_exact Rscript -e \
+  'a<-commandArgs(TRUE);stopifnot(identical(readRDS(a[1]),readRDS(a[2])));cat("SNAPSHOT_IDENTITY_EXACT\n")' \
+  "$evidence/publication-before/snapshot.rds" "$evidence/publication-after/snapshot.rds"
 for kind in realistic wide; do
   gate "07a_space_${kind}_engine" env SCWB_SPACE_SOURCE_ROOT="$core" \
     SCWB_SPACE_BENCH_CASE="$kind" SCWB_SPACE_BENCH_MODE=engine \
