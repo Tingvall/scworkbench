@@ -136,6 +136,20 @@ wb_matrix_read_features <- function(bundle,
     # Slice
     block <- mat[rix, cix, drop = FALSE]
 
+    # A complete selected block already has the requested order. Materialize
+    # its sparse representation directly instead of replacing every entry in a
+    # zero sparse skeleton through a dense intermediate. Do not return here:
+    # later overlapping fragments (including explicit zeros) still win.
+    complete <- missing == "zero" && !anyNA(feature_ids) && !anyNA(cell_ids) &&
+      !anyDuplicated(feature_ids) && !anyDuplicated(cell_ids) &&
+      identical(feats_keep, feature_ids) && identical(cells_keep, cell_ids)
+    if (complete) {
+      block <- .wb_as_sparse(block)
+      dimnames(block) <- list(feature_ids, cell_ids)
+      out <- block
+      next
+    }
+
     # Normalize block to something we can write
     # If it's a base matrix -> ok; if it's a sparse Matrix -> ok; if BPCells returns S4 -> coerce
     if (!inherits(block, "Matrix") && !is.matrix(block)) {
@@ -148,8 +162,7 @@ wb_matrix_read_features <- function(bundle,
     cc <- unname(cell_pos[cells_keep])
 
     if (missing == "zero") {
-      # write values into sparse out
-      # simplest: assign into a sparse Matrix works but can be slow; v1 ok.
+      # Partial/duplicate selections retain the existing replacement semantics.
       out[rr, cc] <- as.matrix(block)
     } else {
       # NA-mode: overwrite with values, leaving NA where still missing
