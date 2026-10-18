@@ -89,6 +89,18 @@ quota or a global combined R/Python peak-RSS guarantee.
 Alignment, source provenance, receipt verification and atomic publication remain
 enforced.
 
+Core's zero-filled public matrix selections also keep partial fragment blocks
+sparse, including overlap replacement; complete disjoint typed-reader blocks
+are assembled one fragment at a time. Explicit `missing = "NA"` reads retain
+their dense output contract: they are not a bounded sparse alternative.
+
+Repeated retained-graph inspection on one live connection can reuse a bounded
+independently verified content observation while exact database epochs, relevant
+table definitions and effective budgets remain unchanged. Headers, all retained
+certificates and source associations are still checked freshly. Reopening,
+recovery and explicit deep validation do not inherit a previous connection's
+observation. This is not authority based on timestamps or a persistent cache.
+
 ### Native R typed-space streaming
 
 For symbolic registered HDF5 spaces on the native POSIX R path, core issues a
