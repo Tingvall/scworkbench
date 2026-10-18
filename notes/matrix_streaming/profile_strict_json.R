@@ -3,7 +3,13 @@ args <- commandArgs(TRUE)
 suppressPackageStartupMessages(library(scworkbench))
 new <- new.env(parent = asNamespace("scworkbench"))
 sys.source("R/operation_packs_v2.R", new)
-legacy <- readRDS("/tmp/scwb-matrix-streaming-forge-20261018/legacy_strict_validator.rds")
+old <- new.env(parent = asNamespace("scworkbench"))
+old_source <- system2("git", c("show",
+  "3fa470cffe5ac423df660ebcaaf54b38a8710a2f:R/operation_packs_v2.R"),
+  stdout = TRUE)
+stopifnot(is.null(attr(old_source, "status")))
+eval(parse(text = old_source), old)
+legacy <- old$.wb_operation_pack_v2_assert_strict_json
 test <- new.env(parent = asNamespace("scworkbench"))
 sys.source("tests/test_operation_pack_matrix_streaming_contract.R", test)
 body(test$test_operation_pack_matrix_streaming_strict_json_contract)[[2L]] <-

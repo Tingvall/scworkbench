@@ -1,0 +1,19 @@
+{
+  "source_sha256": "7dfefc974d9b38ea3513c1e181f119f2c4cbde5fcf603298f71953bff7b85280",
+  "dimensions": [31535, 13199],
+  "source_class": "dgCMatrix",
+  "source_value_type": "double",
+  "getter_class": "dgCMatrix",
+  "getter_value_type": "double",
+  "complete_cell_membership": true,
+  "complete_feature_membership": true,
+  "ordered_cells_equal_source": true,
+  "ordered_features_equal_source": true,
+  "matched_2000_cell_axes_and_all_values_exact": true,
+  "matched_column_sums_exact": true,
+  "named_column_sums_identical": true,
+  "column_sum_type_observed": "double",
+  "column_sum_type_reference": "double",
+  "total": 23590431,
+  "unnamed_positional_sums_exact": true
+}
