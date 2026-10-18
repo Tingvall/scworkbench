@@ -26,6 +26,31 @@ test_operation_pack_matrix_streaming_unused_lineage_contract <- function() {
   TRUE
 }
 
+test_operation_pack_matrix_streaming_strict_json_contract <- function() {
+  validate <- scworkbench:::.wb_operation_pack_v2_assert_strict_json
+  valid <- c("null", "true", "false", "0", "-0", "1e9999", "[]", "{}",
+    '{"é":"雪","a":[true,false,null,1e-3],"emoji":"\\ud83d\\ude00"}',
+    '{"a":"quote\\\" slash\\\\ tab\\t","b":"false null -0123"}',
+    '{"a":"\\u0000"}', '{"":1}', '[1,1.0,-1e+2,0.1]')
+  invalid <- c("", " ", "01", "+1", "NaN", "Infinity", "1e", "1.",
+    "truefalse", "{}[]", "[1,]", '{"a":}', '{"a":1,}', '{"a" 1}',
+    '{"a":1,"a":2}', '{"a":1,"\\u0061":2}',
+    '{"é":1,"\\u00e9":2}', '"\\ud800"', '"\\udc00"', '"\\ud800x"',
+    '"\\ud800\\u0001"', '"\\q"', '"unterminated', '"control\n"')
+  stopifnot(all(vapply(valid, function(text) isTRUE(validate(text)), logical(1))),
+    all(vapply(invalid, function(text) inherits(tryCatch(validate(text),
+      error = identity), "wb_operation_pack_error"), logical(1))))
+  # Numerical tokens inside quoted IDs must not become scalar observations.
+  for (size in c(1L, 10L, 100L)) {
+    value <- list(rows = lapply(seq_len(size), function(i)
+      list(id = paste0("gene_", i, "_false_1e-3_雪"), value = i,
+        missing = NULL, flag = TRUE)))
+    stopifnot(isTRUE(validate(as.character(jsonlite::toJSON(value,
+      auto_unbox = TRUE, null = "null", pretty = TRUE)))))
+  }
+  TRUE
+}
+
 test_operation_pack_matrix_streaming_identity_contract <- function() {
   set.seed(17)
   values <- matrix(c(0, -0, NA, NaN, 1, -1, 1e-307, 1e308,

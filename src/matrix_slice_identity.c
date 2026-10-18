@@ -55,6 +55,21 @@ SEXP scwb_canonical_numeric(SEXP value) {
     return Rf_mkString(result);
 }
 
+/* PCRE-produced positions are already sorted. R 4.4 findInterval checks the
+ * complete vector on every lookup, defeating pre-indexing of large snapshots. */
+SEXP scwb_json_index_floor(SEXP positions, SEXP value) {
+    if (TYPEOF(positions) != INTSXP && TYPEOF(positions) != REALSXP)
+        Rf_error("Invalid JSON lexical index.");
+    double x = Rf_asReal(value);
+    R_xlen_t left = 0, right = XLENGTH(positions);
+    while (left < right) {
+        R_xlen_t mid = left + (right - left) / 2;
+        double at = TYPEOF(positions) == INTSXP ? INTEGER(positions)[mid] : REAL(positions)[mid];
+        if (at <= x) left = mid + 1; else right = mid;
+    }
+    return Rf_ScalarReal((double)left);
+}
+
 typedef struct {
     FILE *file;
     SEXP rows, columns, values;

@@ -42,10 +42,35 @@
   .wb_operation_pack_assert(!is.na(text) && !is.na(iconv(text, from = "UTF-8",
     to = "UTF-8", sub = NA_character_)), "OPERATION_PACK_MANIFEST_PARSE_INVALID",
     "Manifest source is not valid UTF-8.", class = "wb_operation_pack_v2_error")
-  # substr() positions are Unicode characters, not UTF-8 byte offsets. Using
-  # a byte count here incorrectly reports trailing content for non-ASCII JSON.
-  n <- nchar(text, type = "chars")
-  byte <- function(i) if (i > n) "" else substr(text, i, i)
+  # Use one UTF-8 byte buffer; whole key tokens are decoded as UTF-8 below.
+  # This avoids repeated Unicode-prefix traversal as well as suffix copies.
+  bytes <- charToRaw(text)
+  n <- length(bytes)
+  # Pre-index lexical starts once. Repeated substr(text, i, n) copied and
+  # rescanned the remaining snapshot for every field (quadratic work). These
+  # positions use the byte buffer consistently; the grammar is unchanged.
+  string_specials <- gregexpr('["\\\\\\x00-\\x1F]', text,
+    perl = TRUE, useBytes = TRUE)[[1L]]
+  scalar_starts <- gregexpr(
+    "(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:[.][0-9]+)?(?:[eE][+-]?[0-9]+)?)",
+    text, perl = TRUE, useBytes = TRUE)[[1L]]
+  scalar_ends <- scalar_starts + attr(scalar_starts, "match.length")
+  floor_index <- if (exists("C_scwb_json_index_floor", inherits = TRUE))
+    function(x, positions) .Call(C_scwb_json_index_floor, positions, x) else
+      function(x, positions) {
+        left <- 0L; right <- length(positions)
+        while (left < right) {
+          mid <- floor((as.double(left) + right + 1) / 2)
+          if (positions[[mid]] <= x) left <- mid else right <- mid - 1L
+        }
+        left
+      }
+  byte <- function(i) if (i > n) "" else rawToChar(bytes[[i]])
+  slice <- function(first, last) {
+    out <- rawToChar(bytes[seq.int(first, last)])
+    Encoding(out) <- "UTF-8"
+    out
+  }
   skip <- function(i) {
     while (i <= n && byte(i) %in% c(" ", "\t", "\r", "\n")) i <- i + 1L
     i
@@ -54,26 +79,25 @@
     if (!identical(byte(i), '"')) stop("expected string")
     j <- i + 1L
     while (j <= n) {
-      # Search a whole ordinary string run in compiled PCRE rather than calling
-      # substr/utf8ToInt once per character. Escape and surrogate validation below
-      # is unchanged; positions remain Unicode characters, never byte offsets.
-      hit <- regexpr('["\\\\\\x00-\\x1F]', substr(text, j, n), perl = TRUE)
-      if (hit[[1L]] < 0L) stop("unterminated string")
-      j <- j + hit[[1L]] - 1L
+      # Jump over ordinary UTF-8 bytes using the pre-indexed ASCII delimiters.
+      # Escape and surrogate validation below is unchanged.
+      hit <- floor_index(j - 1L, string_specials) + 1L
+      if (hit > length(string_specials)) stop("unterminated string")
+      j <- string_specials[[hit]]
       if (identical(byte(j), '"')) return(j + 1L)
       if (identical(byte(j), "\\")) {
         j <- j + 1L
         if (j > n) stop("unterminated escape")
         if (identical(byte(j), "u")) {
-          if (j + 4L > n || !grepl("^[0-9A-Fa-f]{4}$", substr(text, j + 1L, j + 4L))) {
+          if (j + 4L > n || !grepl("^[0-9A-Fa-f]{4}$", slice(j + 1L, j + 4L))) {
             stop("invalid unicode escape")
           }
-          code <- strtoi(substr(text, j + 1L, j + 4L), 16L)
+          code <- strtoi(slice(j + 1L, j + 4L), 16L)
           if (code >= 0xD800 && code <= 0xDBFF) {
-            if (j + 10L > n || substr(text, j + 5L, j + 6L) != "\\u" ||
-                !grepl("^[0-9A-Fa-f]{4}$", substr(text, j + 7L, j + 10L)))
+            if (j + 10L > n || slice(j + 5L, j + 6L) != "\\u" ||
+                !grepl("^[0-9A-Fa-f]{4}$", slice(j + 7L, j + 10L)))
               stop("unpaired high surrogate")
-            low <- strtoi(substr(text, j + 7L, j + 10L), 16L)
+            low <- strtoi(slice(j + 7L, j + 10L), 16L)
             if (low < 0xDC00 || low > 0xDFFF) stop("invalid surrogate pair")
             j <- j + 6L
           } else if (code >= 0xDC00 && code <= 0xDFFF) stop("unpaired low surrogate")
@@ -94,7 +118,7 @@
     repeat {
       start <- i
       i <- string_end(i)
-      token <- substr(text, start, i - 1L)
+      token <- slice(start, i - 1L)
       key <- jsonlite::fromJSON(token)
       if (key %in% keys) stop(paste0("duplicate object key: ", key))
       keys <- c(keys, key)
@@ -123,10 +147,9 @@
     if (identical(ch, "{")) return(parse_object(i))
     if (identical(ch, "[")) return(parse_array(i))
     if (identical(ch, '"')) return(string_end(i))
-    tail <- substr(text, i, n)
-    hit <- regexpr("^(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:[.][0-9]+)?(?:[eE][+-]?[0-9]+)?)", tail, perl = TRUE)
-    if (hit[[1]] != 1L) stop("expected JSON value")
-    i + attr(hit, "match.length")
+    hit <- floor_index(i, scalar_starts)
+    if (hit < 1L || scalar_starts[[hit]] != i) stop("expected JSON value")
+    scalar_ends[[hit]]
   }
   error <- tryCatch({
     end <- skip(parse_value(skip(1L)))
