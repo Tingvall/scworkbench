@@ -265,23 +265,28 @@ wb_matrix_read_features <- function(bundle,
     if (length(matrices) > 1L && length(features) && length(cells) &&
         !anyNA(features) && !anyNA(cells) &&
         !anyDuplicated(features) && !anyDuplicated(cells)) {
-      selections <- lapply(matrices, function(source) {
-        ri <- match(features, source$features)
-        ci <- match(cells, source$cells)
-        list(ri = ri, ci = ci, columns = which(!is.na(ci)))
-      })
-      contributing <- which(vapply(selections, function(x)
-        any(!is.na(x$ri)) && length(x$columns) > 0L, logical(1)))
-      positions <- unlist(lapply(selections[contributing], `[[`, "columns"),
-        use.names = FALSE)
-      if (length(contributing) > 1L && length(positions) == length(cells) &&
-          !anyDuplicated(positions) && all(vapply(selections[contributing],
-            function(x) !anyNA(x$ri), logical(1)))) {
+      selections <- list(); seen <- rep(FALSE, length(cells)); eligible <- TRUE
+      for (i in seq_along(matrices)) {
+        ci <- match(cells, matrices[[i]]$cells)
+        columns <- which(!is.na(ci))
+        if (!length(columns)) next
+        ri <- match(features, matrices[[i]]$features)
+        if (all(is.na(ri))) next
+        if (anyNA(ri) || any(seen[columns])) {eligible <- FALSE; break}
+        seen[columns] <- TRUE
+        # Across the entire plan these positions occupy at most length(cells),
+        # not a complete row/column map for every physical fragment.
+        selections[[length(selections) + 1L]] <- list(source = i, columns = columns)
+      }
+      ri <- ci <- NULL
+      if (eligible && length(selections) > 1L && all(seen)) {
+        positions <- unlist(lapply(selections, `[[`, "columns"), use.names = FALSE)
         out <- NULL
-        for (i in contributing) {
-          selection <- selections[[i]]
-          block <- .wb_as_sparse(matrices[[i]]$matrix[
-            selection$ri, selection$ci[selection$columns], drop = FALSE])
+        for (selection in selections) {
+          source <- matrices[[selection$source]]
+          block <- .wb_as_sparse(source$matrix[
+            match(features, source$features),
+            match(cells[selection$columns], source$cells), drop = FALSE])
           dimnames(block) <- list(features, cells[selection$columns])
           # Sequential ownership: prior out + replacement out + this block,
           # as for the original sparse replacement. Never retain a blocks list
