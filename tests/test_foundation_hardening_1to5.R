@@ -262,19 +262,27 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   }
 
   run_cv_cont <- wb_new_run(
-    op_name = "test_vector",
+    op_name = "metadata_cell_vector",
     inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
     params = list(),
-    outputs = list(scores = wb_prim_cell_vector(vv, value_type = "continuous")),
-    notes = "continuous cell_vector roundtrip test"
+    outputs = list(vector = wb_prim_cell_vector(vv, value_type = "continuous")),
+    notes = "Synthetic continuous cell_vector roundtrip fixture; no method execution."
   )
-  aid_cv_cont <- scworkbench:::.wb_promote_cell_vector(
+  # Public promotion issues the independent retained payload certificate.
+  promotion_cv_cont <- wb_promote_analysis(
     bundle = b,
-    run = run_cv_cont,
-    out_name = "scores",
-    prim = run_cv_cont$outputs$scores,
-    created_by = "test"
+    runs = stats::setNames(list(run_cv_cont), run_cv_cont$run_id),
+    head_run_id = run_cv_cont$run_id,
+    outputs = "vector",
+    created_by = "test",
+    fail_fast = TRUE
   )
+  stopifnot(nrow(promotion_cv_cont$promoted) == 1L,
+    identical(promotion_cv_cont$promoted$status, "ok"))
+  aid_cv_cont <- promotion_cv_cont$promoted$artifact_id[[1L]]
+  stopifnot(DBI::dbGetQuery(b$con,
+    "SELECT COUNT(*) AS n FROM prov_run_outputs WHERE artifact_id = ?;",
+    params = list(aid_cv_cont))$n[[1L]] == 1L)
   p_cv_cont <- wb_art_load(b, artifact_id = as.character(aid_cv_cont), expected_kind = "cell_vector")
   stopifnot(identical(p_cv_cont$kind, "cell_vector"))
   stopifnot(identical(as.character(p_cv_cont$value_type), "continuous"))

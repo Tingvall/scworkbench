@@ -1,3 +1,20 @@
+# Positive modern sources must receive original independent authority at
+# publication, never a rewritten closure/certificate after physical tampering.
+.graph_compact_issue_admissible <- function(bundle,text) {
+  metadata <- jsonlite::unserializeJSON(text)
+  prim <- wb_prim_cell_vector(c(c1='a'),meta=metadata)
+  run <- wb_new_run('metadata_cell_vector',list(),list(),list(vector=prim),
+    notes='Synthetic admitted metadata fixture; no method execution.')
+  promoted <- wb_promote_analysis(bundle,setNames(list(run),run$run_id),
+    head_run_id=run$run_id,outputs='vector',fail_fast=TRUE)
+  stopifnot(nrow(promoted$promoted)==1L,promoted$promoted$status[[1L]]=='ok')
+  id <- promoted$promoted$artifact_id[[1L]]
+  stopifnot(DBI::dbGetQuery(bundle$con,
+    'SELECT COUNT(*) AS n FROM prov_run_outputs WHERE artifact_id=?;',
+    params=list(id))$n[[1L]]==1L)
+  id
+}
+
 .graph_compact_policy <- function()scworkbench:::.wb_graph_budgets(list(memory_bytes="8388608",sqlite_cache_kib=2048L,partition_bytes=262144L,partition_rows=256L,collect_bytes=4194304L))
 
 .graph_compact_row_text <- function(n,type='integer',first='null',key='row.names')
@@ -110,7 +127,14 @@ test_graph_bounded_legacy_duplicate_rows_public_predecode_contract <- function()
     cat('DUPLICATE_PUBLIC_REJECT',name,'bytes=',nchar(cases[[name]],type='bytes'),
       'decoder_calls=0 max_allocation=',maximum,'cleanup=PASS cache_restore=PASS\n');flush.console()
   }
-  .graph_compact_replace_physical_metadata(bundle,id,.graph_duplicate_rows_metadata(-3,-5))
+  admissible <- .graph_duplicate_rows_metadata(-3,-5)
+  .graph_compact_replace_physical_metadata(bundle,id,admissible)
+  stale_certificate <- wb_entity_certificate(bundle,'artifact',id)
+  stale <- tryCatch(wb_art_load(bundle,id),error=function(error)error)
+  stopifnot(identical(stale_certificate$identity$verification_status,'failed'),
+    identical(stale_certificate$identity$observed$status,'corrupt'),
+    inherits(stale,'wb_graph_error'),identical(stale$code,'GRAPH_SOURCE_PAYLOAD_INVALID'))
+  id <- .graph_compact_issue_admissible(bundle,admissible)
   baseline <- wb_entity_certificate(bundle,'artifact',id)
   expected <- scworkbench:::.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))$content_sha256
   restore <- scworkbench:::.wb_graph_aggregate_connection_budget(list(bundle$con),.graph_compact_policy())
@@ -232,11 +256,36 @@ test_graph_bounded_legacy_compact_rows_public_predecode_admission_contract <- fu
   }
   admitted <- list(small=.graph_compact_row_text(-5),nested=.graph_compact_row_wrap(.graph_compact_row_text(-1000)),inert_alias=.graph_compact_row_text(-2000000,key='.row_names'))
   for(name in names(admitted)) {
+    # Preserve raw compact-codec admission at the original tight policy.
+    codec <- scworkbench:::.wb_getter_metadata_admitted_codec
+    stopifnot(identical(codec(admitted[[name]],.graph_compact_policy())$text,
+      as.character(jsonlite::serializeJSON(jsonlite::unserializeJSON(admitted[[name]]),digits=NA))))
     .graph_compact_replace_physical_metadata(bundle,id,admitted[[name]])
+    stale_certificate <- wb_entity_certificate(bundle,'artifact',id)
+    stale <- tryCatch(wb_art_load(bundle,id),error=function(error)error)
+    stopifnot(identical(stale_certificate$identity$verification_status,'failed'),
+      identical(stale_certificate$identity$observed$status,'corrupt'),
+      inherits(stale,'wb_graph_error'),identical(stale$code,'GRAPH_SOURCE_PAYLOAD_INVALID'))
+    id <- .graph_compact_issue_admissible(bundle,admitted[[name]])
+    stored_bytes <- DBI::dbGetQuery(bundle$con,
+      'SELECT SUM(length(chunk)) AS n FROM artifact_object_metadata_chunks WHERE artifact_id=?;',
+      params=list(id))$n[[1L]]
+    cat('COMPACT_PUBLIC_ENCODING',name,'raw_bytes=',nchar(admitted[[name]],type='bytes'),
+      'published_bytes=',stored_bytes,'original_partition_bytes=',.graph_compact_policy()$partition_bytes,
+      'positive_partition_bytes=',if(name=='nested')524288L else .graph_compact_policy()$partition_bytes,'\n')
     baseline <- wb_entity_certificate(bundle,'artifact',id)
     expected <- scworkbench:::.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))$content_sha256
     restore <- scworkbench:::.wb_graph_aggregate_connection_budget(list(bundle$con),.graph_compact_policy())
-    actual <- wb_entity_certificate(bundle,'artifact',id)
+    actual <- tryCatch(wb_entity_certificate(bundle,'artifact',id),error=function(error)error)
+    if(name=='nested') {
+      # Public publication normalizes compact row names into a larger lexical
+      # carrier. The original small bound MUST still reject that carrier.
+      stopifnot(inherits(actual,'wb_graph_error'),identical(actual$code,'GRAPH_RESOURCE_EXCEEDED'))
+      restore();restore <- NULL
+      expanded_policy <- .graph_compact_policy();expanded_policy$partition_bytes <- 524288L
+      restore <- scworkbench:::.wb_graph_aggregate_connection_budget(list(bundle$con),expanded_policy)
+      actual <- wb_entity_certificate(bundle,'artifact',id)
+    }
     identity <- scworkbench:::.wb_getter_legacy_object_identity(bundle,id)
     stopifnot(identical(actual,baseline),identical(identity$content_sha256,expected))
     restore();restore <- NULL

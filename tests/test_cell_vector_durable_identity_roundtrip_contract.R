@@ -57,21 +57,25 @@ test_object_primitive_family_durable_roundtrip_contract <- function() {
     )
   )
 
-  promoters <- scworkbench:::.wb_promoters_by_kind()
   artifact_ids <- character()
   identities_before <- character()
   for (kind in names(primitives)) {
     primitive <- primitives[[kind]]
     run <- wb_new_run(
-      op_name = "durable_object_family_fixture",
+      # Generic storage fixture: use a registered terminal, not a scientific
+      # operation implementation. Public promotion must issue provenance.
+      op_name = "metadata_cell_vector",
       inputs = list(cell_set = "all", parents = character(), user_inputs = list()),
       params = list(kind = kind),
-      outputs = stats::setNames(list(primitive), kind)
+      outputs = list(vector = primitive),
+      notes = "Synthetic primitive durability fixture; no method execution."
     )
-    artifact_ids[[kind]] <- promoters[[kind]](
-      b, run, kind, primitive,
-      created_by = "object-family-roundtrip-contract"
-    )
+    promoted <- wb_promote_analysis(b, stats::setNames(list(run), run$run_id),
+      run$run_id, outputs = "vector", fail_fast = TRUE,
+      created_by = "object-family-roundtrip-contract")
+    stopifnot(nrow(promoted$promoted) == 1L,
+      identical(promoted$promoted$status, "ok"))
+    artifact_ids[[kind]] <- promoted$promoted$artifact_id[[1L]]
     identities_before[[kind]] <- scworkbench:::.wb_prov_payload_identity(
       b, primitive
     )$content_sha256
@@ -114,11 +118,15 @@ test_object_primitive_family_durable_roundtrip_contract <- function() {
   )
   for (kind in names(mutations)) {
     DBI::dbExecute(b$con, mutations[[kind]]$sql, params = list(artifact_ids[[kind]]))
-    mutated <- wb_art_load(b, artifact_ids[[kind]])
-    stopifnot(
-      scworkbench:::.wb_prov_payload_identity(b, mutated)$content_sha256 !=
-        identities_before[[kind]]
-    )
+    mutated <- tryCatch(wb_art_load(b, artifact_ids[[kind]]), error = identity)
+    if (kind %in% c("cell_vector", "cell_vector_family")) {
+      stopifnot(inherits(mutated, "wb_graph_error"),
+        identical(mutated$code, "GRAPH_SOURCE_PAYLOAD_INVALID"))
+    } else if (inherits(mutated, "error")) {
+      stopifnot(identical(kind, "relation_family"),
+        grepl("durable relation content differs", conditionMessage(mutated), fixed = TRUE))
+    } else stopifnot(scworkbench:::.wb_prov_payload_identity(b, mutated)$content_sha256 !=
+      identities_before[[kind]])
   }
 
   TRUE

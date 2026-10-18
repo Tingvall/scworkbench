@@ -29,19 +29,28 @@ test_derived_cell_set_lifecycle_contract <- function() {
   score <- c(0.05, 0.40, 0.82, 0.91, 0.76, 0.15, 0.88, 0.93)
   names(score) <- cells
   score_run <- wb_new_run(
-    op_name = "test_vector",
+    op_name = "metadata_cell_vector",
     inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
     params = list(),
-    outputs = list(score = wb_prim_cell_vector(score, value_type = "continuous")),
-    notes = "derived cell-set numeric vector threshold fixture"
+    outputs = list(vector = wb_prim_cell_vector(score, value_type = "continuous")),
+    notes = "Synthetic derived cell-set numeric vector threshold fixture; no method execution."
   )
-  score_artifact_id <- scworkbench:::.wb_promote_cell_vector(
+  # Issue the retained source certificate through the public promotion boundary.
+  # This is a generic storage fixture, not execution of a scientific method.
+  score_promotion <- wb_promote_analysis(
     bundle = b,
-    run = score_run,
-    out_name = "score",
-    prim = score_run$outputs$score,
-    created_by = "test"
+    runs = stats::setNames(list(score_run), score_run$run_id),
+    head_run_id = score_run$run_id,
+    outputs = "vector",
+    created_by = "test",
+    fail_fast = TRUE
   )
+  stopifnot(nrow(score_promotion$promoted) == 1L,
+    identical(score_promotion$promoted$status, "ok"))
+  score_artifact_id <- score_promotion$promoted$artifact_id[[1L]]
+  stopifnot(DBI::dbGetQuery(b$con,
+    "SELECT COUNT(*) AS n FROM prov_run_outputs WHERE artifact_id = ?;",
+    params = list(score_artifact_id))$n[[1L]] == 1L)
   score_ref <- paste0("artifact:", as.character(score_artifact_id))
 
   b_cells <- wb_sel_meta(b, col = "lineage", values = "B")
@@ -203,6 +212,20 @@ test_derived_cell_set_lifecycle_contract <- function() {
   stopifnot(!nrow(wb_get_cell_set_recipe(b, "set:test_claim_universe_rollback")))
   stopifnot(nrow(wb_art_list(b)) == artifact_n_before)
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == commit_n_before)
+
+  # A retained score must not become trusted merely because its selector is
+  # readable: changing the scientific payload must reject before selection.
+  original_score <- wb_art_load(b, score_artifact_id)
+  DBI::dbBegin(b$con)
+  corrupted_selection <- tryCatch({
+    DBI::dbExecute(b$con,
+      "UPDATE artifact_labels SET value_num = value_num + 9 WHERE artifact_id = ? AND cell_id = 'c3';",
+      params = list(score_artifact_id))
+    try(wb_sel_vector(b_cells, vector_id = score_ref, min = 0.75, bundle = b), silent = TRUE)
+  }, finally = DBI::dbRollback(b$con))
+  stopifnot(inherits(corrupted_selection, "try-error"),
+    grepl("GRAPH_SOURCE_PAYLOAD_INVALID", as.character(corrupted_selection), fixed = TRUE),
+    identical(wb_art_load(b, score_artifact_id), original_score))
 
   TRUE
 }

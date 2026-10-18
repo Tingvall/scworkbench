@@ -9,6 +9,10 @@ if (identical(Sys.getenv("SCWORKBENCH_TEST_INSTALLED"), "1")) {
   devtools::load_all(repo, quiet = TRUE)
 }
 stopifnot(nrow(wb_operation_packs()) == 0L)
+source(file.path(repo, "tests", "helpers", "operation_pack_test_peer_pin.R"))
+composite <- read.dcf(file.path(repo, "inst", "release", "composite_release.dcf"))
+expected_pybench_revision <- .operation_pack_test_peer_pin(
+  as.character(composite[1L, "PyBenchCommit"]))
 
 r_package <- "scworkbenchOperationPackTemplate"
 r_manifest <- system.file("scworkbench", "operation-pack.json", package = r_package)
@@ -27,8 +31,6 @@ invisible(wb_operation_pack_load(r_package))
 invisible(wb_operation_pack_load("scwbV2Reference"))
 python_pack <- wb_operation_pack_activate(
   python_manifest, python = python, timeout_seconds = 60)
-composite <- read.dcf(file.path(repo, "inst", "release", "composite_release.dcf"))
-expected_pybench_revision <- as.character(composite[1L, "PyBenchCommit"])
 stopifnot(
   identical(python_pack$identity$manifest_sha256,
     "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253"),
