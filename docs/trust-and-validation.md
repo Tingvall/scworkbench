@@ -42,6 +42,15 @@ whole R matrix to decide whether spilling is necessary. The existing decimal
 transport representation is unchanged. Authenticated axes are retained
 separately from physical BPCells names.
 
+Private matrix staging visits active slots of ordinary general CSC matrices
+directly, or bounded blocks of materialized base arrays. It preserves the
+existing numeric tokens and coordinate order without constructing an R record
+per nonzero. Selecting a CSC projection allocates its selected payload and
+axis metadata, not a reverse map the height of the original matrix. Other
+Matrix classes retain their historical one-time conversion; this is not a
+universal lazy-matrix writer. Logical/pattern private transport admission is
+not expanded by the writer optimization.
+
 Admission covers axis decoding, original physical-axis/native selection maps,
 retained readers, native sorting buffers and canonical identity scratch. Mixed
 broker connections share the existing R-side graph policy, including the
@@ -140,6 +149,10 @@ checks have different costs. Graph partitions already use bounded page and
 ordinal checks; complete graph authentication occurs at lifecycle boundaries,
 not on every ordinary partition. No graph, special-model or broad registry
 performance improvement is implied by the matrix optimizations.
+
+Graph page admission includes its response envelope. Under a tight byte budget
+this can change page boundaries and transport-observation receipt chains, but
+does not change graph content identities, row order or scientific values.
 
 No identity scheme, canonical representation, scientific parameter, supported
 backend boundary or public operation interface is changed by these execution
