@@ -1,10 +1,17 @@
+.engine_space_old_encoder <- function() {
+  environment <- new.env(parent=asNamespace("scworkbench"))
+  sys.source("tests/fixtures/engine_canonical_repaired_oracle.R",environment)
+  environment$.engine_canonical_repaired_oracle
+}
+
 .engine_space_old_semantic <- function(values, cells) {
-  scworkbench:::.wb_operation_pack_v2_identity_plain(
-    "scworkbench.operation_pack.space_slice.content.v1", list(
+  preimage <- list(
       schema = "scworkbench.operation_pack.space_slice.content.v1",
       dimensions = unname(as.list(as.integer(dim(values)))),
       cell_id = unname(as.list(as.character(cells))),
-      values = lapply(seq_len(nrow(values)), function(i) unname(as.list(as.numeric(values[i, ]))))))
+      values = lapply(seq_len(nrow(values)), function(i) unname(as.list(as.numeric(values[i, ])))))
+  list(scheme="scworkbench.operation_pack.space_slice.content.v1",
+    sha256=digest::digest(.engine_space_old_encoder()(preimage),algo="sha256",serialize=FALSE))
 }
 
 .engine_space_memory_plan <- function(values) list(cells = rownames(values),
@@ -31,8 +38,9 @@ test_engine_typed_space_dual_preimage_contract <- function() {
     hydrated <- unclass(primitive)
     lazy <- primitive; lazy$values <- NULL
     pair <- scworkbench:::.wb_operation_pack_space_envelope_identities("source", lazy, plan)
-    stopifnot(identical(pair$value_sha, scworkbench:::.wb_operation_pack_sha256(hydrated)),
-      identical(pair$wrapped_sha, scworkbench:::.wb_operation_pack_sha256(list(input = "source", value = hydrated))))
+    old <- .engine_space_old_encoder()
+    stopifnot(identical(pair$value_sha, digest::digest(old(hydrated),algo="sha256",serialize=FALSE)),
+      identical(pair$wrapped_sha,digest::digest(old(list(input = "source", value = hydrated)),algo="sha256",serialize=FALSE)))
   }
   TRUE
 }

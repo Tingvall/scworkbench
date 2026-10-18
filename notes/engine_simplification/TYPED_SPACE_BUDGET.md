@@ -98,3 +98,28 @@ G1/G2/derived-fitted model metadata hydration is a separate source-confirmed
 framework MISS, not merely an unmeasured path or an accepted waiver. It will be
 repaired in a distinct descendant using the same generic metadata/streaming
 boundaries, with exact historical parent/linkage/identity checks retained.
+
+## Exact typed-space checkpoint
+
+Runtime checkpoint61dd50bc6375f6c9a199dd728310a11c093dba4a was installed by
+`typed_space_61dd_install.log/.exit` (0). Its literal final focused result in
+`typed_space_61dd_focused.log/.exit` (0) is:
+
+```
+CONTRACT TEST SUMMARY files=1 discovered=7 executed=7 passed=7 skipped=0 failed=0 excluded=0 accounted=7
+TYPED_SPACE_SOURCE_FILE_HASHES chunk8=8 chunk2=8
+```
+
+No connection finalizer warning occurred. The earlier warning was traced to
+failed first-use nongraph ephemeral-session staging ownership, not to this
+getter (which opens no DBI connections). The test now creates explicit durable
+session handles and discards all owned sessions; root is repairing the separate
+generic ephemeral-failure path. No warning was suppressed. Int64 source-order
+assertions and the shared8MiB allowance execute in the final seven tests.
+
+A test-only assurance descendant additionally routes the old semantic row-list
+and hydrated-envelope preimages through the repository's frozen repaired-core
+canonical encoder, not the new streaming helper. The changed dual-preimage
+oracle was rerun independently as `typed_space_frozen_oracle_probe.log/.exit`
+(0), including scalar/empty/control/Unicode/negative/NA/NaN/wide cases. Runtime
+code did not change in that assurance descendant. No benchmark was executed.
