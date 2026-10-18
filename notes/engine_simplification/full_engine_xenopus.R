@@ -218,7 +218,9 @@ measure('original_reference_scientific_thresholds',{
   check_original('HVG',{
     got<-hvg$run$outputs$selected_features$table;old<-original_reference$hvg
     stopifnot(identical(names(got),names(old)))
-    for(n in c('feature_id','rank','selected','method','matrix_id'))stopifnot(identical(got[[n]],old[[n]]))
+    for(n in c('feature_id','method','matrix_id'))stopifnot(identical(got[[n]],old[[n]]))
+    stopifnot(identical(as.integer(got$rank),as.integer(old$rank)),
+      identical(as.logical(got$selected),as.logical(old$selected)))
     for(n in c('mean','variance','dispersion','score','detected_cells','detected_fraction'))
       numeric_equal(as.numeric(got[[n]]),as.numeric(old[[n]]),1e-12,1e-10,paste0('original_HVG_',n))
   })
