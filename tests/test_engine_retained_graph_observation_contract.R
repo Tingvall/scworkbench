@@ -63,6 +63,9 @@ test_engine_retained_graph_mutation_transaction_and_certificate_contract <- func
     params = list(f$id))
   wb_art_graph_info(f$b, f$id)
   stopifnot(spy$state$actual == 2L)
+  # Full verification's existing disk-backed sorter cannot change temp_store
+  # inside a caller transaction. Admit that same policy before owning the TX.
+  DBI::dbExecute(f$b$con, "PRAGMA temp_store=FILE")
   DBI::dbBegin(f$b$con)
   on.exit(if (DBI::dbIsValid(f$b$con) && RSQLite::sqliteIsTransacting(f$b$con))
     DBI::dbRollback(f$b$con), add = TRUE, after = FALSE)
@@ -112,9 +115,15 @@ test_engine_retained_graph_external_schema_and_unsafe_sql_contract <- function()
   DBI::dbExecute(f$b$con, paste0("PRAGMA main.schema_version=", cookie))
   wb_art_graph_info(f$b, f$id)
   stopifnot(spy$state$actual == 3L)
+  # Changing temp_store with live TEMP objects would delete caller state and
+  # must remain rejected by the existing generic verifier. Preselect FILE.
+  DBI::dbExecute(f$b$con, "PRAGMA temp_store=FILE")
   DBI::dbExecute(f$b$con, "CREATE TEMP TABLE observation_temp(x INTEGER)")
   wb_art_graph_info(f$b, f$id)
-  stopifnot(spy$state$actual == 4L, is.null(f$b$con@ref$wb_graph_retained_observation))
+  stopifnot(spy$state$actual == 4L, is.null(f$b$con@ref$wb_graph_retained_observation),
+    nrow(DBI::dbGetQuery(f$b$con,
+      "SELECT 1 FROM sqlite_temp_schema WHERE name='observation_temp'")) == 1L,
+    DBI::dbGetQuery(f$b$con, "PRAGMA temp_store")[[1L]] == 1L)
   DBI::dbExecute(f$b$con, "DROP TABLE observation_temp")
   wb_art_graph_info(f$b, f$id)
   DBI::dbExecute(f$b$con, "ATTACH ':memory:' AS observation_other")
