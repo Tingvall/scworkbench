@@ -41,10 +41,68 @@
   if (!is.null(session)) try(wb_session_discard(session), silent = TRUE)
   if (!is.null(bundle) && DBI::dbIsValid(bundle$con)) wb_close_bundle(bundle)
   try(wb_operation_pack_unload("scwbv3reference"), silent = TRUE)
+  # Public unload deliberately rejects used packs. Test cleanup may remove ONLY
+  # this privately installed synthetic fixture after all owned sessions close.
+  registry <- scworkbench:::.wb_operation_pack_registry
+  pack <- registry$packs$scwbv3reference
+  if (!is.null(pack)) {
+    for (name in pack$operation_names) registry$operations[[name]] <- NULL
+    registry$packs$scwbv3reference <- NULL
+  }
   if ("scwbV3Reference" %in% loadedNamespaces()) unloadNamespace("scwbV3Reference")
   .libPaths(installed$old)
   unlink(installed$root, recursive = TRUE, force = TRUE)
   if (!is.null(root)) unlink(root, recursive = TRUE, force = TRUE)
+}
+
+.engine_registry_runner_pack_free_recipient <- function(installed, root, artifact,
+    transition, scores, staged_reads) {
+  core_library <- dirname(find.package("scworkbench"))
+  dll <- system.file("libs", paste0("scworkbench", .Platform$dynlib.ext), package = "scworkbench")
+  expected <- file.path(installed$root, "recipient_expected.rds")
+  saveRDS(list(libraries = unique(c(core_library, installed$old)), bundle = root,
+    artifact = artifact, transition = transition, values = scores$value,
+    cells = as.character(scores$cell_id), keys = as.character(scores$key), reads = staged_reads,
+    core_library = normalizePath(core_library, mustWork = TRUE),
+    core_dll_sha256 = digest::digest(dll, algo = "sha256", file = TRUE)), expected)
+  script <- file.path(installed$root, "recipient_fresh_process.R")
+  writeLines(c(
+    "args <- commandArgs(TRUE); stopifnot(length(args)==1L)",
+    "expected <- readRDS(args[[1L]])",
+    ".libPaths(expected$libraries)",
+    "suppressPackageStartupMessages(library(scworkbench))",
+    "stopifnot(nrow(wb_operation_packs())==0L, !'scwbV3Reference' %in% loadedNamespaces(),",
+    "  identical(normalizePath(dirname(find.package('scworkbench'))), expected$core_library))",
+    "dll <- system.file('libs',paste0('scworkbench',.Platform$dynlib.ext),package='scworkbench')",
+    "stopifnot(identical(digest::digest(dll,algo='sha256',file=TRUE),expected$core_dll_sha256))",
+    "inventory <- function() {",
+    "  paths <- sort(list.files(expected$bundle,recursive=TRUE,full.names=TRUE,all.files=TRUE,no..=TRUE))",
+    "  paths <- paths[!file.info(paths)$isdir]",
+    "  data.frame(path=substring(paths,nchar(expected$bundle)+2L),bytes=file.info(paths)$size,",
+    "    sha256=vapply(paths,digest::digest,'',algo='sha256',file=TRUE))",
+    "}",
+    "before <- inventory()",
+    "b <- wb_open_bundle(expected$bundle,validate=FALSE,read_only=TRUE)",
+    "tryCatch({",
+    "  stopifnot(isTRUE(b$read_only), nrow(wb_operation_packs())==0L)",
+    "  loaded <- wb_art_load(b,expected$artifact,expected_kind='cell_vector_family')",
+    "  reads <- wb_operation_pack_transition_registry_reads(b,expected$transition)",
+    "  report <- wb_bundle_validation_report(expected$bundle,level='recipient')",
+    "  stopifnot(identical(loaded$value,expected$values),",
+    "    identical(as.character(loaded$cell_id),expected$cells),",
+    "    identical(as.character(loaded$key),expected$keys), identical(reads,expected$reads),",
+    "    isTRUE(report$ok), nrow(wb_operation_packs())==0L)",
+    "},finally=wb_close_bundle(b))",
+    "stopifnot(identical(before,inventory()))",
+    "cat('FRESH_CORE_ONLY_PACK_FREE_REGISTRY_RECIPIENT_FILESYSTEM_PURE\\n')"
+  ), script)
+  log <- file.path(installed$root, "recipient_fresh_process.log")
+  status <- system2(file.path(R.home("bin"), "Rscript"),
+    c("--vanilla", shQuote(script), shQuote(expected)), stdout = log, stderr = log)
+  if (!identical(as.integer(status), 0L)) stop(paste(readLines(log, warn = FALSE), collapse = "\n"))
+  stopifnot(any(grepl("FRESH_CORE_ONLY_PACK_FREE_REGISTRY_RECIPIENT_FILESYSTEM_PURE",
+    readLines(log, warn = FALSE), fixed = TRUE)))
+  invisible(TRUE)
 }
 
 .engine_registry_runner_inventory <- function(bundle) {
@@ -155,15 +213,8 @@
   artifact <- as.character(promotion$promoted$artifact_id[[1L]])
   wb_session_discard(session); session <- NULL
   wb_finalize_recipient_bundle(bundle); wb_close_bundle(bundle); bundle <- NULL
-  wb_operation_pack_unload("scwbv3reference")
-  bundle <- wb_open_bundle(root, validate = FALSE, read_only = TRUE)
-  before_recipient <- .engine_registry_runner_inventory(bundle)
-  loaded <- wb_art_load(bundle, artifact, expected_kind = "cell_vector_family")
-  retained_reads <- wb_operation_pack_transition_registry_reads(bundle, transition)
-  report <- wb_bundle_validation_report(root, level = "recipient")
-  stopifnot(identical(loaded$value, retry$run$outputs$scores$value),
-    identical(retained_reads, staged_reads), isTRUE(report$ok),
-    identical(before_recipient, .engine_registry_runner_inventory(bundle)))
+  .engine_registry_runner_pack_free_recipient(installed, root, artifact,
+    transition, retry$run$outputs$scores, staged_reads)
   TRUE
 }
 
