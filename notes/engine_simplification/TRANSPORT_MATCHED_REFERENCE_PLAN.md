@@ -1,5 +1,36 @@
 # Preregistered supplemental scientific reference
 
+## Correction after the retained failed supplemental comparison
+
+The historical plan below is **superseded, not an accepted transport contract**.
+Its premise was incorrect. `R/operation_pack_v3_materializations.R` defines
+`.wb_matrix_write_continuous()` (lines 3–17) as a general sparse/double BPCells
+write; `write_fragment()` calls it directly. Native-R normalization output does
+not pass through Matrix Market. The original efficient direct driver uses the
+same full-double storage route. Only the supplemental driver added `%.15g`
+rounding. The private-input Matrix Market adapter is a different boundary.
+
+The frozen 8614/ba351 supplemental run and its exit 1 are retained at
+`/tmp/scwb-engine-simplification-forge-20261018/final_ba351cd_measurements`.
+HVG and sign-aligned PCA passed, but UMAP differed by 8.34949224539328 against
+the unchanged 1e-6 criterion; promotion/finalization/recipient validation were
+not reached. This is not a successful end-to-end qualification. The read-only
+diagnosis found 1,726,891 differing normalized PCA-input values (maximum
+5.3290705182007514e-15) and 15 sign-flipped leading PCA components. A separate
+1,000-value probe found R and BPCells decimal parsing identical, disproving
+the initially suspected parser explanation.
+
+Forge owns the erroneous reference design. The Sable-role reviewer independently
+confirmed the source contradiction and withdrew the earlier endorsement of
+that premise. Preserve both frozen references, scripts, raw failures and
+diagnoses. Restoring the **original**, independently frozen full-precision
+reference is a comparator correction, not a tolerance or seed waiver. Verify
+the actual normalization and PCA-input contracts independently before using it;
+retain all original scientific thresholds. Do not substitute a conditional
+UMAP rerun for end-to-end evidence.
+
+## Historical preregistration (preserved verbatim below)
+
 Before any combined-candidate full Xenopus run (2026-10-18): the original
 direct workflow writes full-double normalized values directly to BPCells. Core
 preserves the existing native Matrix Market 15-significant-digit roundtrip.
