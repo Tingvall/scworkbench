@@ -47,6 +47,14 @@ sha256sum "$library/scworkbench/R/scworkbench.rdb" \
 gate 00_protocol python3 notes/engine_simplification/final_protocol.py "$core" "$peer"
 gate 00b_generator Rscript scripts/generate_phase5_derived_fitted_axis_protocol.R
 git diff --exit-code -- inst/protocol
+gate 00c_environment Rscript --vanilla -e '
+  library(scworkbench)
+  print(sessionInfo()); print(Sys.info()); print(.libPaths())
+  print(Sys.getenv(c("OMP_NUM_THREADS","OPENBLAS_NUM_THREADS","MKL_NUM_THREADS"),unset="<unset>"))
+  for(p in c("BPCells","Matrix","rhdf5","irlba","uwot","rnndescent"))
+    cat(p,as.character(packageVersion(p)),normalizePath(find.package(p)),"\n")
+  if(file.exists("/proc/self/status"))cat(grep("Cpus_allowed_list:",readLines("/proc/self/status"),value=TRUE),"\n")
+'
 gate 01_fixture_setup Rscript inst/golden_bundle/create_golden_bundle.R "$evidence/golden.bundle"
 gate 01c_installed_affected Rscript notes/engine_simplification/run_final_affected.R \
   "$library" "$evidence/golden.bundle"

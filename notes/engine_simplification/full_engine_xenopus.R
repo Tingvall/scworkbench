@@ -20,6 +20,10 @@ stopifnot(identical(as.numeric(guard_before),256))
 cat('ORDINARY_DENSE_GUARD_MB ',guard_before,'\n',sep='')
 expected_reference_sha<-Sys.getenv('SCWB_DIRECT_REFERENCE_SHA256',
   'bb8a84d8cd68c494f7735509539d2b5362a2f257f511f05ca3cabdf4874ee5fb')
+if(!identical(expected_reference_sha,
+  'bb8a84d8cd68c494f7735509539d2b5362a2f257f511f05ca3cabdf4874ee5fb'))
+  stopifnot(length(args)==5L,
+    !identical(normalizePath(original_direct,mustWork=TRUE),normalizePath(direct,mustWork=TRUE)))
 stopifnot(grepl('^[a-f0-9]{64}$',expected_reference_sha),
   identical(digest::digest(file=file.path(direct,'scientific_reference.rds'),algo='sha256'),
   expected_reference_sha),
