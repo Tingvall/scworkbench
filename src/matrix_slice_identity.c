@@ -43,6 +43,18 @@ static void number(double x, char *out) {
     sprintf(q, "e%d", adjusted);
 }
 
+/* Same canonical number rule for ordinary R numeric scalars in downstream
+ * table/space receipts. Parsed JSON lexemes still use the existing R parser.
+ * Unsupported/range-edge values fall back to its exact typed diagnostics. */
+SEXP scwb_canonical_numeric(SEXP value) {
+    if ((TYPEOF(value) != INTSXP && TYPEOF(value) != REALSXP) || XLENGTH(value) != 1)
+        return R_NilValue;
+    double x = Rf_asReal(value);
+    if (!R_FINITE(x) || (x != 0 && fabs(x) < 1e-307)) return R_NilValue;
+    char result[64]; number(x, result);
+    return Rf_mkString(result);
+}
+
 typedef struct {
     FILE *file;
     SEXP rows, columns, values;
@@ -62,7 +74,9 @@ static SEXP append_body(void *data) {
         char row[64], column[64], value[64], record[256];
         number(INTEGER(context->rows)[i], row);
         number(INTEGER(context->columns)[i], column);
-        number(REAL(context->values)[i], value);
+        if (TYPEOF(context->values) == LGLSXP)
+            strcpy(value, LOGICAL(context->values)[i] ? "true" : "false");
+        else number(REAL(context->values)[i], value);
         int bytes = snprintf(record, sizeof(record), "%s{\"column\":%s,\"row\":%s,\"value\":%s}",
             context->first ? "" : ",", column, row, value);
         if (used + bytes > sizeof(buffer)) {
@@ -80,7 +94,8 @@ static SEXP append_body(void *data) {
 
 SEXP scwb_matrix_slice_append(SEXP path, SEXP rows, SEXP columns, SEXP values, SEXP first) {
     if (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING ||
-        TYPEOF(rows) != INTSXP || TYPEOF(columns) != INTSXP || TYPEOF(values) != REALSXP ||
+        TYPEOF(rows) != INTSXP || TYPEOF(columns) != INTSXP ||
+        (TYPEOF(values) != REALSXP && TYPEOF(values) != LGLSXP) ||
         XLENGTH(rows) != XLENGTH(values) || XLENGTH(columns) != XLENGTH(values))
         Rf_error("Invalid matrix identity append vectors.");
     append_context context = {NULL, rows, columns, values, Rf_asLogical(first) == TRUE};

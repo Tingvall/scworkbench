@@ -223,6 +223,9 @@
 }
 
 .wb_operation_pack_canonical_json <- function(x) {
+  fast_numeric <- exists("C_scwb_canonical_numeric", inherits = TRUE) &&
+    identical(getOption("OutDec", "."), ".") &&
+    identical(Sys.localeconv()[["decimal_point"]], ".")
   encode <- function(value) {
     if (is.null(value)) return("null")
     if (is.factor(value)) value <- as.character(value)
@@ -256,6 +259,11 @@
       return(if (isTRUE(value)) "true" else "false")
     }
     if (is.integer(value) || is.numeric(value)) {
+      if (fast_numeric && !is.object(value) &&
+          is.null(attr(value, "operation_pack_json_number", exact = TRUE))) {
+        encoded <- .Call(C_scwb_canonical_numeric, value)
+        if (!is.null(encoded)) return(encoded)
+      }
       return(.wb_operation_pack_canonical_number(.wb_operation_pack_number_token(value)))
     }
     if (is.character(value) && length(value) == 1L) return(.wb_operation_pack_canonical_string(value))

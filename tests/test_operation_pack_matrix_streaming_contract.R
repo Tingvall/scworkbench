@@ -48,6 +48,11 @@ test_operation_pack_matrix_streaming_identity_contract <- function() {
   sparse <- Matrix::Matrix(values, sparse = TRUE)
   stopifnot(identical(scworkbench:::.wb_operation_pack_v3_matrix_slice_content(
     sparse, features, cells), expected))
+  for (boolean in list(matrix(c(TRUE, FALSE, NA, TRUE), 2L),
+      Matrix::Matrix(matrix(c(TRUE, FALSE, NA, TRUE), 2L), sparse = TRUE)))
+    stopifnot(identical(scworkbench:::.wb_operation_pack_v3_matrix_slice_content(
+      boolean, c("a", "b"), c("c", "d")),
+      .wb_matrix_slice_legacy_oracle(boolean, c("a", "b"), c("c", "d"))))
   for (shape in list(c(0L, 0L), c(3L, 0L), c(0L, 3L), c(2L, 2L))) {
     zero <- matrix(0, nrow = shape[1], ncol = shape[2])
     f <- paste0("f", seq_len(shape[1])); if (!shape[1]) f <- character()
@@ -90,6 +95,12 @@ test_operation_pack_matrix_streaming_numeric_contract <- function() {
   set.seed(19)
   values <- c(runif(500), -runif(500), 10^seq(-307, 308, length.out = 1000),
     1.00000000000001, 9.99999999999999, 999999999999999)
+  slow_tokens <- vapply(values, function(x)
+    scworkbench:::.wb_operation_pack_canonical_number(
+      scworkbench:::.wb_operation_pack_number_token(x)), character(1))
+  fast_tokens <- vapply(values, scworkbench:::.wb_operation_pack_canonical_json,
+    character(1))
+  stopifnot(identical(slow_tokens, fast_tokens))
   m <- matrix(values, nrow = 1L)
   cells <- paste0("c", seq_along(values))
   stopifnot(identical(scworkbench:::.wb_operation_pack_v3_matrix_slice_content(m, "g", cells),

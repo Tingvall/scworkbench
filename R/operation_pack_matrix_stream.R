@@ -17,6 +17,8 @@
     if (!length(cells)) break
     end <- min(length(cells), start + chunk_size - 1L)
     matrix <- read_columns(seq.int(start, end))
+    logical_values <- is.logical(matrix) || inherits(matrix, "lMatrix") ||
+      inherits(matrix, "nMatrix")
     if (!identical(as.integer(dim(matrix)),
         as.integer(c(length(features), end - start + 1L))))
       stop("Matrix identity reader returned incorrect dimensions.", call. = FALSE)
@@ -31,7 +33,8 @@
       idx <- keep[seq.int(offset, min(length(keep), offset + 8191L))]
       .Call(C_scwb_matrix_slice_append, path,
         as.integer(sparse@i[idx] + 1L), as.integer(columns[idx]),
-        as.double(sparse@x[idx]), first)
+        if (logical_values) as.logical(sparse@x[idx]) else
+          as.double(sparse@x[idx]), first)
       first <- FALSE
     }
   }

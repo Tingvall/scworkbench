@@ -12,16 +12,27 @@ counts[, "c1"] <- 0
 b <- wb_init_bundle(root)
 wb_define_cells(b, cells)
 wb_attach_matrix(b, "counts", counts, layer = "counts", feature_type = "gene")
+authentication <- new.env(parent = emptyenv()); authentication$calls <- 0L
+options(scwb.matrix.authentication.counter = authentication)
+trace(".wb_operation_pack_v3_matrix_consumed_identity", where = asNamespace("scworkbench"),
+  print = FALSE, tracer = quote({
+    counter <- getOption("scwb.matrix.authentication.counter")
+    counter$calls <- counter$calls + 1L
+  }))
 norm <- wb_session_run_op(wb_session_new(), b, "matrix_log_normalize",
   inputs = list(matrix = "counts", output_matrix_id = "RNA_log", scale_factor = 10000,
     chunk_size = 7L, min_cells = 1L))
+untrace(".wb_operation_pack_v3_matrix_consumed_identity", where = asNamespace("scworkbench"))
+stopifnot(authentication$calls == 3L)
+cat("SOURCE_AUTHENTICATION_PASSES=3 NORMALIZATION_CHUNKS=5 (not two full hashes per chunk)\n")
 cat("PASS normalization execution\n")
 view <- wb_session_view(norm$session)
 actual <- as.matrix(wb_slice(view, "RNA_log", features, cells))
 library <- colSums(counts); library[library <= 0] <- Inf
 expected <- log1p(t(t(counts) * (10000 / library)))
 stopifnot(identical(dimnames(actual), dimnames(expected)),
-  max(abs(actual - expected)) < 1e-14, all(actual[, "c1"] == 0))
+  max(abs(actual - expected)) < 1e-14, all(actual[, "c1"] == 0),
+  identical(as.integer(norm$run$outputs$summary$table$n_zero_library_cells), 1L))
 plan <- scworkbench:::.wb_matrix_stream_reader(view, "RNA_log", "features")
 stopifnot(max(abs(as.matrix(plan$read(features, cells)) - expected)) < 1e-14)
 plan$close()
