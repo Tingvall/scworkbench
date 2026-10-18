@@ -266,6 +266,19 @@
   broker_env <- c(PYBENCH_OPERATION_PACK_BROKER_TOKEN = token,
     PYBENCH_OPERATION_PACK_BROKER_TIMEOUT = as.character(timeout),
     R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep))
+  if (length(request$graph_read_grants %||% list()) ||
+      length(request$graph_write_grants %||% list())) {
+    policy <- .wb_graph_effective_budgets(bundle$con,
+      .wb_operation_pack_v4_lowest_graph_budgets(lapply(
+        request$graph_write_grants %||% list(), `[[`, "resource_budgets")))
+    copy_bytes <- max(c(0, bundle$con@ref$wb_graph_session_copy_bytes,
+      .wb_graph_session_copy_reservation(policy)))
+    if (!identical(normalizePath(bundle$dir, winslash = "/", mustWork = TRUE),
+        normalizePath(source_dir, winslash = "/", mustWork = TRUE)))
+      copy_bytes <- max(copy_bytes, .wb_session_graph_copy_bytes(bundle, policy))
+    broker_env <- c(broker_env, PYBENCH_OPERATION_PACK_BROKER_SESSION_COPY_BYTES =
+      format(copy_bytes, scientific = FALSE, trim = TRUE))
+  }
   python_env <- c(PYBENCH_OPERATION_PACK_BROKER_TOKEN = token,
     PYBENCH_OPERATION_PACK_BROKER_ROOT = broker_root,
     PYBENCH_OPERATION_PACK_BROKER_TIMEOUT_SECONDS = as.character(timeout))

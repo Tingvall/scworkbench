@@ -222,6 +222,30 @@
   paste0('"', paste0(encoded, collapse = ""), '"')
 }
 
+.wb_operation_pack_canonical_string_tokens <- function(ids) {
+  # Same canonical array bytes, without one R callback/iconv per ordinary ID.
+  # The scalar encoder remains authoritative for escapes and diagnostics.
+  if (!is.character(ids) || is.object(ids))
+    stop("Canonical string-array encoder requires ordinary character values.", call. = FALSE)
+  if (!length(ids)) return(character())
+  missing <- is.na(ids)
+  utf8 <- iconv(ids, from = "", to = "UTF-8", sub = NA_character_)
+  invalid <- which(!missing & is.na(utf8))
+  if (length(invalid)) .wb_operation_pack_canonical_string(ids[[invalid[[1L]]]])
+  escaped <- !missing & grepl('["\\\\\\x00-\\x1F]', utf8, perl = TRUE)
+  tokens <- paste0('"', utf8, '"')
+  tokens[missing] <- "null"
+  if (any(escaped)) tokens[escaped] <- vapply(utf8[escaped],
+    .wb_operation_pack_canonical_string, character(1), USE.NAMES = FALSE)
+  tokens
+}
+
+.wb_operation_pack_canonical_string_array <- function(ids) {
+  paste0("[", paste(.wb_operation_pack_canonical_string_tokens(ids),
+    collapse = ","), "]")
+}
+
+
 .wb_operation_pack_canonical_json <- function(x) {
   # A single invocation-local last-name plan. Never reuse encoded values;
   # nested objects can replace this plan and merely cause a later cache miss.

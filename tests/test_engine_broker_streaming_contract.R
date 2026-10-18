@@ -58,9 +58,17 @@
 .engine_broker_context <- function() {
   reader <- .engine_broker_get(".wb_operation_pack_v3_broker_reader")
   e <- new.env(parent = environment(reader))
-  e$full <- 0L; e$private <- 0L; e$roots <- character()
+  e$full <- 0L; e$private <- 0L; e$roots <- character(); e$spills <- character()
   original_assert <- .engine_broker_get(".wb_operation_pack_v3_typed_slice_grant_assert_current")
   original_private <- .engine_broker_get(".wb_operation_pack_v3_private_source_validate")
+  environment(original_private) <- e
+  private_open <- .engine_broker_get(".wb_operation_pack_v3_private_stream_open")
+  environment(private_open) <- e
+  e$.wb_operation_pack_v3_private_stream_open <- function(...) {
+    answer <- private_open(...)
+    e$spills <- c(e$spills, answer$spill_root)
+    answer
+  }
   original_plan <- .engine_broker_get(".wb_matrix_stream_reader")
   e$.wb_operation_pack_v3_typed_slice_grant_assert_current <- function(...) {
     e$full <- e$full + 1L; original_assert(...)
@@ -73,9 +81,6 @@
   }
   environment(reader) <- e
   e$.wb_operation_pack_v3_broker_reader <- reader
-  legacy <- .engine_broker_get(".wb_operation_pack_v3_broker_legacy_source")
-  environment(legacy) <- e
-  e$.wb_operation_pack_v3_broker_legacy_source <- legacy
   e
 }
 
@@ -323,12 +328,17 @@ test_engine_broker_private_spill_fault_contract <- function() {
       budget$disk == 0, budget$used == 0, identical(before, roots()))
   }
   ctx <- .engine_broker_context()
-  ctx$.wb_matrix_write_continuous <- function(...) stop("injected disk-full write")
+  old_hook <- getOption("scworkbench.operation_pack_v2_test_hook")
+  on.exit(options(scworkbench.operation_pack_v2_test_hook = old_hook), add = TRUE)
+  options(scworkbench.operation_pack_v2_test_hook = function(event, ...) {
+    if (event == "private_matrix_after_import") stop("injected disk-full write")
+  })
   budget <- make_budget(fixture$staged$bundle); budget$limit <- 0
   failure <- tryCatch(ctx$.wb_operation_pack_v3_broker_reader(
     fixture$staged$bundle, fixture$stage, bound$grant, bound$axes, budget), error = identity)
   stopifnot(inherits(failure, "error"), budget$disk == 0,
     budget$used == 0, identical(before, roots()))
+  options(scworkbench.operation_pack_v2_test_hook = old_hook)
   for (kind in c("tamper", "missing")) {
     ctx <- .engine_broker_context()
     budget <- make_budget(fixture$staged$bundle); budget$limit <- 0
@@ -353,8 +363,10 @@ test_engine_broker_private_aggregate_admission_contract <- function() {
   make_budget <- .engine_broker_get(".wb_operation_pack_v3_broker_projection_budget")
   budget <- make_budget(fixture$staged$bundle)
   path <- file.path(fixture$stage, "typed_slice_sources", "chunks", "matrix.mtx")
-  exact <- 64 * length(fixture$features) * length(fixture$cells) +
-    4 * file.info(path)$size + 128 * (length(fixture$features) + length(fixture$cells)) + 1024^2
+  metadata <- 128 * (length(fixture$features) + length(fixture$cells)) +
+    16 * sum(nchar(c(fixture$features, fixture$cells), type = "bytes")) + 65536
+  retained <- metadata + 4194304
+  exact <- 128 * sum(fixture$values != 0) + 4 * file.info(path)$size + metadata
   budget$limit <- exact
   first <- ctx$.wb_operation_pack_v3_broker_reader(fixture$staged$bundle,
     fixture$stage, bound$grant, bound$axes, budget)
@@ -363,7 +375,7 @@ test_engine_broker_private_aggregate_admission_contract <- function() {
   second <- ctx$.wb_operation_pack_v3_broker_reader(fixture$staged$bundle,
     fixture$stage, bound$grant, bound$axes, budget)
   on.exit(second$close(), add = TRUE)
-  stopifnot(second$mode == "spilled_projection", budget$used == exact,
+  stopifnot(second$mode == "spilled_projection", budget$used == exact + retained,
     is.null(get("matrix", envir = environment(second$read))),
     identical(unname(as.matrix(first$read(fixture$features, fixture$cells[1:8]))),
       unname(as.matrix(second$read(fixture$features, fixture$cells[1:8])))))
@@ -373,29 +385,108 @@ test_engine_broker_private_aggregate_admission_contract <- function() {
   third <- ctx$.wb_operation_pack_v3_broker_reader(fixture$staged$bundle,
     fixture$stage, bound$grant, bound$axes, budget)
   on.exit(third$close(), add = TRUE)
-  stopifnot(third$mode == "spilled_projection", budget$used == 0)
+  stopifnot(third$mode == "spilled_projection", budget$used == retained)
   third$close()
   stopifnot(budget$disk == 0)
   TRUE
 }
 
-test_engine_broker_mixed_legacy_delivery_contract <- function() {
+test_engine_broker_physical_plan_preadmission_contract <- function() {
   fixture <- .engine_broker_fixture()
   on.exit(.engine_broker_close(fixture), add = TRUE)
-  for (private in c(FALSE, TRUE)) {
-    bound <- .engine_broker_grant(fixture, private = private)
+  get <- .engine_broker_get
+  for (axis in c("cells", "features")) {
+    budget <- get(".wb_operation_pack_v3_broker_projection_budget")(fixture$staged$bundle)
+    budget$memory <- 1048576
+    count <- new.env(parent = emptyenv()); count$decodes <- 0L
+    options(scwb.physical_admission_probe = count)
+    trace("fromJSON", where = asNamespace("jsonlite"), print = FALSE,
+      tracer = quote({getOption("scwb.physical_admission_probe")$decodes <-
+        getOption("scwb.physical_admission_probe")$decodes + 1L}))
+    result <- tryCatch(get(".wb_matrix_stream_reader")(fixture$staged$bundle,
+      "counts", axis, features = fixture$features, cells = fixture$cells,
+      plan_admit = function(fragments) get(".wb_operation_pack_v3_broker_plan_admit")(
+        fragments, list(features = fixture$features, cells = fixture$cells), budget)),
+      error = identity)
+    untrace("fromJSON", where = asNamespace("jsonlite"))
+    options(scwb.physical_admission_probe = NULL)
+    stopifnot(inherits(result, "error"), count$decodes == 0L,
+      budget$used == 0, budget$disk == 0)
+  }
+  budget <- get(".wb_operation_pack_v3_broker_projection_budget")(fixture$staged$bundle)
+  fragments <- wb_matrix_fragments(fixture$staged$bundle, "counts")
+  fragments$n_features <- 2000000L
+  # A tiny selected axis cannot hide original-axis reverse maps/metadata.
+  result <- tryCatch(get(".wb_operation_pack_v3_broker_plan_admit")(
+    fragments, list(features = fixture$features[1L], cells = fixture$cells[1L]), budget),
+    error = identity)
+  stopifnot(inherits(result, "error"), budget$used == 0, budget$disk == 0)
+  roots <- list.files(tempdir(), "^scwb_matrix_reader_", full.names = TRUE)
+  result <- tryCatch(get(".wb_matrix_stream_reader")(fixture$staged$bundle,
+    "counts", "features", features = fixture$features, cells = fixture$cells,
+    plan_admit = function(fragments) get(".wb_operation_pack_v3_broker_plan_admit")(
+      fragments, list(features = fixture$features, cells = fixture$cells), budget),
+    index_admit = function(...) {
+      admitted <- get(".wb_operation_pack_v3_broker_index_admit")(..., budget = budget)
+      admitted$verify <- function(...) stop("injected selected index verification failure")
+      admitted
+    }), error = identity)
+  stopifnot(inherits(result, "error"),
+    grepl("injected selected index verification failure", conditionMessage(result), fixed = TRUE),
+    budget$used == 0, budget$disk == 0,
+    identical(list.files(tempdir(), "^scwb_matrix_reader_", full.names = TRUE), roots))
+  TRUE
+}
+
+test_engine_broker_mixed_feature_index_contract <- function() {
+  fixture <- .engine_broker_fixture()
+  on.exit(.engine_broker_close(fixture), add = TRUE)
+  for (parts in c(4L, 8L)) {
+    bound <- .engine_broker_grant(fixture, chunk_axis = "features", chunk_size = 16L / parts)
+    ctx <- .engine_broker_context()
+    ctx$indexes <- 0L
+    original <- .engine_broker_get(".wb_operation_pack_v3_broker_index_admit")
+    ctx$.wb_operation_pack_v3_broker_index_admit <- function(...) {
+      ctx$indexes <- ctx$indexes + 1L
+      original(...)
+    }
+    policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "67108864"))
+    budget <- .engine_broker_get(".wb_operation_pack_v3_broker_projection_budget")(
+      fixture$staged$bundle, policy)
+    budget$mixed_graph <- TRUE
+    reader <- ctx$.wb_operation_pack_v3_broker_reader(fixture$staged$bundle,
+      fixture$stage, bound$grant, bound$axes, budget)
+    stopifnot(ctx$full == 1L, ctx$indexes == 1L, length(ctx$roots) == 1L,
+      budget$used > 0, budget$disk > 0,
+      identical(BPCells::storage_order(scworkbench:::.wb_bp_open_matrix_dir(
+        file.path(ctx$roots[[1L]], "fragment_1"))), "row"))
+    for (features in wb_partition_axis(fixture$features, 16L / parts)) {
+      actual <- reader$read(features, fixture$cells)
+      stopifnot(identical(actual, fixture$values[features, , drop = FALSE]))
+    }
+    stopifnot(ctx$full == 1L, ctx$indexes == 1L)
+    reader$close(); reader$close()
+    stopifnot(budget$used == 0, budget$disk == 0, !any(dir.exists(ctx$roots)))
+  }
+  TRUE
+}
+
+test_engine_broker_mixed_constant_scan_contract <- function() {
+  fixture <- .engine_broker_fixture()
+  on.exit(.engine_broker_close(fixture), add = TRUE)
+  for (private in c(FALSE, TRUE)) for (parts in c(8L, 32L)) {
+    bound <- .engine_broker_grant(fixture, private = private, chunk_size = 64L / parts)
     ctx <- .engine_broker_context()
     budget <- .engine_broker_get(".wb_operation_pack_v3_broker_projection_budget")(
       fixture$staged$bundle)
-    budget$limit <- 0; budget$legacy_mixed <- TRUE
-    ctx$.wb_matrix_stream_reader <- function(...) stop("Mixed path must not index")
-    ctx$.wb_matrix_write_continuous <- function(...) stop("Mixed path must not spill")
-    ctx$.wb_operation_pack_v3_broker_free_bytes <- function(...) stop("Mixed path must not probe spill capacity")
+    budget$limit <- 0; budget$mixed_graph <- TRUE
+    if (!private) ctx$.wb_operation_pack_v3_broker_free_bytes <-
+      function(...) stop("Mixed backed path must not probe spill capacity")
     reader <- ctx$.wb_operation_pack_v3_broker_reader(fixture$staged$bundle,
       fixture$stage, bound$grant, bound$axes, budget)
-    stopifnot(reader$mode == "legacy_mixed", is.null(reader$spill_root),
-      ctx$full == 0L, ctx$private == 0L)
-    for (cells in list(fixture$cells[1:8], fixture$cells[9:16])) {
+    stopifnot(reader$mode == if (private) "spilled_projection" else "bundle_stream",
+      ctx$full == if (private) 0L else 1L, ctx$private == if (private) 1L else 0L)
+    for (cells in wb_partition_axis(fixture$cells, 64L / parts)) {
       actual <- as.matrix(reader$read(fixture$features, cells))
       expected <- fixture$values[, cells, drop = FALSE]
       stopifnot(identical(unname(actual), unname(expected)),
@@ -404,8 +495,8 @@ test_engine_broker_mixed_legacy_delivery_contract <- function() {
           scworkbench:::.wb_operation_pack_v3_matrix_slice_content(
             expected, fixture$features, cells)))
     }
-    stopifnot(if (private) ctx$private == 2L else ctx$full == 4L,
-      budget$used == 0, budget$disk == 0)
+    stopifnot(if (private) ctx$private == 1L else ctx$full == 1L,
+      length(ctx$roots) == if (private) 0L else 1L)
     if (private) {
       path <- file.path(fixture$stage, "typed_slice_sources", "chunks", "matrix.mtx")
       bytes <- readBin(path, "raw", n = file.info(path)$size)
@@ -420,7 +511,14 @@ test_engine_broker_mixed_legacy_delivery_contract <- function() {
         "UPDATE matrices SET description=? WHERE matrix_id='counts';", params = list(old))
     }
     failure <- tryCatch(reader$read(fixture$features, fixture$cells[17:24]), error = identity)
-    stopifnot(inherits(failure, "error"))
+    stopifnot(inherits(failure, "error"), budget$used == 0, budget$disk == 0,
+      !any(dir.exists(ctx$spills)))
+    final <- tryCatch(if (private)
+      scworkbench:::.wb_operation_pack_v3_private_source_validate(fixture$stage,
+        bound$grant, bounded = TRUE) else
+      scworkbench:::.wb_operation_pack_v3_typed_slice_grant_assert_current(
+        fixture$staged$bundle, bound$grant), error = identity)
+    stopifnot(inherits(final, "error"))
     restore(); reader$close()
   }
   TRUE
@@ -483,7 +581,9 @@ test_engine_broker_mixed_legacy_delivery_contract <- function() {
   environment(main) <- ctx
   result <- tryCatch(main(fixture$stage, fixture$staged$bundle$dir,
     fixture$bundle$dir), error = identity)
-  stopifnot(identical(ctx$modes, "legacy_mixed"), !length(ctx$roots))
+  stopifnot(identical(ctx$modes, if (private) "spilled_projection" else "bundle_stream"),
+    length(ctx$roots) == if (private) 0L else 1L,
+    !any(dir.exists(ctx$roots)), !any(dir.exists(ctx$spills)))
   list(result = result, stage = fixture$stage, full = ctx$full, private = ctx$private)
 }
 
@@ -492,8 +592,9 @@ test_engine_broker_mixed_main_routing_contract <- function() {
   on.exit(.engine_broker_close(fixture), add = TRUE)
   for (private in c(FALSE, TRUE)) for (kind in c("read", "write")) {
     result <- .engine_broker_mixed_main_case(fixture, private, kind)
-    stopifnot(!inherits(result$result, "error"), result$full == 0L,
-      result$private == 0L, file.exists(file.path(result$stage, "broker-observations.json")))
+    stopifnot(!inherits(result$result, "error"), result$full == if (private) 0L else 1L,
+      result$private == if (private) 1L else 0L,
+      file.exists(file.path(result$stage, "broker-observations.json")))
   }
   TRUE
 }

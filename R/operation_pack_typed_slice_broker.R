@@ -201,7 +201,7 @@
   if (is.null(budget)) budget <- .wb_operation_pack_v3_broker_projection_budget(bundle)
   if (!identical(source$source_kind, "bundle_matrix"))
     return(.wb_operation_pack_v3_private_source_validate(stage, grant,
-      bounded = TRUE, return_reader = TRUE, budget = budget))
+      bounded = TRUE, return_reader = TRUE, budget = budget, axes = axes))
   plan <- NULL; closed <- FALSE
   close <- function() {
     if (!closed) {
@@ -214,7 +214,19 @@
   on.exit(if (!ready) close(), add = TRUE)
   .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant, "execution")
   guard <- .wb_operation_pack_matrix_light_guard(bundle, source$matrix_id)
-  mode <- if (isTRUE(budget$mixed_graph)) "bundle_slice" else "bundle_stream"
+  mode <- "bundle_stream"
+  # In a mixed invocation, all retained indexes must be admitted before graph
+  # cursors are created. One selected row index prevents feature partitions
+  # from repeatedly scanning a column-major physical fragment.
+  if (isTRUE(budget$mixed_graph)) {
+    plan <- .wb_matrix_stream_reader(bundle, source$matrix_id,
+      grant$chunk_axis %||% "cells", features = axes$features, cells = axes$cells,
+      plan_admit = function(fragments)
+        .wb_operation_pack_v3_broker_plan_admit(fragments, axes, budget),
+      index_admit = function(matrix, features, cells)
+        .wb_operation_pack_v3_broker_index_admit(matrix, features, cells, budget))
+    guard()
+  }
   read <- function(features, cells) {
     tryCatch({
       if (closed) .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -223,12 +235,10 @@
         .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
           "Broker read is outside its admitted projection.", "execution")
       guard()
-      values <- if (identical(mode, "bundle_stream")) {
-        if (is.null(plan)) plan <<- .wb_matrix_stream_reader(bundle,
-          source$matrix_id, grant$chunk_axis %||% "cells",
-          features = axes$features, cells = axes$cells)
-        as.matrix(plan$read(features, cells))
-      } else as.matrix(wb_slice(bundle, source$matrix_id, features = features, cells = cells))
+      if (is.null(plan)) plan <<- .wb_matrix_stream_reader(bundle,
+        source$matrix_id, grant$chunk_axis %||% "cells",
+        features = axes$features, cells = axes$cells)
+      values <- as.matrix(plan$read(features, cells))
       guard()
       values
     }, error = function(error) { close(); stop(error) })
@@ -250,8 +260,36 @@
   reader$read(features, cells)
 }
 
-.wb_operation_pack_v3_broker_axis_ids <- function(stage, descriptor) {
-  path <- file.path(stage, descriptor$relative_path)
+.wb_operation_pack_v3_broker_axis_admission <- function(stage, descriptor) {
+  path <- tryCatch(.wb_bundle_path_require(stage, descriptor$relative_path,
+    expected_type = "file", purpose = "typed-slice axis manifest"),
+    error = function(error) .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      conditionMessage(error), "execution"))
+  count <- suppressWarnings(as.numeric(descriptor$count))
+  size <- as.numeric(file.info(path)$size)
+  if (length(count) != 1L || !is.finite(count) || count < 0 ||
+      count > 2147483647 || count != floor(count) ||
+      length(size) != 1L || !is.finite(size) || size < 0)
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Axis manifest has no bounded count/byte admission.", "execution")
+  # Includes decoded strings/list entries, canonical verification carriers and
+  # retained character IDs. Admit before JSON decoding, not after allocation.
+  estimate <- 128 * count + 8 * size + 65536
+  if (!is.finite(estimate) || estimate > 2^53)
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Axis manifest exceeds exact bounded admission.", "execution")
+  list(path = path, estimate = estimate, count = count)
+}
+
+.wb_operation_pack_v3_broker_axis_ids <- function(stage, descriptor, maximum_bytes = NULL) {
+  admission <- .wb_operation_pack_v3_broker_axis_admission(stage, descriptor)
+  if (is.null(maximum_bytes)) maximum_bytes <- as.numeric(getOption(
+    "scworkbench.max_dense_materialize_mb", 256)) * 1024^2
+  if (length(maximum_bytes) != 1L || !is.finite(maximum_bytes) ||
+      admission$estimate > maximum_bytes)
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Axis manifest exceeds ordinary working-memory admission.", "execution")
+  path <- admission$path
   value <- jsonlite::read_json(path, simplifyVector = FALSE)
   .wb_operation_pack_v3_assert_self_identity(value, "manifest_identity",
     "PYBENCH_CAPABILITY_MISMATCH", "execution")
@@ -261,7 +299,9 @@
       size = as.numeric(file.info(path)$size),
       sha256 = .wb_operation_pack_v2_file_sha256(path)))
   if (!identical(observed, descriptor$payload_manifest_identity) ||
-      !identical(value$manifest_identity, descriptor$axis_manifest_identity))
+      !identical(value$manifest_identity, descriptor$axis_manifest_identity) ||
+      length(value$ids) != admission$count ||
+      !identical(as.numeric(value$count), admission$count))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "Broker axis manifest differs from its retained descriptor.",
       "execution")
@@ -412,11 +452,6 @@
       simplifyVector = FALSE)
     grants <- stats::setNames(request$typed_slice_grants %||% list(),
       vapply(request$typed_slice_grants %||% list(), `[[`, character(1), "name"))
-    axes <- lapply(grants, function(grant) list(
-      features = .wb_operation_pack_v3_broker_axis_ids(stage,
-        grant$features_axis),
-      cells = .wb_operation_pack_v3_broker_axis_ids(stage,
-        grant$cells_axis)))
     # The broker reads the same stage-visible matrix as the R adapter. The
     # original bundle is only a trusted target for committed-leaf links; it
     # must never substitute its payload for a stage-only or changed source.
@@ -437,12 +472,47 @@
       .wb_operation_pack_v4_lowest_graph_budgets(lapply(request$graph_write_grants %||%
         list(), `[[`, "resource_budgets")) else NULL
     if (graph_enabled) {
+      raw_copy <- Sys.getenv("PYBENCH_OPERATION_PACK_BROKER_SESSION_COPY_BYTES", "")
+      staged_copy <- !is.null(bundle$staging_source_bundle)
+      if (nzchar(raw_copy)) {
+        copy_bytes <- suppressWarnings(as.numeric(raw_copy))
+        .wb_graph_require(grepl("^(0|[1-9][0-9]*)$", raw_copy) &&
+          is.finite(copy_bytes) && copy_bytes <= 2^53 - 1,
+          "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", "Invalid broker session-copy reservation.")
+        # Parent measures the owned source copy under its mutation lock just
+        # before launching us. This resource count is not sent to Python and
+        # is not a pack-supplied state/source authority.
+        if (staged_copy) .wb_graph_require(copy_bytes >=
+          .wb_graph_disk_usage(bundle$con, graph_policy)$database_bytes,
+          "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE", "Broker copy reservation is below its stage database.")
+      } else copy_bytes <- if (staged_copy)
+        .wb_session_graph_copy_bytes(bundle, graph_policy) else 0
+      bundle$con@ref$wb_graph_session_copy_bytes <- copy_bytes
       restore_graph <- .wb_operation_pack_v4_scoped_graph_budgets(bundle, graph_policy)
       on.exit(restore_graph(), add = TRUE, after = FALSE)
       graph_policy <- .wb_graph_effective_budgets(bundle$con, graph_policy)
     }
     projection_budget <- .wb_operation_pack_v3_broker_projection_budget(bundle, graph_policy)
     projection_budget$mixed_graph <- graph_enabled && length(grants) > 0L
+    axis_admissions <- lapply(grants, function(grant) lapply(
+      list(features = grant$features_axis, cells = grant$cells_axis),
+      function(descriptor) .wb_operation_pack_v3_broker_axis_admission(stage, descriptor)))
+    axis_charge <- sum(vapply(axis_admissions, function(admissions)
+      sum(vapply(admissions, `[[`, numeric(1), "estimate")), numeric(1)))
+    if (!is.finite(axis_charge) || axis_charge > projection_budget$memory)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Combined typed axes exceed broker working-memory admission.", "execution")
+    projection_budget$used <- projection_budget$used + axis_charge
+    on.exit(projection_budget$used <- max(0, projection_budget$used - axis_charge), add = TRUE)
+    axes <- lapply(names(grants), function(name) {
+      grant <- grants[[name]]
+      list(
+      features = .wb_operation_pack_v3_broker_axis_ids(stage,
+        grant$features_axis, maximum_bytes = axis_admissions[[name]]$features$estimate),
+      cells = .wb_operation_pack_v3_broker_axis_ids(stage,
+        grant$cells_axis, maximum_bytes = axis_admissions[[name]]$cells$estimate))
+    })
+    names(axes) <- names(grants)
     for (name in names(grants)) readers[[name]] <-
       .wb_operation_pack_v3_broker_reader(bundle, stage, grants[[name]],
         axes[[name]], projection_budget)

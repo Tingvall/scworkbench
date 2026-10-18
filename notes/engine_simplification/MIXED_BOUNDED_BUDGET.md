@@ -30,6 +30,16 @@ Numerical targets:
 
 Candidate implementation, subject to focused review:
 
+The initially proposed item 1 below is **superseded** in the implementation:
+constant authentication alone did not prevent repeated physical column-major
+decoding for feature partitions. Backed mixed grants now use the same selected
+physical read plan as ordinary grants. A feature-oriented plan counts selected
+stored entries once (including explicit zero entries), admits one row index
+against the existing aggregate R broker budget, and builds it with explicit
+sort/load buffers before graph cursors open. Both passes are constant in the
+partition count and are separately accounted, not concealed as authentication.
+The original proposal is retained below as design history, not the final route.
+
 1. Backed mixed reads keep `wb_slice` physical delivery, no new row index.
    Authenticate once, use supplementary guards around blocks, retain final
    parent full authentication.

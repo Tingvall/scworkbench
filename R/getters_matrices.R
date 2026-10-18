@@ -165,10 +165,23 @@ wb_matrix_read_features <- function(bundle,
 # rather than decoding the complete column-major source for every partition.
 # This is a disposable equivalent representation, not a new logical fragment.
 .wb_matrix_stream_reader <- function(bundle, matrix_id, chunk_axis,
-    features = NULL, cells = NULL) {
+    features = NULL, cells = NULL, index_admit = NULL, plan_admit = NULL) {
   fragments <- wb_matrix_fragments(bundle, matrix_id)
   selected_features <- if (is.null(features)) NULL else as.character(features)
   selected_cells <- if (is.null(cells)) NULL else as.character(cells)
+  reservations <- list(); root <- NULL; closed <- FALSE; ready <- FALSE
+  close <- function() {
+    if (!closed) {
+      if (!is.null(root)) unlink(root, recursive = TRUE)
+      for (reservation in reservations) reservation$close()
+      closed <<- TRUE
+    }
+    invisible(TRUE)
+  }
+  on.exit(if (!ready) close(), add = TRUE)
+  # Admit physical metadata/maps before decoding complete fragment axes or
+  # constructing a native selector. This applies even without a row index.
+  if (!is.null(plan_admit)) reservations[[1L]] <- plan_admit(fragments)
   fragment_features <- lapply(fragments$feature_ids_json, function(ids)
     as.character(jsonlite::fromJSON(ids)))
   fragment_cells <- lapply(fragments$cell_ids_json, function(ids)
@@ -184,8 +197,6 @@ wb_matrix_read_features <- function(bundle,
   validate_selection(selected_cells, fragment_cells)
   root <- tempfile("scwb_matrix_reader_")
   dir.create(root)
-  ready <- FALSE
-  on.exit(if (!ready) unlink(root, recursive = TRUE), add = TRUE)
   matrices <- lapply(seq_len(nrow(fragments)), function(i) {
     matrix <- .wb_bp_open_matrix_dir(.wb_bundle_path_require(bundle,
       fragments$path[[i]], expected_type = "directory", purpose = "matrix reader"))
@@ -217,10 +228,16 @@ wb_matrix_read_features <- function(bundle,
       features <- keep_features; cells <- keep_cells
     }
     if (identical(chunk_axis, "features") &&
-        identical(BPCells::storage_order(matrix), "col"))
+        identical(BPCells::storage_order(matrix), "col")) {
+      admission <- if (is.null(index_admit)) NULL else
+        index_admit(matrix, features, cells)
+      if (!is.null(admission)) reservations[[length(reservations) + 1L]] <<- admission
       matrix <- BPCells::transpose_storage_order(matrix,
         outdir = file.path(root, paste0("fragment_", i)), tmpdir = root,
-        load_bytes = 4194304L, sort_bytes = 67108864L)
+        load_bytes = if (is.null(admission)) 4194304L else admission$load_bytes,
+        sort_bytes = if (is.null(admission)) 67108864L else admission$sort_bytes)
+      if (!is.null(admission)) admission$verify(file.path(root, paste0("fragment_", i)))
+    }
     list(matrix = matrix, features = features, cells = cells)
   })
   matrices <- Filter(Negate(is.null), matrices)
@@ -249,5 +266,5 @@ wb_matrix_read_features <- function(bundle,
     out
   }
   ready <- TRUE
-  list(read = read, close = function() unlink(root, recursive = TRUE), root = root)
+  list(read = read, close = close, root = root)
 }

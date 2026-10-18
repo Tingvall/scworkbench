@@ -632,14 +632,14 @@
 }
 
 .wb_operation_pack_v3_private_source_validate <- function(stage, grant,
-    bounded = FALSE, return_reader = FALSE, budget = NULL) {
+    bounded = FALSE, return_reader = FALSE, budget = NULL, axes = NULL) {
   source <- grant$source_reference
   if (!identical(source$source_kind, "in_memory_selected_projection"))
     return(NULL)
   if (isTRUE(bounded)) {
     if (is.null(budget)) budget <-
       .wb_operation_pack_v3_broker_projection_budget(NULL)
-    reader <- .wb_operation_pack_v3_private_stream_open(stage, grant, budget)
+    reader <- .wb_operation_pack_v3_private_stream_open(stage, grant, budget, axes = axes)
     if (isTRUE(return_reader)) return(reader)
     on.exit(reader$close(), add = TRUE)
     return(invisible(NULL))
@@ -1502,6 +1502,21 @@
       "source_reference_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
     .wb_operation_pack_v3_assert_self_identity(grant,
       "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    stage <- attr(request, "operation_pack_stage_root")
+    graph_enabled <- length(request$graph_read_grants %||% list()) > 0L ||
+      length(request$graph_write_grants %||% list()) > 0L
+    axis_budget <- .wb_operation_pack_v3_broker_projection_budget(bundle,
+      if (graph_enabled) .wb_operation_pack_v4_lowest_graph_budgets(lapply(
+        request$graph_write_grants %||% list(), `[[`, "resource_budgets")) else NULL)
+    admissions <- lapply(list(cells_axis = grant$cells_axis,
+      features_axis = grant$features_axis), function(descriptor)
+        .wb_operation_pack_v3_broker_axis_admission(stage, descriptor))
+    axis_charge <- sum(vapply(admissions, `[[`, numeric(1), "estimate"))
+    if (!is.finite(axis_charge) || axis_charge > axis_budget$memory)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Combined typed axes exceed request-validation working admission.", "staging")
+    axis_budget$used <- axis_charge
+    admitted_axes <- list()
     for (axis in c("cells_axis", "features_axis")) {
       descriptor <- grant[[axis]]
       path <- file.path(attr(request, "operation_pack_stage_root"),
@@ -1509,6 +1524,10 @@
       if (!file.exists(path)) .wb_operation_pack_v3_error(
         "PYBENCH_CAPABILITY_MISMATCH",
         "Typed-slice axis manifest is absent.", "staging")
+      if (.wb_operation_pack_v3_broker_axis_admission(stage,
+          descriptor)$estimate > admissions[[axis]]$estimate)
+        .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+          "Typed axis grew beyond its preparse admission.", "staging")
       observed <- .wb_operation_pack_v2_identity_scoped(
         "scworkbench.operation_pack.payload_manifest.v2",
         "registry read payload manifest", list(path = descriptor$relative_path,
@@ -1525,12 +1544,16 @@
           !identical(value$manifest_identity,
             descriptor$axis_manifest_identity) ||
           !identical(value$order_identity, descriptor$order_identity) ||
+          length(value$ids) != admissions[[axis]]$count ||
           !identical(as.integer(value$count), as.integer(descriptor$count)))
         .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
           "Typed-slice axis manifest differs from its grant.", "staging")
+      admitted_axes[[if (axis == "cells_axis") "cells" else "features"]] <-
+        as.character(unlist(value$ids, use.names = FALSE))
+      rm(value, raw, observed)
     }
     .wb_operation_pack_v3_private_source_validate(
-      attr(request, "operation_pack_stage_root"), grant, bounded = TRUE)
+      stage, grant, bounded = TRUE, budget = axis_budget, axes = admitted_axes)
   }
   for (grant in request$derived_fitted_axis_grants %||% list()) {
     .wb_operation_pack_v3_assert_self_identity(grant$parent_snapshot,
@@ -1552,11 +1575,17 @@
     descriptor <- grant$cells_axis
     path <- file.path(attr(request, "operation_pack_stage_root"),
       descriptor$relative_path)
+    admission <- .wb_operation_pack_v3_broker_axis_admission(
+      attr(request, "operation_pack_stage_root"), descriptor)
+    if (admission$estimate > .wb_operation_pack_v3_broker_projection_budget(bundle)$memory)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-space axis exceeds request-validation working admission.", "staging")
     value <- jsonlite::read_json(path, simplifyVector = FALSE)
     .wb_operation_pack_v3_assert_self_identity(value, "manifest_identity",
       "PYBENCH_CAPABILITY_MISMATCH", "staging")
     if (!identical(value$manifest_identity,
         descriptor$axis_manifest_identity) ||
+        length(value$ids) != admission$count ||
         !identical(value$order_identity, descriptor$order_identity))
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
         "Typed-space axis manifest differs from its grant.", "staging")
@@ -1786,10 +1815,16 @@
 .wb_operation_pack_v3_typed_slice_sources_assert_current <- function(bundle,
                                                                        request) {
   stage <- attr(request, "operation_pack_stage_root")
+  graph_enabled <- length(request$graph_read_grants %||% list()) > 0L ||
+    length(request$graph_write_grants %||% list()) > 0L
+  private_budget <- .wb_operation_pack_v3_broker_projection_budget(bundle,
+    if (graph_enabled) .wb_operation_pack_v4_lowest_graph_budgets(lapply(
+      request$graph_write_grants %||% list(), `[[`, "resource_budgets")) else NULL)
   for (grant in Filter(function(x) identical(
       x$source_reference$source_kind, "in_memory_selected_projection"),
       request$typed_slice_grants %||% list()))
-    .wb_operation_pack_v3_private_source_validate(stage, grant, bounded = TRUE)
+    .wb_operation_pack_v3_private_source_validate(stage, grant, bounded = TRUE,
+      budget = private_budget)
   durable <- Filter(function(x) identical(
     x$source_reference$source_kind, "bundle_matrix"),
     request$typed_slice_grants %||% list())

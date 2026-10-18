@@ -26,21 +26,32 @@ the final content check. It does preserve exact selection, ordered coverage,
 declared numerical-domain checks, receipts and rollback when a required check
 fails.
 
-The non-mixed Python typed-matrix broker likewise authenticates a stage-visible
+The Python typed-matrix broker likewise authenticates a stage-visible
 source once for its reader lifetime, uses bounded selected-axis reads and
 supplementary guards, and retains independent full parent authentication before
-publication. Private Matrix Market projections still have a whole-object startup
-parse. After validation, their aggregate-budgeted cache or disposable double-valued
-BPCells spill supplies subsequent blocks. Spill capacity must be measurable;
-failure cleans up owned scratch and aborts, without raising memory guards.
+publication. This also applies when a request combines graph and matrix grants.
+Feature partitions use one selected row index, rather than repeatedly decoding
+the same column-major source. Its stored-entry count and index build are
+constant preparation passes, separate from content authentication.
 
-There is an explicit performance exception: a Python request combining graph
-grants and typed matrix reads retains its pre-existing broker delivery and
-per-block full checks. It does not acquire the new cache, spill or row index.
-This preserves supported mixed behavior without asserting unproved combined
-graph/spill peak accounting. Such mixed throughput is not qualified by the
-matrix improvements; do not claim that every possible typed block avoids a
-complete source check.
+Core-generated private Matrix Market projections authenticate their bytes and
+axis descriptors before use. An admitted small projection may be cached;
+oversized projections use a bounded double-valued BPCells import, with explicit
+sort/load buffers and optional row index. They are not first parsed into a
+whole R matrix to decide whether spilling is necessary. The existing decimal
+transport representation is unchanged. Authenticated axes are retained
+separately from physical BPCells names.
+
+Admission covers axis decoding, original physical-axis/native selection maps,
+retained readers, native sorting buffers and canonical identity scratch. Mixed
+broker connections share the existing R-side graph policy, including the
+parent's session-copy reservation. Matrix and graph response carriers are
+serviced sequentially. These are bounded-operation resource admissions, not an
+OS-enforced process-wide RAM limit or a global quota across R and Python.
+Spill capacity must be measurable; concurrent filesystem consumers can still
+cause a write to fail. Failure removes owned scratch and aborts publication,
+without raising a memory guard. Backend/build-specific resource evidence must
+be reported separately from public protocol parity.
 
 Fresh ordinary matrix/space reader blocks use R copy-on-modify rather than a
 serialization round trip when their complete envelope, metadata and attributes

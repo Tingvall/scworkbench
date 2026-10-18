@@ -1,29 +1,6 @@
 # Stream the EXISTING matrix_slice.content.v1 canonical preimage. This is a
 # representation optimization, not a new identity scheme. read_columns is
 # core-private; pack readers retain their declared bounded public interface.
-.wb_operation_pack_canonical_string_tokens <- function(ids) {
-  # Same canonical array bytes, without one R callback/iconv per ordinary ID.
-  # The scalar encoder remains authoritative for escapes and diagnostics.
-  .wb_assert(is.character(ids) && !is.object(ids),
-    "Canonical string-array encoder requires ordinary character values.")
-  if (!length(ids)) return(character())
-  missing <- is.na(ids)
-  utf8 <- iconv(ids, from = "", to = "UTF-8", sub = NA_character_)
-  invalid <- which(!missing & is.na(utf8))
-  if (length(invalid)) .wb_operation_pack_canonical_string(ids[[invalid[[1L]]]])
-  escaped <- !missing & grepl('["\\\\\\x00-\\x1F]', utf8, perl = TRUE)
-  tokens <- paste0('"', utf8, '"')
-  tokens[missing] <- "null"
-  if (any(escaped)) tokens[escaped] <- vapply(utf8[escaped],
-    .wb_operation_pack_canonical_string, character(1), USE.NAMES = FALSE)
-  tokens
-}
-
-.wb_operation_pack_canonical_string_array <- function(ids) {
-  paste0("[", paste(.wb_operation_pack_canonical_string_tokens(ids),
-    collapse = ","), "]")
-}
-
 .wb_operation_pack_matrix_axis_json <- function(ids) {
   if (!is.character(ids) || is.object(ids))
     return(.wb_operation_pack_canonical_json(unname(as.list(ids))))
