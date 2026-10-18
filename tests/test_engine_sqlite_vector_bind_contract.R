@@ -150,7 +150,11 @@ test_engine_sqlite_vector_bind_extended_and_encoding_fallback_contract <- functi
   x <- base; x$id <- bit64::as.integer64(c("9007199254740993", "9007199254740994"))
   class(x$id) <- c("custom_integer64", "integer64"); variants[[10L]] <- x
   x <- base; x$id <- bit64::as.integer64(c("9007199254740993", "9007199254740994"))
-  names(x$id) <- c("named_a", "named_b"); variants[[11L]] <- x
+  # $<-.data.frame strips names from an atomic replacement; construct the
+  # actual unsupported carrier without that setter normalizing the fixture.
+  x <- unclass(x); names(x$id) <- c("named_a", "named_b")
+  class(x) <- "data.frame"; variants[[11L]] <- x
+  stopifnot(identical(names(variants[[11L]]$id), c("named_a", "named_b")))
   for (rows in variants) {
     expected <- .engine_db_bind_case(.engine_db_bind_original, rows)
     spy <- .engine_db_bind_spy()

@@ -159,6 +159,23 @@ test_engine_table_scalar_columns_public_identity_and_purity_contract <- function
   legacy_content <- scworkbench:::.wb_prov_table_content_sha256(expected)
   legacy_original_content <- scworkbench:::.wb_prov_table_content_sha256(prim)
   restore()
+  # Independent original fold over actual stored SQL header/row JSON. Numeric
+  # NA was already stored as the literal string "NA" by the historical writer;
+  # loading can consequently promote mixed numeric/string columns to character.
+  # That historical stored-versus-reencoded difference is NOT repaired here.
+  info <- DBI::dbGetQuery(b$con, paste0("SELECT a.type,t.table_type,t.entity_kind,t.meta_json ",
+    "FROM artifacts a JOIN artifact_tables t ON t.artifact_id=a.artifact_id WHERE a.artifact_id=?"),
+    params = list(id))
+  header <- list(identity_version = "scworkbench.payload.table.stream.v1",
+    kind = as.character(info$type[[1L]]), table_type = as.character(info$table_type[[1L]]),
+    entity_kind = if (identical(info$type[[1L]], "obs_table")) as.character(info$entity_kind[[1L]]) else NULL,
+    meta = jsonlite::fromJSON(info$meta_json[[1L]], simplifyVector = TRUE))
+  oracle <- digest::digest(jsonlite::serializeJSON(header, digits = NA), algo = "sha256", serialize = FALSE)
+  stored_rows <- DBI::dbGetQuery(b$con,
+    "SELECT row_json FROM artifact_table_rows WHERE artifact_id=? ORDER BY row_idx", params = list(id))$row_json
+  for (row in stored_rows) oracle <- digest::digest(jsonlite::serializeJSON(list(
+    previous = oracle, row_sha256 = digest::digest(row, algo = "sha256", serialize = FALSE)),
+    digits = NA), algo = "sha256", serialize = FALSE)
   stopifnot(identical(actual, expected), identical(actual$table, legacy_original_payload$table),
     identical(scworkbench:::.wb_prov_table_payload(actual), legacy_payload),
     identical(scworkbench:::.wb_prov_table_payload(prim), legacy_original_payload),
@@ -166,7 +183,8 @@ test_engine_table_scalar_columns_public_identity_and_purity_contract <- function
       digits = NA), algo = "sha256", serialize = FALSE), legacy_v2_digest),
     identical(scworkbench:::.wb_prov_table_content_sha256(actual), legacy_content),
     identical(scworkbench:::.wb_prov_table_content_sha256(prim), legacy_original_content),
-    identical(scworkbench:::.wb_prov_stored_table_content_sha256(b$con, id), legacy_content),
+    identical(scworkbench:::.wb_prov_stored_table_content_sha256(b$con, id), oracle),
+    identical(oracle, legacy_original_content), !identical(oracle, legacy_content),
     identical(before, fingerprint()))
   TRUE
 }
