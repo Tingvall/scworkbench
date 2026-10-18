@@ -139,6 +139,14 @@ from a pack or carried into recovery. Recipient validation can compute one
 actual stored-table identity for multiple claims within its fresh immutable
 report; every claim is compared independently, filesystem fingerprints remain
 mandatory, and the next report starts without those observations.
+Recipient file claims can likewise share bounded actual observations from the
+initial full fingerprint; fresh path/type/tree checks remain, and the final
+fingerprint still hashes every file independently. No expected digest or file
+timestamp becomes content authority. Ordinary fresh initialization can retain
+its just-migrated connection under exact database/publication guards; this does
+not bypass ordinary opening or recovery. Model-path repair planning (`dry_run =
+TRUE`) observes current schema without migration or publication; a real repair
+retains explicit migration and committed publication boundaries.
 
 Successful writer scopes publish committed manifest state. An unchanged close
 may reuse only the same live connection/writer ownership, exact SQL/schema epoch

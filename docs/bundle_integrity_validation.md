@@ -53,6 +53,16 @@ headers, connection/schema observations and the full filesystem checks remain
 in force. Nothing is carried to another report, content-only validation,
 promotion or recovery, and a failed observation is not reused.
 
+The initial recipient fingerprint also supplies a compact, report-local set of
+actual contained-file SHA observations (at most64KiB). Repeated file/tree claims
+may use those observed digests, while paths, file types and tree membership are
+checked freshly and every expected claim is compared separately. File size only
+selects observations that fit the cap; it is not content authority. Misses hash
+the actual file. The final fingerprint ALWAYS hashes every contained file again;
+it never uses these observations. Nothing survives into another report or
+content-only validation. This detects persistent changes across the report,
+not arbitrary transient edits restored before final verification.
+
 Content identities are typed and versioned. Current producers persist distinct
 scheme identifiers for canonical objects, streamed tables, matrix fragment
 trees, spaces, raw files, file trees, and registry values. Promotion,
