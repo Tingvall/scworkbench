@@ -48,8 +48,8 @@
     # rejects deferred/unsupported carriers BEFORE any element preflight, so an
     # ineligible input still reaches the untouched ordered loop/error boundary.
     hashes <- tryCatch({
-      if (!isTRUE(.Call("scwb_table_row_hash_eligible", row_json,
-          PACKAGE = "scworkbench"))) NULL else {
+      if (!exists("C_scwb_table_row_hash_eligible", inherits = TRUE) ||
+          !isTRUE(.Call(C_scwb_table_row_hash_eligible, row_json))) NULL else {
         limit <- getOption("scworkbench.max_dense_materialize_mb", 256)
         if (!is.numeric(limit) || is.object(limit) || !is.null(attributes(limit)) ||
             length(limit) != 1L || !is.finite(limit) || limit <= 0) NULL else {

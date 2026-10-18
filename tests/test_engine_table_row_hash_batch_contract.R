@@ -49,8 +49,8 @@ test_engine_table_row_hash_bytes_and_frozen_preimages_contract <- function() {
 }
 
 test_engine_table_row_hash_eligibility_and_old_fallback_contract <- function() {
-  eligible <- function(value) .Call("scwb_table_row_hash_eligible", value,
-    PACKAGE = "scworkbench")
+  eligible <- function(value) .Call(get("C_scwb_table_row_hash_eligible",
+    asNamespace("scworkbench"), inherits = FALSE), value)
   stopifnot(isTRUE(eligible(c("{}", '{"x":1}'))),
     !eligible(character()), !eligible(c("{}", NA_character_)),
     !eligible(setNames("{}", "named")), !eligible(structure("{}", class = "json")),
