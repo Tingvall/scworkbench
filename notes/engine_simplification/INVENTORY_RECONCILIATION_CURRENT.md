@@ -8,6 +8,16 @@ this reconciliation; no benchmark or qualification job was run. It is not a fina
 acceptance disposition. Root must append exact terminal evidence for the frozen
 combined candidate and real import-to-recipient Xenopus workflow.
 
+**Correction before integration:** Sable withdrew the61dd50b/fe644e0 typed-space
+integration-ready disposition in review `0ffabb5`. At this exact source pin,
+known omissions remain: valid full-source2D logical x/y aliases can disagree with
+physical HDF5 dimension labels, and plan-read diagnostic attributes can carry a
+relative payload path across a transient typed callback. The7/7 typed and21-pass
+combined focused results cover their fixtures only; they did not expose these
+cases. Typed-space integration is **not accepted** pending exact follow-on fixes
+and regressions. Snapshot/publication-witness acceptance is unaffected. This
+documentation correction makes no runtime repair or final-readiness claim.
+
 The execution model is trusted scientific packs, not a hostile native-R sandbox.
 Content authenticates at admission/publication; lightweight between-block evidence
 does not replace byte authority. A transient mutation restored before the final
@@ -80,17 +90,27 @@ isolation. Ordinary vectors/families/tables still carry complete values. Bounded
 table token and SQL-write batches do not turn those constructors into a new
 streaming-object authoring interface.
 
-### Typed HDF5 space: newly implemented, not universally bounded
+### Typed HDF5 space: implemented prototype with withdrawn acceptance
 
 Integrated runtime `6534524` corresponds to isolated
 `61dd50bc6375f6c9a199dd728310a11c093dba4a`; assurance `bfecc8a` corresponds to
 `fe644e017b7934f57600a32655d8f87500205f1e`. Native POSIX symbolic HDF5 inputs use
 fresh runner-owned metadata/axis plans (`R/space_payloads.R:380`) and bounded
-callbacks, not retained whole coordinate arrays. Dual historical preimages remain
+coordinate callbacks, not retained whole coordinate arrays. Dual historical preimages remain
 exact: row-major `space_slice.content.v1` and the column-major hydrated generic
 envelope (`R/operation_pack_space_stream.R:44,:90`). The envelope uses an owned
-numeric spool and bounded row/dimension tiles; plans/paths/handles do not enter
-public primitives, receipts, run records or checkpoints.
+numeric spool and bounded row/dimension tiles. The intended public boundary must
+not expose engine paths, plans or handles. That is **not yet an achieved claim**:
+diagnostic attributes on a plan-read result can leak its relative payload path
+to a transient typed callback; the former materialized matrix-subsetting route
+dropped those attributes. Follow-on must remove those attributes before delivery
+and test the public/retained boundary explicitly, without changing scientific
+values or identity preimages.
+
+The other known compatibility defect is full-source2D dimension naming: logical
+x/y axes versus physical labels can mismatch on a valid retained source. Existing
+positive fixtures did not cover this case. Neither a narrow passing fixture nor
+bounded preparation authorizes changing accepted dimension semantics to evade it.
 
 One shared conservative 8 MiB native HDF allowance, charged metadata/lookup,
 bounded blocks and scratch are admitted under existing guards/policies. Ordinary
@@ -103,7 +123,9 @@ reader; schema parity is not that capability.
 
 Exact installed typed-space checkpoint: **7 executed/passed, 0 skips/failures**,
 sidecar0 (`typed_space_61dd_focused.log/.exit`); frozen-oracle assurance probe also
-exit0. Observed full source-file hashes were **8 for chunk8 and 8 for chunk2**, with
+exit0. Root also retained21 combined focused passes. These results are scoped
+behavioral evidence, **not integration acceptance** after Sable's0ffabb5 withdrawal.
+Observed full source-file hashes were **8 for chunk8 and 8 for chunk2**, with
 9 versus33 callbacks. This proves partition-independent frequency, **not an
 optimal boundary count or a performance-budget pass**. See `TYPED_SPACE_BUDGET.md`.
 
@@ -204,7 +226,7 @@ notes and `/tmp/scwb-engine-simplification-forge-20261018/`.
 | Canonical arrays/table | >=3x; RSS<=baseline+10% | Initial table1.62x MISS retained; later batch12.74x component result is separate |
 | Descriptor preimages | >=2x; RSS<=baseline+10% | Vector/relation component successes; CVF1.98x MISS retained; tiny model ratio not waived |
 | Selected matrix index/read | <=50%logical rchar and<=1.1xtime | Recorded component11.9%rchar/79.6%time; no physical-IO or complete-workflow claim |
-| Typed space | Zero retained coordinates;<=32MiB targets; constant authority passes | Seven behavior tests and8vs8hash count; no throughput/peakRSS measurement |
+| Typed space | Zero retained coordinates;<=32MiB targets; constant authority passes | Seven typed/21combined fixture passes and8vs8hash count; acceptance withdrawn0ffabb5;2D-label/diagnostic-path defects pending; no throughput/peakRSS measurement |
 | Matrix Market writer | >=5x250kNNZ; extraRSS<=128MiB;100NNZ fixed<=.05s | Six focused writer contracts; performance deferred |
 | Graph pager | 1000pages<=1.2xold+.1s; header<=partition+64KiB | Correctness/source reviewed; performance deferred |
 | Snapshot resources | >=4x46tiny/empty tables;<=3new simultaneous conns/snapshot | Source/focused proof only; speed target unmeasured |
