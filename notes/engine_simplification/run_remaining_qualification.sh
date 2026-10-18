@@ -64,6 +64,9 @@ gate 02_live_mixed Rscript /tmp/quill-mixed-broker-probe/run_after_core_freeze.R
 gate 03_current_python_lifecycle env SCWORKBENCH_PHASE3B_PYBENCH_ROOT="$peer" \
   SCWORKBENCH_PHASE3B_PYTHON_PACK_MANIFEST="$site/scwbpyv3reference/operation-pack.json" \
   Rscript -e 'library(scworkbench);source("inst/tests/contract_test_runner.R");source("tests/test_operation_pack_v3_python_composite_contract.R");stopifnot(test_operation_pack_v3_python_composite_lifecycle_contract());cat("CURRENT_PAIR_V3_LIFECYCLE_PASS\n")'
+gate 03b_current_python_model env SCWORKBENCH_PHASE3B_PYBENCH_ROOT="$peer" \
+  SCWORKBENCH_PHASE3B_PYTHON_PACK_MANIFEST="$site/scwbpyv3reference/operation-pack.json" \
+  Rscript -e 'library(scworkbench);source("inst/tests/contract_test_runner.R");source("tests/test_operation_pack_v3_python_composite_contract.R");stopifnot(test_operation_pack_v3_python_phase5_model_lifecycle_contract());cat("CURRENT_PAIR_V3_MODEL_LIFECYCLE_PASS\n")'
 gate 04_generated_docs Rscript --vanilla inst/dev/regenerate_public_docs.R --check
 gate 05_documentation_package Rscript inst/tests/check_documentation_contracts.R
 gate 06_diff git diff --check
