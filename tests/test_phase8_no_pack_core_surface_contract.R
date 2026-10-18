@@ -78,6 +78,10 @@ test_phase8_test_ownership_inventory_contract <- function() {
     stringsAsFactors = FALSE)
   additions <- utils::read.csv("inst/phase8/graph_and_core_test_additions.csv",
     stringsAsFactors = FALSE)
+  engine_additions <- utils::read.csv("inst/phase8/engine_execution_test_additions_v1.csv",
+    stringsAsFactors = FALSE)
+  helpers <- new.env(parent = baseenv())
+  sys.source("inst/dev/phase8_test_ownership_helpers.R", helpers)
   files <- sort(list.files("tests", pattern = "^test_.*\\.R$", full.names = TRUE))
   discovered <- unlist(lapply(files, function(path) {
     parsed <- parse(path)
@@ -90,11 +94,33 @@ test_phase8_test_ownership_inventory_contract <- function() {
   sdk_tests <- paste0("test_operation_pack_sdk_", c("scaffold_safety",
     "manifest_negatives", "catalog_coverage", "case_accounting",
     "installed_contract", "installed_tutorial", "activation_negatives"))
+  phase8_introduced <- c("test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract",
+    "test_phase8_no_pack_core_surface_contract", "test_phase8_primitive_exchange_inventory_contract",
+    "test_phase8_test_ownership_inventory_contract", sdk_tests)
+  stopifnot(isTRUE(helpers$.phase8_validate_engine_additions(engine_additions,
+    c(ownership$test_identity, phase8_introduced, additions$test_identity))))
+  # Unknown discovery and duplicate/foreign ownership rows fail closed rather
+  # than silently acquiring core ownership through a filename/name prefix.
+  stopifnot(inherits(tryCatch(helpers$.phase8_assert_classified_discovery(
+    c(current$test_identity, "test_unknown_unclassified_contract"), current$test_identity),
+    error = identity), "error"))
+  stopifnot(inherits(tryCatch(helpers$.phase8_assert_classified_discovery(
+    c(current$test_identity, current$test_identity[[1L]]), current$test_identity),
+    error = identity), "error"))
+  for (change in c("duplicate", "owner", "pin", "reason")) {
+    bad <- engine_additions
+    if (change == "duplicate") bad$test_identity[[2L]] <- bad$test_identity[[1L]]
+    if (change == "owner") bad$owner[[1L]] <- "pack_method"
+    if (change == "pin") bad$source_checkpoint_commit[[1L]] <- "HEAD"
+    if (change == "reason") bad$justification[[1L]] <- ""
+    stopifnot(inherits(tryCatch(helpers$.phase8_validate_engine_additions(bad,
+      c(ownership$test_identity, phase8_introduced, additions$test_identity)), error = identity), "error"))
+  }
   stopifnot(
     nrow(ownership) == 242L,
     !anyDuplicated(ownership$test_identity),
     all(nzchar(ownership$key_assertions)),
-    nrow(current) == 336L,
+    nrow(current) == 336L + nrow(engine_additions),
     nrow(additions) == 85L,
     !anyDuplicated(additions$test_identity),
     all(additions$owner == "core_engine"),
@@ -120,11 +146,16 @@ test_phase8_test_ownership_inventory_contract <- function() {
       sort(c("test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract",
         "test_phase8_no_pack_core_surface_contract",
         "test_phase8_primitive_exchange_inventory_contract",
-        "test_phase8_test_ownership_inventory_contract", sdk_tests, additions$test_identity))),
+        "test_phase8_test_ownership_inventory_contract", sdk_tests, additions$test_identity,
+        engine_additions$test_identity))),
     identical(current$source_path[match(additions$test_identity, current$test_identity)], additions$source_path),
     identical(current$new_owner_commit[match(additions$test_identity, current$test_identity)], additions$ownership_decision_commit),
     all(!nzchar(current$old_owner_commit[current$test_identity %in% additions$test_identity])),
-    all(current$new_owner_commit[!current$test_identity %in% c(sdk_tests, additions$test_identity)] ==
+    identical(current$source_path[match(engine_additions$test_identity, current$test_identity)], engine_additions$source_path),
+    identical(current$new_owner_commit[match(engine_additions$test_identity, current$test_identity)], engine_additions$ownership_decision_commit),
+    all(!nzchar(current$old_owner_commit[current$test_identity %in% engine_additions$test_identity])),
+    all(current$new_owner_commit[!current$test_identity %in% c(sdk_tests, additions$test_identity,
+      engine_additions$test_identity)] ==
       "03f5a5bf699ac36ed44fc0a3cc56a2d750e76f7e"),
     all(current$owner[current$test_identity %in% sdk_tests] == "core_engine"),
     all(current$new_owner_commit[current$test_identity %in% sdk_tests] ==

@@ -10,6 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 current_only <- "--current-only" %in% args
 args <- setdiff(args, "--current-only")
 if (length(args) != 4L) stop("Expected baseline inventory, references, operation names and current inventory CSV paths")
+source("inst/dev/phase8_test_ownership_helpers.R")
 baseline <- "0aaa68893e595993c2664e104f7e0dc20702f960"
 # This is the committed ownership decision, not the current documentation HEAD.
 # Using HEAD here would rewrite every ledger row on unrelated later commits.
@@ -172,6 +173,13 @@ stopifnot(nrow(additions) == 85L, !anyDuplicated(additions$test_identity),
   all(grepl("^[0-9a-f]{40}$", additions$source_checkpoint_commit)))
 for (i in seq_len(nrow(additions))) introduced[[additions$test_identity[[i]]]] <-
   c("", additions$justification[[i]])
+engine_additions <- utils::read.csv("inst/phase8/engine_execution_test_additions_v1.csv",
+  stringsAsFactors = FALSE)
+.phase8_validate_engine_additions(engine_additions,
+  c(inventory$test_identity, names(introduced)))
+for (i in seq_len(nrow(engine_additions))) introduced[[engine_additions$test_identity[[i]]]] <-
+  c("", engine_additions$justification[[i]])
+declared_additions <- rbind(additions, engine_additions[, names(additions)])
 for (path in current_paths) {
   parsed <- parse(path)
   for (expr in parsed) {
@@ -196,7 +204,7 @@ for (path in current_paths) {
     prior <- inventory[inventory$test_identity == name, , drop = FALSE]
     addition <- introduced[[name]]
     if (!nrow(prior) && is.null(addition)) stop("Unclassified current test: ", name)
-    declared_addition <- additions[additions$test_identity == name, , drop = FALSE]
+    declared_addition <- declared_additions[declared_additions$test_identity == name, , drop = FALSE]
     if (nrow(declared_addition) && !identical(path, declared_addition$source_path))
       stop("Current addition source differs from ownership ledger: ", name)
     current_rows[[length(current_rows) + 1L]] <- data.frame(
@@ -217,7 +225,11 @@ for (path in current_paths) {
   }
 }
 current <- do.call(rbind, current_rows)
-stopifnot(nrow(current) == 336L, !anyDuplicated(current$test_identity),
+expected_current <- c(setdiff(inventory$test_identity,
+  c("test_immutable_history_state_machine_closure_contract",
+    "test_operation_pack_v3_pseudobulk_zero_neighbor_policy_contract")), names(introduced))
+.phase8_assert_classified_discovery(current$test_identity, expected_current)
+stopifnot(nrow(current) == length(expected_current), !anyDuplicated(current$test_identity),
   identical(sort(setdiff(current$test_identity, inventory$test_identity)),
     sort(names(introduced))),
   identical(sort(setdiff(inventory$test_identity, current$test_identity)),
