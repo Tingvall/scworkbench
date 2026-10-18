@@ -9,7 +9,7 @@
   inputs <- list(matrix = input)
   descriptor <- scworkbench:::.wb_operation_pack_v2_input_descriptor("matrix", input,
     list(name = "matrix", kind = "matrix", required = TRUE,
-      alignment = "cell_and_feature_ordered"))
+      alignment = "cell_and_feature_ordered"))$descriptor
   operation <- list(outputs = list(), registry_reads = list(list(name = "annotations",
     category = "authenticated_core_registry_snapshot", kind = "matrix_feature_annotations",
     reader = "read_matrix_feature_annotations", matrix_input = "matrix",
@@ -57,6 +57,8 @@ test_engine_registry_issued_fresh_reads_and_recovery_contract <- function() {
   stopifnot(spy$counts[[".wb_operation_pack_v3_feature_annotation_snapshot"]] == 2L,
     spy$counts[[".wb_operation_pack_v3_registry_snapshot_identities"]] == 0L)
   recovered <- f$request; attr(recovered, "operation_pack_v3_registry_observations") <- NULL
+  stopifnot(identical(scworkbench:::.wb_operation_pack_canonical_json(f$request),
+    scworkbench:::.wb_operation_pack_canonical_json(recovered)))
   for (i in 1:2) stopifnot(isTRUE(.engine_registry_issued_check(f, recovered)))
   stopifnot(spy$counts[[".wb_operation_pack_v3_feature_annotation_snapshot"]] == 4L,
     spy$counts[[".wb_operation_pack_v3_registry_snapshot_identities"]] == 2L)
