@@ -55,6 +55,18 @@ test_engine_table_scalar_columns_types_order_and_positive_contract <- function()
     '{"x":0.0,"y":-1.7976931348623157e308}', '{"x":1e-300,"y":null}')
   stopifnot(identical(.engine_table_columns_observe(actual, boundaries),
     .engine_table_columns_observe(.engine_table_columns_old, boundaries)))
+  numeric_rows <- c('{"x":null}', '{"x":1}', '{"x":1.0}', '{"x":null}',
+    '{"x":-0.0}', '{"x":0.0}', '{"x":2147483648}',
+    '{"x":9007199254740992}', '{"x":9007199254740993}',
+    '{"x":1e-300}', '{"x":1.7976931348623157e308}', '{"x":null}')
+  for (json in list(numeric_rows, rev(numeric_rows),
+      c(rep('{"x":null}', 1200L), '{"x":1.25}', '{"x":1}'),
+      c('{"x":1}', '{"x":1.25}', rep('{"x":null}', 1200L)))) {
+    expected <- .engine_table_columns_observe(.engine_table_columns_old, json)
+    observed <- .engine_table_columns_observe(actual, json)
+    stopifnot(identical(expected, observed),
+      identical(writeBin(expected$value$x, raw()), writeBin(observed$value$x, raw())))
+  }
   TRUE
 }
 
@@ -142,14 +154,19 @@ test_engine_table_scalar_columns_public_identity_and_purity_contract <- function
   # including typed NA normalization and the original presentation metadata.
   legacy_payload <- scworkbench:::.wb_prov_table_payload(expected)
   legacy_original_payload <- scworkbench:::.wb_prov_table_payload(prim)
+  legacy_v2_digest <- digest::digest(jsonlite::serializeJSON(legacy_payload, digits = NA),
+    algo = "sha256", serialize = FALSE)
   legacy_content <- scworkbench:::.wb_prov_table_content_sha256(expected)
   legacy_original_content <- scworkbench:::.wb_prov_table_content_sha256(prim)
   restore()
-  stopifnot(identical(actual, expected), identical(actual$table, table),
+  stopifnot(identical(actual, expected), identical(actual$table, legacy_original_payload$table),
     identical(scworkbench:::.wb_prov_table_payload(actual), legacy_payload),
     identical(scworkbench:::.wb_prov_table_payload(prim), legacy_original_payload),
+    identical(digest::digest(jsonlite::serializeJSON(scworkbench:::.wb_prov_table_payload(actual),
+      digits = NA), algo = "sha256", serialize = FALSE), legacy_v2_digest),
     identical(scworkbench:::.wb_prov_table_content_sha256(actual), legacy_content),
     identical(scworkbench:::.wb_prov_table_content_sha256(prim), legacy_original_content),
+    identical(scworkbench:::.wb_prov_stored_table_content_sha256(b$con, id), legacy_content),
     identical(before, fingerprint()))
   TRUE
 }
