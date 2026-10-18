@@ -133,6 +133,7 @@ test_engine_target_reproduction_single_publication_contract <- function() {
     inputs = list(source_column = "group", vector_name = "group",
       value_type = "categorical", missing_policy = "error",
       cell_set = "all", min_cells = 1L, overwrite = FALSE))
+  on.exit(wb_session_discard(result$session), add = TRUE)
   promoted <- wb_session_promote_current(b, result$session, outputs = "vector")
   plan <- wb_target_reproduction_plan(b,
     paste0("artifact:", promoted$promoted$artifact_id[[1L]]))
