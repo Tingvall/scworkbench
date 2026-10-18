@@ -152,6 +152,9 @@
     .wb_operation_pack_v3_lineage_fail(
       "Producer lineage grants are not a bijection with declarations.",
       "audit")
+  # There is no lineage authority to compare in this case. Computing a full
+  # registry fingerprint here previously discarded its result unconditionally.
+  if (!length(grants)) return(invisible(TRUE))
   records <- stats::setNames(lapply(request$inputs, `[[`, "descriptor"),
     vapply(request$inputs, `[[`, character(1), "name"))
   current_state <- .wb_operation_pack_v2_identity_plain(

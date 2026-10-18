@@ -15,6 +15,17 @@
       cell_id = unname(as.list(cells)), entries = entries))
 }
 
+test_operation_pack_matrix_streaming_unused_lineage_contract <- function() {
+  # No database handle: proves the absent capability does not scan any source.
+  stopifnot(isTRUE(scworkbench:::.wb_operation_pack_v3_producer_lineage_assert_current(
+    NULL, list(), list(), list(), list())))
+  error <- tryCatch(scworkbench:::.wb_operation_pack_v3_producer_lineage_assert_current(
+    NULL, list(producer_lineage_reads = list(list(name = "required"))),
+    list(), list(), list()), error = identity)
+  stopifnot(inherits(error, "error"))
+  TRUE
+}
+
 test_operation_pack_matrix_streaming_identity_contract <- function() {
   set.seed(17)
   values <- matrix(c(0, -0, NA, NaN, 1, -1, 1e-307, 1e308,

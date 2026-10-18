@@ -7,6 +7,7 @@ inventory <- contract_test_discover("tests", parent_env = asNamespace("scworkben
     "test_operation_pack_v3_contract.R",
     "test_operation_pack_v3_stage_matrix_source_binding_contract.R"))
 selected <- c("test_operation_pack_matrix_streaming_alignment_contract",
+  "test_operation_pack_matrix_streaming_unused_lineage_contract",
   "test_operation_pack_matrix_streaming_identity_contract",
   "test_operation_pack_matrix_streaming_numeric_contract",
   "test_operation_pack_matrix_streaming_reader_plan_contract",
@@ -27,4 +28,4 @@ cat("DISCOVERY available_in_selected_files=", length(names),
 inventory$tests <- inventory$tests[match(selected, names)]
 run <- contract_test_execute(inventory)
 contract_test_assert_success(run)
-stopifnot(run$summary[["passed"]] == 14L, run$summary[["skipped"]] == 0L)
+stopifnot(run$summary[["passed"]] == 15L, run$summary[["skipped"]] == 0L)
