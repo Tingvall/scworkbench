@@ -77,7 +77,8 @@ test_engine_numeric_batch_dataframe_precedence_contract <- function() {
   special <- base;special$factor<-factor(c("a","b",NA,"a","b"))
   special$date<-as.Date("2020-01-01")+seq_len(nrow(base))
   attributed <- base;attr(attributed$z,"label")<-"conservative fallback"
-  .engine_numeric_batch_compare(special);.engine_numeric_batch_compare(attributed)
+  stopifnot(.engine_numeric_batch_compare(special),
+    .engine_numeric_batch_compare(attributed))
   for (value in list(data.frame(a=c(0,Inf),b=c(Inf,0)),
       data.frame(a=c(0,1e-310),b=c(1e-309,0)),
       data.frame(a=structure(c(0,1),operation_pack_json_number="2"),b=c(Inf,0))))

@@ -102,6 +102,13 @@ authenticated before axis decoding; each block checks the source binding and
 independent final authentication remains required. File observations are only
 lightweight invalidation signals, never content authority.
 
+Each issued typed-space plan admits the current schema and migration ledger
+observationally once. Block reads freshly compare the exact registered binding
+and issuing connection, without repeating complete schema admission. A new final
+plan repeats full admission and content authentication. Canonical numeric tokens
+may be formatted in bounded native batches; byte rules and identity schemes are
+unchanged, and unsupported carriers retain the existing encoder and diagnostics.
+
 This is not a Python typed-space execution capability: schema parity does not
 supply a Python reader transport. Ordinary full-value readers, caller-provided
 coordinate matrices, legacy storage and non-POSIX compatibility paths retain
