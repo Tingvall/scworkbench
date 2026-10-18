@@ -1,19 +1,20 @@
 # ABI-v3 contained fitted-model and authenticated space_2d publication.
 
 .wb_operation_pack_v3_selected_dimensions <- function(value, params,
-    parameter) {
+    parameter, .metadata = NULL) {
+  metadata <- .metadata %||% .wb_operation_pack_v3_space_metadata(value)
   dimensions <- as.integer(unlist(params[[as.character(parameter)[1]]] %||%
-    seq_len(ncol(value$values)), use.names = FALSE))
-  labels <- colnames(value$values)
+    seq_len(metadata$dimensions[[2L]]), use.names = FALSE))
+  labels <- metadata$labels
   .wb_operation_pack_v3_error_if <- function(condition, message) {
     if (isTRUE(condition)) .wb_operation_pack_v3_error(
       "PYBENCH_INPUT_IDENTITY_MISMATCH", message, "resolution")
   }
   .wb_operation_pack_v3_error_if(!length(dimensions) || anyNA(dimensions) ||
-    any(dimensions < 1L) || any(dimensions > ncol(value$values)) ||
+    any(dimensions < 1L) || any(dimensions > metadata$dimensions[[2L]]) ||
     anyDuplicated(dimensions),
     "Selected fitted-model dimensions are empty, duplicated, or out of bounds.")
-  labels <- if (is.null(labels)) paste0("dim", seq_len(ncol(value$values))) else
+  labels <- if (is.null(labels)) paste0("dim", seq_len(metadata$dimensions[[2L]])) else
     as.character(labels)
   selected <- labels[dimensions]
   list(indices = dimensions, labels = selected, count = length(selected),
@@ -348,7 +349,8 @@
         "Contained model engine or model type differs from its declaration.",
         "resolution")
     dimensions <- .wb_operation_pack_v3_selected_dimensions(source, params,
-      declaration$dimensions_parameter)
+      declaration$dimensions_parameter,.metadata=.wb_operation_pack_v3_space_metadata(source,
+        (attr(inputs,"operation_pack_v3_space_plans") %||% list())[[source_name]]))
     linkage <- model$model_linkage %||% list()
     expected <- .wb_operation_pack_v3_model_linkage(engine, model_type,
       as.character(model$in_space_id %||% source$space_id)[1], dimensions)
@@ -425,6 +427,8 @@
 .wb_operation_pack_v3_prepare_self_linked_model_reads <- function(bundle,
     operation, inputs, input_records, stage_root) {
   grants <- list(); values <- list(); records <- input_records
+  owned_plans <- list()
+  on.exit(for (plan in owned_plans) plan$close(),add=TRUE)
   for (declaration in operation$self_linked_contained_model_reads %||% list()) {
     name <- as.character(declaration$name)[1]
     input_name <- as.character(declaration$input)[1]
@@ -482,9 +486,9 @@
         .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
           "Matrix-trained model changed its paired fitted-space identity.",
           "resolution")
-      fitted <- if (nzchar(fitted_id)) wb_space(bundle, fitted_id) else NULL
-      if (is.data.frame(fitted)) fitted <- .wb_as_coord_matrix(fitted)
-      fitted_cells <- if (is.null(fitted)) character() else rownames(fitted)
+      fitted_plan <- if (nzchar(fitted_id)) .wb_space_payload_reader(bundle,fitted_id) else NULL
+      if (!is.null(fitted_plan)) owned_plans[[length(owned_plans)+1L]] <- fitted_plan
+      fitted_cells <- if (is.null(fitted_plan)) character() else fitted_plan$cells
       features <- wb_features(bundle, matrix_id)$feature_id
       available_cells <- wb_cells_with_matrix(bundle, matrix_id)
       if (!identical(snapshot$sha256, linkage$source_matrix_snapshot_id) ||
@@ -497,26 +501,25 @@
           !identical(.wb_operation_pack_v2_identity_plain(
             "scworkbench.cell_order.v1", unname(as.list(fitted_cells))),
             linkage$fitted_cell_order_identity) ||
-          !identical(as.integer(ncol(fitted)),
+          !identical(as.integer(fitted_plan$dimensions[[2L]]),
             as.integer(linkage$latent_dimension_count)))
         .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
           "Matrix-trained model source, fitted axis, or latent space changed.",
           "resolution")
       .wb_operation_pack_v3_matrix_model_fitted_space_recheck(bundle,
-        artifact_id, linkage, fitted)
+        artifact_id, linkage, .plan=fitted_plan)
+      fitted_plan$close()
     } else if (derived_fitted) {
       fitted_space <- .wb_operation_pack_v3_dfa_reopen(bundle, model, linkage,
         source_tree_for_linkage$root)
     } else {
       source <- wb_prim_space(linkage$source_space_id)
-      source$values <- wb_space(bundle, linkage$source_space_id)
-      source$cell_id <- rownames(source$values)
-      source$dimensions <- as.integer(dim(source$values))
-      source$storage_profile <- "space_dense_v1"
-      durable_content <- .wb_operation_pack_v3_phase5_primitive_identity(
-        bundle, source)
+      plan <- .wb_space_payload_reader(bundle,linkage$source_space_id)
+      checked <- tryCatch(list(content=.wb_operation_pack_v3_phase5_primitive_identity(
+        bundle,source,.plan=plan),cells=plan$cells),finally=plan$close())
+      durable_content <- checked$content
       observed_cells <- .wb_operation_pack_v2_identity_plain(
-        "scworkbench.cell_order.v1", unname(as.list(source$cell_id)))
+        "scworkbench.cell_order.v1", unname(as.list(checked$cells)))
       if (!identical(as.character(
           linkage$source_space_content_identity$scheme)[1],
             "scworkbench.space.content.v1") ||
@@ -607,8 +610,10 @@
   source_name <- as.character(policy$source_space_input)[1]
   paired_name <- as.character(policy$paired_space_output)[1]
   source <- inputs[[source_name]]
+  metadata <- .wb_operation_pack_v3_space_metadata(source,
+    (attr(inputs,"operation_pack_v3_space_plans") %||% list())[[source_name]])
   dims <- .wb_operation_pack_v3_selected_dimensions(source, params,
-    policy$dimensions_parameter)
+    policy$dimensions_parameter,.metadata=metadata)
   paired <- base_outputs[[match(paired_name, vapply(base_outputs, `[[`,
     character(1), "name"))]]
   grant <- list(schema =
@@ -622,12 +627,12 @@
         input_records[[source_name]]$descriptor_identity),
       content_identity = input_records[[source_name]]$content_identity,
       cell_order_identity = input_records[[source_name]]$cell_order_identity,
-      dimensions = unname(as.list(as.integer(dim(source$values)))),
+      dimensions = unname(as.list(metadata$dimensions)),
       selected_dimension_count = as.integer(dims$count),
       selected_dimension_order_identity = dims$identity),
     paired_space_output = list(name = paired_name,
       allocated_id = as.character(paired$allocated_id)[1],
-      expected_dimensions = unname(as.list(c(nrow(source$values), 2L))),
+      expected_dimensions = unname(as.list(c(metadata$dimensions[[1L]], 2L))),
       expected_cell_order_identity = input_records[[source_name]]$cell_order_identity),
     limits = list(maximum_file_count = as.integer(policy$maximum_file_count),
       maximum_total_bytes = as.integer(policy$maximum_total_bytes)))
@@ -643,15 +648,16 @@
   if (is.null(policy)) return(NULL)
   source_name <- as.character(policy$source_space_input)[1]
   source <- inputs[[source_name]]
+  metadata <- .wb_operation_pack_v3_space_metadata(source,
+    (attr(inputs,"operation_pack_v3_space_plans") %||% list())[[source_name]])
   parameter <- policy$dimensions_parameter
   dims <- if (is.null(parameter)) {
-    labels <- colnames(source$values)
-    if (is.null(labels)) labels <- paste0("dim", seq_len(ncol(source$values)))
-    list(indices = seq_len(ncol(source$values)), labels = labels,
-      count = ncol(source$values), identity =
+    labels <- metadata$labels
+    list(indices = seq_len(metadata$dimensions[[2L]]), labels = labels,
+      count = metadata$dimensions[[2L]], identity =
         .wb_operation_pack_v2_identity_plain(
           "scworkbench.dimension_order.v1", unname(as.list(labels))))
-  } else .wb_operation_pack_v3_selected_dimensions(source, params, parameter)
+  } else .wb_operation_pack_v3_selected_dimensions(source, params, parameter,.metadata=metadata)
   engine <- as.character(policy$engine)[1]
   model_type <- as.character(policy$model_type)[1]
   source_record <- input_records[[source_name]]
@@ -704,7 +710,7 @@
         source_record$descriptor_identity),
       content_identity = source_record$content_identity,
       cell_order_identity = source_record$cell_order_identity,
-      dimensions = unname(as.list(as.integer(dim(source$values)))),
+      dimensions = unname(as.list(metadata$dimensions)),
       selected_dimension_count = as.integer(dims$count),
       selected_dimension_order_identity = dims$identity),
     model_source_linkage = linkage,
@@ -787,8 +793,10 @@
             read_bytes = function(path) readBin(safe(path), "raw",
               n = file.info(safe(path))$size))
           fitted <- model_values[[name]]$fitted_space %||% NULL
-          if (!is.null(fitted)) result$fitted_source_space <-
-            .wb_operation_pack_v2_deep_copy(fitted)
+          if (!is.null(fitted)) {
+            attr(fitted,"scworkbench_payload_read") <- NULL
+            result$fitted_source_space <- .wb_operation_pack_v2_deep_copy(fitted)
+          }
           matrix_cells <- model_values[[name]]$matrix_fitted_cells %||% NULL
           if (!is.null(matrix_cells)) result$fitted_cells <-
             unname(as.character(matrix_cells))

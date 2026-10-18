@@ -1142,8 +1142,25 @@
   invisible(TRUE)
 }
 
+.wb_operation_pack_v2_retained_space_content_sha <- function(value) {
+  values <- value$values
+  rows <- rownames(values)
+  ordinary <- identical(.Platform$OS.type,"unix") && is.matrix(values) &&
+    !is.object(values) && (is.double(values) || is.integer(values)) &&
+    !is.null(rows) && length(rows)==nrow(values) && !anyNA(rows) &&
+    !anyDuplicated(rows)
+  if (!ordinary) return(.wb_operation_pack_sha256(unclass(value)))
+  memory_plan <- list(cells=rows,dimensions=as.integer(dim(values)),
+    read=function(cells,dims=seq_len(ncol(values)))
+      values[match(cells,rows),dims,drop=FALSE])
+  .wb_operation_pack_space_envelope_identities("retained_space",value,memory_plan,
+    .wrapped=FALSE)$value_sha
+}
+
 .wb_operation_pack_v2_record_validate <- function(path, load_payloads = FALSE,
-    graph_connections = list(), fresh_rds_outputs = character()) {
+    graph_connections = list(), fresh_rds_outputs = character(),
+    .retain_payloads = character()) {
+  retained_payloads <- list()
   receipt_path <- file.path(path, "receipt.json")
   request_path <- file.path(path, "request.json")
   state_path <- file.path(path, "state.json")
@@ -1283,10 +1300,14 @@
         # universe validation is repeated by staging, promotion and recipient
         # audit where a bundle handle is available.
         .wb_operation_pack_sha256(value)
+      } else if (!python_payload && item$name %in% .retain_payloads &&
+          identical(as.character(value$kind)[1],"space")) {
+        .wb_operation_pack_v2_retained_space_content_sha(value)
       } else .wb_operation_pack_sha256(if (python_payload) value else unclass(value))
       expected_content <- item$descriptor$content_identity$sha256 %||%
         item$descriptor$family_identity$sha256 %||% NULL
       if (!is.null(expected_content) && !identical(actual, expected_content)) return(list(ok = FALSE, code = "content_identity_mismatch", output = item$name))
+      if (item$name %in% .retain_payloads) retained_payloads[[item$name]] <- value
     }
   }
   request_reads <- request$registry_reads %||% list()
@@ -1368,8 +1389,10 @@
       }
     }
   }
-  list(ok = TRUE, request = request, request_identity = request_id,
+  result <- list(ok = TRUE, request = request, request_identity = request_id,
     receipt = receipt, receipt_identity = receipt_id, state = state)
+  if (length(.retain_payloads)) result$retained_payloads <- retained_payloads
+  result
 }
 
 .wb_operation_pack_v2_recover <- function(bundle) {

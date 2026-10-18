@@ -211,17 +211,23 @@
       sha256 = .wb_operation_pack_v2_file_sha256(path)))
 }
 
-.wb_operation_pack_v3_phase5_primitive_identity <- function(bundle, value) {
+.wb_operation_pack_v3_phase5_primitive_identity <- function(bundle, value, .plan = NULL) {
   if (identical(as.character(value$kind %||% "")[1], "space") &&
       nzchar(as.character(value$space_id %||% "")[1])) {
-    verified <- tryCatch(.wb_space_payload_summary(bundle, value$space_id,
-      verify_hash = TRUE), error = identity)
+    verified <- tryCatch({
+      if (is.null(.plan)) {
+        .plan <- .wb_space_payload_reader(bundle,value$space_id)
+        on.exit(.plan$close(),add=TRUE)
+      }
+      .plan$guard()
+    }, error = identity)
     if (inherits(verified, "error")) .wb_operation_pack_v3_error(
       "PYBENCH_INPUT_IDENTITY_MISMATCH",
       "Retained space payload differs from its durable content identity.",
       "resolution")
   }
   observed <- .wb_prov_payload_identity(bundle, value)
+  if (!is.null(.plan)) .plan$guard()
   if (!identical(as.character(observed$verification_status)[1],
       "content_verified")) .wb_operation_pack_v3_error(
         "PYBENCH_INPUT_IDENTITY_MISMATCH",

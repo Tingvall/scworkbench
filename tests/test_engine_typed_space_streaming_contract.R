@@ -154,6 +154,7 @@ test_engine_typed_space_grant_partition_contract <- function() {
   pieces <- lapply(list(selected[1:2], selected[3:4], selected[5]), adapter$readers$selected)
   stopifnot(identical(as.numeric(do.call(rbind, lapply(pieces, `[[`, "values"))),
       as.numeric(values[selected, , drop = FALSE])), max(observed_elements) <= 6,
+    all(vapply(pieces,function(x)is.null(attr(x$values,"scworkbench_payload_read")),logical(1))),
     inherits(try(adapter$readers$selected(selected[1]), silent = TRUE), "try-error"))
   # Invocation plans are excluded from wire JSON, including durable paths/closures.
   json <- jsonlite::toJSON(request, auto_unbox = TRUE, null = "null")
@@ -168,6 +169,36 @@ test_engine_typed_space_grant_partition_contract <- function() {
       "source", cells = cells, expected_semantic_identity = .engine_space_old_semantic(values,cells)),
       silent = TRUE), "try-error"),
     identical(before, sort(list.files(file.path(root,"operation_pack_v2"), recursive = TRUE, all.files = TRUE))))
+  TRUE
+}
+
+test_engine_typed_space_logical_dimension_labels_contract <- function() {
+  root <- tempfile("engine_space_labels_"); b <- wb_init_bundle(root,overwrite=TRUE)
+  on.exit({try(wb_close_bundle(b),silent=TRUE);unlink(root,recursive=TRUE)},add=TRUE)
+  cells <- paste0("c",1:7); wb_define_cells(b,cells)
+  for (dimensions in c(2L,5L)) {
+    id <- paste0("source",dimensions)
+    values <- matrix(as.double(seq_len(7L*dimensions)),7L,
+      dimnames=list(cells,paste0("physical_",seq_len(dimensions))))
+    wb_add_space(b,id,values,source="contract")
+    old <- scworkbench:::.wb_operation_pack_v3_space_matrix(wb_space(b,id))
+    plan <- scworkbench:::.wb_space_payload_reader(b,id)
+    got <- plan$read(rev(cells),c(2L,1L))
+    stopifnot(identical(plan$labels,colnames(old)),
+      identical(colnames(got),colnames(old)[c(2L,1L)]),
+      identical(as.numeric(got),as.numeric(old[rev(cells),c(2L,1L)])))
+    primitive <- wb_prim_space(id)
+    meta <- scworkbench:::.wb_operation_pack_v3_space_metadata(primitive,plan)
+    observed <- scworkbench:::.wb_operation_pack_v3_selected_dimensions(primitive,
+      list(dims=c(2L,1L)),"dims",.metadata=meta)
+    hydrated <- primitive;hydrated$values<-old
+    expected <- scworkbench:::.wb_operation_pack_v3_selected_dimensions(hydrated,
+      list(dims=c(2L,1L)),"dims")
+    stopifnot(identical(observed,expected))
+    plan$close()
+  }
+  DBI::dbExecute(b$con,"UPDATE spaces SET dims=3 WHERE space_id='source2'")
+  stopifnot(inherits(try(scworkbench:::.wb_space_payload_reader(b,"source2"),silent=TRUE),"try-error"))
   TRUE
 }
 

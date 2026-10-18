@@ -1,5 +1,14 @@
 # Byte-preserving streaming of the TWO existing typed-space preimages. These
 # private readers and temporary preimages never cross the pack interface.
+.wb_operation_pack_v3_space_metadata <- function(value, plan = NULL) {
+  if (!is.null(plan)) return(list(cells=plan$cells,dimensions=plan$dimensions,labels=plan$labels))
+  values <- .wb_operation_pack_v3_space_matrix(value$values)
+  labels <- colnames(values)
+  if (is.null(labels)) labels <- paste0("dim",seq_len(ncol(values)))
+  list(cells=as.character(value$cell_id %||% rownames(values)),
+    dimensions=as.integer(dim(values)),labels=as.character(labels))
+}
+
 .wb_operation_pack_space_stream_hash <- function(emit_value, prefix = "", suffix = "") {
   path <- tempfile("scwb_space_identity_")
   con <- NULL
@@ -14,7 +23,7 @@
 .wb_operation_pack_space_stream_elements <- function(plan = NULL) {
   limit <- as.double(getOption("scworkbench.max_dense_materialize_mb", 256)) * 1024^2
   if (!is.finite(limit) || limit <= 8192) stop("Typed-space identity block budget is invalid.", call. = FALSE)
-  elements <- max(1L, floor((min(limit, 32*1024^2) - 8192) / 64))
+  elements <- max(1L, floor((min(limit, 32*1024^2) - 8192) / 256))
   if (!is.null(plan) && is.function(plan$block_elements)) elements <- min(elements,plan$block_elements())
   elements
 }
@@ -87,7 +96,8 @@
   list(scheme = schema, sha256 = sha)
 }
 
-.wb_operation_pack_space_envelope_identities <- function(name, value, plan) {
+.wb_operation_pack_space_envelope_identities <- function(name, value, plan,
+    .wrapped = TRUE) {
   # Encode all non-coordinate fields with the authoritative canonical encoder;
   # matrix attributes never entered that encoder's historical atomic preimage.
   envelope <- unclass(value)
@@ -136,16 +146,15 @@
       first <- TRUE
       spool_input <- file(path, "rb")
       on.exit(close(spool_input), add = TRUE)
-      for (dimension in seq_len(plan$dimensions[[2L]])) {
-        for (start in seq.int(1L, max(1L, length(plan$cells)), by = .wb_operation_pack_space_stream_rows(1L,plan))) {
-          if (!length(plan$cells)) break
-          selected <- plan$cells[seq.int(start, min(length(plan$cells), start + .wb_operation_pack_space_stream_rows(1L,plan)-1L))]
-          block <- readBin(spool_input, "double", n = length(selected), size = 8L, endian = "little")
-          if (length(block) != length(selected)) stop("Truncated typed-space identity scratch.", call. = FALSE)
+      position <- 0
+      while (position < count) {
+          selected_count <- as.integer(min(8192L,.wb_operation_pack_space_stream_elements(plan),count-position))
+          block <- readBin(spool_input, "double", n = selected_count, size = 8L, endian = "little")
+          if (length(block) != selected_count) stop("Truncated typed-space identity scratch.", call. = FALSE)
           json <- encode(unname(as.list(block)))
           emit(paste0(if (first) "" else ",", substr(json, 2L, nchar(json)-1L)))
           first <- FALSE
-        }
+          position <- position+selected_count
       }
       if (count != 1) emit("]")
     }
@@ -153,6 +162,6 @@
   }
   # Two streamed observations, not stored or pack-supplied digest authority.
   list(value_sha = .wb_operation_pack_space_stream_hash(emit_envelope),
-    wrapped_sha = .wb_operation_pack_space_stream_hash(emit_envelope,
-      paste0('{"input":', encode(name), ',"value":'), "}"))
+    wrapped_sha = if (isTRUE(.wrapped)) .wb_operation_pack_space_stream_hash(emit_envelope,
+      paste0('{"input":', encode(name), ',"value":'), "}") else NULL)
 }

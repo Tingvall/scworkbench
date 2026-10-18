@@ -411,7 +411,7 @@
   }
   budget$space_hdf_users <- budget$space_hdf_users+1L; native_owned <- TRUE
   counts <- DBI::dbGetQuery(bundle$con,paste0(
-    "SELECT n_cells,n_dims, ",
+    "SELECT n_cells,n_dims,(SELECT dims FROM spaces WHERE spaces.space_id=space_payloads.space_id) AS logical_dims, ",
     paste(paste0("COALESCE(length(CAST(",c("space_id","path","schema_version",
       "cell_ids_sha256","dim_labels_json","dtype","endianness","content_sha256",
       "content_identity_scheme","provenance_identity","created_at")," AS BLOB)),0)"),collapse="+"),
@@ -419,6 +419,8 @@
   .wb_assert(nrow(counts)==1L,"Typed-space payload registry is missing or ambiguous.")
   n <- as.integer(counts$n_cells[[1L]]); d <- as.integer(counts$n_dims[[1L]])
   .wb_assert(!is.na(n) && n > 0L && !is.na(d) && d > 0L, "Invalid typed-space dimensions.")
+  .wb_assert(identical(as.integer(counts$logical_dims[[1L]]),d),
+    "Typed-space logical and payload dimensions disagree.")
   charge(64*as.double(n)+256*as.double(d)+32*as.double(counts$bytes[[1L]])+32768)
   registry <- .wb_space_payload_registry_row(bundle, space_id)
   path <- .wb_space_payload_path(bundle, registry, must_exist = TRUE)
@@ -496,24 +498,45 @@
   }
   DBI::dbClearResult(query)
   .wb_assert(position==n,"Typed-space canonical cell axis changed.")
-  admission <- function(bytes, elements = block_elements()) {
-    if (64*as.double(elements)+8192 > budget$memory-budget$used)
+  admission <- function(bytes, elements = block_elements(), .bytes_per_element = 256) {
+    if (.bytes_per_element*as.double(elements)+8192 > budget$memory-budget$used)
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
         "Typed-space response exceeds existing working-memory admission.","execution")
     if (is.null(budget$policy)) return(function() invisible(NULL))
     reserved <- new.env(parent=emptyenv())
     reserved$disk <- budget$disk+bytes
-    reserved$used <- budget$used + 8192 + 64*as.double(elements)
+    reserved$used <- budget$used + 8192 + .bytes_per_element*as.double(elements)
     restore <- .wb_operation_pack_v3_broker_graph_reservation(bundle, reserved, budget$policy)
     tryCatch(.wb_graph_disk_admit(bundle$con,
       .wb_graph_effective_budgets(bundle$con)), error = function(e) {restore(); stop(e)})
     restore
   }
-  block_elements <- function() max(1L,floor((budget$memory-budget$used-8192)/128))
+  block_elements <- function() max(1L,floor((budget$memory-budget$used-8192)/512))
+  logical_labels <- if (meta$n_dims==2L) c("dim1","dim2") else meta$dim_labels
+  hold_memory <- function(bytes) {
+    if (!is.finite(bytes) || bytes < 0 || bytes+8192 > budget$memory-budget$used)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Legacy materialized template exceeds remaining working-memory admission.","resolution")
+    budget$used <- budget$used+bytes
+    restore_policy <- tryCatch({
+      if (is.null(budget$policy)) function() NULL else {
+        reserved <- new.env(parent=emptyenv())
+        reserved$disk <- budget$disk;reserved$used <- budget$used
+        .wb_operation_pack_v3_broker_graph_reservation(bundle,reserved,budget$policy)
+      }
+    },error=function(e) {budget$used <- budget$used-bytes;stop(e)})
+    restored <- FALSE
+    function() {
+      if (!restored) {
+        restore_policy();budget$used <- budget$used-bytes;restored <<- TRUE
+      }
+      invisible(NULL)
+    }
+  }
   ok <- TRUE
   list(cells = cells, dimensions = as.integer(c(length(cells), meta$n_dims)),
-    labels = meta$dim_labels, guard = guard, admit = admission, close = release,
-    block_elements = block_elements,
+    labels = logical_labels, guard = guard, admit = admission, close = release,
+    block_elements = block_elements, hold_memory=hold_memory,
     read = function(cells, dims = seq_len(meta$n_dims)) {
       if (released) stop("Typed-space reader is closed.",call.=FALSE)
       if (64*as.double(length(cells))*length(dims)+8192 > budget$memory-budget$used)
@@ -522,6 +545,7 @@
       guard()
       result <- .wb_space_payload_read(bundle, space_id, cells = cells,
         dims = dims, .plan = plan)
+      colnames(result) <- logical_labels[dims]
       guard(); result
     })
 }
@@ -537,14 +561,25 @@
   } else .wb_space_payload_path(bundle, registry, must_exist = TRUE)
   meta <- .wb_space_payload_validate_file(path, expected = registry,
                                           verify_hash = verify_hash, validate_values = FALSE)
+  # Validation still inspects every coordinate, but neither a very wide row
+  # nor the producer's row chunk determines an unbounded temporary decode.
+  limit <- as.double(getOption("scworkbench.max_dense_materialize_mb",256))*1024^2
+  .wb_assert(is.finite(limit) && limit > 8*1024^2 + 32*meta$n_dims,
+    "Dense-space summary metadata exceeds the configured memory guard.")
+  elements <- max(1L,floor((min(limit-8*1024^2-32*meta$n_dims,32*1024^2))/64))
+  row_chunk <- max(1L,min(meta$chunk_rows,512L,elements))
+  dim_chunk <- max(1L,min(meta$n_dims,floor(elements/row_chunk)))
   lower <- rep(Inf, meta$n_dims); upper <- rep(-Inf, meta$n_dims); finite <- TRUE
-  for (start in seq.int(1L, meta$n_cells, by = max(1L, meta$chunk_rows))) {
-    rows <- start:min(meta$n_cells, start + max(1L, meta$chunk_rows) - 1L)
-    block <- rhdf5::h5read(path, "coordinates", index = list(rows, seq_len(meta$n_dims)))
-    block <- matrix(as.numeric(block), nrow = length(rows), ncol = meta$n_dims)
-    finite <- finite && !anyNA(block) && all(is.finite(block))
-    lower <- pmin(lower, apply(block, 2L, min))
-    upper <- pmax(upper, apply(block, 2L, max))
+  for (start in seq.int(1L, meta$n_cells, by = row_chunk)) {
+    rows <- start:min(meta$n_cells, start + row_chunk - 1L)
+    for (column_start in seq.int(1L,meta$n_dims,by=dim_chunk)) {
+      columns <- column_start:min(meta$n_dims,column_start+dim_chunk-1L)
+      block <- rhdf5::h5read(path, "coordinates", index = list(rows, columns))
+      block <- matrix(as.numeric(block), nrow = length(rows), ncol = length(columns))
+      finite <- finite && !anyNA(block) && all(is.finite(block))
+      lower[columns] <- pmin(lower[columns], apply(block, 2L, min))
+      upper[columns] <- pmax(upper[columns], apply(block, 2L, max))
+    }
   }
   list(registry = registry, meta = meta, cells = meta$cell_ids,
        finite = finite, nondegenerate = meta$n_cells > 1L && all(upper > lower),

@@ -6,7 +6,7 @@ No benchmark or whole suite is authorized here. Before implementation:
 - Symbolic file-backed typed-space inputs retain zero coordinate values in
   their bound primitive; axes/metadata remain O(axis length).
 - Scientific temporary blocks target <=min(32MiB, ordinary configured guard),
-  using conservative 64 bytes/element admission for JSON construction, with
+  using conservative 256 bytes/element admission for JSON construction, with
   <=512 rows per semantic hashing read. No guard is raised.
 - Ordinary typed-space callbacks read at most their declared cells and all
   declared dimensions; no whole scientific-data verification occurs per call.
@@ -20,6 +20,49 @@ No benchmark or whole suite is authorized here. Before implementation:
 
 No throughput, total RSS, end-to-end boundedness, new backend support or final
 qualification claim follows from source inspection or these prospective budgets.
+
+## Metadata follow-on prospective scope
+
+The private getter plan supplies cells/dimensions/logical labels to G1/G2 and
+derived-fitted-axis source checks; it does not hydrate coordinates merely to
+obtain shape or a durable file-backed identity. Full registered-file and
+provenance checks remain independent of streamed semantic observations. Fresh
+authority-boundary plans may consolidate their own duplicated metadata/SHA
+checks, never reuse a prior invocation's claimed digest.
+
+The existing ordinary non-typed input binding still promises a materialized
+primitive and remains materialized. Likewise a model reader returning a fitted
+source matrix remains a materialized API, but now admits and reads only the
+requested fitted rows/dimensions. Neither boundary is advertised as a new chunk
+API. Getter physical-path diagnostics are removed at pack delivery boundaries.
+
+Matrix-model recheck narrows unrelated transition history by cheap run ID, then
+fully validates every exact candidate's original receipt/output closure. A
+private optional result retains the already-validated space template, eliminating
+its second RDS read. This legacy format cannot expose arbitrary metadata without
+loading the template. Before loading, shape plus the actual decompressed
+serialized extent are conservatively admitted under the ordinary guard. This is
+an explicitly materialized compatibility boundary, not universally bounded RDS.
+The template's own identity and the independent durable fitted-value envelope
+are both recomputed, with the unchanged column-major canonical preimage.
+
+Meaningful summary/replay finite and nondegeneracy checks still visit every
+coordinate, now in row-and-dimension tiles. Their pre-existing registry/HDF axis
+metadata loading remains materialized; coordinate tiling does not establish a
+new all-metadata admission contract for deep summary validation. The phase5 identity-only caller no
+longer computes unused extrema/finite fields it previously did not enforce.
+Flat envelope spool encoding consumes contiguous bounded numeric blocks across
+dimension boundaries; it does not add a source scan per dimension.
+
+Logical labels preserve the original full getter view: original two-dimensional
+spaces expose dim1/dim2 after the existing dataframe-to-matrix coercion, even
+with custom physical labels; selecting two dimensions
+from a higher-dimensional space preserves those physical labels. Physical labels
+and logical/payload dimension agreement are independently validated.
+
+These changes and the 256-byte scientific-element ledger are source-informed
+budgets, not a hard RSS claim across R/HDF5 versions. Final performance remains
+unmeasured until the coordinator runs the frozen combined candidate.
 
 ## Implemented scope and resource ledger
 

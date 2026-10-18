@@ -110,16 +110,13 @@
     expected_semantic_identity = NULL, cells = NULL,
     expected_provenance_identity = NULL, phase = "resolution") {
   observed <- tryCatch({
-    payload <- .wb_space_payload_registry_row(bundle, space_id,
-      required = FALSE)
-    if (nrow(payload) == 1L) {
-      path <- .wb_space_payload_path(bundle, payload, must_exist = TRUE)
-      .wb_space_payload_validate_file(path, expected = payload,
-        verify_hash = TRUE, validate_values = FALSE)
-    }
+    plan <- if (.wb_space_payload_exists(bundle,space_id)) .wb_space_payload_reader(bundle,space_id) else NULL
+    if (!is.null(plan)) on.exit(plan$close(),add=TRUE)
     provenance <- .wb_prov_payload_identity(bundle, wb_prim_space(space_id))
-    semantic <- if (!is.null(cells)) .wb_operation_pack_v3_space_source_content(
-      bundle, space_id, cells) else NULL
+    semantic <- if (is.null(cells)) NULL else if (!is.null(plan))
+      .wb_operation_pack_space_semantic_identity(cells,plan$dimensions[[2L]],plan$read,plan) else
+      .wb_operation_pack_v3_space_source_content(bundle,space_id,cells)
+    if (!is.null(plan)) plan$guard()
     list(provenance = provenance, semantic = semantic)
   }, error = identity)
   if (inherits(observed, "error") ||
@@ -274,7 +271,7 @@
         "Typed-space source changed after authentication.", "execution")
       plan <- sources[[name]]$plan
       if (!is.null(plan)) {
-        restore <- plan$admit(0, as.double(length(cells))*grant$dimension_count)
+        restore <- plan$admit(0, as.double(length(cells))*grant$dimension_count,.bytes_per_element=64)
         on.exit(restore(), add = TRUE)
       }
       values <- if (is.null(plan)) as.matrix(input$values[index, , drop = FALSE]) else
@@ -282,6 +279,9 @@
           if (inherits(e,"wb_operation_pack_v3_error")) stop(e)
           .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH", conditionMessage(e), "execution")
         })
+      # Getter diagnostics include physical storage evidence; it is core-only,
+      # just as ordinary matrix subsetting removed it from hydrated inputs.
+      attr(values,"scworkbench_payload_read") <- NULL
       rownames(values) <- cells
       value <- structure(list(kind = "space", space_id = input$space_id,
         values = values, dimensions = as.integer(dim(values)),

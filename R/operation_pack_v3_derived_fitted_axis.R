@@ -109,20 +109,21 @@
 }
 
 .wb_operation_pack_v3_dfa_parent_snapshot <- function(bundle, source,
-    dimensions) {
+    dimensions, .plan = NULL) {
   space_id <- as.character(source$space_id %||% "")[1]
   if (!nzchar(space_id)) .wb_operation_pack_v3_error(
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
     "Derived fitted-cell source has no durable space identity.", "resolution")
-  values <- tryCatch(.wb_as_coord_matrix(wb_space(bundle, space_id)),
-    error = identity)
-  if (inherits(values, "error") || !nrow(values) ||
-      is.null(rownames(values)) || anyDuplicated(rownames(values)))
+  if (is.null(.plan)) {
+    .plan <- tryCatch(.wb_space_payload_reader(bundle, space_id), error=identity)
+    if (!inherits(.plan,"error")) on.exit(.plan$close(),add=TRUE)
+  }
+  if (inherits(.plan, "error") || !length(.plan$cells) ||
+      anyDuplicated(.plan$cells))
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       "Derived fitted-cell parent space is unavailable or ambiguous.",
       "resolution")
-  labels <- colnames(values)
-  if (is.null(labels)) labels <- paste0("dim", seq_len(ncol(values)))
+  labels <- .plan$labels
   if (!is.null(dimensions$indices)) {
     if (anyNA(dimensions$indices) ||
         any(dimensions$indices < 1L | dimensions$indices > length(labels)))
@@ -135,11 +136,11 @@
       unname(as.list(dimensions$labels)))
   }
   primitive <- structure(list(kind = "space", space_id = space_id,
-    values = values, dimensions = as.integer(dim(values)),
-    cell_id = rownames(values), storage_profile = "space_dense_v1",
+    values = NULL, dimensions = .plan$dimensions,
+    cell_id = .plan$cells, storage_profile = "space_dense_v1",
     meta = structure(list(), names = character())), class = "wb_primitive")
   content <- .wb_operation_pack_v3_phase5_primitive_identity(bundle,
-    primitive)
+    primitive, .plan=.plan)
   registry <- .wb_space_payload_registry_row(bundle, space_id)
   payload <- list(schema_version = as.character(registry$schema_version[[1]]),
     n_cells = as.integer(registry$n_cells[[1]]),
@@ -157,9 +158,9 @@
     durable_payload_snapshot_identity =
       .wb_operation_pack_v2_identity_plain(
         "scworkbench.operation_pack.fitted_axis_parent_payload.v1", payload),
-    full_cell_count = as.integer(nrow(values)),
+    full_cell_count = as.integer(length(.plan$cells)),
     full_cell_order_identity = .wb_operation_pack_v2_identity_plain(
-      "scworkbench.cell_order.v1", unname(as.list(rownames(values)))),
+      "scworkbench.cell_order.v1", unname(as.list(.plan$cells))),
     selected_dimension_count = as.integer(dimensions$count),
     selected_dimension_ids = unname(as.list(dimensions$labels)),
     selected_dimension_order_identity = dimensions$identity)
@@ -167,18 +168,18 @@
     "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1",
     "parent snapshot excluding parent_snapshot_identity", value)
   attr(value, "operation_pack_v3_parent_cells") <- as.character(
-    rownames(values))
+    .plan$cells)
   value
 }
 
 .wb_operation_pack_v3_dfa_parent_assert_current <- function(bundle, parent,
     code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "audit") {
-  values <- tryCatch(.wb_as_coord_matrix(wb_space(bundle,
-    parent$source_space_id)), error = identity)
-  if (inherits(values, "error")) .wb_operation_pack_v3_error(code,
+  plan <- tryCatch(.wb_space_payload_reader(bundle,
+    parent$source_space_id), error = identity)
+  if (inherits(plan, "error")) .wb_operation_pack_v3_error(code,
     "Derived fitted-cell parent space disappeared.", phase)
-  labels <- colnames(values)
-  if (is.null(labels)) labels <- paste0("dim", seq_len(ncol(values)))
+  on.exit(plan$close(),add=TRUE)
+  labels <- plan$labels
   # Reconstruct using the retained count and identity; the dimension labels
   # themselves are authenticated by the order identity below.
   dims <- list(count = as.integer(parent$selected_dimension_count),
@@ -195,14 +196,13 @@
       "Derived fitted-cell selected dimensions changed or disappeared.",
       phase)
   source <- wb_prim_space(parent$source_space_id)
-  source$values <- values
-  observed <- .wb_operation_pack_v3_dfa_parent_snapshot(bundle, source, dims)
+  observed <- .wb_operation_pack_v3_dfa_parent_snapshot(bundle, source, dims,.plan=plan)
   attr(observed, "operation_pack_v3_parent_cells") <- NULL
   retained <- parent
   attr(retained, "operation_pack_v3_parent_cells") <- NULL
   if (!identical(observed, retained)) .wb_operation_pack_v3_error(code,
     "Derived fitted-cell full parent snapshot changed.", phase)
-  invisible(as.character(rownames(values)))
+  invisible(as.character(plan$cells))
 }
 
 .wb_operation_pack_v3_dfa_prepare <- function(bundle, operation, inputs,
@@ -213,17 +213,19 @@
   sibling <- selected$output$contained_model_sibling_closure_policy
   source_name <- as.character(policy$source_space_input)[1]
   source <- inputs[[source_name]]
+  source_plan <- (attr(inputs,"operation_pack_v3_space_plans") %||% list())[[source_name]]
+  source_metadata <- .wb_operation_pack_v3_space_metadata(source,source_plan)
   parameter <- sibling$dimensions_parameter
   dimensions <- if (is.null(parameter)) {
-    labels <- colnames(source$values)
-    if (is.null(labels)) labels <- paste0("dim", seq_len(ncol(source$values)))
-    list(indices = seq_len(ncol(source$values)), labels = labels,
-      count = ncol(source$values), identity =
+    labels <- source_metadata$labels
+    list(indices = seq_len(source_metadata$dimensions[[2L]]), labels = labels,
+      count = source_metadata$dimensions[[2L]], identity =
       .wb_operation_pack_v2_identity_plain(
         "scworkbench.dimension_order.v1", unname(as.list(labels))))
-  } else .wb_operation_pack_v3_selected_dimensions(source, params, parameter)
+  } else .wb_operation_pack_v3_selected_dimensions(source, params, parameter,
+    .metadata=source_metadata)
   parent <- .wb_operation_pack_v3_dfa_parent_snapshot(bundle, source,
-    dimensions)
+    dimensions,.plan=source_plan)
   dimensions$identity <- parent$selected_dimension_order_identity
   parent_cells <- attr(parent, "operation_pack_v3_parent_cells")
   attr(parent, "operation_pack_v3_parent_cells") <- NULL
@@ -739,10 +741,11 @@
         linkage$fitted_axis_seal_identity))
     .wb_operation_pack_v3_error(code,
       "Derived fitted-axis evidence contradicts model linkage.", phase)
-  values <- tryCatch(.wb_as_coord_matrix(wb_space(bundle,
-    linkage$source_space_id)), error = identity)
-  if (inherits(values, "error")) .wb_operation_pack_v3_error(code,
+  plan <- tryCatch(.wb_space_payload_reader(bundle,
+    linkage$source_space_id), error = identity)
+  if (inherits(plan, "error")) .wb_operation_pack_v3_error(code,
     "Derived fitted-axis parent space disappeared.", phase)
+  on.exit(plan$close(),add=TRUE)
   session <- as.character(unlist(sidecar$session_cell_ids,
     use.names = FALSE))
   fitted <- as.character(unlist(sidecar$fitted_cell_ids,
@@ -752,20 +755,19 @@
       anyDuplicated(session) || anyDuplicated(fitted))
     .wb_operation_pack_v3_error(code,
       "Retained fitted-axis evidence contains an invalid cell axis.", phase)
-  .wb_operation_pack_v3_dfa_source_relative(session, rownames(values),
+  .wb_operation_pack_v3_dfa_source_relative(session, plan$cells,
     "Retained fitted session axis", code, phase)
   .wb_operation_pack_v3_dfa_source_relative(fitted, session,
     "Retained fitted axis", code, phase)
   current_source <- wb_prim_space(linkage$source_space_id)
-  current_source$values <- values
-  current_source$cell_id <- rownames(values)
-  current_source$dimensions <- as.integer(dim(values))
+  current_source$cell_id <- plan$cells
+  current_source$dimensions <- plan$dimensions
   current_source$storage_profile <- "space_dense_v1"
   current_parent <- .wb_operation_pack_v3_dfa_parent_snapshot(bundle,
     current_source, list(count = as.integer(
       linkage$selected_dimension_count), labels = as.character(unlist(
         linkage$selected_dimension_ids, use.names = FALSE)), identity =
-      linkage$selected_dimension_order_identity))
+      linkage$selected_dimension_order_identity),.plan=plan)
   if (!identical(.wb_operation_pack_v3_unscoped_identity(
       current_parent$parent_snapshot_identity), parent_id))
     .wb_operation_pack_v3_error(code,
@@ -777,7 +779,7 @@
       "Retained fitted-axis order differs from model linkage.", phase)
   dimension_ids <- as.character(unlist(linkage$selected_dimension_ids,
     use.names = FALSE))
-  dimension_positions <- match(dimension_ids, colnames(values))
+  dimension_positions <- match(dimension_ids, plan$labels)
   if (length(dimension_ids) != as.integer(linkage$selected_dimension_count) ||
       anyNA(dimension_positions) || anyDuplicated(dimension_positions) ||
       !identical(.wb_operation_pack_v2_identity_plain(
@@ -785,7 +787,15 @@
         linkage$selected_dimension_order_identity))
     .wb_operation_pack_v3_error(code,
       "Retained fitted-axis dimensions differ from model linkage.", phase)
-  values[match(fitted, rownames(values)), dimension_positions, drop = FALSE]
+  # This existing no-argument model reader returns one materialized fitted
+  # primitive, not a newly introduced chunk API. Admit that response before
+  # decoding and read only its selected cells/dimensions.
+  restore <- plan$admit(0,as.double(length(fitted))*length(dimension_positions),
+    .bytes_per_element=64)
+  on.exit(restore(),add=TRUE,after=FALSE)
+  values <- plan$read(fitted,dimension_positions)
+  attr(values,"scworkbench_payload_read") <- NULL
+  values
 }
 
 .wb_operation_pack_v3_dfa_observation <- function(request, state, observed,

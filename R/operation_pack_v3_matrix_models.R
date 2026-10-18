@@ -58,8 +58,40 @@
 # appear in the pre-execution source linkage. Recover the one authenticated
 # terminal receipt through the promoted artifact/run binding instead. This is
 # deliberately read-only and fails closed on missing or ambiguous evidence.
+.wb_operation_pack_v3_admit_legacy_template <- function(path, descriptor) {
+  limit <- as.double(getOption("scworkbench.max_dense_materialize_mb",256))*1024^2
+  shape <- as.double(unlist(descriptor$dimensions %||% list(),use.names=FALSE))
+  base <- if (length(shape)) 64*prod(shape) else 0
+  .wb_assert(is.finite(limit) && is.finite(base) && base < limit,
+    "Legacy materialized template shape exceeds the configured memory guard.")
+  # Count decompressed serialized extent, not compressed file length. This is
+  # deliberately a legacy materialized-format boundary, not a streaming RDS API.
+  input <- file(path,"rb")
+  magic <- tryCatch(readBin(input,"raw",n=2L),finally=close(input))
+  if (any(vapply(c("X\n","B\n","A\n"),function(x)
+      identical(magic,charToRaw(x)),logical(1)))) {
+    # Native writer uses uncompressed RDS. Its authenticated stat is already
+    # the uncompressed extent; don't add a redundant whole-template read.
+    total <- as.double(file.info(path)$size)
+  } else {
+    con <- gzfile(path,"rb"); on.exit(close(con),add=TRUE)
+    total <- 0
+    repeat {
+      block <- readBin(con,"raw",n=65536L)
+      if (!length(block)) break
+      total <- total+length(block)
+      .wb_assert(base+4*total < limit,
+        "Legacy materialized template extent exceeds the configured memory guard.")
+    }
+  }
+  .wb_assert(is.finite(total) && base+4*total < limit,
+    "Legacy materialized template extent exceeds the configured memory guard.")
+  attr(total,"working_memory_bytes") <- base+4*total
+  invisible(total)
+}
+
 .wb_operation_pack_v3_matrix_model_fitted_space_recheck <- function(bundle,
-    artifact_id, linkage, fitted_values) {
+    artifact_id, linkage, fitted_values = NULL, .plan = NULL) {
   source <- bundle$staging_source_bundle %||% NULL
   if (inherits(source, "scworkbench_bundle") &&
       nrow(DBI::dbGetQuery(source$con,
@@ -74,18 +106,71 @@
   matches <- list()
   for (path in paths) {
     if (startsWith(basename(path), ".")) next
+    header <- tryCatch(jsonlite::read_json(file.path(path,"request.json"),
+      simplifyVector=FALSE),error=function(e) NULL)
+    if (is.null(header) || !as.character(header$transition$run_id %||% "") %in%
+        bindings$run_id) next
+    # Byte/receipt closure is checked before inspecting any payload shape.
+    preliminary <- .wb_operation_pack_v2_record_validate(path,
+      load_payloads=FALSE,graph_connections=.wb_graph_bundle_connections(bundle))
+    if (!isTRUE(preliminary$ok)) .wb_operation_pack_v3_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH","Bound model receipt is invalid.","resolution")
+    spaces <- Filter(function(x) identical(x$descriptor$kind,"space") &&
+      identical(x$allocated_id,as.character(linkage$paired_fitted_space_id)[1]),
+      preliminary$receipt$outputs %||% list())
+    if (length(spaces)!=1L) .wb_operation_pack_v3_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH","Bound model lacks one paired fitted space.","resolution")
+    working <- numeric(); retained_working <- 0
+    for (item in c(preliminary$receipt$outputs %||% list(),
+        preliminary$receipt$registry_requests %||% list())) {
+      payload <- file.path(path,"outputs",item$name,"payload.rds")
+      if (file.exists(payload)) {
+        extent <- .wb_operation_pack_v3_admit_legacy_template(payload,item$descriptor)
+        working[item$name] <- attr(extent,"working_memory_bytes")
+        if (item$name %in% vapply(spaces,`[[`,character(1),"name") &&
+            identical(.Platform$OS.type,"unix"))
+          retained_working <- retained_working+attr(extent,"working_memory_bytes")
+      }
+    }
+    other_working <- working[setdiff(names(working),vapply(spaces,`[[`,character(1),"name"))]
+    live <- max(c(0,working,retained_working+max(c(0,other_working))))
+    .wb_assert(live+32*1024^2 < as.double(getOption(
+      "scworkbench.max_dense_materialize_mb",256))*1024^2,
+      "Legacy template aggregate working set exceeds the configured memory guard.")
+    release_memory <- if (!is.null(.plan)) .plan$hold_memory(live) else function() NULL
+    # Own the reservation through deep validation and the durable comparison.
+    # Finally releases it on every throw; only compact observations escape.
+    candidate <- tryCatch({
     result <- .wb_operation_pack_v2_record_validate(path,
-      load_payloads = TRUE, graph_connections = .wb_graph_bundle_connections(bundle))
+      load_payloads = TRUE, graph_connections = .wb_graph_bundle_connections(bundle),
+      .retain_payloads=vapply(spaces,`[[`,character(1),"name"))
     if (!isTRUE(result$ok) || !identical(result$state$state, "reopened"))
-      next
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Bound model receipt payload closure is invalid.","resolution")
     bound <- bindings$output_name[bindings$run_id ==
       as.character(result$request$transition$run_id %||% "")[1]]
     if (length(bound) != 1L) next
     outputs <- result$receipt$outputs %||% list()
     model <- Filter(function(x) identical(x$name, bound) &&
       !is.null(x$descriptor$contained_matrix_model_sibling_tree), outputs)
-    if (length(model) == 1L) matches[[length(matches) + 1L]] <- list(
-      path = path, receipt = result$receipt, model = model[[1L]])
+    if (length(model) != 1L) NULL else {
+      staged <- result$retained_payloads[[spaces[[1L]]$name]]
+      if (identical(as.character(result$receipt$runtime_attestation$backend %||% "R")[1],"Python"))
+        staged <- .wb_operation_pack_v2_python_to_primitive(staged,spaces[[1L]]$descriptor)
+      actual <- if (is.null(.plan) || !identical(.Platform$OS.type,"unix")) {
+        staged$values <- if (is.null(.plan)) fitted_values else .plan$read(.plan$cells)
+        .wb_operation_pack_v2_identity_plain("scworkbench.space.content.v1",unclass(staged))
+      } else {
+        staged$values <- NULL
+        answer <- list(scheme="scworkbench.space.content.v1",sha256=
+          .wb_operation_pack_space_envelope_identities(spaces[[1L]]$name,staged,.plan,
+            .wrapped=FALSE)$value_sha)
+        .plan$guard();answer
+      }
+      list(path=path,receipt=result$receipt,model=model[[1L]],actual=actual)
+    }
+    },finally=release_memory())
+    if (!is.null(candidate)) matches[[length(matches)+1L]] <- candidate
   }
   if (length(matches) != 1L) .wb_operation_pack_v3_error(
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
@@ -106,11 +191,7 @@
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       "Matrix-trained model receipt does not bind its fitted space.",
       "resolution")
-  staged <- wb_operation_pack_transition_load(bundle,
-    basename(match$path), space[[1L]]$name)
-  staged$values <- fitted_values
-  actual <- .wb_operation_pack_v2_identity_plain(
-    "scworkbench.space.content.v1", unclass(staged))
+  actual <- match$actual
   if (!identical(actual, observed$paired_space_content_identity))
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       "Matrix-trained fitted-space content changed after promotion.",
