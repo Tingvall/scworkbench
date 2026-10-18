@@ -1,0 +1,24 @@
+metric,old242,new5b96,unit,threshold,disposition,scope
+complete_snapshot_median,12.576,5.900,seconds,>=3x,MISS,Three GC-controlled complete snapshots per isolated timing process
+complete_snapshot_speedup,1,2.13152542372881,ratio,>=3x,MISS,No full workflow rerun or extrapolated acceptance
+timing_process_peak_RSS,202332,214840,KiB,<=1.1x,PASS,Oracle and census separate processes
+snapshot_tables,46,46,tables,exact,EXACT,All46 table identities and registry-state fingerprint match independent oracle
+snapshot_nonempty_tables,28,28,tables,exact,EXACT,18 empty header identities retained
+snapshot_total_rows,487202,487202,rows,exact,EXACT,Logical5000-row framing unchanged
+observed_batch_events,7604,1001,events,diagnostic,MEASURED,Separate untimed census; not all fallback scalar emissions
+observed_scalar_batch_events,7586,983,events,diagnostic,MEASURED,Admitted scalar batching only
+observed_whole_chunk_events,18,18,events,diagnostic,MEASURED,No-deferred wholelogicalchunk route unchanged
+observed_event_tables,22,22,tables,diagnostic,MEASURED,Other tables empty or noninstrumented fallback
+observed_event_rows,487168,487168,rows,diagnostic,MEASURED,34 remaining rows not represented by these two event types
+observed_serializer_bytes,64775233,64768630,bytes,diagnostic,MEASURED,Per-call encoded bytes include brackets; batch count changes total; not payload IO
+maximum_observed_encoded_bytes,194667,194667,bytes,pre-admitted bound,PASS,Per event actual encoded byte assertion retained
+maximum_observed_reservation,7617320,7617320,bytes,<=8P,PASS,Decoded reservation shared original resource ceiling
+maximum_observed_reservation_ratio,0.908055305480957,0.908055305480957,ratio,<=1,PASS,Admission events only; not independent RSS accounting
+maximum_actual_carrier_plus_8encoded_ratio,0.409619331359863,0.409619331359863,ratio,<=1,PASS,Exact actual UTF8 byte trace in separate census
+full_source_inventory_files,113,113,files,unchanged,PASS,Five separate old/new/census/oracle inventories
+full_source_inventory_bytes,848153358,848153358,bytes,unchanged,PASS,Every file SHA unchanged before and after each process
+independent_oracle_total_SQL_value_bytes,40396157,40396157,bytes,reference-only,MEASURED,Independent SQL admission before materialized reference reads
+independent_oracle_maximum_cell_bytes,430224,430224,bytes,<=1048576,PASS,No unexpected huge TEXT or BLOB decoded
+independent_oracle_maximum_chunk_bytes,3998698,3998698,bytes,reference-only,MEASURED,Ordered original5000-row chunk SQL envelope
+independent_oracle_maximum_admitted_bytes,127984960,127984960,bytes,<=536870912,PASS,Conservative reference-only carrier plus32rawbyte bound
+full_Xenopus_process,769.22,NA,seconds,<=171.124,MISS,Earlier full242 correctness checkpoint not rerun on5b
