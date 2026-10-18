@@ -1,0 +1,4 @@
+"phase","elapsed","user","system","rchar","wchar","read_bytes","write_bytes"
+"extension_read_source_rds_again",1.769,1.693,0.076,73179292,0,0,0
+"extension_write_metadata_axes_and_source_reductions",0.512,0.46,0.044,3695415,5142711,12288,5144576
+"extension_reopen_compare_source_metadata_axes_reductions",0.249000000000001,0.245,0.004,5069122,0,0,0

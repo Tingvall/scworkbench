@@ -99,6 +99,7 @@
     .wb_mutation_boundary_state$contexts <- c(old, list(list(
       capability = .wb_mutation_boundary_state$capability,
       con = con,
+      observations = new.env(parent = emptyenv()),
       dir = if (!is.null(bundle) && inherits(bundle, "scworkbench_bundle")) {
         normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
       } else normalizePath(lock_target, winslash = "/", mustWork = TRUE),
@@ -129,6 +130,30 @@
         (.wb_connection_matches(ctx$con, con) || path_match)) return(ctx)
   }
   NULL
+}
+
+# Reuse one actual registry observation only inside the exact live invocation.
+# SQLite epochs invalidate on own/other-connection writes and schema changes;
+# they are not fingerprints and confer no authority over backing payload files.
+.wb_operation_pack_registry_snapshot <- function(bundle) {
+  context <- .wb_current_mutation_context(bundle$con)
+  if (is.null(context) || !identical(context$route, "session_execution") ||
+      !is.environment(context$observations))
+    return(.wb_manifest_registry_snapshot(bundle$con))
+  epoch <- function() list(
+    changes = DBI::dbGetQuery(bundle$con, "SELECT total_changes();")[[1L]],
+    data = DBI::dbGetQuery(bundle$con, "PRAGMA data_version;")[[1L]],
+    schema = DBI::dbGetQuery(bundle$con, "PRAGMA schema_version;")[[1L]])
+  before <- epoch()
+  observed <- context$observations$registry
+  if (!is.null(observed) && identical(observed$epoch, before))
+    return(observed$value)
+  value <- .wb_manifest_registry_snapshot(bundle$con)
+  after <- epoch()
+  .wb_assert(identical(before, after),
+    "Registry changed while acquiring the invocation's committed observation.")
+  context$observations$registry <- list(epoch = after, value = value)
+  value
 }
 
 .wb_assert_mutation_context <- function(bundle = NULL,

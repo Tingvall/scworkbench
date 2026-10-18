@@ -479,12 +479,12 @@
     )), simplifyVector = TRUE)
   )
   state <- .wb_prov_sha256_object(header)
+  fold <- .wb_prov_table_fold(state)
   table <- prim$table
-  if (is.data.frame(table) && nrow(table)) for (i in seq_len(nrow(table))) {
-    row_json <- as.character(jsonlite::toJSON(
-      .wb_json_sanitize(as.list(table[i, , drop = FALSE])), auto_unbox = TRUE, null = "null"
-    ))
-    state <- .wb_prov_sha256_object(list(previous = state, row_sha256 = digest::digest(row_json, algo="sha256", serialize=FALSE)))
+  if (is.data.frame(table) && nrow(table)) for (start in
+      seq.int(1L, nrow(table), by = 1000L)) {
+    rows <- seq.int(start, min(nrow(table), start + 999L))
+    state <- fold(.wb_prov_table_row_json(table, rows))
   }
   state
 }
@@ -501,11 +501,12 @@
     meta = meta
   )
   state <- .wb_prov_sha256_object(header)
+  fold <- .wb_prov_table_fold(state)
   last <- -1L
   repeat {
     rows <- DBI::dbGetQuery(con,"SELECT row_idx,row_json FROM artifact_table_rows WHERE artifact_id=? AND row_idx>? ORDER BY row_idx LIMIT ?;",params=list(artifact_id,last,as.integer(chunk_size)))
     if (!nrow(rows)) break
-    for (row_json in as.character(rows$row_json)) state <- .wb_prov_sha256_object(list(previous=state,row_sha256=digest::digest(row_json,algo="sha256",serialize=FALSE)))
+    state <- fold(as.character(rows$row_json))
     last <- max(as.integer(rows$row_idx))
   }
   state

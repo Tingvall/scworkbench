@@ -1,0 +1,34 @@
+{
+  "source_sha256": "7dfefc974d9b38ea3513c1e181f119f2c4cbde5fcf603298f71953bff7b85280",
+  "dimensions": [31535, 13199],
+  "normalized_fragments": 7,
+  "normalization_cell_chunks": 7,
+  "hvg_feature_chunks": 124,
+  "pca_feature_chunks": 8,
+  "full_passes": {
+    "source_checksum": 1,
+    "read_source_rds": 1,
+    "source_bpcells_write": 1,
+    "normalization_read": 1,
+    "row_index_build_phase": 1,
+    "hvg_selected_feature_coverage": 1,
+    "pca_2000_feature_coverage": 1,
+    "verification_norm": 1
+  },
+  "storage": {
+    "source": "BPCells compressed",
+    "normalized": "BPCells uncompressed double",
+    "pca": "rhdf5 dense-space.hdf5.v1",
+    "umap": "rhdf5 dense-space.hdf5.v1",
+    "tables": "SQLite JSON row schema differs; same default JSON precision",
+    "model": "uwot save_uwot"
+  },
+  "package_versions": {
+    "BPCells": "0.3.1",
+    "Matrix": "1.7.0",
+    "rhdf5": "2.48.0",
+    "irlba": "2.3.5.1",
+    "uwot": "0.2.2",
+    "rnndescent": "0.1.8"
+  }
+}

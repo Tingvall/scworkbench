@@ -59,6 +59,32 @@
   unserialize(serialize(value, NULL, version = 3L))
 }
 
+.wb_operation_pack_v2_direct_rds_seals <- function(receipt, python_backend,
+                                                  abi_v4) {
+  !python_backend && !abi_v4 && length(receipt$outputs %||% list()) > 0L &&
+    !length(receipt$registry_requests %||% list()) &&
+    all(vapply(receipt$outputs, function(item) {
+      descriptor <- item$descriptor
+      as.character(descriptor$kind)[1] %in% c(.wb_object_primitive_kinds(),
+        "feature_table", "obs_table") &&
+        !is.null(descriptor$payload_manifest_identity) &&
+        all(vapply(c("matrix_fragment_manifest", "contained_model_tree",
+          "contained_model_sibling_tree", "contained_matrix_model_sibling_tree"),
+          function(field) is.null(descriptor[[field]]), logical(1)))
+    }, logical(1)))
+}
+
+.wb_operation_pack_v2_direct_rds_names <- function(receipt, python_backend,
+                                                  abi_v4) {
+  if (python_backend || abi_v4 || length(receipt$registry_requests %||% list()))
+    return(character())
+  items <- Filter(function(item) .wb_operation_pack_v2_direct_rds_seals(
+    list(outputs = list(item)), FALSE, FALSE), receipt$outputs %||% list())
+  names <- vapply(items, function(item) as.character(item$name %||% "")[1L],
+    character(1))
+  names[nzchar(names)]
+}
+
 .wb_operation_pack_v2_value_identity <- function(value, scheme) {
   .wb_operation_pack_v2_id(scheme, .wb_json_sanitize(value))
 }
@@ -237,14 +263,24 @@
     unname(unlist(identity_value$cell_id %||% list(), use.names = FALSE))
   features <- if (is.null(transport_value)) .wb_operation_pack_v2_primitive_features(value) else
     unname(unlist(identity_value$feature_id %||% list(), use.names = FALSE))
+  # These three established identities have only two distinct preimages.
+  # Canonicalize the actual value once; the fixed wrapper has sorted keys and
+  # uses the same canonical encoder for its input name. Scheme labels remain
+  # outside the digest, exactly as in identity_plain(). No seal/cache authority
+  # is inferred from sharing these invocation-local immutable bytes.
+  value_json <- .wb_operation_pack_canonical_json(identity_value)
+  value_sha <- digest::digest(value_json, algo = "sha256", serialize = FALSE)
+  wrapped_json <- enc2utf8(paste0('{"input":',
+    .wb_operation_pack_canonical_json(name), ',"value":', value_json, '}'))
+  wrapped_sha <- digest::digest(wrapped_json, algo = "sha256", serialize = FALSE)
   descriptor <- list(
     kind = kind, storage_profile = .wb_operation_pack_v2_input_profile(kind, value),
     reader = .wb_operation_pack_v2_reader_name(kind),
     dimensions = unname(as.list(.wb_operation_pack_v2_dimensions(value, kind))),
     alignment = as.character(declaration$alignment)[1],
-    content_identity = .wb_operation_pack_v2_identity_plain(paste0("scworkbench.", kind, ".content.v1"), identity_value),
-    ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(input = name, value = identity_value)),
-    payload_manifest_identity = .wb_operation_pack_v2_identity_plain("scworkbench.payload.manifest.v2", list(input = name, value = identity_value))
+    content_identity = list(scheme = paste0("scworkbench.", kind, ".content.v1"), sha256 = value_sha),
+    ancestry_identity = list(scheme = "scworkbench.provenance.ancestry.v1", sha256 = wrapped_sha),
+    payload_manifest_identity = list(scheme = "scworkbench.payload.manifest.v2", sha256 = wrapped_sha)
   )
   if (kind %in% c("matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "relation_family")) {
     descriptor$cell_order_identity <- .wb_operation_pack_v2_identity_plain(
@@ -273,8 +309,8 @@
     } else unname(as.list(sort(unique(as.character(unlist(identity_value$space_id,
       use.names = FALSE))), method = "radix"))))
   if (kind == "model_ref") {
-    descriptor$model_linkage_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.model_linkage.v1", identity_value)
-    descriptor$contained_payload_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.contained_payload.v2", identity_value)
+    descriptor$model_linkage_identity <- list(scheme = "scworkbench.model_linkage.v1", sha256 = value_sha)
+    descriptor$contained_payload_identity <- list(scheme = "scworkbench.operation_pack.contained_payload.v2", sha256 = value_sha)
   }
   descriptor$descriptor_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.input_descriptor.v2", "descriptor excluding descriptor_identity", descriptor)
@@ -571,7 +607,7 @@
   transition_value <- list(transition_id = transition_id, session_id = session_id, run_id = run_id,
     checkpoint_generation = generation,
     source_state_identity = .wb_operation_pack_v2_identity_plain("scworkbench.scientific_state.v1",
-      .wb_manifest_registry_snapshot(bundle$con)))
+      .wb_operation_pack_registry_snapshot(bundle)))
   transition_value$transition_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition.v2", "transition excluding transition_identity", transition_value)
   identity <- registration$identity
@@ -1093,7 +1129,8 @@
   invisible(TRUE)
 }
 
-.wb_operation_pack_v2_record_validate <- function(path, load_payloads = FALSE, graph_connections = list()) {
+.wb_operation_pack_v2_record_validate <- function(path, load_payloads = FALSE,
+    graph_connections = list(), fresh_rds_outputs = character()) {
   receipt_path <- file.path(path, "receipt.json")
   request_path <- file.path(path, "request.json")
   state_path <- file.path(path, "state.json")
@@ -1117,6 +1154,10 @@
     receipt$receipt_identity <- NULL
   }
   observed <- c(receipt$outputs %||% list(), receipt$registry_requests %||% list())
+  fresh_rds_outputs <- intersect(as.character(fresh_rds_outputs),
+    .wb_operation_pack_v2_direct_rds_names(receipt,
+      identical(as.character(receipt$runtime_attestation$backend %||% "R")[1], "Python"),
+      identical(as.character(request$pack_abi_version)[1], "4")))
   for (item in observed) {
     if (identical(request$pack_abi_version, "4") && identical(item$descriptor$kind, "graph")) next
     python_payload <- identical(as.character(
@@ -1187,7 +1228,7 @@
           code = "fragment_payload_identity_mismatch", output = item$name))
       }
     }
-    if (isTRUE(load_payloads)) {
+    if (isTRUE(load_payloads) && !item$name %in% fresh_rds_outputs) {
       value <- tryCatch(if (python_payload) {
         raw <- readChar(payload, nchars = file.info(payload)$size, useBytes = TRUE)
         .wb_operation_pack_v2_assert_strict_json(raw)
@@ -1795,7 +1836,14 @@
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "published", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(final, "state.json"))
   .wb_operation_pack_v2_fault("published", transition_id = transition_id)
-  reopen <- .wb_operation_pack_v2_record_validate(final, load_payloads = TRUE,
+  # The native ordinary writer already validated semantics and sealed its exact
+  # RDS bytes. Verify those bytes at the final path, without decoding/hashing the
+  # same semantic object again. Special manifests (matrix/model/graph) and
+  # registry requests have different byte closures and retain the full path.
+  direct_rds_names <- .wb_operation_pack_v2_direct_rds_names(receipt,
+    python_backend, abi_v4)
+  reopen <- .wb_operation_pack_v2_record_validate(final,
+    load_payloads = TRUE, fresh_rds_outputs = direct_rds_names,
     graph_connections = graph_connections)
   if (!isTRUE(reopen$ok)) .wb_operation_pack_v2_error("PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Fresh transition reopen failed: ", reopen$code,

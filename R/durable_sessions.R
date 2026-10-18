@@ -42,6 +42,17 @@
   path
 }
 
+.wb_session_source_forget <- function(con) {
+  if (!is.null(con)) {
+    con@ref$wb_session_source_observation <- NULL
+    con@ref$wb_schema_structure_observation <- NULL
+    context <- .wb_current_mutation_context(con)
+    if (!is.null(context) && is.environment(context$observations))
+      context$observations$registry <- NULL
+  }
+  invisible(TRUE)
+}
+
 .wb_session_source_identity <- function(bundle) {
   # Authentication observes committed state under exclusion; it does not
   # publish a mutation or refresh the durable manifest.
@@ -49,7 +60,30 @@
     operation = "durable session source identity")
   on.exit(.wb_bundle_writer_lock_release(source_lock), add = TRUE)
   {
-    state <- .wb_manifest_registry_snapshot(bundle$con)
+    .wb_assert(!RSQLite::sqliteIsTransacting(bundle$con),
+      "DURABLE_SESSION_SOURCE_TRANSACTION: committed source observation requires no active SQLite transaction.")
+    directory <- normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
+    epoch <- function() list(
+      changes = DBI::dbGetQuery(bundle$con, "SELECT total_changes();")[[1L]],
+      data = DBI::dbGetQuery(bundle$con, "PRAGMA main.data_version;")[[1L]],
+      schema = DBI::dbGetQuery(bundle$con, "PRAGMA main.schema_version;")[[1L]])
+    before <- tryCatch(epoch(), error = function(e) NULL)
+    if (!is.null(before) && !all(vapply(before, function(x)
+      is.numeric(x) && !is.object(x) && length(x) == 1L && !is.na(x) &&
+        is.finite(x) && x >= 0 && x <= 2^53 - 1 && x == floor(x), logical(1))))
+      before <- NULL
+    observed <- bundle$con@ref$wb_session_source_observation
+    stable <- !is.null(before) && !is.null(observed) &&
+      identical(observed$directory, directory) && identical(observed$epoch, before)
+    state <- if (stable) observed$state else .wb_manifest_registry_snapshot(bundle$con)
+    after <- tryCatch(epoch(), error = function(e) NULL)
+    if (!is.null(before) && identical(before, after)) {
+      bundle$con@ref$wb_session_source_observation <- list(directory = directory,
+        epoch = after, state = state)
+    } else {
+      .wb_session_source_forget(bundle$con)
+      .wb_assert(is.null(before), "DURABLE_SESSION_SOURCE_CHANGED: source changed during committed observation.")
+    }
     list(schema = "scworkbench.session_source.v2", bundle_dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE), location_policy = "fixed_path",
          scientific_state_fingerprint = as.character(state$fingerprint)[1], scientific_state = state)
   }
@@ -248,10 +282,12 @@
   invisible(TRUE)
 }
 
-.wb_session_validate_payloads <- function(session) {
+.wb_session_validate_payloads <- function(session, run_ids = NULL) {
   if (is.null(session$durable) || !length(session$durable$payload_identities %||% list())) return(invisible(TRUE))
   .wb_assert(!is.null(session$staging_bundle), "DURABLE_SESSION_CORRUPT: staged bundle is unavailable.")
-  for (rid in names(session$durable$payload_identities)) {
+  selected <- if (is.null(run_ids)) names(session$durable$payload_identities) else
+    intersect(as.character(run_ids), names(session$durable$payload_identities))
+  for (rid in selected) {
     run <- session$runs[[rid]]
     .wb_assert(!is.null(run), paste0("DURABLE_SESSION_CORRUPT: checkpoint references missing run ", rid))
     recorded <- session$durable$payload_identities[[rid]]
@@ -266,6 +302,28 @@
     }
   }
   invisible(TRUE)
+}
+
+.wb_session_validate_dependencies <- function(session, resolved, parents) {
+  if (is.null(session$durable)) return(invisible(TRUE))
+  selected <- as.character(parents)
+  for (value in resolved) {
+    if (!.wb_is_primitive(value)) next
+    kind <- as.character(value$kind)[1L]
+    if (kind %in% c("matrix", "space", "space_2d")) {
+      id <- if (kind == "matrix") value$matrix_id else value$space_id
+      refs <- .wb_session_output_refs_by_id(session, kind, id %||% "")
+      .wb_assert(length(refs) <= 1L,
+        "DURABLE_SESSION_PAYLOAD_CORRUPT: ambiguous stage-backed direct input.")
+      selected <- unique(c(selected, vapply(refs, `[[`, character(1), "run_id")))
+    } else if (kind %in% c("model_ref", "graph")) {
+      known <- any(vapply(selected, function(rid) any(vapply(
+        session$runs[[rid]]$outputs %||% list(), function(output)
+          identical(value, output), logical(1))), logical(1)))
+      if (!known) return(.wb_session_validate_payloads(session))
+    }
+  }
+  .wb_session_validate_payloads(session, run_ids = selected)
 }
 
 #' Create A Durable, Resumable Analysis Session
@@ -310,7 +368,7 @@ wb_session_create <- function(bundle, workspace_root = .wb_session_workspace_roo
   s <- staged$session
   # Snapshot acquisition and identity observation use the same writer lock;
   # bind to coherent committed state without republishing the source manifest.
-  s$durable$source_identity <- .wb_session_source_identity(bundle)
+  .wb_session_validate_source(s, bundle)
   .wb_session_checkpoint(s, "active")
 }
 
@@ -381,6 +439,7 @@ wb_session_open <- function(workspace) {
 #' @return A validated active `wb_session`.
 #' @export
 wb_session_resume <- function(bundle, workspace) {
+  .wb_session_source_forget(bundle$con)
   s <- wb_session_open(workspace)
   validated <- FALSE
   on.exit({

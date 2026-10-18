@@ -366,7 +366,7 @@ wb_bundle_validation_report <- function(bundle_dir,
 
   if (!is.null(con)) timed("schema_and_registry", {
     tables <- DBI::dbListTables(con)
-    schema_status <- .wb_schema_status(con)
+    schema_status <- .wb_schema_status(con, verify_structure = TRUE)
     if (!identical(schema_status$status, "current")) {
       add(
         "BUNDLE_SCHEMA_UPGRADE_REQUIRED", check_class = "schema",

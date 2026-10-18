@@ -27,6 +27,7 @@
 }
 
 .wb_session_sqlite_backup <- function(source_con, destination_path) {
+  .wb_session_source_forget(source_con)
   .wb_assert(inherits(source_con, "SQLiteConnection"),
              "Session SQLite backup requires an RSQLite source connection.")
   .wb_assert(!file.exists(destination_path),
@@ -151,6 +152,7 @@
   snapshot_lock <- .wb_bundle_writer_lock_acquire(bundle,
     operation = "session staging snapshot")
   tryCatch({
+    if (!is.null(session$durable)) .wb_session_validate_source(session, bundle)
     copy_policy <- bundle$con@ref$wb_graph_policy
     copy_bytes <- if(is.null(copy_policy)) NULL else .wb_session_graph_copy_bytes(bundle,copy_policy)
     db_rel <- as.character(bundle$manifest$storage$sqlite$path)[1]
@@ -190,6 +192,7 @@
       dir.create(file.path(stage_dir, nm), recursive = TRUE,
         showWarnings = FALSE)
     }
+    if (!is.null(session$durable)) .wb_session_validate_source(session, bundle)
   }, finally = .wb_bundle_writer_lock_release(snapshot_lock))
 
   stage_bundle <- .wb_session_stage_open(bundle,stage_dir,copy_bytes)

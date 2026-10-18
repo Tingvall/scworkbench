@@ -257,7 +257,17 @@ wb_promote_analysis <- function(bundle,
                                         staging_bundle = NULL,
                                         target_reproduction_receipts = NULL) {
   .wb_assert_bundle_writable(bundle, "promotion")
-  wb_migrate_artifacts(bundle)
+  # Retain ownership from selected-payload verification through the final copy.
+  # Cross-bundle acquisition is a nonblocking try-lock, never a lock-order wait.
+  # This raw ownership guard must not publish a staging manifest on release.
+  if (!is.null(staging_bundle)) {
+    stage_lock <- .wb_bundle_writer_lock_acquire(staging_bundle,
+      operation = "promotion staged snapshot")
+    on.exit(.wb_bundle_writer_lock_release(stage_lock), add = TRUE)
+  }
+  expected_source <- attr(staging_bundle, "durable_source_identity", exact = TRUE)
+  if (!is.null(expected_source)) .wb_session_validate_source(list(
+    durable = list(source_identity = expected_source)), bundle)
 
   .wb_assert(is.list(runs) && length(runs) > 0, "runs must be a non-empty list.")
   # ensure named by run_id
@@ -283,6 +293,11 @@ wb_promote_analysis <- function(bundle,
     invisible(TRUE)
   }
   for (h in heads) visit(h)
+  ledger <- attr(staging_bundle, "durable_payload_identities", exact = TRUE)
+  if (!is.null(ledger)) .wb_session_validate_payloads(list(
+    durable = list(payload_identities = ledger), runs = runs,
+    staging_bundle = staging_bundle), run_ids = topo)
+  wb_migrate_artifacts(bundle)
 
   available <- unique(unlist(lapply(heads, function(rid) {
     op <- .wb_get_op(runs[[rid]]$op_name)
@@ -1385,23 +1400,13 @@ wb_promote_analysis <- function(bundle,
     as.character(meta_json)
   ))
 
-  row_df <- data.frame(
-    artifact_id = rep(artifact_id, nrow(tbl)),
-    row_idx = seq_len(nrow(tbl)),
-    row_json = vapply(
-      seq_len(nrow(tbl)),
-      function(i) {
-        jsonlite::toJSON(
-          .wb_json_sanitize(as.list(tbl[i, , drop = FALSE])),
-          auto_unbox = TRUE,
-          null = "null"
-        )
-      },
-      character(1)
-    ),
-    stringsAsFactors = FALSE
-  )
-  .wb_db_append_chunked(con, "artifact_table_rows", row_df, chunk_size = 1000L)
+  if (nrow(tbl)) for (start in seq.int(1L, nrow(tbl), by = 1000L)) {
+    rows <- seq.int(start, min(nrow(tbl), start + 999L))
+    row_df <- data.frame(artifact_id = rep(artifact_id, length(rows)),
+      row_idx = rows, row_json = .wb_prov_table_row_json(tbl, rows),
+      stringsAsFactors = FALSE)
+    .wb_db_append_chunked(con, "artifact_table_rows", row_df, chunk_size = 1000L)
+  }
   artifact_id
 }
 

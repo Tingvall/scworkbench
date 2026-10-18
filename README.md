@@ -231,6 +231,10 @@ Contribution, support, and composite-release policies are documented in
 [docs/SUPPORT.md](docs/SUPPORT.md), and
 [docs/release_process.md](docs/release_process.md).
 
+The [execution trust and validation model](docs/trust-and-validation.md)
+explains bounded readers, source authentication, fresh output seals, durable
+recovery and explicit recipient validation.
+
 ## Testing
 
 Run the canonical package contract suite. It generates a disposable golden

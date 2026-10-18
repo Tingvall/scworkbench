@@ -1,0 +1,7 @@
+"phase","elapsed","user","system","rchar","wchar","read_bytes","write_bytes","source_sha256_calls"
+"public_source_input",0.751,0.736,0.016,146431971,0,0,0,2
+"explicit_source_preflight",0.374,0.37,0.005,73179489,0,0,0,1
+"source_bundle_import",92.164,86.122,1.779,1368654130,1205554169,0,1204174848,2
+"finalize_close",11.849,11.64,0.168,221900759,82795378,0,83066880,0
+"readonly_reopen_inspection_close",0.403000000000006,0.402000000000001,0,1627921,0,0,0,0
+"recipient_validation_report",55.282,54.808,0.46,1661665481,41312016,0,41443328,0

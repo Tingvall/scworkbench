@@ -1,0 +1,12 @@
+args<-commandArgs(TRUE);.libPaths(c(args[[1]],.libPaths()))
+suppressPackageStartupMessages(library(scworkbench))
+patch<-new.env(parent=asNamespace('scworkbench'))
+sys.source('R/durable_sessions.R',envir=patch)
+sys.source('R/session_staging.R',envir=patch)
+sys.source('R/schema_migrations.R',envir=patch)
+options(scworkbench.engine_schema_test_environment=patch)
+test<-new.env(parent=globalenv())
+sys.source('tests/test_engine_schema_observation_contract.R',envir=test)
+tests<-ls(test,pattern='^test_')
+for(name in tests){stopifnot(isTRUE(get(name,envir=test)()));cat('PASS ',name,'\n',sep='')}
+cat('SCHEMA_SOURCE_PATCH files=1 discovered=',length(tests),' passed=',length(tests),' failed=0\n',sep='')

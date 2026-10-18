@@ -89,7 +89,7 @@
   invisible(TRUE)
 }
 
-.wb_schema_status <- function(con) {
+.wb_schema_status <- function(con, verify_structure = FALSE) {
   current <- .wb_bundle_schema_version()
   if (!.wb_schema_ledger_exists(con)) {
     return(list(current = current, observed = 0L, status = "upgrade_required",
@@ -119,6 +119,47 @@
                 message = paste0("Bundle schema version ", observed, " requires writable migration to version ", current, ".")))
   }
   definitions <- .wb_schema_foreign_key_definitions()
+  # Only the deterministic FK/nullability verdict is reusable. The ledger and
+  # ordered migration prefix above are deliberately observed on every call.
+  # Compare exact live definitions rather than schema_version: rollback can
+  # reuse an epoch. The observation belongs to this exact live connection.
+  structure_key <- NULL
+  reusable <- is.null(con@ref$wb_graph_policy)
+  if (reusable) {
+    relevant <- sort(unique(c(names(definitions), "artifact_pseudotime")))
+    names_json <- jsonlite::toJSON(as.list(relevant), auto_unbox = TRUE)
+    shadows <- DBI::dbGetQuery(con, paste0(
+      "SELECT name FROM sqlite_temp_schema WHERE type IN ('table','view') ",
+      "AND name COLLATE NOCASE IN (SELECT value FROM json_each(?)) ORDER BY name;"
+    ), params = list(names_json))
+    # Existing unqualified PRAGMAs observe TEMP shadows. Preserve that behavior
+    # with fresh reads instead of combining it with a main-only observation.
+    reusable <- !nrow(shadows)
+    if (reusable) {
+      actual <- DBI::dbGetQuery(con, paste0(
+        "SELECT type,name,tbl_name,sql FROM main.sqlite_schema ",
+        "WHERE type IN ('table','view') AND name COLLATE NOCASE ",
+        "IN (SELECT value FROM json_each(?)) ORDER BY name;"
+      ), params = list(names_json))
+      where <- match(tolower(relevant), tolower(as.character(actual$name)))
+      structure_key <- data.frame(expected_name = relevant,
+        type = rep("<missing>", length(relevant)), name = relevant,
+        tbl_name = rep("<missing>", length(relevant)),
+        sql = rep("<missing>", length(relevant)), stringsAsFactors = FALSE)
+      present <- !is.na(where)
+      structure_key[present, c("type", "name", "tbl_name", "sql")] <-
+        actual[where[present], c("type", "name", "tbl_name", "sql"), drop = FALSE]
+      observation <- con@ref$wb_schema_structure_observation
+      if (!isTRUE(verify_structure) && is.list(observation) &&
+          identical(observation$key, structure_key) && isTRUE(observation$ok)) {
+        return(list(current = current, observed = observed, status = "current",
+          message = paste0("Bundle schema is current at version ", current, ".")))
+      }
+    }
+  }
+  # Never retain an invalid verdict or leave a prior success after a fresh
+  # structural rejection. Graph-policy calls retain all original FK reads.
+  con@ref$wb_schema_structure_observation <- NULL
   invalid_constraints <- lapply(names(definitions), function(table) {
     .wb_schema_table_foreign_key_status(con, table)
   })
@@ -142,6 +183,8 @@
     return(list(current = current, observed = observed, status = "invalid_schema",
                 message = "Bundle migration ledger is current but cell-vector-family values are not nullable."))
   }
+  if (reusable && !is.null(structure_key))
+    con@ref$wb_schema_structure_observation <- list(key = structure_key, ok = TRUE)
   list(current = current, observed = observed, status = "current",
        message = paste0("Bundle schema is current at version ", current, "."))
 }
@@ -595,8 +638,9 @@
 }
 
 .wb_schema_migrate_connection <- function(con, bundle_dir = NULL, backup = TRUE) {
+  .wb_session_source_forget(con)
   .wb_sqlite_configure_connection(con, writable = TRUE)
-  initial <- .wb_schema_status(con)
+  initial <- .wb_schema_status(con, verify_structure = TRUE)
   if (initial$status %in% c("newer_schema", "invalid_ledger", "invalid_schema")) stop(initial$message, call. = FALSE)
   if (identical(initial$status, "current")) return(invisible(list(changed = FALSE, backup = NULL, status = initial)))
   backup_path <- if (isTRUE(backup) && !is.null(bundle_dir)) {
@@ -624,7 +668,7 @@
       )
       .wb_schema_migration_hook("after_ledger", migration$version, migration$id, con)
     }
-    final <- .wb_schema_status(con)
+    final <- .wb_schema_status(con, verify_structure = TRUE)
     .wb_assert(identical(final$status, "current"), final$message)
     violations <- DBI::dbGetQuery(con, "PRAGMA foreign_key_check;")
     .wb_assert(!nrow(violations), "Schema migration cannot commit with foreign-key violations.")
@@ -637,7 +681,7 @@
       ". Cause: ", conditionMessage(e), call. = FALSE
     )
   })
-  invisible(list(changed = TRUE, backup = backup_path, status = .wb_schema_status(con)))
+  invisible(list(changed = TRUE, backup = backup_path, status = .wb_schema_status(con, verify_structure = TRUE)))
 }
 
 #' Inspect Bundle Schema Migration Status
@@ -648,7 +692,7 @@
 #' @return A named schema-status record.
 #' @export
 wb_bundle_schema_status <- function(bundle_or_dir) {
-  if (inherits(bundle_or_dir, "scworkbench_bundle")) return(.wb_schema_status(bundle_or_dir$con))
+  if (inherits(bundle_or_dir, "scworkbench_bundle")) return(.wb_schema_status(bundle_or_dir$con, verify_structure = TRUE))
   path <- normalizePath(bundle_or_dir, winslash = "/", mustWork = TRUE)
   lock <- wb_bundle_writer_lock_info(path)
   .wb_assert(!isTRUE(lock$locked), paste0(
@@ -662,7 +706,7 @@ wb_bundle_schema_status <- function(bundle_or_dir) {
   con <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db, winslash = "/", mustWork = TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   .wb_sqlite_configure_connection(con, writable = FALSE)
-  .wb_schema_status(con)
+  .wb_schema_status(con, verify_structure = TRUE)
 }
 
 #' Migrate A Bundle To The Current Durable Schema

@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "status": "ok_with_warnings",
+  "requested_level": "recipient",
+  "elapsed_seconds": 54.8227,
+  "source_sha256_calls": 5,
+  "source_size": 73174983,
+  "source_bytes_hashed": 365874915,
+  "pre_validation_fingerprint": "9963c28dd5b7e1123426a53a79327055a259f7ccb34737443887fbee133c3875",
+  "post_validation_fingerprint": "9963c28dd5b7e1123426a53a79327055a259f7ccb34737443887fbee133c3875"
+}

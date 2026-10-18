@@ -1,6 +1,35 @@
 # Stream the EXISTING matrix_slice.content.v1 canonical preimage. This is a
 # representation optimization, not a new identity scheme. read_columns is
 # core-private; pack readers retain their declared bounded public interface.
+.wb_operation_pack_canonical_string_tokens <- function(ids) {
+  # Same canonical array bytes, without one R callback/iconv per ordinary ID.
+  # The scalar encoder remains authoritative for escapes and diagnostics.
+  .wb_assert(is.character(ids) && !is.object(ids),
+    "Canonical string-array encoder requires ordinary character values.")
+  if (!length(ids)) return(character())
+  missing <- is.na(ids)
+  utf8 <- iconv(ids, from = "", to = "UTF-8", sub = NA_character_)
+  invalid <- which(!missing & is.na(utf8))
+  if (length(invalid)) .wb_operation_pack_canonical_string(ids[[invalid[[1L]]]])
+  escaped <- !missing & grepl('["\\\\\\x00-\\x1F]', utf8, perl = TRUE)
+  tokens <- paste0('"', utf8, '"')
+  tokens[missing] <- "null"
+  if (any(escaped)) tokens[escaped] <- vapply(utf8[escaped],
+    .wb_operation_pack_canonical_string, character(1), USE.NAMES = FALSE)
+  tokens
+}
+
+.wb_operation_pack_canonical_string_array <- function(ids) {
+  paste0("[", paste(.wb_operation_pack_canonical_string_tokens(ids),
+    collapse = ","), "]")
+}
+
+.wb_operation_pack_matrix_axis_json <- function(ids) {
+  if (!is.character(ids) || is.object(ids))
+    return(.wb_operation_pack_canonical_json(unname(as.list(ids))))
+  .wb_operation_pack_canonical_string_array(ids)
+}
+
 .wb_operation_pack_matrix_stream_identity <- function(features, cells,
     read_columns, chunk_size) {
   path <- tempfile("scwb_matrix_identity_")
@@ -8,7 +37,7 @@
   on.exit({try(close(con), silent = TRUE); unlink(path)}, add = TRUE)
   emit <- function(x) writeBin(charToRaw(enc2utf8(x)), con)
   encode <- .wb_operation_pack_canonical_json
-  emit(paste0('{"cell_id":', encode(unname(as.list(cells))),
+  emit(paste0('{"cell_id":', .wb_operation_pack_matrix_axis_json(cells),
     ',"dimensions":', encode(list(as.integer(length(features)),
       as.integer(length(cells)))), ',"entries":['))
   close(con)
@@ -39,7 +68,7 @@
     }
   }
   con <- file(path, "ab")
-  emit(paste0('],"feature_id":', encode(unname(as.list(features))),
+  emit(paste0('],"feature_id":', .wb_operation_pack_matrix_axis_json(features),
     ',"kind":"matrix","schema":"scworkbench.operation_pack.matrix_slice.content.v1"}'))
   close(con)
   input <- file(path, "rb")

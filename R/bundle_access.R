@@ -117,6 +117,7 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
 wb_close_bundle <- function(bundle) {
   if (inherits(bundle, "scworkbench_bundle") && !is.null(bundle$con)) {
     con <- bundle$con
+    .wb_session_source_forget(con)
     on.exit(.wb_unregister_assembly_connection(con), add = TRUE)
     publication <- if (.wb_is_assembly_connection(con) && DBI::dbIsValid(con)) {
       try(.wb_refresh_manifest_committed(bundle), silent = TRUE)

@@ -30,6 +30,7 @@ scwb_documentation_policy <- function(root = ".") {
     "docs/recipient_audit.md", "docs/python_bridge.md",
     "docs/extension_engineering.md", "docs/operation_packs.md",
     "docs/operation_pack_sdk.md",
+    "docs/trust-and-validation.md",
     "docs/operation_pack_v2_protocol.md", "docs/operation_pack_v3_protocol.md",
     "docs/operation_pack_v4_protocol.md", "docs/graph_primitive.md",
     "docs/phase6_matrix_trained_model_boundary.md",

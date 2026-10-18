@@ -348,6 +348,7 @@
         preimage_con <- DBI::dbConnect(RSQLite::SQLite(), db_preimage)
         tryCatch({
           .wb_sqlite_configure_connection(preimage_con, writable = FALSE)
+          .wb_session_source_forget(destination$con)
           RSQLite::sqliteCopyDatabase(preimage_con, destination$con)
         }, finally = {
           try(DBI::dbDisconnect(preimage_con), silent = TRUE)
@@ -439,6 +440,7 @@
     .wb_pybench_publication_fault("after_all_payloads_before_sqlite")
 
     database_changed <- TRUE
+    .wb_session_source_forget(destination$con)
     RSQLite::sqliteCopyDatabase(source$con, destination$con)
     .wb_pybench_publication_fault("after_sqlite_update_before_cleanup")
 

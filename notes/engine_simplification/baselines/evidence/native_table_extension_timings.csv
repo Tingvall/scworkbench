@@ -1,0 +1,4 @@
+"phase","elapsed","user","system"
+"native_extension_read_precision_reference",0.062,0.053,0.008
+"native_sqlite_tables_write_close_reopen_compare",0.501,0.474,0.028
+"native_alternative_pca_hdf5_write_reopen",0.07,0.0670000000000001,0.00399999999999999

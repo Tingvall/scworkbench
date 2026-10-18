@@ -1,6 +1,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <math.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,6 +77,24 @@ typedef struct {
     int first;
 } append_context;
 
+/* Coordinates are positive R integers, exactly representable in the canonical
+ * 15-digit scheme. Emit their scientific token without floating conversion. */
+static size_t coordinate(int x, char *out) {
+    if (x <= 0) { number((double)x, out); return strlen(out); }
+    char reverse[10], digits[10];
+    unsigned int value = (unsigned int)x;
+    size_t count = 0;
+    do { reverse[count++] = (char)('0' + value % 10); value /= 10; } while (value);
+    for (size_t i = 0; i < count; ++i) digits[i] = reverse[count - i - 1];
+    size_t last = count - 1;
+    while (last > 0 && digits[last] == '0') --last;
+    char *p = out;
+    *p++ = digits[0];
+    if (last) { *p++ = '.'; memcpy(p, digits + 1, last); p += last; }
+    *p++ = 'e'; *p++ = (char)('0' + count - 1); *p = '\0';
+    return (size_t)(p - out);
+}
+
 static void append_cleanup(void *data, Rboolean jump) {
     append_context *context = data;
     if (context->file) { fclose(context->file); context->file = NULL; }
@@ -85,15 +104,38 @@ static SEXP append_body(void *data) {
     append_context *context = data;
     char buffer[65536];
     size_t used = 0;
+    char column[64];
+    int previous_column = 0, have_column = 0;
+    size_t column_bytes = 0;
     for (R_xlen_t i = 0; i < XLENGTH(context->values); ++i) {
-        char row[64], column[64], value[64], record[256];
-        number(INTEGER(context->rows)[i], row);
-        number(INTEGER(context->columns)[i], column);
+        char row[64], value[64], record[256];
+        size_t row_bytes = coordinate(INTEGER(context->rows)[i], row);
+        int current_column = INTEGER(context->columns)[i];
+        if (!have_column || current_column != previous_column) {
+            column_bytes = coordinate(current_column, column);
+            previous_column = current_column; have_column = 1;
+        }
         if (TYPEOF(context->values) == LGLSXP)
             strcpy(value, LOGICAL(context->values)[i] ? "true" : "false");
-        else number(REAL(context->values)[i], value);
-        int bytes = snprintf(record, sizeof(record), "%s{\"column\":%s,\"row\":%s,\"value\":%s}",
-            context->first ? "" : ",", column, row, value);
+        else {
+            double x = REAL(context->values)[i];
+            /* Exact positive int32 values need no floating conversion either.
+             * This changes token construction only; nonintegers retain %.15g. */
+            if (x >= 1 && x <= INT_MAX && x == (int)x)
+                coordinate((int)x, value);
+            else number(x, value);
+        }
+        char *p = record;
+        if (!context->first) *p++ = ',';
+        memcpy(p, "{\"column\":", 10); p += 10;
+        memcpy(p, column, column_bytes); p += column_bytes;
+        memcpy(p, ",\"row\":", 7); p += 7;
+        memcpy(p, row, row_bytes); p += row_bytes;
+        memcpy(p, ",\"value\":", 9); p += 9;
+        size_t value_bytes = strlen(value);
+        memcpy(p, value, value_bytes); p += value_bytes;
+        *p++ = '}';
+        size_t bytes = (size_t)(p - record);
         if (used + bytes > sizeof(buffer)) {
             if (fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix identity write failed.");
             used = 0;

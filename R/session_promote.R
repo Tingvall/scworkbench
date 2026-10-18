@@ -51,8 +51,6 @@ wb_session_promote_current <- function(bundle,
   if (!is.null(session$durable)) {
     .wb_assert(identical(as.character(session$durable$state %||% "")[1], "active"),
                "DURABLE_SESSION_PROMOTED: terminal durable sessions cannot be promoted again.")
-    .wb_session_validate_source(session, bundle)
-    .wb_session_validate_payloads(session)
     session_lock <- .wb_bundle_writer_lock_acquire(
       session$durable$workspace, operation = "durable session promotion"
     )
@@ -60,7 +58,6 @@ wb_session_promote_current <- function(bundle,
     .wb_session_assert_mutation_owner(session)
     .wb_session_validate_checkpoint_state(session)
     .wb_session_validate_source(session, bundle)
-    .wb_session_validate_payloads(session)
   }
   .wb_assert(!is.null(session$head_run_id) && nzchar(session$head_run_id),
              "session$head_run_id is NULL/empty. Run at least one op before promoting.")
@@ -136,6 +133,12 @@ wb_session_promote_current <- function(bundle,
   }
   output_heads <- unique(output_heads)
 
+  promotion_stage <- session$staging_bundle %||% NULL
+  if (!is.null(session$durable)) {
+    attr(promotion_stage, "durable_source_identity") <- session$durable$source_identity
+    attr(promotion_stage, "durable_payload_identities") <- session$durable$payload_identities
+    .wb_session_fault("before_promotion_source_lock")
+  }
   promoted <- wb_promote_analysis(
     bundle = bundle,
     runs = session$runs,
@@ -146,7 +149,7 @@ wb_session_promote_current <- function(bundle,
     fail_fast = fail_fast,
     outputs = unique(unlist(selected_by_run, use.names = FALSE)),
     selected_by_run = selected_by_run,
-    staging_bundle = session$staging_bundle %||% NULL
+    staging_bundle = promotion_stage
   )
   if (!is.null(session$durable)) {
     # Bundle publication precedes this receipt.  If a crash occurs here, the

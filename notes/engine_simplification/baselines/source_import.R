@@ -1,0 +1,48 @@
+args<-commandArgs(TRUE);.libPaths(c(args[[1]],.libPaths()))
+suppressPackageStartupMessages(library(scworkbench))
+root<-args[[2]];stopifnot(!dir.exists(root));dir.create(root,recursive=TRUE)
+path<-'/home/dirk/Projects/.scworkbench-experiments/rc38_axolotl_definitive/source/aztekin_tail_2019_sce.rds'
+rows<-list();census<-new.env(parent=emptyenv());census$source_sha256_calls<-0L
+options(scwb.import.benchmark.census=census)
+trace('wb_source_sha256',where=asNamespace('scworkbench'),print=FALSE,
+  tracer=quote({z<-getOption('scwb.import.benchmark.census');z$source_sha256_calls<-z$source_sha256_calls+1L}))
+measure<-function(phase,code){
+  io<-function(){z<-strsplit(readLines('/proc/self/io'),': *');
+    setNames(vapply(z,function(x)as.numeric(x[2]),0),vapply(z,`[[`,'',1L))}
+  a<-io();p<-proc.time();n<-census$source_sha256_calls;ans<-force(code);p<-proc.time()-p;d<-io()-a
+  rows[[length(rows)+1L]]<<-data.frame(phase=phase,elapsed=p[['elapsed']],
+    user=p[['user.self']],system=p[['sys.self']],rchar=d[['rchar']],wchar=d[['wchar']],
+    read_bytes=d[['read_bytes']],write_bytes=d[['write_bytes']],
+    source_sha256_calls=census$source_sha256_calls-n)
+  print(rows[[length(rows)]],row.names=FALSE)
+  write.csv(do.call(rbind,rows),file.path(root,'timings.csv'),row.names=FALSE)
+  invisible(ans)
+}
+cat('DEFAULT_DENSE_GUARD ',getOption('scworkbench.max_dense_materialize_mb',256),'\n',sep='')
+source<-measure('public_source_input',wb_source_input(path=path,
+  source_id='aztekin_tail_2019_sce_rds',accession='not_supplied',role='source_object',
+  format='rds',scope='external_file'))
+checked<-measure('explicit_source_preflight',wb_source_preflight(list(inputs=list(source))))
+stopifnot(isTRUE(checked$valid),nrow(checked$diagnostics)==0L)
+bundle<-file.path(root,'before-import.bundle')
+b<-measure('source_bundle_import',wb_bundle_from_sce(path,bundle,
+  source_identity=checked$source_identity,created_by='forge_engine_performance_baseline'))
+measure('finalize_close',{
+  wb_finalize_recipient_bundle(b);wb_close_bundle(b)
+})
+measure('readonly_reopen_inspection_close',{
+  b<-wb_open_bundle(bundle,read_only=TRUE)
+  stopifnot('counts'%in%wb_matrices(b)$matrix_id,'UMAP'%in%wb_spaces(b)$space_id,
+    length(wb_cells(b,'all'))==13199L)
+  wb_close_bundle(b)
+})
+report<-measure('recipient_validation_report',wb_bundle_validation_report(bundle,level='recipient'))
+stopifnot(isTRUE(report$ok),identical(report$pre_validation_fingerprint,report$post_validation_fingerprint))
+saveRDS(report,file.path(root,'recipient_validation.rds'),compress=FALSE)
+jsonlite::write_json(list(ok=report$ok,status=report$status,requested_level=report$requested_level,
+  elapsed_seconds=report$elapsed_seconds,source_sha256_calls=census$source_sha256_calls,
+  source_size=file.info(path)$size,source_bytes_hashed=census$source_sha256_calls*file.info(path)$size,
+  pre_validation_fingerprint=report$pre_validation_fingerprint,
+  post_validation_fingerprint=report$post_validation_fingerprint),
+  file.path(root,'completion.json'),pretty=TRUE,auto_unbox=TRUE)
+cat('FRESH_SOURCE_IMPORT_FINALIZE_READONLY_RECIPIENT_OK\n')

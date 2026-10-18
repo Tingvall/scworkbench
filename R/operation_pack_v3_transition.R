@@ -1789,7 +1789,7 @@
   source <- grant$source_reference
   current_state <- .wb_operation_pack_v2_identity_plain(
     "scworkbench.scientific_state.v1",
-    .wb_manifest_registry_snapshot(bundle$con))
+    .wb_operation_pack_registry_snapshot(bundle))
   observed <- .wb_operation_pack_v3_matrix_consumed_identity(bundle,
     source$matrix_id, phase)
   identity <- list(scheme = as.character(
@@ -3418,6 +3418,29 @@
   })
 }
 
+# Only fresh typed-reader blocks use this handoff. Ordinary R atomic values
+# and lists already have copy-on-modify isolation; serializing their numerical
+# arrays adds two block-sized copies without strengthening that isolation.
+# Keep the existing fallback for mutable references or nonordinary objects.
+.wb_operation_pack_v3_deliver_owned_block <- function(value) {
+  plain <- function(x) {
+    if (is.object(x) || isS4(x)) return(FALSE)
+    type <- typeof(x)
+    if (!type %in% c("NULL", "logical", "integer", "double", "complex",
+        "character", "raw", "list")) return(FALSE)
+    if (type == "list" && !all(vapply(x, plain, logical(1)))) return(FALSE)
+    attrs <- attributes(x)
+    is.null(attrs) || all(vapply(attrs, plain, logical(1)))
+  }
+  values <- value$values
+  if (inherits(value, "wb_primitive") &&
+      identical(class(value), "wb_primitive") &&
+      value$kind %in% c("matrix", "space") && is.matrix(values) &&
+      typeof(values) %in% c("double", "integer", "logical") &&
+      plain(unclass(value))) return(value)
+  .wb_operation_pack_v2_deep_copy(value)
+}
+
 .wb_operation_pack_v3_capability_adapter <- function(request, operation,
     inputs, stage_root, bundle = NULL, registry_read_values = list(),
     provenance_read_values = list(), producer_lineage_values = list()) {
@@ -3577,7 +3600,8 @@
         plan <- state$matrix_reader_plans[[name]]
         if (is.null(plan)) {
           plan <- .wb_matrix_stream_reader(bundle,
-            grant$source_reference$matrix_id, grant$chunk_axis)
+            grant$source_reference$matrix_id, grant$chunk_axis,
+            features = allowed_features, cells = allowed_cells)
           state$matrix_reader_plans[[name]] <- plan
         }
         value <- as.matrix(plan$read(features, cells))
@@ -3613,7 +3637,7 @@
       state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
         category = "typed_slice", name = name,
         slice_result_identity = result$slice_result_identity)
-      .wb_operation_pack_v2_deep_copy(value)
+      .wb_operation_pack_v3_deliver_owned_block(value)
     }
   }), vapply(request$typed_slice_grants %||% list(), `[[`, character(1),
     "name"))

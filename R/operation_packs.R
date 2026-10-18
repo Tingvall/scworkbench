@@ -223,6 +223,9 @@
 }
 
 .wb_operation_pack_canonical_json <- function(x) {
+  # A single invocation-local last-name plan. Never reuse encoded values;
+  # nested objects can replace this plan and merely cause a later cache miss.
+  last_key_plan <- NULL
   fast_numeric <- exists("C_scwb_canonical_numeric", inherits = TRUE) &&
     identical(getOption("OutDec", "."), ".") &&
     identical(Sys.localeconv()[["decimal_point"]], ".")
@@ -230,26 +233,87 @@
     if (is.null(value)) return("null")
     if (is.factor(value)) value <- as.character(value)
     if (is.data.frame(value)) {
+      # Ordinary table rows share one key shape. Assemble the SAME canonical
+      # row objects in bounded token batches, not one recursively built R list
+      # per row. Questionable inputs fall back before emitting anything, so the
+      # original row-major typed diagnostics retain precedence.
+      plain <- identical(class(value), "data.frame") && nrow(value) > 0L &&
+        ncol(value) > 0L && !anyNA(names(value)) && !anyDuplicated(names(value)) &&
+        all(vapply(value, function(column) is.null(attributes(column)) &&
+          typeof(column) %in% c("integer", "double", "logical", "character"), logical(1)))
+      keys <- NULL
+      if (plain) {
+        keys <- tryCatch(iconv(names(value), from = "", to = "UTF-8",
+          sub = NA_character_), error = function(e) NULL)
+        plain <- !is.null(keys) && !anyNA(keys) && all(vapply(value,
+          function(column) {
+            if (is.numeric(column)) return(all((is.finite(column) | is.na(column)) &
+              (is.na(column) | column == 0 | abs(column) >= 1e-307)))
+            if (!is.character(column)) return(TRUE)
+            converted <- tryCatch(iconv(column, from = "", to = "UTF-8",
+              sub = NA_character_), error = function(e) NULL)
+            !is.null(converted) && !any(!is.na(column) & is.na(converted))
+          }, logical(1)))
+      }
+      if (plain) {
+        ord <- order(keys, method = "radix")
+        prefixes <- vapply(ord, function(i)
+          paste0(.wb_operation_pack_canonical_string(keys[[i]]), ":"), character(1))
+        batches <- vapply(seq.int(1L, nrow(value), by = 1000L), function(start) {
+          selected <- seq.int(start, min(nrow(value), start + 999L))
+          rows <- rep("", length(selected))
+          for (j in seq_along(ord)) {
+            column <- value[[ord[[j]]]][selected]
+            tokens <- if (is.character(column))
+              .wb_operation_pack_canonical_string_tokens(column) else
+              vapply(seq_along(column), function(i) encode(column[[i]]), character(1))
+            rows <- paste0(rows, if (j == 1L) "" else ",", prefixes[[j]], tokens)
+          }
+          paste(paste0("{", rows, "}"), collapse = ",")
+        }, character(1))
+        return(paste0("[", paste(batches, collapse = ","), "]"))
+      }
       value <- lapply(seq_len(nrow(value)), function(i) as.list(value[i, , drop = FALSE]))
     }
     if (is.atomic(value) && length(value) != 1L) {
+      if (is.character(value) && is.null(attributes(value)))
+        return(.wb_operation_pack_canonical_string_array(value))
       return(paste0("[", paste(vapply(seq_along(value), function(i) encode(value[[i]]), character(1)), collapse = ","), "]"))
     }
     if (is.atomic(value) && length(value) == 1L && is.na(value)) return("null")
     if (is.list(value)) {
       nms <- names(value)
-      if (is.null(nms)) return(paste0("[", paste(vapply(value, encode, character(1)), collapse = ","), "]"))
-      .wb_operation_pack_assert(!anyNA(nms) && !anyDuplicated(nms),
-        "OPERATION_PACK_CANONICAL_OBJECT_INVALID",
-        "Canonical identity objects require unique UTF-8 keys.",
-        class = "wb_operation_pack_identity_error")
-      keys <- iconv(nms, from = "", to = "UTF-8", sub = NA_character_)
-      .wb_operation_pack_assert(!anyNA(keys),
-        "OPERATION_PACK_CANONICAL_STRING_INVALID",
-        "Canonical identity object keys must be valid UTF-8.",
-        class = "wb_operation_pack_identity_error")
-      ord <- order(keys, method = "radix")
-      fields <- vapply(ord, function(i) paste0(.wb_operation_pack_canonical_string(keys[[i]]), ":", encode(value[[i]])), character(1))
+      if (is.null(nms)) {
+        if (length(value) && all(vapply(value, function(item)
+            is.character(item) && length(item) == 1L &&
+              is.null(attributes(item)), logical(1))))
+          return(.wb_operation_pack_canonical_string_array(
+            vapply(value, identity, character(1), USE.NAMES = FALSE)))
+        return(paste0("[", paste(vapply(value, encode, character(1)), collapse = ","), "]"))
+      }
+      encoding <- Encoding(nms)
+      locale <- Sys.getlocale("LC_CTYPE")
+      plan <- last_key_plan
+      if (is.null(plan) || !identical(plan$names, nms) ||
+          !identical(plan$encoding, encoding) || !identical(plan$locale, locale)) {
+        .wb_operation_pack_assert(!anyNA(nms) && !anyDuplicated(nms),
+          "OPERATION_PACK_CANONICAL_OBJECT_INVALID",
+          "Canonical identity objects require unique UTF-8 keys.",
+          class = "wb_operation_pack_identity_error")
+        keys <- iconv(nms, from = "", to = "UTF-8", sub = NA_character_)
+        .wb_operation_pack_assert(!anyNA(keys),
+          "OPERATION_PACK_CANONICAL_STRING_INVALID",
+          "Canonical identity object keys must be valid UTF-8.",
+          class = "wb_operation_pack_identity_error")
+        ord <- order(keys, method = "radix")
+        plan <- list(names = nms, encoding = encoding, locale = locale,
+          order = ord, prefixes = vapply(ord, function(i)
+            paste0(.wb_operation_pack_canonical_string(keys[[i]]), ":"),
+            character(1)))
+        last_key_plan <<- plan
+      }
+      fields <- vapply(seq_along(plan$order), function(i)
+        paste0(plan$prefixes[[i]], encode(value[[plan$order[[i]]]])), character(1))
       return(paste0("{", paste(fields, collapse = ","), "}"))
     }
     if (is.logical(value)) {

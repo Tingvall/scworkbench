@@ -1,0 +1,6 @@
+"case","elapsed","user","system","rchar","wchar","read_bytes","write_bytes"
+"direct_complete_read_compute_write_reopen",0.294,0.287,0.007,3360541,82110,0,94208
+"engine_initialize_import",7.475,7.222,0.188,61025428,2565765,0,2863104
+"engine_read_compute",0,0.000999999999999446,0,22617,0,0,0
+"engine_atomic_promotion",4.075,3.943,0.06,21298768,3259759,4096,3526656
+"engine_finalize_readonly_reopen_load",2.131,2.089,0.024,14994066,1016838,0,1167360

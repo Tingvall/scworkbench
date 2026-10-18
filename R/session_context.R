@@ -388,8 +388,6 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     durable_state <- as.character(session$durable$state %||% "")[1]
     .wb_assert(identical(durable_state, "active"),
                paste0("DURABLE_SESSION_", toupper(durable_state), ": terminal sessions cannot run new operations."))
-    .wb_session_validate_source(session, bundle)
-    .wb_session_validate_payloads(session)
   }
   session_lock <- NULL
   if (!is.null(session$durable)) {
@@ -406,7 +404,6 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     # serialized source connection. Bind the verified source before dispatch.
     if (!is.null(session$staging_bundle))
       session$staging_bundle$staging_source_bundle <- bundle
-    .wb_session_validate_payloads(session)
   }
   op_name <- .wb_operation_name_resolve(op_name)
   op <- .wb_op(op_name)
@@ -485,6 +482,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     }
   }
   .wb_validate_resolved_op_inputs(op_name, resolved)
+  .wb_session_validate_dependencies(session, resolved, parents)
   attr(resolved, "operation_pack_v4_matrix_source_selections") <- matrix_source_selections
 
   # This is the sole operation-runner ownership point for effective cells.

@@ -164,8 +164,24 @@ wb_matrix_read_features <- function(bundle,
 # it or its paths. A feature-partitioned scan gets one row-major scratch index
 # rather than decoding the complete column-major source for every partition.
 # This is a disposable equivalent representation, not a new logical fragment.
-.wb_matrix_stream_reader <- function(bundle, matrix_id, chunk_axis) {
+.wb_matrix_stream_reader <- function(bundle, matrix_id, chunk_axis,
+    features = NULL, cells = NULL) {
   fragments <- wb_matrix_fragments(bundle, matrix_id)
+  selected_features <- if (is.null(features)) NULL else as.character(features)
+  selected_cells <- if (is.null(cells)) NULL else as.character(cells)
+  fragment_features <- lapply(fragments$feature_ids_json, function(ids)
+    as.character(jsonlite::fromJSON(ids)))
+  fragment_cells <- lapply(fragments$cell_ids_json, function(ids)
+    as.character(jsonlite::fromJSON(ids)))
+  validate_selection <- function(selected, axes) {
+    if (is.null(selected)) return(invisible(TRUE))
+    .wb_assert(length(selected) > 0L && !anyNA(selected) &&
+      all(nzchar(selected)) && !anyDuplicated(selected) &&
+      all(selected %in% unlist(axes, use.names = FALSE)),
+      "Matrix reader projection must select unique registered axis identities.")
+  }
+  validate_selection(selected_features, fragment_features)
+  validate_selection(selected_cells, fragment_cells)
   root <- tempfile("scwb_matrix_reader_")
   dir.create(root)
   ready <- FALSE
@@ -173,8 +189,8 @@ wb_matrix_read_features <- function(bundle,
   matrices <- lapply(seq_len(nrow(fragments)), function(i) {
     matrix <- .wb_bp_open_matrix_dir(.wb_bundle_path_require(bundle,
       fragments$path[[i]], expected_type = "directory", purpose = "matrix reader"))
-    features <- as.character(jsonlite::fromJSON(fragments$feature_ids_json[[i]]))
-    cells <- as.character(jsonlite::fromJSON(fragments$cell_ids_json[[i]]))
+    features <- fragment_features[[i]]
+    cells <- fragment_cells[[i]]
     .wb_assert(identical(as.integer(dim(matrix)),
       as.integer(c(length(features), length(cells)))),
       "Physical fragment dimensions differ from its registered axes.")
@@ -187,6 +203,19 @@ wb_matrix_read_features <- function(bundle,
         "Physical fragment cell identities differ from registered coverage.")
       cells <- physical
     }
+    # A lazy BPCells selection precedes the one-time physical index build.
+    # It keeps grant order while excluding unrelated rows/columns from every
+    # later read. No complete selected numerical matrix is materialized in R.
+    if (!is.null(selected_features) || !is.null(selected_cells)) {
+      keep_features <- if (is.null(selected_features)) features else
+        selected_features[selected_features %in% features]
+      keep_cells <- if (is.null(selected_cells)) cells else
+        selected_cells[selected_cells %in% cells]
+      if (!length(keep_features) || !length(keep_cells)) return(NULL)
+      matrix <- matrix[match(keep_features, features),
+        match(keep_cells, cells), drop = FALSE]
+      features <- keep_features; cells <- keep_cells
+    }
     if (identical(chunk_axis, "features") &&
         identical(BPCells::storage_order(matrix), "col"))
       matrix <- BPCells::transpose_storage_order(matrix,
@@ -194,7 +223,11 @@ wb_matrix_read_features <- function(bundle,
         load_bytes = 4194304L, sort_bytes = 67108864L)
     list(matrix = matrix, features = features, cells = cells)
   })
+  matrices <- Filter(Negate(is.null), matrices)
   read <- function(features, cells) {
+    .wb_assert((is.null(selected_features) || all(features %in% selected_features)) &&
+      (is.null(selected_cells) || all(cells %in% selected_cells)),
+      "Requested matrix block is outside its selected reader projection.")
     out <- NULL
     for (source in matrices) {
       ri <- match(features, source$features)

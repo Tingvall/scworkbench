@@ -1,0 +1,25 @@
+args<-commandArgs(TRUE);.libPaths(c(args[[1]],.libPaths()))
+suppressPackageStartupMessages({library(scworkbench);library(SingleCellExperiment)})
+root<-args[[2]];stopifnot(!dir.exists(root));dir.create(root,recursive=TRUE)
+set.seed(8L);cells<-paste0('synthetic_cell_',seq_len(1000L));features<-paste0('gene_',seq_len(500L))
+counts<-Matrix::rsparsematrix(500L,1000L,density=.1)
+counts@x<-as.numeric(abs(round(counts@x*10)));dimnames(counts)<-list(features,cells)
+sce<-SingleCellExperiment(list(counts=counts))
+for(i in seq_len(8L))colData(sce)[[paste0('field_',i)]]<-rep(paste0('group_',seq_len(10L)),length.out=1000L)
+colData(sce)$numeric_score<-rnorm(1000L)
+reducedDim(sce,'UMAP')<-matrix(rnorm(2000L),1000L,dimnames=list(cells,c('x','y')))
+source<-file.path(root,'synthetic.rds');saveRDS(sce,source,compress=FALSE)
+identity<-wb_source_preflight(list(inputs=list(wb_source_input(path=source,
+  source_id='synthetic_profile',accession='not_supplied',role='source_object',
+  format='rds',scope='external_file'))))$source_identity
+Rprof(file.path(root,'import.Rprof'),interval=.01)
+t<-proc.time()
+b<-wb_bundle_from_sce(source,file.path(root,'synthetic.bundle'),source_identity=identity)
+t<-proc.time()-t;Rprof(NULL)
+prof<-summaryRprof(file.path(root,'import.Rprof'))
+write.csv(prof$by.self,file.path(root,'by_self.csv'))
+write.csv(prof$by.total,file.path(root,'by_total.csv'))
+print(head(prof$by.self,25L));print(head(prof$by.total,40L))
+wb_close_bundle(b)
+cat('SYNTHETIC_SOURCE_IMPORT_PROFILE_OK elapsed=',t[['elapsed']],
+  ' sampled=',prof$sampling.time,' seconds\n',sep='')

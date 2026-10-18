@@ -273,7 +273,7 @@
       state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
         category = "typed_space", name = name,
         space_result_identity = result$space_result_identity)
-      .wb_operation_pack_v2_deep_copy(value)
+      .wb_operation_pack_v3_deliver_owned_block(value)
     }
   }), vapply(grants, `[[`, character(1), "name"))
   adapter$readers <- c(adapter$readers, readers)

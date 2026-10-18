@@ -29,6 +29,17 @@ proper compatible pack, source/parameters/runtime. Retained-output inspection
 does not. Installation, entry points, tests and model deserialization execute
 trusted code; checksums are not a sandbox.
 
+Ordinary execution verifies the selected dependencies, not every unrelated
+historical output. Recovery and selected promotion still verify their complete
+required closures. Fresh ordinary RDS outputs retain final-byte verification
+while avoiding duplicate semantic decoding only when the native writer has
+sealed the complete payload and no special manifest or registry mutation is
+involved. Eligibility is per output; special outputs in a mixed native-R
+transition retain their deep checks and complete receipt/seal closure still
+runs. Source associations, alignment, receipts and atomic rollback remain
+core responsibilities; SQLite counters and file observations are not payload
+content authority.
+
 Run `scripts/tutorial.R` with an installed scworkbench from any directory.
 The script scaffolds, checks, installs into an isolated library, proves inert
 namespace loading, validates then explicitly loads, inspects the interface,
@@ -67,8 +78,14 @@ not repeated whole-file hashes. An enduring source change rejects and rolls
 back publication. A transient in-process mutation restored before final
 authentication is **not guaranteed to be detected**. This approved trust model
 is not a sandbox against malicious R code or concurrent host writers. Python's
-supervised broker retains its existing per-read authentication policy. Alignment,
-source provenance, receipt verification and atomic publication remain enforced.
+non-mixed typed-matrix broker uses the same boundary-authentication model, with
+independent response/acknowledgement validation. Private Matrix Market inputs
+still parse as a whole at startup, then use an aggregate-budgeted cache or owned
+temporary double-valued BPCells spill. Requests mixing graph grants and typed
+matrix reads retain their previous per-read authentication/delivery path; no
+mixed graph/spill peak guarantee or throughput improvement is claimed.
+Alignment, source provenance, receipt verification and atomic publication remain
+enforced.
 
 Declare required outputs, allocation keys, dimension policies and complete
 promotion closures. Writer calls use fixed methods plus declared output names,

@@ -1,0 +1,5 @@
+"mode","n","elapsed","per_call"
+"repaired",50,5.756,0.11512
+"source_patch_cold",1,0.174,0.174
+"source_patch_repeated",50,0.252,0.00504
+"source_patch_explicit_full",50,6.123,0.12246

@@ -159,7 +159,7 @@
     vapply(request$inputs, `[[`, character(1), "name"))
   current_state <- .wb_operation_pack_v2_identity_plain(
     "scworkbench.scientific_state.v1",
-    .wb_manifest_registry_snapshot(bundle$con))
+    .wb_operation_pack_registry_snapshot(bundle))
   for (i in seq_along(grants)) {
     grant <- grants[[i]]
     if (!identical(current_state, grant$source_state_identity))
