@@ -119,6 +119,15 @@
   )
 }
 
+.wb_space_payload_coordinate_tiles <- function(meta) {
+  limit <- as.double(getOption("scworkbench.max_dense_materialize_mb",256))*1024^2
+  .wb_assert(is.finite(limit) && limit > 8*1024^2 + 32*meta$n_dims,
+    "Dense-space validation metadata exceeds the configured memory guard.")
+  elements <- max(1L,floor(min(limit-8*1024^2-32*meta$n_dims,32*1024^2)/64))
+  rows <- max(1L,min(meta$chunk_rows,512L,elements))
+  list(rows=rows,dimensions=max(1L,min(meta$n_dims,floor(elements/rows))))
+}
+
 .wb_space_payload_validate_file <- function(path, expected = NULL, verify_hash = FALSE,
                                             validate_values = FALSE, .meta = NULL) {
   .wb_assert(file.exists(path) && !dir.exists(path),
@@ -138,12 +147,15 @@
   .wb_assert(identical(meta$dtype, "float64") && meta$endianness %in% c("little", "big"),
              "SPACE_PAYLOAD_NUMERIC_CONTRACT_INVALID: dtype or endianness is unsupported.")
   if (isTRUE(validate_values)) {
-    chunk <- max(1L, meta$chunk_rows)
-    for (start in seq.int(1L, meta$n_cells, by = chunk)) {
-      rows <- start:min(meta$n_cells, start + chunk - 1L)
-      values <- rhdf5::h5read(path, "coordinates", index = list(rows, seq_len(meta$n_dims)))
-      .wb_assert(!anyNA(values) && all(is.finite(values)),
-                 "SPACE_PAYLOAD_VALUES_INVALID: coordinate payload contains non-finite values.")
+    tiles <- .wb_space_payload_coordinate_tiles(meta)
+    for (start in seq.int(1L, meta$n_cells, by = tiles$rows)) {
+      rows <- start:min(meta$n_cells, start + tiles$rows - 1L)
+      for (column_start in seq.int(1L,meta$n_dims,by=tiles$dimensions)) {
+        columns <- column_start:min(meta$n_dims,column_start+tiles$dimensions-1L)
+        values <- rhdf5::h5read(path, "coordinates", index = list(rows, columns))
+        .wb_assert(!anyNA(values) && all(is.finite(values)),
+                   "SPACE_PAYLOAD_VALUES_INVALID: coordinate payload contains non-finite values.")
+      }
     }
   }
   sha <- if (isTRUE(verify_hash)) .wb_prov_sha256_file(path) else NA_character_
@@ -563,12 +575,8 @@
                                           verify_hash = verify_hash, validate_values = FALSE)
   # Validation still inspects every coordinate, but neither a very wide row
   # nor the producer's row chunk determines an unbounded temporary decode.
-  limit <- as.double(getOption("scworkbench.max_dense_materialize_mb",256))*1024^2
-  .wb_assert(is.finite(limit) && limit > 8*1024^2 + 32*meta$n_dims,
-    "Dense-space summary metadata exceeds the configured memory guard.")
-  elements <- max(1L,floor((min(limit-8*1024^2-32*meta$n_dims,32*1024^2))/64))
-  row_chunk <- max(1L,min(meta$chunk_rows,512L,elements))
-  dim_chunk <- max(1L,min(meta$n_dims,floor(elements/row_chunk)))
+  tiles <- .wb_space_payload_coordinate_tiles(meta)
+  row_chunk <- tiles$rows; dim_chunk <- tiles$dimensions
   lower <- rep(Inf, meta$n_dims); upper <- rep(-Inf, meta$n_dims); finite <- TRUE
   for (start in seq.int(1L, meta$n_cells, by = row_chunk)) {
     rows <- start:min(meta$n_cells, start + row_chunk - 1L)

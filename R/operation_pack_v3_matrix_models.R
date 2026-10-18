@@ -140,7 +140,7 @@
     release_memory <- if (!is.null(.plan)) .plan$hold_memory(live) else function() NULL
     # Own the reservation through deep validation and the durable comparison.
     # Finally releases it on every throw; only compact observations escape.
-    candidate <- tryCatch({
+    candidate <- tryCatch(local({
     result <- .wb_operation_pack_v2_record_validate(path,
       load_payloads = TRUE, graph_connections = .wb_graph_bundle_connections(bundle),
       .retain_payloads=vapply(spaces,`[[`,character(1),"name"))
@@ -149,7 +149,8 @@
         "Bound model receipt payload closure is invalid.","resolution")
     bound <- bindings$output_name[bindings$run_id ==
       as.character(result$request$transition$run_id %||% "")[1]]
-    if (length(bound) != 1L) next
+    if (length(bound) != 1L) .wb_operation_pack_v3_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH","Model run/output binding is ambiguous.","resolution")
     outputs <- result$receipt$outputs %||% list()
     model <- Filter(function(x) identical(x$name, bound) &&
       !is.null(x$descriptor$contained_matrix_model_sibling_tree), outputs)
@@ -169,7 +170,7 @@
       }
       list(path=path,receipt=result$receipt,model=model[[1L]],actual=actual)
     }
-    },finally=release_memory())
+    }),finally=release_memory())
     if (!is.null(candidate)) matches[[length(matches)+1L]] <- candidate
   }
   if (length(matches) != 1L) .wb_operation_pack_v3_error(

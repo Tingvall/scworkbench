@@ -509,6 +509,8 @@
       .wb_operation_pack_v3_matrix_model_fitted_space_recheck(bundle,
         artifact_id, linkage, .plan=fitted_plan)
       fitted_plan$close()
+      owned_plans[[length(owned_plans)]] <- NULL
+      fitted_plan <- NULL
     } else if (derived_fitted) {
       fitted_space <- .wb_operation_pack_v3_dfa_reopen(bundle, model, linkage,
         source_tree_for_linkage$root)
@@ -517,6 +519,7 @@
       plan <- .wb_space_payload_reader(bundle,linkage$source_space_id)
       checked <- tryCatch(list(content=.wb_operation_pack_v3_phase5_primitive_identity(
         bundle,source,.plan=plan),cells=plan$cells),finally=plan$close())
+      plan <- NULL
       durable_content <- checked$content
       observed_cells <- .wb_operation_pack_v2_identity_plain(
         "scworkbench.cell_order.v1", unname(as.list(checked$cells)))

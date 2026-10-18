@@ -58,9 +58,14 @@ test_engine_space_summary_wide_tiling_contract <- function() {
     identical(summary$cells,cells),length(observations$widths)>1L,
     max(observations$widths)<ncol(values))
   path <- .wb_space_payload_path(b,summary$registry)
+  .wb_space_payload_validate_file(path,summary$registry,validate_values=TRUE)
+  stopifnot(max(observations$widths)<ncol(values))
   rhdf5::h5write(NA_real_,path,"coordinates",index=list(1L,4097L))
   changed <- .wb_space_payload_summary(b,"source",verify_hash=FALSE)
   stopifnot(!changed$finite,is.na(changed$nondegenerate))
+  error <- tryCatch(.wb_space_payload_validate_file(path,summary$registry,
+    validate_values=TRUE),error=identity)
+  stopifnot(inherits(error,"error"),grepl("SPACE_PAYLOAD_VALUES_INVALID",conditionMessage(error)))
   TRUE
 }
 
@@ -123,5 +128,42 @@ test_engine_space_retained_template_preimage_oracle_contract <- function() {
     expected <- digest::digest(oracle(unclass(primitive)),algo="sha256",serialize=FALSE)
     stopifnot(identical(.wb_operation_pack_v2_retained_space_content_sha(primitive),expected))
   }
+  TRUE
+}
+
+test_engine_space_template_refund_lifetime_contract <- function() {
+  fixture <- new.env(parent=environment())
+  sys.source("tests/test_operation_pack_v3_matrix_model_boundary_contract.R",fixture)
+  state <- fixture$.wb_phase6_matrix_fixture();fit <- NULL
+  on.exit({if (!is.null(fit)) try(wb_session_discard(fit$session),silent=TRUE)
+    fixture$.wb_phase6_matrix_cleanup(state)},add=TRUE)
+  fit <- wb_session_run_op(wb_session_new(),state$bundle,
+    "scwbv3matrixmodel::fit_matrix_model",inputs=list(matrix="ATAC",n_latent=2L,
+      chunk_size=2L,cell_set="all",min_cells=1L))
+  promoted <- wb_session_promote_current(state$bundle,fit$session,
+    outputs=c("model","summary"),created_by="lifetime-contract")
+  id <- promoted$promoted$artifact_id[promoted$promoted$output=="model"][[1L]]
+  fit$session <- wb_session_discard(fit$session)
+  model <- wb_art_load(state$bundle,id,expected_kind="model_ref")
+  plan <- .wb_space_payload_reader(state$bundle,model$model_space_id)
+  on.exit(plan$close(),add=TRUE)
+  available <- plan$block_elements();observed <- 0L
+  wrapper <- plan
+  wrapper$hold_memory <- function(bytes) {
+    restore <- plan$hold_memory(bytes)
+    function() tryCatch({
+      found <- FALSE
+      for (frame in sys.frames()) if (exists("artifact_id",frame,inherits=FALSE) &&
+          exists("matches",frame,inherits=FALSE)) {
+        found <- TRUE
+        stopifnot(!exists("result",frame,inherits=FALSE),
+          !exists("staged",frame,inherits=FALSE))
+      }
+      stopifnot(found);observed <<- observed+1L
+    },finally=restore())
+  }
+  .wb_operation_pack_v3_matrix_model_fitted_space_recheck(state$bundle,id,
+    model$model_linkage,.plan=wrapper)
+  stopifnot(observed==1L,identical(plan$block_elements(),available))
   TRUE
 }

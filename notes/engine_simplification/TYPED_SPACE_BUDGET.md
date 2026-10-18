@@ -47,7 +47,8 @@ The template's own identity and the independent durable fitted-value envelope
 are both recomputed, with the unchanged column-major canonical preimage.
 
 Meaningful summary/replay finite and nondegeneracy checks still visit every
-coordinate, now in row-and-dimension tiles. Their pre-existing registry/HDF axis
+coordinate, now in row-and-dimension tiles. The shared native writer and
+recipient/deep finite validator use the same coordinate tile admission. Their pre-existing registry/HDF axis
 metadata loading remains materialized; coordinate tiling does not establish a
 new all-metadata admission contract for deep summary validation. The phase5 identity-only caller no
 longer computes unused extrema/finite fields it previously did not enforce.
@@ -63,6 +64,13 @@ and logical/payload dimension agreement are independently validated.
 These changes and the 256-byte scientific-element ledger are source-informed
 budgets, not a hard RSS claim across R/HDF5 versions. Final performance remains
 unmeasured until the coordinator runs the frozen combined candidate.
+
+Template observations live in a true per-candidate local scope and only compact
+identity evidence leaves that scope. A shared getter-plan memory hold charges
+the retained paired template plus any next decode/serialization while active;
+its finally release cannot leave full result/template locals in the enclosing
+candidate loop. Closed model plans are removed from cleanup ownership
+immediately, not left as refunded but retained closure/axis objects.
 
 ## Implemented scope and resource ledger
 
