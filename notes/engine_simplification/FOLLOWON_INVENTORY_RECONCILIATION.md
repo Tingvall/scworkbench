@@ -1,20 +1,97 @@
-# Follow-on integrity-cost inventory: source checkpoint, not final acceptance
+# Follow-on integrity-cost inventory: assembled source, acceptance still pending
 
-Runtime source inspected: `37c6b945df6c917bff4ec3f81f6dbe43b985808f`;
-ownership-only descendant `34215271e109345a16765fa10a589b7fdd697f59` has
-identical R/src. This is a source checkpoint, not pending measurements relabeled
-as qualification.
 This documentation-only child preserves the historical
 [terminal242 inventory](INVENTORY_RECONCILIATION_CURRENT.md) and CSV unchanged.
 [The new CSV](FOLLOWON_INVENTORY_RECONCILIATION.csv) retains all original IDs
 01–36 exactly once and their original field names; every row records prevented
 failure, authority, frequency/data, disposition, implementation, real source
-file anchors, coverage, evidence and limitations. Additional columns pin this
-source and explicitly mark its combined qualification **UNMEASURED**.
+file anchors, coverage, evidence and limitations. Additional columns pin assembled53f1 and distinguish inherited historical392,
+later scoped components and PENDING combined qualification. No component gain
+waives the historical terminal failed wrapper or whole-engine budget misses.
 Inherited implementation/measurement records remain labeled historical242;
 they are not measurements of this assembled follow-on source.
 
-## What changed after the terminal242 checkpoint
+## Assembled53f1: later scoped evidence, not engine acceptance
+
+Assembled runtime source `53f1ea8708112b8d07ba6f7e00f6b3a60af4f38b`;
+ownership-only descendant `8240d671dbf08999e8072723716736fec0aaae03`
+has identical R/src. Current discovery555 tests/222files is **discovery only**.
+The new combined69-test execution is **PENDING at this documentation checkpoint**;
+no current combined pass or new full Xenopus duration is claimed. The optional
+bounded-space row-encoding experiment a4331e9 is not part of this inventory.
+Every historical392/242 result below remains attached to its actual source.
+
+- [Spill classification](SPILL_PATH_CLASSIFICATION_MEASUREMENT.md): original22
+  was21PASS/1FAIL; corrected22/22 passed after a same-fixture cold/warm premise
+  diagnosis. Native readlink first target/second charge stay exact; only a third
+  scalar replaces repeated byte-prefix predicates. Actual inode observations,
+  deduplication, admission and old two-field fallback remain. Component17gates:
+  16zero/comparison1 solely for unchanged whole-lifecycle+3s MISS. Classifier
+  2.046→.074s passes5x; public ABI4 run21.306→19.055s passes10%; whole lifecycle
+  45.096→42.116s is only6.608% lower and every extra+3s target still MISSES.
+- [Bounded matrix axes](MATRIX_AXIS_BATCH_SOURCE_REVIEW.md) and
+  [native decoding](NATIVE_AXIS_STRING_DECODE_MEASUREMENT.md): existing source
+  selection, SQL left affinity/collation/order/first missing, logical coverage,
+  native byte observer and final checks remain. Admitted <=128 ordinal batches
+  replace scalar membership queries; no new identity. Original axis focus24/26
+  and FD/env premise corrections remain raw. Token initial34/35 remains raw;
+  exact runtime corrections move attribute exclusions BEFORE generic methods,
+  with explicit classed-policy side-effect oracles. No ffc performance was run.
+  Corrected c826 focused35/35 passed; combined hashes passed3.82x but physical
+  1.577→.857s MISSED2x.
+  Later exactf16 focused40/40 passed (29 expanded DBI warnings retained).
+  Fresh old2c/middlec826/newf16 triplet: physical1.606/.857/.712s passes2x old
+  and15% middle, including unchanged fixed.72845s ceiling; hashes.945→.265s
+  pass2x; membership2128→76 passes90%; maxRSS610304→615944KiB passes10%.
+  All23gates and14actual processes exit0. New helper census has0 versus saved
+  historical5320 general parses over5verifies, unchanged counter/resource
+  admissions; saved helper evidence is not falsely relabeled newly executed.
+  Escapes still use old strict parser; public parser/schema/Csrc unchanged.
+- [Append-local value tokens](MATRIX_NUMBER_TOKEN_REUSE_MEASUREMENT.md): real
+  normalized31535×256 identity.371→.178s and ×512 .685→.297s pass25%;
+  unique noninteger.358→.371s passesold*1.10+.01; RSS524900→525252KiB passes10%.
+  Development-only formatter count4096→1 for repeats,4096→4096 unique/collision,
+ 0→0 integer proves actual local reuse without production telemetry. Every
+  actual value/finite check remains; no scientific-data or authentication cache.
+- [Empty capsule recovery](EMPTY_CAPSULE_RECOVERY_MEASUREMENT.md): raw original
+ 10executed5PASS5FAIL/two cleanup warnings, corrected5retry4PASS1FAIL, then
+  corrected5/5PASS are distinct runs, not a manufactured fresh10/10. Default
+  fixture now publicly reopens without initializer assembly ownership; assembly
+  token/depth/TX preservation is separately asserted. Retry uses authorized
+  public writable reopen, never forbidden direct refresh. All24matched trials
+  exit0. Original comparator1 diagnosed only inherited payload DF row labels;
+  all24 ordered11-leaf path/size/SHA vectors/SQL/identities proved exact before
+  derivative posthoc0. No retiming or original rewrite. Publicopen.928→.608s,
+  privateempty.350→.003s pass fixed/fresh20%/90% and RSS10%; actual builders/
+  publishers2/2→1/1 and1/1→0/0. Full fresh inventory/containment/orphan checks
+  remain; actual deletions INCLUDING empty.pending still force publication.
+  CallerTX retains original generic route. Expected manifest-changing routes
+  are not called full-filesystem pure.
+- [Verified backup continuity](BACKUP_A064_COMPONENT_MEASURED.md): original
+  attempt19discovered/0executed failed; actual19executed17PASS2FAIL retained;
+  corrected5/5 new tests plus14 previously passing tests are not a fresh19 run.
+  Only original actual source observation may survive a successful ordinary
+  core-owned read-only backup with exact valid source/owner/epoch/noTX/nohook;
+  no destination/schema/publication/graph witness is transferred. Full forgetting
+  still occurs first; errors/hooks/unknowns remain conservative. Existing
+  three-counter trusted-R source model is not a new all-schema/hostile-write
+  authority. Publiccreate1.552→1.313s and observedcycle1.868→1.635s pass both
+  fixed/fresh10% and RSS10%; source snapshots2→1, stage snapshots2→2; all14gates
+  and actual source/stage/physical identity proofs pass.
+
+The c826 typed-space diagnostic is attribution, not a new budget median:
+9.69sampled seconds includes canonicalJSON1.98, envelope1.31, reader factories
+1.27 and record validation.88 inclusive seconds (overlap; do not add).
+Actual census has3fileSHA helpers,3reader factories,1semantic and1envelope
+construction,60bounded reads. This does not establish redundant G2 hashes or
+a5s pass. Native-HDF authority remains issuance plus fresh independent
+predispatch/prepublication checks. Ordinary/materialized transport remains
+distinct. Graph fresh-stage handoff is still **NOT implemented/resource HOLD**:
+retaining stages across ordinary/model/RDS validation needs aggregate live
+admission and complete post-hook closure checks. No removed guard is inferred
+from a measured component gain.
+
+## Earlier changes after terminal242 (historical392 source)
 
 - **Manifest snapshots:** 5b increases admitted scalar batches without changing
   the full5000-row fold, schema/type promotion, sanitization, canonical bytes,
@@ -68,8 +145,10 @@ they are not measurements of this assembled follow-on source.
   keyed by every double bit. The actual value and finite check still occur
   before lookup; full-key collisions replace, integer coordinate path and
   formatter remain unchanged. No scientific data or authority cache survives
-  append. Independent complete-byte/error source oracles exist; the current
-  combined installation and matched budgets are pending, not claimed passed.
+  append. Independent complete-byte/error source oracles and current selected
+  focused qualification are retained. This does not claim a new numerical
+  budget for every numeric input, backend or shape. Historical numeric-list
+  and dataframe10x component misses remain unwaived.
 - **Scoped SQL binding:** [the shared append helper](../../R/promote_primitives.R)
   uses <=1000-row admitted ordinary batches only for exactDBI1.2.3 and
   RSQLite2.3.7; integer64 additionally requires exactbit64 4.0.5, sole exactclass
@@ -80,7 +159,9 @@ they are not measurements of this assembled follow-on source.
   Development plain-prototype50kfamily+50ktable promotion38.330→33.789s is one
   instrumented comparison, **not** the25% median budget pass; the family still
   made50000 length-one binds before the new integer64 follow-through. Exact
-  current integer64 runtime and promotion measurements remain pending.
+  integer64 correctness was verified in the corrected12/12 combined focused
+  gate. The later matched component after the row-key optimization below
+  closes the original promotion target; the earlier23.14% MISS is retained.
 - **Ordinary table assembly:** [the getter](../../R/artifacts.R) keeps every
   original JSON parse and NULL normalization, including parser error precedence.
   Only ordinary scalar consistently ordered unique syntactic keys use typed
@@ -89,15 +170,35 @@ they are not measurements of this assembled follow-on source.
   already-parsed as.data.frame/rbind route without a second parser. TypedNA
   normalization, metadata, table.v2 and stream.v1 retain literalold oracles.
   The input parsed rows and returned table remain a **materialized table API**,
-  not a universal bounded whole-table getter. Source accepted, four new focused
-  definitions and>=5x/RSS+10% qualification are pending at this checkpoint.
+  not a universal bounded whole-table getter. All four new tests passed in the
+  corrected12/12 focused gate; matched complete getter gained6.274x with RSS
+  within+10%. Original failed comparison and its diagnosis are retained below.
+- **Character row-key typed framing:** private
+  `R/provenance_json.R:.wb_object_row_key_tokens_template` applies only to
+  ordinary character keys, n>1, <=4fields, exactR4.4.1/jsonlite1.8.8. One actual
+  original serializeJSON typed-list template defines framing. Markers are unique
+  across names metadata too; untouched spans are split BEFORE actual values
+  are inserted. Both passes require unknown encoding and strict byte-oriented
+  absolute anchors for the narrow unescaped alphabet. Unsupported/late invalid
+  inputs fall back WHOLE to the original serializer; singleton route unchanged.
+  Complete returned token payload/vector plus metadata/copy margin and <=1000row
+  scratch are admitted before paste. No encoder, scheme, source authority,
+  persistent cache or scientific parameter changes. Actual matched medians:
+  row tokens17.825→0.095s (187.63x, PASS10x); pure family getter20.776→2.610s
+  (7.96x, PASS50%); public promotion37.594→9.996s (PASS25%, original maximum
+  allowed28.1955s). Matched RSS passed+10%. These are component measurements,
+  not a full workflow duration. Rejected32d newline-anchor source was corrected
+  BEFORE any installation/execution; corrected3009 was qualified separately.
 
 ### Explicit remaining space/graph boundaries
 
-Actual a726 native typed-space component8/32partitions took10.320/10.761s,
-each with three sourceSHA passes and729772KiB peakRSS; identities match between
-partition schedules. Source scans are not multiplied by partitions, but the
-5s target is **MISS**, not waived or an engine-wide performance pass.
+Earlier a726 native typed-space component8/32partitions took10.320/10.761s;
+that5s MISS remains historical component evidence. Fresh final392 measurements
+are10.482/10.921s with three sourceSHA passes for EACH partition schedule and
+724696KiB peakRSS. Semantic and envelope identities match the independent
+original oracle exactly (gate11 exit0). The5s target remains **MISS** (gate10
+exit1); partition count does not multiply full-source authentication. Correctness
+and constant scan counts do NOT waive practical runtime failure.
 
 Graph ABI4 fresh output record validation imports/discards the just-emitted
 NDJSON stage and output materialization imports it again. The proposed private
@@ -107,6 +208,17 @@ closure checks. It needs aggregate live-cache admission, one owned cleanup
 list installed before fault hooks, fresh actual file checks after both reopened
 hooks, and transfer only after the complete outer closure. The public primitive
 graph component is not evidence of ABI4 handoff performance or correctness.
+
+The separate fresh public ABI4 component is now TERMINAL supervisor0: plain and
+census executions completed lifecycle and filesystem purity, but extra44.563s
+is **MISS3s**. That successful scientific/lifecycle exit is not a passed runtime
+budget. Fresh native graph measured20.280s versus direct2.240s, extra18.040s
+**MISS3s**; fresh mixed primitives measured7.497s versus direct0.439s,
+extra7.058s **MISS2s**. These direct services are unmatched engine services and
+none of these synthetic components dispatches a scientific operation. Do not
+present these comparisons as a matched scientific method benchmark. The ABI4
+duplicate-import handoff remains NOT implemented/resource HOLD. A bounded
+attribution profile is PREPARED for later execution, not run as part of review.
 
 ## Deliberately excluded experiments
 
@@ -119,8 +231,32 @@ is not integrated. Fad and later dd/c161 alternatives remain isolated. The
 original dd16/17 failure is retained; corrected c161 passed17/17 but gained
 only6.59%, **MISS25%**, and actual whole5000-row membership admission still
 failed its unchanged8P resource ceiling. The positive toy does not prove
-production whole-chunk adoption. These are **not part of runtime37c6** or
+production whole-chunk adoption. These are **not part of runtime3009 or assembled53f1** or
 accepted optimizations. No proposed/measured experiment is silently counted.
+
+## Retained comparator failures and exact corrections
+
+The initial SQL/table component classified different default
+digest(unclass(got)) values as a comparison failure. Raw logs and exit1 remain.
+Independent diagnosis proved the only binary R serialization differences were
+three internal gp.GROWABLE capacity flags in grown versus preallocated vectors,
+using the primary R4.4.1 representation. Ordered attributes, column types, raw
+numeric bits, typed serializeJSON and scientific content identities matched.
+The corrected comparator binds the EXACT independently diagnosed pair and
+checks the original input, every ordered scientific value and content identity,
+actual SQL state and all source file SHA inventories. It is not an arbitrary
+raw-hash exception, capacity-bit rewrite or a waiver of a content mismatch.
+The original failed gate is never relabeled as passed.
+
+The corrected12-test fixture retry also remains distinct from original10/12:
+a named integer64 fixture had its names removed by $<-.data.frame before it
+reached the helper, so it was valid supported input rather than fallback.
+The corrected fixture verifies the unsupported names actually exist. The table
+fixture now independently folds actual stored header/row JSON and compares the
+original primitive identity. Historical numeric NA serialization as string"NA"
+can make a reloaded mixed column character; the old stored-versus-reencoded
+identity difference is explicitly asserted, not repaired, suppressed or rewritten.
+Separate old/new loaded primitive identities and table.v2 values remain exact.
 
 ## Measurements versus behavior versus source inspection
 
@@ -130,32 +266,64 @@ Raw roots are under `/tmp/scwb-engine-simplification-forge-20261018`:
 `recipient_3066`, `recipient_a8c`, `recipient_file_repair_18ec`,
 `initializer_1ce748d_qualification`, `initializer_1ce748d_measurement_retry`,
 `initializer_1ce748d_measurement_retry2`, `outermost_0e4302_qualification`,
-`outermost_0e4302_qualification_retry`, `manifest_ascii_measurement`.
+`outermost_0e4302_qualification_retry`, `manifest_ascii_measurement`,
+`combined_sql_table_b966_measurement`,
+`combined_sql_table_b966_diagnosed_continuation`, `family_getter_b966_attribution`,
+`row_tokens_family_3922292_measurement`. The terminal
+`final_3922292_measurements` contains completed scientific workflow evidence,
+though its wrapper disposition is exit1 for a separate typed-space budget MISS.
 Each named component preserves original commands/logs/numeric sidecars,
 source/install/harness identities and its actual comparison scope. See the
 component notes in this directory for caveats about cold load, OS-cache order,
 instrumented census versus uninstrumented timing and retained warnings.
 No component gains are added to infer a new full-workflow duration.
 
-The terminal242 workflow remains769.22s versus direct85.48s; the original
-171.124s target is **MISS598.096s**. That successful correctness checkpoint
-includes import→recipient, exact original PCA/UMAP/full normalization,
-104-block raw alignment and filesystem purity, but is not an overall
-performance acceptance. Neither it nor failed wrong-reference ba351 is rerun or
-reclassified here. The new combined source has not yet executed its affected
-workflow. Native RDS, ordinary Python transport, legacy paths, optional
-registry variants, all scientific methods/backends and large history/overwrite
-paths are not newly measured or universally bounded by these component results.
+## Historical392 final wrapper: terminal failure, science gates passed
 
-Current ownership discovery is520 tests/215 files, **discovery only**;
-the four new table definitions and five SQL definitions do not imply runtime
-qualification. The original frozen242/139 inventory and63 reference rows are
-unchanged. Current combined install/qualification and measurements are pending.
-The original full core result remains382 executed/370 passed/3 skipped/9 failed,
-exit1. Later focused groups overlap and are not summed into a new full suite.
-PyBench0ef remains751 passed/7 skips; Python-only formatting passes, while the
-unchanged global Markdown formatting gate remains failed. No new complete
-core/Python suite was run for this documentation.
+Sixteen retained numeric gate sidecars account for15 exits0 and one exit1.
+Gate10 is the sole unwaived typed-space budget failure; gate11 independent
+semantic/envelope oracle passed. The wrapper process completion itself was
+observed through execution session65413, chunk57be5a, exit1. Its overall.exit
+and provenanceJSON are explicitly **agent-attested from observed completion**,
+not falsely presented as an independently outer-logged gate sidecar.
+
+Fresh full Xenopus gate08 exit0 completed import→normalisation→HVG→PCA→UMAP→
+promotion→finalize→read-only reopen→recipient validation in462.58s, with peakRSS
+4985216KiB and normal256MiB guard. All original scientific comparisons and
+recipient before/after filesystem identities matched. Raw alignment gate09
+exit0 compared all104 blocks exactly in24.238s, with full filesystem purity.
+These successes do not turn the wrapper's typed-space exit1 into acceptance.
+
+The original complete-workflow budget171.124s is STILL **MISS291.456s**.
+Historical terminal242 was769.22s versus historical direct85.48s. Current462.58s
+is39.863% faster than that historical engine checkpoint, but this is NOT a
+matched repaired-baseline end-to-end rerun; do not present it as one. The
+historical direct value and original cap remain unchanged. Wrong-reference
+ba351 and every earlier failed/raw comparator record stay closed and retained.
+Component gains are not summed to explain the current measured duration.
+
+Native RDS, ordinary Python transport, legacy/optional registry paths, all
+scientific methods/backends and large history/overwrite routes are not thereby
+universally measured or bounded. The terminal final public ABI4 graph component
+remains separate from older public-primitive graph component measurements and
+retains its44.563s unwaived overhead miss.
+
+Historical392 ownership discovery was524 tests/216 files, **discovery only**;
+assembled53f1 discovery is555/222, also not a suite result.
+Frozen242/139 and63 reference rows remain unchanged. Reported installed focused
+groups68/68 and19/19 passed; do NOT add overlapping groups to manufacture a full
+new suite. The original full core result remains382 executed/370 passed/
+3 skipped/9 failed, exit1. Historical PyBench0ef remains751 passed/7 named skips.
+No new complete core/Python suite was run here. Sable independently ran four
+probes ONCE,39 assertions, all numeric exits0 (script8a93b889, DLL42120f;
+abbreviated identities as supplied in reviewer evidence). This focused
+correctness review does NOT declare practical performance acceptance. Quill's
+17 canonical/filehash9/mixed5 passing groups were atb966/runtime37c6, NOT a
+new execution on3009. No unsupported parity reexecution is implied.
+At the historical392 draft, Meridian review was recorded ACTIVE; that is not
+an assertion of current reviewer activity or acceptance. Assembled53f1 final
+independent dispositions and compact archive freeze remain PENDING. No archive
+creation is authorized or implied by this inventory.
 
 All original trust guarantees remain: packs are trusted software, not hostile
 R sandboxes; exact alignment/source association, declarations/closure,
