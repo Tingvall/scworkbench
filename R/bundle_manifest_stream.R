@@ -123,6 +123,8 @@
   # Projection substitutes only variable-width carriers, preserving every
   # storage type and original numeric value. One live cursor preserves RSQLite's
   # late type promotion across fetch boundaries exactly as the original query.
+  .wb_graph_storage_fault("manifest_before_cursor", list(con = con, table = table,
+    count = count, budgets = budgets))
   query <- DBI::dbSendQuery(con, paste0("SELECT rowid,", paste(c(projected,
     types), collapse = ","), " FROM ",
     DBI::dbQuoteIdentifier(con, table), " ORDER BY rowid;"))
@@ -176,7 +178,18 @@
   after <- NULL
   repeat {
     if (n == count) break
-    admission <- DBI::dbGetQuery(windows, paste0("SELECT COUNT(*) n,COALESCE(SUM(charge),0) bytes FROM ",
+    # COUNT and this cursor need not share a snapshot. Reserve the FULL actual
+    # requested capacity, never the expected last-chunk remainder.
+    capacity <- if (typeof(chunk_size) %in% c("integer", "double") &&
+      is.null(attributes(chunk_size)) && length(chunk_size) == 1L &&
+      !is.na(chunk_size) && is.finite(chunk_size) && chunk_size > 0 &&
+      chunk_size <= .Machine$integer.max && chunk_size == floor(chunk_size)) chunk_size else NULL
+    coarse_bytes <- if (is.null(capacity)) Inf else 320 * capacity * nrow(fields)
+    coarse_total <- if (is.null(capacity)) Inf else capacity * (24 * nrow(fields) + 32) +
+      coarse_bytes + budgets$sqlite_cache_kib * 1024 + 8 * budgets$partition_bytes + 65536
+    coarse <- is.finite(coarse_total) && coarse_total <= as.numeric(budgets$memory_bytes)
+    admission <- if (coarse) list(n = capacity, bytes = coarse_bytes) else
+      DBI::dbGetQuery(windows, paste0("SELECT COUNT(*) n,COALESCE(SUM(charge),0) bytes FROM ",
       "(SELECT ", text_charge, " charge FROM ", DBI::dbQuoteIdentifier(con, table),
       if (is.null(after)) "" else " WHERE rowid>?", " ORDER BY rowid LIMIT ?);"),
       params = c(if (is.null(after)) list() else list(after), list(as.integer(chunk_size))))
@@ -184,7 +197,17 @@
       as.numeric(admission$bytes[[1L]]) + budgets$sqlite_cache_kib * 1024 +
       8 * budgets$partition_bytes + 65536 <= as.numeric(budgets$memory_bytes),
       "GRAPH_RESOURCE_EXCEEDED", "Manifest scalar/type carriers exceed admission before decoding.")
+    .wb_graph_storage_fault("manifest_projection_admission", list(con = con, table = table,
+      mode = if (coarse) "coarse" else "exact", reserved_capacity = capacity,
+      admitted_rows = as.numeric(admission$n[[1L]]), admitted_bytes = as.numeric(admission$bytes[[1L]]),
+      columns = nrow(fields), budgets = budgets,
+      carrier_bytes = as.numeric(admission$n[[1L]]) * (24 * nrow(fields) + 32),
+      cache_bytes = budgets$sqlite_cache_kib * 1024, decoded_reservation_bytes = 8 * budgets$partition_bytes,
+      fixed_bytes = 65536))
     batch <- DBI::dbFetch(query, n = as.integer(chunk_size))
+    .wb_graph_storage_fault("manifest_projection_decoded", list(con = con, table = table,
+      rows = nrow(batch), initial_count = count, mode = if (coarse) "coarse" else "exact",
+      reserved_capacity = capacity, admitted_rows = as.numeric(admission$n[[1L]])))
     .wb_graph_require(nrow(batch) > 0L, "GRAPH_SOURCE_PAYLOAD_INVALID",
       "Manifest cursor ended before its admitted row count.")
     .wb_graph_require(nrow(batch) == min(chunk_size, count - n),
