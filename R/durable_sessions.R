@@ -296,15 +296,21 @@
     .wb_assert(!is.null(run), paste0("DURABLE_SESSION_CORRUPT: checkpoint references missing run ", rid))
     recorded <- session$durable$payload_identities[[rid]]
     for (nm in names(recorded)) {
-      # Borrow before hashing; issue only AFTER the original actual comparison.
-      borrowed <- if (isTRUE(.collect_tables) && observation_count < 64L &&
-          typeof(rid) == "character" && length(rid) == 1L && !is.object(rid) &&
-          is.null(attributes(rid)) && !is.na(rid) && nzchar(rid) &&
-          typeof(nm) == "character" && length(nm) == 1L && !is.object(nm) &&
-          is.null(attributes(nm)) && !is.na(nm) && nzchar(nm) &&
-          nchar(rid, type = "bytes") <= 256L && nchar(nm, type = "bytes") <= 256L &&
-          .wb_promotion_table_observable(run$outputs[[nm]])) run$outputs[[nm]] else NULL
-      actual <- try(.wb_prov_payload_identity(session$staging_bundle, run$outputs[[nm]]), silent = TRUE)
+      borrowed <- NULL
+      # Extract exactly once INSIDE the original error boundary, including for
+      # unsupported outer run/output carriers with custom $ or [[ methods.
+      actual <- try({
+        prim <- run$outputs[[nm]]
+        # Borrow before hashing; issue only AFTER the actual claim comparison.
+        if (isTRUE(.collect_tables) && observation_count < 64L &&
+            typeof(rid) == "character" && length(rid) == 1L && !is.object(rid) &&
+            is.null(attributes(rid)) && !is.na(rid) && nzchar(rid) &&
+            typeof(nm) == "character" && length(nm) == 1L && !is.object(nm) &&
+            is.null(attributes(nm)) && !is.na(nm) && nzchar(nm) &&
+            nchar(rid, type = "bytes") <= 256L && nchar(nm, type = "bytes") <= 256L &&
+            .wb_promotion_table_observable(prim)) borrowed <- prim
+        .wb_prov_payload_identity(session$staging_bundle, prim)
+      }, silent = TRUE)
       .wb_assert(!inherits(actual, "try-error") &&
                    identical(as.character(recorded[[nm]]$content_sha256), as.character(actual$content_sha256)) &&
                    identical(as.character(recorded[[nm]]$content_identity_scheme), as.character(actual$content_identity_scheme)) &&

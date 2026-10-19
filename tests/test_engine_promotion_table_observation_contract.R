@@ -95,6 +95,40 @@ test_engine_promotion_table_default_and_actual_observation_contract <- function(
     bad$durable$payload_identities[[1]]$vector$content_sha256 <- paste(rep("0", 64), collapse = "")
     failure <- try(scworkbench:::.wb_session_validate_payloads(bad, .collect_tables = TRUE), silent = TRUE)
     stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure))
+    # Outer runs/outputs need not themselves be ordinary primitives. Preserve
+    # the original single extraction and its DURABLE error wrapper in BOTH modes.
+    ns <- .GlobalEnv
+    methods <- c("$.promotion_table_run", "[[.promotion_table_outputs")
+    existed <- vapply(methods, exists, logical(1), envir = ns, inherits = FALSE)
+    previous <- lapply(seq_along(methods), function(i) if (existed[i]) get(methods[i], ns) else NULL)
+    on.exit(for (i in seq_along(methods)) {
+      if (existed[i]) assign(methods[i], previous[[i]], ns) else rm(list = methods[i], envir = ns)
+    }, add = TRUE)
+    run_reads <- 0L; output_reads <- 0L; extraction_error <- FALSE
+    assign(methods[1], function(x, name) {
+      if (name == "outputs") run_reads <<- run_reads + 1L
+      unclass(x)[[name]]
+    }, ns)
+    assign(methods[2], function(x, ...) {
+      output_reads <<- output_reads + 1L
+      if (extraction_error) stop("custom output extraction fault")
+      unclass(x)[[...]]
+    }, ns)
+    custom <- x$session
+    for (i in seq_along(custom$runs)) {
+      class(custom$runs[[i]]$outputs) <- "promotion_table_outputs"
+      class(custom$runs[[i]]) <- c("promotion_table_run", class(custom$runs[[i]]))
+    }
+    for (collect in c(FALSE, TRUE)) {
+      run_reads <- 0L; output_reads <- 0L
+      scworkbench:::.wb_session_validate_payloads(custom, .collect_tables = collect)
+      stopifnot(run_reads == 2L, output_reads == 2L)
+      extraction_error <- TRUE; run_reads <- 0L; output_reads <- 0L
+      failed <- try(scworkbench:::.wb_session_validate_payloads(custom, .collect_tables = collect), silent = TRUE)
+      stopifnot(inherits(failed, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failed),
+        !grepl("custom output extraction fault", failed), run_reads == 1L, output_reads == 1L)
+      extraction_error <- FALSE
+    }
   })
 }
 
