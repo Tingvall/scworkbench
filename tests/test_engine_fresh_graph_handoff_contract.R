@@ -5,7 +5,7 @@
     sha256 = unname(vapply(paths, function(p) digest::digest(file = p, algo = "sha256"), "")))
 }
 
-.engine_fresh_graph_fixture <- function(code) {
+.engine_fresh_graph_owned_fixture <- function(code) {
   root <- tempfile("fresh_graph_handoff_"); dir.create(root)
   lib <- file.path(root, "library"); dir.create(lib)
   ns <- asNamespace("scworkbench"); registry <- scworkbench:::.wb_operation_pack_registry
@@ -24,16 +24,17 @@
   on.exit({
     # Restore hooks and namespace before any lifecycle cleanup. Always unlink
     # owned fixture trees even if an independent close/discard reports error.
-    on.exit(unlink(root, recursive = TRUE), add = TRUE)
-    options(old_hooks); x$restore()
-    for (stage in x$stages) try(scworkbench:::.wb_graph_stage_discard(stage), silent = TRUE)
-    for (session in x$sessions) try(wb_session_discard(session), silent = TRUE)
-    try(wb_operation_pack_unload("scwbgraphfixture"), silent = TRUE)
-    registry$packs <- previous_packs; registry$operations <- previous_ops
-    if (!had_namespace && "scwbGraphFixture" %in% loadedNamespaces())
-      try(unloadNamespace("scwbGraphFixture"), silent = TRUE)
-    .libPaths(old_lib)
-    if (!is.null(x$bundle) && DBI::dbIsValid(x$bundle$con)) try(wb_close_bundle(x$bundle), silent = TRUE)
+    tryCatch({
+      options(old_hooks); x$restore()
+      for (stage in x$stages) try(scworkbench:::.wb_graph_stage_discard(stage), silent = TRUE)
+      for (session in x$sessions) try(wb_session_discard(session), silent = TRUE)
+      try(wb_operation_pack_unload("scwbgraphfixture"), silent = TRUE)
+      registry$packs <- previous_packs; registry$operations <- previous_ops
+      if (!had_namespace && "scwbGraphFixture" %in% loadedNamespaces())
+        try(unloadNamespace("scwbGraphFixture"), silent = TRUE)
+      .libPaths(old_lib)
+      if (!is.null(x$bundle) && DBI::dbIsValid(x$bundle$con)) try(wb_close_bundle(x$bundle), silent = TRUE)
+    }, finally = unlink(root, recursive = TRUE))
   }, add = TRUE)
   source <- file.path(normalizePath("."), "tests/fixtures/operation-pack-v4-graph")
   log <- file.path(root, "install.log")
@@ -68,6 +69,17 @@
     if (identical(event, "connected")) x$stages[[length(x$stages) + 1L]] <- state
   }
   code(x)
+}
+
+.engine_fresh_graph_fixture <- function(code) {
+  root <- NULL
+  result <- .engine_fresh_graph_owned_fixture(function(x) {
+    root <<- x$root
+    code(x)
+  })
+  # Assert cleanup before the test returns, not merely at process exit.
+  stopifnot(!is.null(root), !dir.exists(root))
+  result
 }
 
 .engine_fresh_graph_checked <- function(x, record) {
