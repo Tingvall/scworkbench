@@ -29,3 +29,16 @@ Retained boundary details:
 
 Focused execution, exact implementation review and component measurements must
 be recorded separately. No engine-wide acceptance is implied by this note.
+
+Test-source review also corrected two premises before candidate execution:
+RSQLite's old one-row ordered cursor may coerce a later INTEGER into character
+after seeing TEXT (actual isolated backend probe retained under
+`matrix_axis_mixed_sql_type_preflight.log`, exit 0). This does not prove that
+the complete old two-pass hash accepts that source: membership BLOB sorting may
+visit the numeric value first. Tests distinguish that observed cursor behavior
+from full-function behavior. Supported TEXT axes must still match exactly;
+malformed actual non-TEXT rows must not become valid through batch coercion.
+Separately, caller-transaction fixtures preselect the existing temporary-store
+policy before opening their transaction, so SQLite's unrelated PRAGMA restriction
+cannot prevent reaching the intended membership rejection. No runtime guard was
+weakened to accommodate either fixture.
