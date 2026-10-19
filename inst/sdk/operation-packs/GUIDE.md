@@ -80,8 +80,13 @@ Matrix-slice content identities stream the existing canonical JSON v1 bytes;
 they do not allocate a dense complete fragment or one R list per nonzero.
 
 For trusted in-process R packs, complete source bytes are authenticated during
-request preparation, before dispatch and before publication. Between chunks,
-core checks source registry and file inventory/size/timestamps/resolved paths,
+request preparation and independently before publication. For a fresh core-issued
+backed-matrix request only, the middle predispatch check reuses the original
+lightweight observation captured before, and checked after, initial full
+authentication. Every private grant/input/source/ordered-selection binding,
+issuing connection and bundle root remains checked, along with the actual
+scientific registry state. Between chunks, core uses that same original guard
+to check source registry and file inventory/size/timestamps/resolved paths,
 not repeated whole-file hashes. An enduring source change rejects and rolls
 back publication. A transient in-process mutation restored before final
 authentication is **not guaranteed to be detected**. This approved trust model
@@ -125,12 +130,14 @@ lightweight invalidation signals, never content authority.
 Each issued typed-space plan admits the current schema and migration ledger
 observationally once. Block reads freshly compare the exact registered binding
 and issuing connection, without repeating complete schema admission. A new final
-plan repeats full admission and content authentication. At dispatch and publication,
-a current full-byte hash and complete logical/payload registry and ordered-axis
-comparison against private issuance authority prove unchanged selected semantics;
-the same numerical JSON need not be reconstructed again. Each boundary authenticates
-freshly; no prior invocation or recovered request inherits that exemption. Legacy
-and transferred state retain independent semantic checks. Canonical numeric tokens
+plan repeats full admission and content authentication. A freshly issued native-R
+plan uses its original lightweight guard at the middle predispatch boundary,
+while still checking every private grant/input/selection, connection and bundle
+root binding. Initial and final full-byte authentication compare complete
+logical/payload registry and ordered-axis authority; the same numerical JSON
+need not be reconstructed again. Default/full helper calls, Python, recovered,
+transferred and no-issued-plan requests retain their full existing checks;
+no prior invocation inherits the native middle-boundary exemption. Canonical numeric tokens
 may be formatted in bounded native batches; byte rules and identity schemes are
 unchanged, and unsupported carriers retain the existing encoder and diagnostics.
 

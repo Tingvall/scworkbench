@@ -26,8 +26,15 @@ diagnostic can appear first. This is a deliberate validation-boundary change,
 not a statement that an ordinary partial read validates the whole matrix.
 
 For trusted R matrix execution, actual consumed source bytes are authenticated
-at lifecycle boundaries, including before publication. Between blocks, scoped
-registry and file observations help detect accidental changes without rescanning
+at fresh request creation and independently before publication. Only a fresh
+core-issued native request can use its original lightweight guard for the middle
+predispatch check. That guard brackets initial full authentication and remains
+the same guard used by callbacks; every private grant, input, source, ordered
+selection, issuing connection and bundle root is checked, and actual scientific
+registry equality is retained. Default/full validation, Python, recovery,
+transfer and requests without private issuance retain their existing full
+checks. Between blocks, scoped registry and file observations help detect
+accidental changes without rescanning
 the whole matrix. These observations are supplementary: timestamps, file sizes
 and SQLite change counters are not content identities. This model does not
 promise detection of an arbitrary transient filesystem change restored before
@@ -101,7 +108,12 @@ validation perform fresh structural checks; graph-policy checks do likewise.
 
 An issued native typed-space reader plan admits its schema once, then checks
 the exact source binding on each block. A new final plan repeats admission and
-content authentication. That scoped plan does not give ordinary getters,
+content authentication. A fresh native-R middle predispatch check uses the
+original pre-hash observation plus every private grant/input/selection,
+connection and bundle-root binding, not another full hash. Default/full calls,
+Python, recovery, transfer and no-issued-plan paths retain full checks. Graph
+association, producer, staged-copy and EOF authority are unchanged. The scoped
+plan does not give ordinary getters,
 recovered requests or a later invocation an exemption.
 
 ## Fresh outputs and publication
