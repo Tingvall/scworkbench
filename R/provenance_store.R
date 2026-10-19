@@ -1410,7 +1410,8 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
                                     runtime_fingerprint = NULL,
                                     workspace = NULL,
                                     staging_bundle = NULL,
-                                    transaction_open = FALSE) {
+                                    transaction_open = FALSE,
+                                    .table_observations = NULL) {
   .wb_require_pkg("jsonlite", "provenance snapshot write")
   con <- bundle$con
   .wb_migrate_provenance_tables(con)
@@ -1601,8 +1602,11 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           graph_stage <- attr(prim, "graph_stage", exact = TRUE)
           graph_policy <- if (kind == "graph") .wb_graph_effective_budgets(con,
             if (is.null(graph_stage)) list() else graph_stage$budgets) else list()
-          identity <- .wb_prov_payload_identity(bundle, prim, workspace = workspace,
-            staging_bundle = staging_bundle, graph_budgets = graph_policy)
+          identity <- .wb_promotion_table_observed_identity(
+            .table_observations[[rid]][[nm]], prim)
+          if (is.null(identity)) identity <- .wb_prov_payload_identity(bundle, prim,
+            workspace = workspace, staging_bundle = staging_bundle,
+            graph_budgets = graph_policy)
           replay_decl <- .wb_replay_equivalence_declaration(
             run$op_name, nm, prim, identity, bundle = bundle,
             workspace = workspace, staging_bundle = staging_bundle

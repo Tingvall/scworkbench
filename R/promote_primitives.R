@@ -349,9 +349,9 @@ wb_promote_analysis <- function(bundle,
   }
   for (h in heads) visit(h)
   ledger <- attr(staging_bundle, "durable_payload_identities", exact = TRUE)
-  if (!is.null(ledger)) .wb_session_validate_payloads(list(
+  table_observations <- if (!is.null(ledger)) .wb_session_validate_payloads(list(
     durable = list(payload_identities = ledger), runs = runs,
-    staging_bundle = staging_bundle), run_ids = topo)
+    staging_bundle = staging_bundle), run_ids = topo, .collect_tables = TRUE) else list()
   # Both production entry points already own the destination writer scope.
   # Use its private full migration admission without publishing a no-op nested
   # public migration before the scientific transaction starts.
@@ -636,7 +636,8 @@ wb_promote_analysis <- function(bundle,
     runtime_fingerprint = runtime_fingerprint,
     workspace = workspace,
     staging_bundle = staging_bundle,
-    transaction_open = TRUE
+    transaction_open = TRUE,
+    .table_observations = table_observations
   )
   DBI::dbExecute(bundle$con, "UPDATE prov_commits SET state = ? WHERE commit_id = ?;", params = list("complete", commit_id))
   promoted_df$snapshot_id <- snapshot_id

@@ -284,8 +284,10 @@
   invisible(TRUE)
 }
 
-.wb_session_validate_payloads <- function(session, run_ids = NULL) {
-  if (is.null(session$durable) || !length(session$durable$payload_identities %||% list())) return(invisible(TRUE))
+.wb_session_validate_payloads <- function(session, run_ids = NULL, .collect_tables = FALSE) {
+  observations <- list(); observation_bytes <- 0; observation_count <- 0L
+  if (is.null(session$durable) || !length(session$durable$payload_identities %||% list()))
+    return(if (isTRUE(.collect_tables)) observations else invisible(TRUE))
   .wb_assert(!is.null(session$staging_bundle), "DURABLE_SESSION_CORRUPT: staged bundle is unavailable.")
   selected <- if (is.null(run_ids)) names(session$durable$payload_identities) else
     intersect(as.character(run_ids), names(session$durable$payload_identities))
@@ -294,6 +296,14 @@
     .wb_assert(!is.null(run), paste0("DURABLE_SESSION_CORRUPT: checkpoint references missing run ", rid))
     recorded <- session$durable$payload_identities[[rid]]
     for (nm in names(recorded)) {
+      # Borrow before hashing; issue only AFTER the original actual comparison.
+      borrowed <- if (isTRUE(.collect_tables) && observation_count < 64L &&
+          typeof(rid) == "character" && length(rid) == 1L && !is.object(rid) &&
+          is.null(attributes(rid)) && !is.na(rid) && nzchar(rid) &&
+          typeof(nm) == "character" && length(nm) == 1L && !is.object(nm) &&
+          is.null(attributes(nm)) && !is.na(nm) && nzchar(nm) &&
+          nchar(rid, type = "bytes") <= 256L && nchar(nm, type = "bytes") <= 256L &&
+          .wb_promotion_table_observable(run$outputs[[nm]])) run$outputs[[nm]] else NULL
       actual <- try(.wb_prov_payload_identity(session$staging_bundle, run$outputs[[nm]]), silent = TRUE)
       .wb_assert(!inherits(actual, "try-error") &&
                    identical(as.character(recorded[[nm]]$content_sha256), as.character(actual$content_sha256)) &&
@@ -301,9 +311,18 @@
                    identical(as.character(recorded[[nm]]$registry_binding_sha256 %||% NA_character_),
                              as.character(actual$registry_binding_sha256 %||% NA_character_)),
                  paste0("DURABLE_SESSION_PAYLOAD_CORRUPT: staged output ", rid, "/", nm, " no longer matches checkpoint identity."))
+      if (!is.null(borrowed)) {
+        charge <- as.numeric(utils::object.size(actual)) +
+          nchar(rid, type = "bytes") + nchar(nm, type = "bytes") + 1024
+        if (observation_bytes + charge <= 65536) {
+          observations[[rid]][[nm]] <- list(primitive = borrowed, identity = actual)
+          observation_bytes <- observation_bytes + charge
+          observation_count <- observation_count + 1L
+        }
+      }
     }
   }
-  invisible(TRUE)
+  if (isTRUE(.collect_tables)) observations else invisible(TRUE)
 }
 
 .wb_session_validate_dependencies <- function(session, resolved, parents) {
