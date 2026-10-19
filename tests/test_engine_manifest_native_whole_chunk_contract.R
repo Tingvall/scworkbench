@@ -2,6 +2,63 @@
   memory_bytes = "8388608", sqlite_cache_kib = 2048L, partition_bytes = 262144L,
   partition_rows = 2L, collect_bytes = 4194304L))
 
+test_engine_manifest_native_whole_opaque_policy_old_dispatch_contract <- function() {
+  path <- tempfile("manifest_whole_opaque_", fileext = ".sqlite")
+  con <- DBI::dbConnect(RSQLite::SQLite(), path)
+  on.exit({DBI::dbDisconnect(con); unlink(path)}, add = TRUE)
+  DBI::dbExecute(con, "CREATE TABLE entries(id INTEGER,label TEXT);")
+  DBI::dbAppendTable(con, "entries", data.frame(id = seq_len(5000L), label = rep("x", 5000L)))
+  actual <- scworkbench:::.wb_manifest_table_identity
+  legacy <- actual
+  local <- new.env(parent = environment(legacy))
+  # Disable only the optional backend as an existing supported fallback.
+  # All actual SQL/resources/old-small/scalar code remains the real function;
+  # the probe stops at its FIRST scalar hook, before either C serializer.
+  local$getNamespaceVersion <- function(package) "0.0.0"
+  environment(legacy) <- local
+  methods <- c("as.double.manifest_whole_opaque_token", "Ops.manifest_whole_opaque_partition")
+  previous <- lapply(methods, function(name) if (exists(name, globalenv(), inherits = FALSE))
+    list(present = TRUE, value = get(name, globalenv(), inherits = FALSE)) else list(present = FALSE))
+  on.exit(for (i in seq_along(methods)) if (previous[[i]]$present)
+    assign(methods[[i]], previous[[i]]$value, globalenv()) else rm(list = methods[[i]], envir = globalenv()), add = TRUE)
+  calls <- 0L
+  assign(methods[[1L]], function(x, ...) {calls <<- calls + 1L; as.double(unclass(x))}, globalenv())
+  assign(methods[[2L]], function(e1, e2) {
+    calls <<- calls + 1L
+    do.call(.Generic, if (missing(e2)) list(unclass(e1)) else list(unclass(e1), unclass(e2)))
+  }, globalenv())
+  token <- structure("8589934592", class = "manifest_whole_opaque_token")
+  partition <- structure(262144, class = "manifest_whole_opaque_partition")
+  stopifnot(as.numeric(token) == 8589934592, partition + 1 == 262145, calls == 2L)
+  old <- getOption("scworkbench.graph_storage_test_hook")
+  on.exit(options(scworkbench.graph_storage_test_hook = old), add = TRUE)
+  observe_first_scalar <- function(fn, policy) {
+    captured <- NULL; whole <- 0L
+    options(scworkbench.graph_storage_test_hook = function(event, state) {
+      if (event == "manifest_projection_decoded") calls <<- 0L
+      if (event == "manifest_native_json" && state$scope == "whole") whole <<- whole + 1L
+      if (event == "manifest_scalar_batch") {
+        captured <<- calls
+        stop("OPAQUE_LEGACY_SCALAR_BOUNDARY")
+      }
+    })
+    failure <- tryCatch(fn(con, "entries", budgets = policy), error = identity)
+    stopifnot(inherits(failure, "error"), grepl("OPAQUE_LEGACY_SCALAR_BOUNDARY", conditionMessage(failure), fixed = TRUE),
+      !is.null(captured), whole == 0L)
+    captured
+  }
+  for (field in c("token_bytes", "partition_bytes")) {
+    policy <- .engine_manifest_whole_policy()
+    policy[[field]] <- if (field == "token_bytes") token else partition
+    expected <- observe_first_scalar(legacy, policy)
+    observed <- observe_first_scalar(actual, policy)
+    stopifnot(identical(observed, expected)) # No EXTRA optional-path dispatch.
+  }
+  options(scworkbench.graph_storage_test_hook = old)
+  stopifnot(identical(scworkbench:::.wb_manifest_table_identity_materialized(con, "entries"), actual(con, "entries")))
+  TRUE
+}
+
 test_engine_manifest_native_whole_original_integer_boundaries_contract <- function() {
   path <- tempfile("manifest_native_whole_", fileext = ".sqlite")
   con <- DBI::dbConnect(RSQLite::SQLite(), path)

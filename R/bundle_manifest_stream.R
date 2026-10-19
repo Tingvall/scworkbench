@@ -234,7 +234,13 @@
     whole <- NULL
     if (is.null(small) && native_json &&
         isTRUE(attr(observer, "wb_manifest_spill_boundaries", exact = TRUE)) &&
-        nrow(batch) <= 5000L && nrow(fields) <= 8L) {
+        nrow(batch) <= 5000L && nrow(fields) <= 8L &&
+        typeof(budgets$token_bytes) %in% c("character", "integer", "double") &&
+        !is.object(budgets$token_bytes) && is.null(attributes(budgets$token_bytes)) && length(budgets$token_bytes) == 1L &&
+        !is.na(budgets$token_bytes) &&
+        typeof(budgets$partition_bytes) %in% c("integer", "double") &&
+        !is.object(budgets$partition_bytes) && is.null(attributes(budgets$partition_bytes)) && length(budgets$partition_bytes) == 1L &&
+        !is.na(budgets$partition_bytes) && is.finite(budgets$partition_bytes) && budgets$partition_bytes > 0) {
       whole_carrier <- 4096 + 576 * nrow(fields) +
         nrow(batch) * (16 * nrow(fields) + 32 + 128)
       whole_capacity <- min(as.numeric(budgets$token_bytes),

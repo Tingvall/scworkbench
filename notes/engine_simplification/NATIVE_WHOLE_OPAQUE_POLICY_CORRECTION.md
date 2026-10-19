@@ -1,0 +1,9 @@
+# Whole-native opaque policy correction: source only
+
+Exact3a9ce3 review6053810009a67226a2cf80ceffd1da2250deb3819dcf451d3a18447f364246d7 identified a P2 eligibility-order defect before execution. Optional whole capacity converted token_bytes and performed partition arithmetic before excluding classed/opaque quotas. Existing old paths can accept such carriers and have their own conversion order, so a new early S3 dispatch is not permitted even if C later returnsNULL.
+
+New gates inspect typeof/object/attributes/length/NA before ANY new coercion/arithmetic. Token accepts already-validated plain CHARACTER decimal (the actual normal budget representation) or plain integer/double; partition accepts plain finite positive integer/double. Opaque values skip the entire optional whole block and retain the original small/scalar behavior. No budget/private-copy attributes on the policy list are stripped or rewritten. C, byte/identity/resource equations and numerical budgets are unchanged.
+
+The fourth whole test uses real resource/SQL execution, an S3 conversion/operation positive control, and a LOCAL function copy with only the existing optional backend version gate disabled. It compares actual dispatch counts at the first original scalar boundary, after actual decode, between that old-scalar route and the normal function under classed token/partition quotas; extra whole events or early dispatch fail. It intentionally does NOT assert zero total dispatch for old supported opaque policies. It stops before either scalar C encoder and then proves a normal old-oracle retry. No namespace swap, successful-admission stub or old runtime rewrite is used.
+
+No tests, parsing, install, CPU/performance jobs or benchmark reruns occurred for this correction. Original3a9ce3 checkpoint and precode/history remain preserved; exact corrective source review must precede execution.
