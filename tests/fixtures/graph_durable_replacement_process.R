@@ -37,6 +37,38 @@ tree <- function(path) {
       digest::digest(file = paths[[i]], algo = "sha256") else if (type[[i]] == "symlink")
         digest::digest(charToRaw(links[[i]]), algo = "sha256", serialize = FALSE) else NA_character_, ""))
 }
+literal_graph_identity <- wb_graph_identity(wb_prim_graph(
+  list(list(node_id = "c2"), list(node_id = "c1")), list(), list(),
+  direction_mode = "undirected"))
+stopifnot(identical(literal_graph_identity$content_identity, expected))
+assert_unpromoted_read_rejected <- function(session, bundle, run_id) {
+  scratch <- function() sort(list.files(tempdir(), pattern = "^scwb_graph_stage_", full.names = TRUE))
+  logical_session <- function(s) {
+    runs <- lapply(s$runs, function(run) {
+      run$outputs <- lapply(run$outputs, function(value) {
+        attr(value, "graph_stage") <- NULL
+        value
+      })
+      run
+    })
+    list(runs = runs, head = s$head_run_id, active = s$active)
+  }
+  stage <- wb_session_view(session)
+  before <- list(checkpoint = checkpoint_hashes(session$durable$workspace),
+    session = logical_session(session), scratch = scratch(),
+    source_registry = scworkbench:::.wb_manifest_registry_snapshot(bundle$con),
+    stage_registry = scworkbench:::.wb_manifest_registry_snapshot(stage$con))
+  failure <- tryCatch(wb_session_run_op(session, bundle, "scwbgraphfixture::graph_to_table",
+    inputs = list(source = wb_ref_run(run_id, "result"), cell_set = "all", min_cells = 1L)),
+    error = identity)
+  stopifnot(inherits(failure, "error"), identical(failure$code, "GRAPH_SOURCE_AUTHORITY_REQUIRED"),
+    startsWith(conditionMessage(failure), "GRAPH_SOURCE_AUTHORITY_REQUIRED:"),
+    identical(before$checkpoint, checkpoint_hashes(session$durable$workspace)),
+    identical(before$session, logical_session(session)), identical(before$scratch, scratch()),
+    identical(before$source_registry, scworkbench:::.wb_manifest_registry_snapshot(bundle$con)),
+    identical(before$stage_registry, scworkbench:::.wb_manifest_registry_snapshot(stage$con)))
+  cat("UNCHANGED_UNPROMOTED_GRAPH_READ_REJECTION", conditionMessage(failure), "\n")
+}
 if (mode %in% c("writer", "writer_two")) {
   b <- wb_init_bundle(file.path(root, "source.bundle"))
   wb_define_cells(b, c("c2", "c1"))
@@ -45,6 +77,7 @@ if (mode %in% c("writer", "writer_two")) {
   s <- wb_session_create(b, file.path(root, "sessions"), "replacement")
   answer <- wb_session_run_op(s, b, "scwbgraphfixture::matrix_to_graph",
     inputs = list(matrix = "RNA", cell_set = "all", min_cells = 1L))
+  assert_unpromoted_read_rejected(answer$session, b, answer$run$run_id)
   if (mode == "writer_two") answer <- wb_session_run_op(answer$session, b,
     "scwbgraphfixture::matrix_to_graph", inputs = list(matrix = "RNA", cell_set = "all", min_cells = 1L))
   stopifnot(identical(answer$run$outputs$result$content_identity, expected))
@@ -81,21 +114,35 @@ if (mode %in% c("writer", "writer_two")) {
       failure <- try(wb_session_promote_current(b, bad, outputs = "result"), silent = TRUE)
       stopifnot(inherits(failure, "try-error"), grepl("UNCHECKPOINTED_STATE", as.character(failure), fixed = TRUE))
     }
-    consumed <- wb_session_run_op(first, b, "scwbgraphfixture::graph_to_table",
-      inputs = list(source = wb_ref_run(p$run_id, "result"), cell_set = "all", min_cells = 1L))
-    stopifnot(identical(consumed$run$outputs$summary$table$value, 2L),
-      identical(consumed$session$runs[[p$run_id]]$outputs$result$content_identity, expected),
-      !identical(consumed$session$durable$checkpoint_generation, first$durable$checkpoint_generation))
-    promoted <- wb_session_promote_current(b, consumed$session,
-      outputs = list(wb_ref_run(p$run_id, "result"), wb_ref_run(consumed$run$run_id, "summary")))
+    assert_unpromoted_read_rejected(first, b, p$run_id)
+    promoted <- wb_session_promote_current(b, first,
+      outputs = list(wb_ref_run(p$run_id, "result")))
     artifact <- promoted$promoted$artifact_id[promoted$promoted$output == "result"][[1L]]
-    stopifnot(identical(wb_art_graph_info(b, artifact)$content_identity, expected),
+    info <- wb_art_graph_info(b, artifact)
+    stopifnot(identical(info$content_identity, expected),
+      identical(info$binding_identity, literal_graph_identity$binding_identity),
+      identical(info$descriptor_identity, literal_graph_identity$descriptor_identity),
       identical(vapply(wb_art_graph_slice(b, artifact, "nodes"), `[[`, "", "node_id"), c("c2", "c1")))
+    # Reject the stale owner before the new session adds unrelated source runs.
     stale <- try(wb_session_promote_current(b, second, outputs = "result"), silent = TRUE)
     stopifnot(inherits(stale, "try-error"), grepl("STALE_GENERATION", as.character(stale), fixed = TRUE))
+    continued <- wb_session_create(b, file.path(root, "sessions"), "retained_graph_continuation")
+    generation <- continued$durable$checkpoint_generation
+    consumed <- wb_session_run_op(continued, b, "scwbgraphfixture::graph_to_table",
+      inputs = list(source = wb_ref_artifact(artifact, "result"), cell_set = "all", min_cells = 1L))
+    stopifnot(identical(consumed$run$outputs$summary$table$value, 2L),
+      !identical(consumed$session$durable$checkpoint_generation, generation))
+    summary_promotion <- wb_session_promote_current(b, consumed$session, outputs = "summary")
+    summary_artifact <- summary_promotion$promoted$artifact_id[
+      summary_promotion$promoted$output == "summary"][[1L]]
     wb_finalize_recipient_bundle(b); wb_close_bundle(b)
     b <- wb_open_bundle(p$source, read_only = TRUE)
-    stopifnot(identical(wb_art_graph_info(b, artifact)$content_identity, expected))
+    info <- wb_art_graph_info(b, artifact)
+    stopifnot(identical(info$content_identity, expected),
+      identical(info$binding_identity, literal_graph_identity$binding_identity),
+      identical(info$descriptor_identity, literal_graph_identity$descriptor_identity),
+      identical(vapply(wb_art_graph_slice(b, artifact, "nodes"), `[[`, "", "node_id"), c("c2", "c1")),
+      identical(wb_art_load(b, summary_artifact)$table$value, 2L))
     wb_close_bundle(b)
   } else if (mode == "multi_failure") {
     b <- wb_open_bundle(p$source)

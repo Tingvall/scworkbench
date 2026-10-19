@@ -42,3 +42,32 @@ loss is disclosed, not reconstructed. Future child failures retain their full
 available output in the parent raw log before cleanup. Exact success/status
 criteria, all four test definitions, runtime R/src and ownership are unchanged.
 No corrected qualification result is claimed by this source-only change.
+
+## Supported graph continuation premise (test/fixture only)
+
+The corrected-marker selection subsequently ran four tests: three passed and
+one failed at the attempted reader over an unpromoted recovered graph. The
+actual old installed `0a133a6ff3cf3764862dddd2479294ab98a99944` same-process
+control also rejects a FRESH unpromoted graph with
+`GRAPH_SOURCE_AUTHORITY_REQUIRED`, unchanged registry, and terminal zero for
+that asserted control. Evidence is retained in
+`/tmp/scwb-engine-simplification-forge-20261018/graph_fresh_unpromoted_0a.log`,
+its numeric exit, and `graph_fresh_unpromoted_0a/actual_result.json` (DLL
+`e45513060769918ee84f3a32aa44beb9b3944df20d3bfee54a33c4d3f2c0d374`).
+This historical unsupported reader policy is not a recovery runtime failure;
+the original 15/11-pass/4-marker-failure and corrected 4/3-pass/1-failure records
+remain separate, unchanged evidence.
+
+The fixture now explicitly proves the same rejection for FRESH and RESUMED
+unpromoted run references, with exact condition code and unchanged checkpoint
+bytes, logical run graph/head/active, source/stage registries and graph scratch.
+It retains all UNCHECKPOINTED_STATE attacks. The recovered original graph is
+promoted FIRST and checked against literal ordered nodes/content plus the
+independent small-literal graph binding/descriptor identity. The stale second
+owner is rejected immediately, before unrelated source writes. A NEW durable
+session from the updated source then consumes the retained graph using public
+`wb_ref_artifact(artifact, "result")`, verifies summary 2 and an actual new
+checkpoint generation, promotes that summary, and finalizes/reopens read-only
+to verify both retained outputs. No graph-input authority, grant, runtime R/src,
+canonical identity, or ownership definition changes are made. These are
+source-only assertions pending exact review and execution, not new pass claims.
