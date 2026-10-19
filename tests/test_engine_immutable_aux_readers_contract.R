@@ -68,7 +68,7 @@ test_engine_immutable_aux_public_closed_wal_full_purity_contract <- function() {
   f <- .engine_immutable_aux_fixture(); on.exit(f$close(), add = TRUE)
   before <- .engine_immutable_aux_inventory(f$root)
   b <- wb_open_bundle(f$root, read_only = TRUE, validate = FALSE)
-  on.exit(wb_close_bundle(b), add = TRUE, after = FALSE)
+  on.exit(if (!is.null(b)) wb_close_bundle(b), add = TRUE, after = FALSE)
   stopifnot(isTRUE(scworkbench:::.wb_sqlite_aux_read_target(b$con)$immutable))
   policy <- .engine_immutable_aux_policy()
   observer <- scworkbench:::.wb_matrix_native_byte_observer(b$con)
@@ -102,6 +102,10 @@ test_engine_immutable_aux_public_closed_wal_full_purity_contract <- function() {
   schema <- wb_bundle_schema_status(f$root)
   stopifnot(is.list(schema), identical(schema$status, "current"), identical(.engine_immutable_aux_inventory(f$root), before),
     !file.exists(paste0(f$db, "-wal")), !file.exists(paste0(f$db, "-shm")))
+  report <- wb_bundle_validation_report(f$root, level = "recipient")
+  stopifnot(report$ok, identical(.engine_immutable_aux_inventory(f$root), before))
+  wb_close_bundle(b); b <- NULL
+  stopifnot(identical(.engine_immutable_aux_inventory(f$root), before))
   TRUE
 }
 
@@ -109,7 +113,7 @@ test_engine_immutable_aux_legacy_selector_and_escaped_uri_contract <- function()
   f <- .engine_immutable_aux_fixture(special = TRUE); on.exit(f$close(), add = TRUE)
   before <- .engine_immutable_aux_inventory(f$root)
   b <- wb_open_bundle(f$root, read_only = TRUE, validate = FALSE)
-  on.exit(wb_close_bundle(b), add = TRUE, after = FALSE)
+  on.exit(if (!is.null(b)) wb_close_bundle(b), add = TRUE, after = FALSE)
   target <- scworkbench:::.wb_sqlite_aux_read_target(b$con)
   stopifnot(target$immutable, grepl("%252F", target$dsn, fixed = TRUE),
     grepl("%3F", target$dsn, fixed = TRUE), grepl("%23", target$dsn, fixed = TRUE),
@@ -121,6 +125,8 @@ test_engine_immutable_aux_legacy_selector_and_escaped_uri_contract <- function()
   stopifnot(identical(actual$content_sha256, expected),
     identical(wb_art_load(b, f$artifact_id), f$primitive),
     identical(.engine_immutable_aux_inventory(f$root), before))
+  wb_close_bundle(b); b <- NULL
+  stopifnot(identical(.engine_immutable_aux_inventory(f$root), before))
   TRUE
 }
 
@@ -157,9 +163,12 @@ test_engine_immutable_aux_admission_and_issuance_fail_closed_contract <- functio
   handle <- file(wal, "wb"); close(handle)
   .engine_immutable_aux_error("Immutable SQLite admission", scworkbench:::.wb_sqlite_connect_immutable(f$db))
   con <- scworkbench:::.wb_sqlite_connect_immutable(f$db, .admission = "empty_wal")
-  tryCatch(stopifnot(scworkbench:::.wb_sqlite_aux_read_target(con)$immutable),
-    finally = DBI::dbDisconnect(con))
-  handle <- file(wal, "wb"); writeBin(as.raw(1:4), handle); close(handle)
+  observer <- scworkbench:::.wb_matrix_native_byte_observer(con)
+  tryCatch({
+    stopifnot(scworkbench:::.wb_sqlite_aux_read_target(con)$immutable)
+    handle <- file(wal, "wb"); writeBin(as.raw(1:4), handle); close(handle)
+    .engine_immutable_aux_error("Immutable SQLite admission", observer$finish())
+  }, finally = { observer$close(); DBI::dbDisconnect(con) })
   .engine_immutable_aux_error("Immutable SQLite admission", scworkbench:::.wb_sqlite_connect_immutable(f$db,
     .admission = "empty_wal"))
   unlink(wal)
@@ -193,6 +202,9 @@ test_engine_immutable_aux_admission_and_issuance_fail_closed_contract <- functio
       .engine_immutable_aux_error("Immutable SQLite reader changed during observation", observer$finish())
       con@ref$wb_immutable_sqlite_reader <- original
     }
+    handle <- file(wal, "wb"); close(handle)
+    .engine_immutable_aux_error("Immutable SQLite admission", observer$finish())
+    unlink(wal)
     observer$finish()
   }, finally = { con@ref$wb_immutable_sqlite_reader <- original; observer$close() })
   # Actual SQLITE_RO alone (even with an unrelated forged bundle-style flag)

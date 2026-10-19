@@ -28,7 +28,9 @@
   path <- normalizePath(path, winslash = "/", mustWork = TRUE)
   .wb_sqlite_immutable_admit(path, .admission)
   dsn <- .wb_sqlite_immutable_uri(path)
-  con <- DBI::dbConnect(RSQLite::SQLite(), dsn, flags = RSQLite::SQLITE_RO, ...)
+  # SQLITE_OPEN_URI is explicit here, not dependent on SQLite's global setting.
+  con <- DBI::dbConnect(RSQLite::SQLite(), dsn,
+    flags = bitwOr(RSQLite::SQLITE_RO, 0x40L), ...)
   ready <- FALSE
   on.exit(if (!ready && DBI::dbIsValid(con)) DBI::dbDisconnect(con), add = TRUE)
   con@ref$wb_immutable_sqlite_reader <- list(path = path, dsn = dsn,
