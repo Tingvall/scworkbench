@@ -201,8 +201,13 @@ test_engine_runtime_metadata_v1_readonly_checkpoint_certificate_contract <- func
   stopifnot(identical(fresh$run$runtime_fingerprint$schema,"scworkbench.runtime_attestation.v2"))
   legacy$operation$name<-"metadata_cell_vector"
   bytes<-as.character(jsonlite::toJSON(legacy,auto_unbox=TRUE,null="null"))
-  DBI::dbExecute(b$con,"UPDATE prov_runs SET runtime_fingerprint_json=? WHERE run_id=?;",params=list(bytes,run_id))
-  wb_refresh_manifest(b);stopifnot(isTRUE(wb_finalize_recipient_bundle(b)$ready))
+  # Explicit owned historical-fixture construction, not an ordinary committed
+  # bundle write or a bypass of the public manifest mutation boundary.
+  scworkbench:::.wb_with_mutation_context(bundle=b,route="ingestion",code={
+    DBI::dbExecute(b$con,"UPDATE prov_runs SET runtime_fingerprint_json=? WHERE run_id=?;",params=list(bytes,run_id))
+    wb_refresh_manifest(b)
+  })
+  stopifnot(isTRUE(wb_finalize_recipient_bundle(b)$ready))
   wb_close_bundle(b);b<-wb_open_bundle(root,read_only=TRUE,validate=FALSE)
   before<-scworkbench:::.wb_prov_file_tree_sha256(root)
   detail<-wb_prov_run_details(b,run_id)
