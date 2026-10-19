@@ -1,0 +1,9 @@
+# Positive compact rownames: source-only eligibility correction
+
+Precode commit `bae5347f8804c7edd6539f48a39e83c85a35bf95` retained the completed N qualification and MISS before this change. Native6875 passed19 focused tests and actual census/identity/FS guards, but its large median4.085 exceeded4.0509; tiny.343 and RSS197348 passed the new ceilings. Earlier4.2516/4.192 large references passed; older tiny.160 remained a miss. The newly frozen prospective ceiling3.88075 and every retained older requirement remain unchanged. No result is claimed for this correction.
+
+The coordinator's read-only actual-source probe `probe_manifest_native_rownames_6875fa6.R` completed0: first3675-row prefix has rawcompact `c(NA_integer_,+3675)` and returned nativeNULL; next1325 rows use ordinary integer rownames and succeeded. No ALTREP/type difference was observed in that pair. This establishes the missed eligibility premise, not a causal timing claim or permission to relax ALTREP checks.
+
+Official R raw compact positive count represents explicit1:n and negative count automatic1:n. Both are numeric rownames ignored by the unchanged jsonlite dataframe serializer. C now accepts EXACTLY second==nr OR second==-nr with firstNA, without abs(), expansion, normalization, new row fields or reinterpretation of other counts. All malformed/classed/ALTREP/unmatched metadata remains unsupported.
+
+The added `test_engine_manifest_native_json_positive_compact_prefix_contract` compares both raw signed forms to literal original jsonlite and an independent literal expected rowarray, including raw bytes/Encoding; reproduces actual5000→3675 prefix subsetting; and rejects wrong positive/negative counts, NAsecond, deferred string rownames and ALTREP columns. Existing three definitions remain unchanged. No formatter/buffer/resource/admission/fold/authority logic changed. Source-only review precedes any execution; no install/test/profile/benchmark ran while preparing this correction.

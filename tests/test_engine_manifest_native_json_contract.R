@@ -6,6 +6,40 @@
 .engine_manifest_native_old_json <- function(rows) as.character(jsonlite::toJSON(rows,
   dataframe = "rows", auto_unbox = TRUE, null = "null", na = "null"))
 
+test_engine_manifest_native_json_positive_compact_prefix_contract <- function() {
+  rows <- data.frame(label = c("a", NA_character_, "NA"), id = c(1L, 2L, 3L),
+    flag = c(TRUE, FALSE, NA))
+  literal <- paste0('[{"label":"a","id":1,"flag":true},',
+    '{"label":null,"id":2,"flag":false},{"label":"NA","id":3,"flag":null}]')
+  for (sign in c(1L, -1L)) {
+    actual_rows <- rows
+    attr(actual_rows, "row.names") <- c(NA_integer_, sign * 3L)
+    stopifnot(identical(.row_names_info(actual_rows, type = 0L), c(NA_integer_, sign * 3L)))
+    expected <- .engine_manifest_native_old_json(actual_rows)
+    actual <- .engine_manifest_native_json(actual_rows)
+    stopifnot(!is.null(actual), identical(expected, literal), identical(actual, literal),
+      identical(charToRaw(actual), charToRaw(expected)),
+      identical(Encoding(actual), Encoding(expected)), identical(Encoding(actual), Encoding(literal)))
+  }
+  # Reproduce actual first-prefix subset metadata, not just manually set attrs.
+  original <- data.frame(label = rep("a", 5000L), id = rep(1L, 5000L), flag = rep(TRUE, 5000L))
+  prefix <- original[seq_len(3675L), , drop = FALSE]
+  stopifnot(identical(.row_names_info(prefix, type = 0L), c(NA_integer_, 3675L)))
+  expected <- paste0("[", paste(rep('{"label":"a","id":1,"flag":true}', 3675L), collapse = ","), "]")
+  actual <- .engine_manifest_native_json(prefix)
+  stopifnot(!is.null(actual), identical(actual, expected),
+    identical(charToRaw(actual), charToRaw(.engine_manifest_native_old_json(prefix))))
+  for (raw_names in list(c(NA_integer_, 4L), c(NA_integer_, -4L),
+      c(NA_integer_, NA_integer_))) {
+    malformed <- rows; attr(malformed, "row.names") <- raw_names
+    stopifnot(is.null(.engine_manifest_native_json(malformed)))
+  }
+  deferred <- rows; attr(deferred, "row.names") <- as.character(1:3)
+  altrep <- rows; altrep$id <- 1:3
+  stopifnot(is.null(.engine_manifest_native_json(deferred)), is.null(.engine_manifest_native_json(altrep)))
+  TRUE
+}
+
 test_engine_manifest_native_json_literal_oracle_contract <- function() {
   for (n in c(1L, 2L, 512L, 1000L, 5000L)) {
     rows <- data.frame(label = rep(c("", "NA", NA_character_, "space /under_score:dot.-"), length.out = n),

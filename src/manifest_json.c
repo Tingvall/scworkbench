@@ -78,7 +78,8 @@ SEXP scwb_manifest_scalar_json(SEXP rows, SEXP keys, SEXP bound) {
     }
     if (plain(row_names, INTSXP)) {
         int compact = XLENGTH(row_names) == 2 && INTEGER_ELT(row_names, 0) == NA_INTEGER &&
-            INTEGER_ELT(row_names, 1) == -(int)nr;
+            (INTEGER_ELT(row_names, 1) == (int)nr ||
+             INTEGER_ELT(row_names, 1) == -(int)nr);
         if (!compact) {
             if (XLENGTH(row_names) != nr) return R_NilValue;
             for (R_xlen_t i = 0; i < nr; ++i) if (INTEGER_ELT(row_names, i) == NA_INTEGER ||
