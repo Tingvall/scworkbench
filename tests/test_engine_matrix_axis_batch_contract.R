@@ -351,6 +351,10 @@ test_engine_matrix_axis_query_fetch_fault_cleanup_retry_contract <- function() {
   }
   # A late resource admission failure, after a real earlier admission, must
   # unwind the live axis cursor/token file and restore policy before retry.
+  # Both member fixture connections remain intentionally live here. The exact
+  # diagnostic reproduces7→9 FDs at member creation, unchanged through faults;
+  # compare this phase with its own baseline, not the earlier one-connection phase.
+  descriptors_before_late <- if (dir.exists("/proc/self/fd")) length(list.files("/proc/self/fd")) else NULL
   admit <- get(".wb_graph_transient_admit", asNamespace("scworkbench")); admitted <- 0L
   undo <- .engine_axis_swap("scworkbench", ".wb_graph_transient_admit", function(budgets, path = "") {
     admitted <<- admitted + 1L
@@ -360,7 +364,7 @@ test_engine_matrix_axis_query_fetch_fault_cleanup_retry_contract <- function() {
   tryCatch(.engine_axis_error("AXIS_LATE_TRANSIENT_ADMISSION", .engine_axis_hash(fixture)), finally = undo())
   stopifnot(admitted == 2L, length(DBI::dbListResults(fixture$con)) == 0L,
     identical(before, DBI::dbGetQuery(fixture$con, "PRAGMA cache_size")),
-    is.null(descriptors_before) || length(list.files("/proc/self/fd")) == descriptors_before,
+    is.null(descriptors_before_late) || length(list.files("/proc/self/fd")) == descriptors_before_late,
     identical(.engine_axis_hash(fixture), .engine_axis_hash(fixture, old = TRUE)))
   TRUE
 }

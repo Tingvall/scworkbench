@@ -42,3 +42,17 @@ Separately, caller-transaction fixtures preselect the existing temporary-store
 policy before opening their transaction, so SQLite's unrelated PRAGMA restriction
 cannot prevent reaching the intended membership rejection. No runtime guard was
 weakened to accommodate either fixture.
+
+The first installed focused gate on 2ebfd475 completed all 26 tests: 24 passed,
+0 skipped, 2 failed (29 expanded RSQLite deprecated-result-list warnings).
+One failure was an omitted `SCWORKBENCH_SCWBRNA_ROOT` in the command; the clean
+local RNA checkout is independently pinned to 151dd29211b219343dce6247c5e48fc932b4c83d.
+The other compared a late fault's FD count against a baseline preceding two
+additional, intentionally live SQLite fixture connections. The unchanged-test
+diagnostic reproduced exactly 7 -> 9 FDs at member-fixture creation, no increase
+through the injected faults, and zero owned fixture descriptors after unwind
+(`matrix_axis_fd_scope_diagnostic.log`, diagnostic exit 0). The test-only fix
+captures a fresh baseline for that late phase and retains exact equality;
+earlier fault checks are unchanged. The original failed gate and diagnostic
+are retained, not rewritten as passing runs. Runtime R/src remain identical to
+bc6b0d664dbe2a883358b7e5d0036aa07a75b408.
