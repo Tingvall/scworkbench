@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "matrix_digest.h"
 
 /* Do not force deferred string carriers while deciding whether a whole batch
  * can be observed before its ordered state fold. */
@@ -202,9 +203,17 @@ SEXP scwb_json_index_floor(SEXP positions, SEXP value) {
 
 typedef struct {
     FILE *file;
+    SEXP digest;
     SEXP rows, columns, values;
     int first;
 } append_context;
+
+static void append_write(append_context *context, const void *bytes, size_t length) {
+    if (context->digest != R_NilValue)
+        scwb_matrix_digest_write(context->digest, bytes, length);
+    else if (fwrite(bytes, 1, length, context->file) != length)
+        Rf_error("Matrix identity write failed.");
+}
 
 /* Coordinates are positive R integers, exactly representable in the canonical
  * 15-digit scheme. Emit their scientific token without floating conversion. */
@@ -285,27 +294,30 @@ static SEXP append_body(void *data) {
         *p++ = '}';
         size_t bytes = (size_t)(p - record);
         if (used + bytes > sizeof(buffer)) {
-            if (fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix identity write failed.");
+            append_write(context, buffer, used);
             used = 0;
         }
         memcpy(buffer + used, record, bytes); used += bytes;
         context->first = 0;
         if (i % 8192 == 0) R_CheckUserInterrupt();
     }
-    if (used && fwrite(buffer, 1, used, context->file) != used) Rf_error("Matrix identity write failed.");
-    if (fflush(context->file)) Rf_error("Matrix identity flush failed.");
+    if (used) append_write(context, buffer, used);
+    if (context->file && fflush(context->file)) Rf_error("Matrix identity flush failed.");
     return R_NilValue;
 }
 
 SEXP scwb_matrix_slice_append(SEXP path, SEXP rows, SEXP columns, SEXP values, SEXP first) {
-    if (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING ||
+    if ((TYPEOF(path) != EXTPTRSXP && (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING)) ||
         TYPEOF(rows) != INTSXP || TYPEOF(columns) != INTSXP ||
         (TYPEOF(values) != REALSXP && TYPEOF(values) != LGLSXP) ||
         XLENGTH(rows) != XLENGTH(values) || XLENGTH(columns) != XLENGTH(values))
         Rf_error("Invalid matrix identity append vectors.");
-    append_context context = {NULL, rows, columns, values, Rf_asLogical(first) == TRUE};
-    context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
-    if (!context.file) Rf_error("Cannot open private matrix identity stream.");
+    append_context context = {NULL, R_NilValue, rows, columns, values, Rf_asLogical(first) == TRUE};
+    if (TYPEOF(path) == EXTPTRSXP) context.digest = path;
+    else {
+        context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
+        if (!context.file) Rf_error("Cannot open private matrix identity stream.");
+    }
     return R_UnwindProtect(append_body, &context, append_cleanup, &context, NULL);
 }
 

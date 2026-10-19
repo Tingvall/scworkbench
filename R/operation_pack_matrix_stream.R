@@ -7,17 +7,36 @@
   .wb_operation_pack_canonical_string_array(ids)
 }
 
+.wb_operation_pack_matrix_digest_open <- function() {
+  loadNamespace("openssl")
+  provider <- getLoadedDLLs()[["openssl"]]
+  if (is.null(provider)) return(NULL)
+  .Call(C_scwb_matrix_digest_open, provider[["path"]])
+}
+
 .wb_operation_pack_matrix_stream_identity <- function(features, cells,
     read_columns, chunk_size) {
-  path <- tempfile("scwb_matrix_identity_")
-  con <- file(path, "wb")
-  on.exit({try(close(con), silent = TRUE); unlink(path)}, add = TRUE)
-  emit <- function(x) writeBin(charToRaw(enc2utf8(x)), con)
+  sink <- .wb_operation_pack_matrix_digest_open()
+  path <- con <- NULL
+  on.exit({
+    if (!is.null(sink)) .Call(C_scwb_matrix_digest_close, sink)
+    if (!is.null(con)) try(close(con), silent = TRUE)
+    if (!is.null(path)) unlink(path)
+  }, add = TRUE)
+  if (is.null(sink)) {
+    path <- tempfile("scwb_matrix_identity_")
+    con <- file(path, "wb")
+  }
+  emit <- function(x) {
+    bytes <- charToRaw(enc2utf8(x))
+    if (is.null(sink)) writeBin(bytes, con)
+    else .Call(C_scwb_matrix_digest_update, sink, bytes)
+  }
   encode <- .wb_operation_pack_canonical_json
   emit(paste0('{"cell_id":', .wb_operation_pack_matrix_axis_json(cells),
     ',"dimensions":', encode(list(as.integer(length(features)),
       as.integer(length(cells)))), ',"entries":['))
-  close(con)
+  if (is.null(sink)) close(con)
   first <- TRUE
   for (start in seq.int(1L, max(1L, length(cells)), by = chunk_size)) {
     if (!length(cells)) break
@@ -37,20 +56,22 @@
     for (offset in seq.int(1L, max(1L, length(keep)), by = 8192L)) {
       if (!length(keep)) break
       idx <- keep[seq.int(offset, min(length(keep), offset + 8191L))]
-      .Call(C_scwb_matrix_slice_append, path,
+      .Call(C_scwb_matrix_slice_append, if (is.null(sink)) path else sink,
         as.integer(sparse@i[idx] + 1L), as.integer(columns[idx]),
         if (logical_values) as.logical(sparse@x[idx]) else
           as.double(sparse@x[idx]), first)
       first <- FALSE
     }
   }
-  con <- file(path, "ab")
+  if (is.null(sink)) con <- file(path, "ab")
   emit(paste0('],"feature_id":', .wb_operation_pack_matrix_axis_json(features),
     ',"kind":"matrix","schema":"scworkbench.operation_pack.matrix_slice.content.v1"}'))
-  close(con)
-  input <- file(path, "rb")
-  sha <- tryCatch(unclass(as.character(openssl::sha256(input))),
-    finally = close(input))
+  if (is.null(sink)) {
+    close(con)
+    input <- file(path, "rb")
+    sha <- tryCatch(unclass(as.character(openssl::sha256(input))),
+      finally = close(input))
+  } else sha <- .Call(C_scwb_matrix_digest_finish, sink)
   list(scheme = "scworkbench.operation_pack.matrix_slice.content.v1", sha256 = sha)
 }
 

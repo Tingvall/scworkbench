@@ -42,6 +42,10 @@ static SEXP scwb_sdk_publish_noreplace(SEXP source, SEXP destination)
 
 extern SEXP scwb_graph_source_directory(SEXP, SEXP);
 extern SEXP scwb_matrix_slice_append(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP scwb_matrix_digest_open(SEXP);
+extern SEXP scwb_matrix_digest_update(SEXP, SEXP);
+extern SEXP scwb_matrix_digest_finish(SEXP);
+extern SEXP scwb_matrix_digest_close(SEXP);
 extern SEXP scwb_matrix_market_block(SEXP, SEXP, SEXP, SEXP);
 extern SEXP scwb_matrix_market_sparse(SEXP, SEXP, SEXP, SEXP);
 extern SEXP scwb_matrix_market_projection(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -70,6 +74,10 @@ extern SEXP scwb_graph_json_position(SEXP);
 extern SEXP scwb_graph_json_close(SEXP);
 
 static const R_CallMethodDef sdk_calls[] = {
+    {"scwb_matrix_digest_open", (DL_FUNC) &scwb_matrix_digest_open, 1},
+    {"scwb_matrix_digest_update", (DL_FUNC) &scwb_matrix_digest_update, 2},
+    {"scwb_matrix_digest_finish", (DL_FUNC) &scwb_matrix_digest_finish, 1},
+    {"scwb_matrix_digest_close", (DL_FUNC) &scwb_matrix_digest_close, 1},
     {"scwb_matrix_slice_append", (DL_FUNC) &scwb_matrix_slice_append, 5},
     {"scwb_matrix_market_block", (DL_FUNC) &scwb_matrix_market_block, 4},
     {"scwb_matrix_market_sparse", (DL_FUNC) &scwb_matrix_market_sparse, 4},
