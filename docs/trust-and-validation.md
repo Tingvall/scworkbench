@@ -129,8 +129,13 @@ Private custody, effective resource policy, file-byte observations, receipt
 bindings and complete closure remain enforced. A changed, transferred,
 recovered or otherwise ineligible stage uses independent persisted validation;
 neither a public seal nor a serialized connection pointer supplies authority.
-The handoff applies only to same-process execution; graph checkpoint
-process-replacement recovery remains a separate, unqualified path.
+The handoff applies only to same-process execution. Separately, authenticated
+graph checkpoint process-replacement recovery has scoped installed evidence for
+a small unbound two-node graph: pack-free load, resume, recovered promotion,
+retained-artifact continuation and corruption/cleanup/retry contracts. See
+[`GRAPH_DURABLE_RECOVERY_INSTALLED_COMPONENT_68.md`](../notes/engine_simplification/GRAPH_DURABLE_RECOVERY_INSTALLED_COMPONENT_68.md).
+Source-bound graph replacement, Python replacement and large/many-output scale
+remain unmeasured; that component evidence is not blanket graph qualification.
 
 Table publication encodes and inserts row JSON in bounded batches while retaining
 the existing row representation and content identity. An ordinary table primitive

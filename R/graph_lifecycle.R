@@ -193,7 +193,10 @@ wb_art_graph_slice <- function(bundle, artifact_id, component, offset = "0", lim
   if (owned) {
     policy <- .wb_graph_effective_budgets(bundle$con)
     restore_owned <- .wb_graph_aggregate_connection_budget(.wb_graph_bundle_connections(bundle), policy, extra = 1L)
-    stage <- .wb_graph_stage_small(prim, policy, bundle$con@ref$wb_graph_cache_kib)
+    # This locally owned stage cannot escape before the immediate complete SQL
+    # identity closure below. Other constructors keep their default closure.
+    stage <- .wb_graph_stage_small(prim, policy, bundle$con@ref$wb_graph_cache_kib,
+      .defer_content_closure = TRUE)
   }
   restore_budget <- .wb_graph_aggregate_connection_budget(c(.wb_graph_bundle_connections(bundle), list(stage$con)),
     .wb_graph_effective_budgets(bundle$con, stage$budgets))

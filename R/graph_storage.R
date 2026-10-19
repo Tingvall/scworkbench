@@ -848,7 +848,8 @@
     canonical_bytes = as.character(written))
 }
 
-.wb_graph_stage_small <- function(graph, budgets = list(), cache_kib = NULL) {
+.wb_graph_stage_small <- function(graph, budgets = list(), cache_kib = NULL,
+    .defer_content_closure = FALSE) {
   admitted <- .wb_graph_budgets(budgets)
   .wb_graph_materialization_admit(list(content = graph$content,
     bindings = graph$associations), admitted$collect_bytes)
@@ -893,7 +894,8 @@
   append("binding_mappings", function(put) for (binding in graph$associations)
     for (j in seq_along(binding$mapping)) put(c(list(binding_id = binding$binding_id,
       mapping_ordinal = as.character(j - 1L)), binding$mapping[[j]])))
-  state$content <- .wb_graph_sql_content_hash(state$con, "staged", state$budgets)
+  if (!isTRUE(.defer_content_closure))
+    state$content <- .wb_graph_sql_content_hash(state$con, "staged", state$budgets)
   succeeded <- TRUE
   state
 }
