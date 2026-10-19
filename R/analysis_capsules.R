@@ -367,7 +367,8 @@ wb_ref_entity <- function(entity_kind, entity_id) {
 
 .wb_capsule_recover_residue <- function(bundle) {
   .wb_assert_bundle_writable(bundle, "analysis capsule publication recovery")
-  .wb_with_bundle_writer_lock(bundle, operation = "analysis capsule publication recovery", code = {
+  performed_cleanup <- FALSE
+  recover <- function() {
     residue <- .wb_capsule_residue_inventory(bundle$dir, bundle$con)
     valid_id <- function(path) grepl("^cap_[A-Za-z0-9]+$", sub("^\\.pending-", "", basename(path)))
     for (path in residue$pending) {
@@ -379,6 +380,7 @@ wb_ref_entity <- function(entity_kind, entity_id) {
       unlink(status$absolute, recursive = TRUE, force = TRUE)
       .wb_assert(!file.exists(status$absolute) && !dir.exists(status$absolute),
                  paste0("CAPSULE_RESIDUE_RECOVERY_FAILED: ", status$relative))
+      performed_cleanup <<- TRUE
     }
     for (path in residue$orphan) {
       link <- Sys.readlink(path); is_link <- !is.na(link) && nzchar(link)
@@ -394,14 +396,37 @@ wb_ref_entity <- function(entity_kind, entity_id) {
       )
       unlink(path, recursive = TRUE, force = TRUE)
       .wb_assert(!dir.exists(path), paste0("CAPSULE_RESIDUE_RECOVERY_FAILED: ", path))
+      performed_cleanup <<- TRUE
     }
     pending_root <- file.path(bundle$dir, "analysis", "capsules", ".pending")
     if (dir.exists(pending_root) && !length(list.files(pending_root, all.files = TRUE, no.. = TRUE))) {
       unlink(pending_root, recursive = TRUE, force = TRUE)
+      .wb_assert(!file.exists(pending_root) && !dir.exists(pending_root),
+                 "CAPSULE_RESIDUE_RECOVERY_FAILED: analysis/capsules/.pending")
+      performed_cleanup <<- TRUE
     }
     .wb_capsule_assert_no_residue(bundle, "analysis capsule publication recovery")
     invisible(list(removed_pending = length(residue$pending), removed_orphan = length(residue$orphan)))
-  })
+  }
+
+  # A caller-owned transaction retains the original writer-route semantics,
+  # including its existing nested/outermost publication decision. Never commit
+  # or roll back the caller's transaction here.
+  if (isTRUE(RSQLite::sqliteIsTransacting(bundle$con))) {
+    return(.wb_with_bundle_writer_lock(bundle,
+      operation = "analysis capsule publication recovery", code = recover()))
+  }
+  lock <- .wb_bundle_writer_lock_acquire(bundle,
+    operation = "analysis capsule publication recovery")
+  on.exit(.wb_bundle_writer_lock_release(lock), add = TRUE)
+  result <- recover()
+  # An empty observation is not a committed mutation. Actual filesystem work
+  # still publishes, even with unchanged SQL and an otherwise reusable witness.
+  if (isTRUE(performed_cleanup)) {
+    .wb_manifest_publish_current_locked(bundle, result = result, force = TRUE)
+    try(DBI::dbGetQuery(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);"), silent = TRUE)
+  }
+  result
 }
 
 #' Register externally executed terminal analysis evidence
