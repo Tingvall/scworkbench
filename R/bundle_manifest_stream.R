@@ -231,6 +231,30 @@
     small <- if (isTRUE(attr(observer, "wb_manifest_spill_boundaries", exact = TRUE)))
       .wb_manifest_small_chunk_bound(rows,
         batch[seq.int(nrow(fields) + 2L, 2L * nrow(fields) + 1L)], key_tokens, budgets) else NULL
+    whole <- NULL
+    if (is.null(small) && native_json &&
+        isTRUE(attr(observer, "wb_manifest_spill_boundaries", exact = TRUE)) &&
+        nrow(batch) <= 5000L && nrow(fields) <= 8L) {
+      whole_carrier <- 4096 + 576 * nrow(fields) +
+        nrow(batch) * (16 * nrow(fields) + 32 + 128)
+      whole_capacity <- min(as.numeric(budgets$token_bytes),
+        floor((8 * budgets$partition_bytes - whole_carrier) / 8))
+      if (is.finite(whole_carrier) && is.finite(whole_capacity) && whole_capacity > 0 &&
+          whole_carrier + 8 * whole_capacity <= 8 * budgets$partition_bytes &&
+          !any(vapply(seq_len(nrow(fields)), function(j)
+            any(batch[[nrow(fields) + 1L + j]] %in% c("text_deferred", "blob_deferred")), logical(1)))) {
+        # Deferred projections contain placeholders; ALL markers above must be
+        # excluded before the unchanged encoder can inspect actual values.
+        whole <- .Call(C_scwb_manifest_scalar_json, rows, key_tokens, whole_capacity)
+        .wb_graph_storage_fault("manifest_native_json", list(con = con, table = table,
+          scope = "whole", mode = if (is.null(whole)) "fallback" else "native",
+          rows = nrow(batch), budgets = budgets, encoded_bytes = whole_capacity,
+          actual_bytes = if (is.null(whole)) NA_real_ else nchar(whole, type = "bytes"),
+          buffer_ledger_bytes = if (is.null(whole)) NA_real_ else 6 * (nchar(whole, type = "bytes") + 1) + 256,
+          carrier_bytes = whole_carrier, reservation_bytes = whole_carrier + 8 * whole_capacity,
+          decoded_reservation_bytes = 8 * budgets$partition_bytes))
+      }
+    }
     if (!is.null(small)) {
       .wb_graph_storage_fault("manifest_small_chunk", c(list(con = con, table = table,
         budgets = budgets, rows = nrow(batch), decoded_reservation_bytes = 8 * budgets$partition_bytes,
@@ -243,6 +267,17 @@
         "GRAPH_RESOURCE_EXCEEDED", "Manifest small chunk exceeded pre-admitted encoded size.")
       sha <- digest::digest(json, algo = "sha256", serialize = FALSE)
       json <- NULL
+    } else if (!is.null(whole)) {
+      .wb_graph_require(nchar(whole, type = "bytes") <= whole_capacity &&
+        nchar(whole, type = "bytes") <= as.numeric(budgets$token_bytes),
+        "GRAPH_RESOURCE_EXCEEDED", "Manifest native whole chunk exceeded encoded admission.")
+      .wb_graph_storage_fault("manifest_native_whole_chunk", list(con = con, table = table,
+        rows = nrow(batch), budgets = budgets, carrier_bytes = whole_carrier,
+        encoded_bytes = whole_capacity, actual_bytes = nchar(whole, type = "bytes"),
+        reservation_bytes = whole_carrier + 8 * whole_capacity,
+        decoded_reservation_bytes = 8 * budgets$partition_bytes))
+      sha <- digest::digest(whole, algo = "sha256", serialize = FALSE)
+      whole <- NULL
     } else sha <- .wb_graph_token_hash(function(emit) {
       emit("[")
       i <- 1L
@@ -333,9 +368,11 @@
             json <- if (native_json) .Call(C_scwb_manifest_scalar_json, selected_rows,
               key_tokens, encoded_bytes) else NULL
             .wb_graph_storage_fault("manifest_native_json", list(con = con, table = table,
-              mode = if (is.null(json)) "fallback" else "native", rows = take, budgets = budgets,
+              scope = "scalar", mode = if (is.null(json)) "fallback" else "native", rows = take, budgets = budgets,
               encoded_bytes = encoded_bytes, actual_bytes = if (is.null(json)) NA_real_ else nchar(json, type = "bytes"),
-              buffer_ledger_bytes = if (is.null(json)) NA_real_ else 6 * (nchar(json, type = "bytes") + 1) + 256))
+              buffer_ledger_bytes = if (is.null(json)) NA_real_ else 6 * (nchar(json, type = "bytes") + 1) + 256,
+              carrier_bytes = carrier_bytes, reservation_bytes = batch_reservation,
+              decoded_reservation_bytes = 8 * budgets$partition_bytes))
             if (is.null(json)) json <- as.character(jsonlite::toJSON(.wb_json_sanitize(selected_rows),
               dataframe = "rows", auto_unbox = TRUE, null = "null", na = "null"))
             selected_rows <- NULL

@@ -2,9 +2,12 @@ test_engine_manifest_json_batch_decoupled_rows_and_fold_contract <- function() {
   path <- tempfile("manifest_json_batch_", fileext = ".sqlite")
   con <- DBI::dbConnect(RSQLite::SQLite(), path)
   on.exit({DBI::dbDisconnect(con); unlink(path)}, add = TRUE)
-  DBI::dbExecute(con, "CREATE TABLE entries(id INTEGER,label TEXT);")
+  # REAL deliberately retains the original scalar path after whole-native
+  # specialization. Its 512-byte token bound needs a larger valid byte window
+  # to KEEP the actual >512-row assertion under the same 8 MiB memory policy.
+  DBI::dbExecute(con, "CREATE TABLE entries(id REAL,label TEXT);")
   policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608",
-    sqlite_cache_kib = 2048L, partition_bytes = 262144L, partition_rows = 2L,
+    sqlite_cache_kib = 2048L, partition_bytes = 524288L, partition_rows = 2L,
     collect_bytes = 4194304L))
   before <- list(cache = DBI::dbGetQuery(con, "PRAGMA cache_size;"),
     temp = DBI::dbGetQuery(con, "PRAGMA temp_store;"), policy = con@ref$wb_graph_policy,
@@ -47,8 +50,9 @@ test_engine_manifest_json_batch_graph_wire_partition_unchanged_contract <- funct
   policy <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608",
     sqlite_cache_kib = 2048L, partition_bytes = 262144L, partition_rows = 2L,
     collect_bytes = 4194304L))
-  # The SAME policy still constrains actual graph wire partitions to two
-  # rows; only the private registry JSON batching is decoupled.
+  # The original 262144-byte graph policy still constrains actual wire
+  # partitions to two rows; the REAL scalar-coverage fixture above uses a
+  # separate valid byte window, not a changed graph wire contract.
   graph <- wb_prim_graph(lapply(paste0("node_", seq_len(6L)), function(id)
     list(node_id = id)), list(), list())
   stage <- scworkbench:::.wb_graph_stage_small(graph, policy)
