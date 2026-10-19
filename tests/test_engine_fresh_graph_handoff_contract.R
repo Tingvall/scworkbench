@@ -196,21 +196,35 @@ test_engine_fresh_graph_hook_failure_cleanup_retry_contract <- function() {
 test_engine_fresh_graph_private_stage_mutation_rejects_contract <- function() {
   .engine_fresh_graph_fixture(function(x) {
     options(scworkbench.graph_storage_test_hook = x$capture)
-    before <- .engine_fresh_graph_inventory(x$bundle$dir); mutated <- FALSE
-    options(scworkbench.operation_pack_v2_test_hook = function(event, ...) {
-      if (identical(event, "reopened")) {
-        candidates <- Filter(function(stage) !isTRUE(stage$closed) && !is.null(stage$handoff_bytes), x$stages)
-        stopifnot(length(candidates) == 1L)
-        con <- file(candidates[[1L]]$path, open = "ab"); on.exit(close(con), add = TRUE)
-        writeBin(as.raw(88L), con); mutated <<- TRUE
-      }
-    })
-    failure <- tryCatch(x$run(), error = identity)
-    options(scworkbench.operation_pack_v2_test_hook = NULL)
-    stopifnot(mutated, inherits(failure, "error"),
-      identical(before, .engine_fresh_graph_inventory(x$bundle$dir)),
-      !any(vapply(x$stages, function(stage) file.exists(stage$path), logical(1))))
-    stopifnot(x$run()$run$outputs$result$kind == "graph")
+    before <- .engine_fresh_graph_inventory(x$bundle$dir)
+    for (mode in c("bytes", "seal", "budgets", "observations", "finished", "bytes_rebased")) {
+      mutated <- FALSE
+      options(scworkbench.operation_pack_v2_test_hook = function(event, ...) {
+        if (identical(event, "reopened")) {
+          candidates <- Filter(function(stage) !isTRUE(stage$closed) && !is.null(stage$handoff_bytes), x$stages)
+          stopifnot(length(candidates) == 1L)
+          stage <- candidates[[1L]]
+          if (mode %in% c("bytes", "bytes_rebased")) {
+            con <- file(stage$path, open = "ab")
+            tryCatch(writeBin(as.raw(88L), con), finally = close(con))
+            if (mode == "bytes_rebased")
+              stage$handoff_bytes <- scworkbench:::.wb_operation_pack_v4_graph_stage_guard(stage)
+          } else if (mode == "seal") stage$seal$content_identity$sha256 <- strrep("0", 64L)
+          else if (mode == "budgets") stage$budgets$partition_rows <- 1L
+          else if (mode == "observations") stage$observations$header$rows <- "0"
+          else stage$finished <- FALSE
+          mutated <<- TRUE
+        }
+      })
+      failure <- tryCatch(x$run(), error = identity)
+      options(scworkbench.operation_pack_v2_test_hook = NULL)
+      stopifnot(mutated, inherits(failure, "error"),
+        identical(before, .engine_fresh_graph_inventory(x$bundle$dir)),
+        !any(vapply(x$stages, function(stage) file.exists(stage$path), logical(1))))
+      retry <- x$run()
+      stopifnot(retry$run$outputs$result$kind == "graph")
+      wb_session_discard(retry$session)
+    }
     TRUE
   })
 }
@@ -245,6 +259,18 @@ test_engine_fresh_graph_eligibility_fallback_contract <- function() {
       checked$request$graph_write_grants[[1L]]), error = identity)
     stopifnot(inherits(failure, "error"),
       grepl("GRAPH_PAYLOAD_INVALID", conditionMessage(failure), fixed = TRUE))
+    # The original name walker fits this inherited policy, but the additional
+    # custody ledger does not. Eligibility must fall back BEFORE its hashing,
+    # rather than using the larger manifest grant or changing caller policy.
+    inherited <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "17498112"))
+    previous <- x$bundle$con@ref$wb_graph_policy
+    on.exit(x$bundle$con@ref$wb_graph_policy <- previous, add = TRUE)
+    x$bundle$con@ref$wb_graph_policy <- inherited
+    stopifnot(length(scworkbench:::.wb_graph_native_tree_entries(record, inherited)) > 0L,
+      is.null(scworkbench:::.wb_operation_pack_v4_graph_record_bytes(record,
+        checked$request$graph_write_grants[[1L]], list(x$bundle$con))),
+      identical(x$bundle$con@ref$wb_graph_policy, inherited))
+    x$bundle$con@ref$wb_graph_policy <- previous
     # Eligibility-only Python/multiple-output negatives do NOT claim Python
     # graph runtime execution or a supported multi-graph fixture lifecycle.
     TRUE

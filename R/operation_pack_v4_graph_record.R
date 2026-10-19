@@ -102,7 +102,7 @@
     .wb_operation_pack_v4_graph_payload(path, name, seal, grant,
       connections = connections, cache_slots = cache_slots) else
     .wb_operation_pack_v4_graph_handoff_accept(.validated_handoff, path,
-      item, receipt, request)
+      item, receipt, request, connections)
   value <- structure(list(kind = "graph", content_identity = staged$seal$content_identity,
     binding_identity = staged$seal$binding_identity, descriptor_identity = staged$seal$descriptor_identity),
     class = "wb_primitive")

@@ -31,11 +31,16 @@
   emit(suffix)
 }
 
-.wb_graph_native_tree_entries <- function(root, budgets) {
+.wb_graph_native_tree_entries <- function(root, budgets, reserve_bytes = 0) {
   # Charge names, C buffers, R strings/vectors, recursive traversal and native
   # sort copies BEFORE allocation. Existing cache/partition reservations remain.
+  .wb_graph_require(typeof(reserve_bytes) %in% c("integer", "double") &&
+    is.null(attributes(reserve_bytes)) && !is.object(reserve_bytes) &&
+    length(reserve_bytes) == 1L && !is.na(reserve_bytes) &&
+    is.finite(reserve_bytes) && reserve_bytes >= 0, "GRAPH_RESOURCE_POLICY_INVALID",
+    "Invalid private traversal workspace reservation.")
   allowance <- as.numeric(budgets$memory_bytes) - budgets$sqlite_cache_kib * 1024 -
-    8 * budgets$partition_bytes - 65536 - .wb_graph_fd_metadata_reservation(budgets)
+    8 * budgets$partition_bytes - 65536 - .wb_graph_fd_metadata_reservation(budgets) - reserve_bytes
   .wb_graph_require(allowance > 0, "GRAPH_RESOURCE_EXCEEDED",
     "No working reservation remains for native file-name metadata.")
   used <- 0; entries <- list()

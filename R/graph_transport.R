@@ -150,8 +150,8 @@
     .wb_graph_configure(state$con, state$budgets, cache_kib)
     state$con@ref$wb_graph_policy <- policy
     state$con@ref$wb_graph_cache_kib <- share
-    state$handoff_bytes <- .wb_operation_pack_v4_graph_stage_guard(state)
-    .wb_graph_require(!is.null(state$handoff_bytes), "GRAPH_PAYLOAD_INVALID",
+    handoff_bytes <- .wb_operation_pack_v4_graph_stage_guard(state)
+    .wb_graph_require(!is.null(handoff_bytes), "GRAPH_PAYLOAD_INVALID",
       "Cannot observe the quiescent graph stage before semantic validation.")
   }
   state$seal <- .wb_graph_sql_identities(state$con, "staged", state$budgets)
@@ -170,9 +170,10 @@
         "GRAPH_SEAL_MISMATCH", "Imported payload disagrees with the complete declared output seal.")
   }
   if (isTRUE(.immutable_seal))
-    .wb_graph_require(identical(state$handoff_bytes,
+    .wb_graph_require(identical(handoff_bytes,
       .wb_operation_pack_v4_graph_stage_guard(state)), "GRAPH_PAYLOAD_INVALID",
       "Graph stage bytes changed during semantic validation.")
+  if (isTRUE(.immutable_seal)) state$handoff_bytes <- handoff_bytes
   state$finished <- TRUE; succeeded <- TRUE
   state
 }
