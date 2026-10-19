@@ -923,14 +923,16 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   }, character(1))
   image_sha <- Sys.getenv("SCWORKBENCH_RUNTIME_IMAGE_SHA256", unset = "")
   out <- list(
-    schema = "scworkbench.runtime_attestation.v1",
+    schema = "scworkbench.runtime_attestation.v2",
     r_version = R.version.string,
     platform = R.version$platform,
     scworkbench_version = as.character(utils::packageVersion("scworkbench")),
     operation = list(name = as.character(op_name)[1], version = "1"),
     namespaces = as.list(package_versions),
     bpcells = list(
-      version = if (requireNamespace("BPCells", quietly = TRUE)) as.character(utils::packageVersion("BPCells")) else NA_character_,
+      # Installed metadata only: observing provenance must not load BPCells.
+      # This does not attest loadability or authenticate a loaded native image.
+      version = .wb_promotion_package_version("BPCells"),
       native_provenance = tryCatch(as.character(utils::packageDescription("BPCells")$RemoteSha %||% NA_character_), error = function(e) NA_character_)
     ),
     image = if (nzchar(image_sha)) list(status = "bound", sha256 = image_sha) else list(status = "unavailable", sha256 = NA_character_),

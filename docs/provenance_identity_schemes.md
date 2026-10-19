@@ -72,3 +72,27 @@ database transaction begins. A later publication failure rolls back SQLite and
 removes both pending and already-renamed payloads. Closing the bundle releases
 the writer lock, and the same in-memory or durable session may retry when its
 lifecycle permits.
+
+## Informational runtime provenance
+
+New persisted run and durable-session fingerprints use
+`scworkbench.runtime_attestation.v2`. Their BPCells `version` is installed
+package metadata selected by ordinary R package discovery, without loading its
+namespace. An installed but unloadable package can therefore have a recorded
+version. `native_provenance` remains its installed DESCRIPTION `RemoteSha`
+claim. Neither field proves loadability, execution, or the identity of a loaded
+native image. The namespace list is a separate fresh observation of namespaces
+already loaded when each fingerprint is constructed; its version fields retain
+their existing installed-metadata interpretation.
+
+Operation identity, explicitly supplied operation-pack runtime evidence, image
+binding and environment provenance are still collected for each invocation.
+No first-run fingerprint or namespace list is reused across operations.
+ABI request/receipt runtime attestations and promotion package-inventory fields
+are unchanged; this v2 label distinguishes the persisted informational meaning,
+not a scientific content or identity-scheme migration.
+
+Historical `scworkbench.runtime_attestation.v1` records keep their original
+BPCells loadability-probe interpretation and bytes. Read-only provenance and
+certificate inspection and durable recovery accept them without relabeling or
+rewriting them. New v2 records may coexist with historical v1 evidence.
