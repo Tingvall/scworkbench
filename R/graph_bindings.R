@@ -128,13 +128,62 @@ wb_graph_identity <- function(graph) {
   on.exit(if (file.exists(token_file)) unlink(token_file), add = TRUE)
   sink <- file(token_file, "wb"); count <- bit64::as.integer64(0)
   observed <- bit64::as.integer64(0)
+  limit <- threshold <- NULL
+  examined_policy <- FALSE; small_counter <- FALSE; numeric_limit <- NULL
   emit <- function(value) {
     bytes <- charToRaw(enc2utf8(value))
-    count <<- count + bit64::as.integer64(length(bytes))
-    .wb_graph_require(!is.na(count) && count <= .wb_graph_i64(budgets$token_bytes),
-      "GRAPH_RESOURCE_EXCEEDED", "Identity token spill budget exceeded.")
+    if (small_counter && length(bytes) <= numeric_limit - count) {
+      # Integers bounded by 2^53-1 are exact doubles. Check the remaining
+      # allowance BEFORE addition, so an accepted sum cannot round or overflow.
+      count <<- count + length(bytes)
+    } else {
+      if (small_counter) {
+        # Preserve the OLD failed-emission state as well: an emitter can catch
+        # an over-limit error and continue. Increment exact int64 state before
+        # rejecting, rather than leaving an earlier acceptable count behind.
+        count <<- bit64::as.integer64(count)
+        observed <<- bit64::as.integer64(observed)
+        small_counter <<- FALSE
+      }
+      count <<- count + bit64::as.integer64(length(bytes))
+      actual_limit <- NULL
+      .wb_graph_require(!is.na(count) && count <= {
+        actual_limit <- if (is.null(limit)) .wb_graph_i64(budgets$token_bytes) else limit
+        actual_limit
+      }, "GRAPH_RESOURCE_EXCEEDED", "Identity token spill budget exceeded.")
+      if (!examined_policy) {
+        examined_policy <<- TRUE
+        # Only immutable ordinary policy values may share their conversion.
+        # Unknown attributes/classes/reference-like carriers keep the old path.
+        owned <- attr(budgets, "wb_graph_session_copy_bytes", exact = TRUE)
+        plain_owned <- is.null(owned) || (is.numeric(owned) &&
+          is.null(attributes(owned)) && length(owned) == 1L &&
+          !is.na(owned) && is.finite(owned) && owned >= 0)
+        plain <- is.list(budgets) && !is.object(budgets) &&
+          !length(setdiff(names(attributes(budgets)),
+            c("names", "wb_graph_session_copy_bytes"))) && plain_owned &&
+          is.character(budgets$token_bytes) &&
+          length(budgets$token_bytes) == 1L && is.null(attributes(budgets$token_bytes))
+        if (plain) {
+          limit <<- actual_limit
+          if (limit <= bit64::as.integer64("9007199254740991")) {
+            numeric_limit <<- as.numeric(limit)
+            count <<- as.numeric(count); observed <<- as.numeric(observed)
+            small_counter <<- TRUE
+          }
+        }
+      }
+    }
     writeBin(bytes, sink)
-    if (count - observed >= min(1048576, as.numeric(budgets$token_bytes))) {
+    # Initialize only at the original post-write conversion site. Empty or
+    # failed emitters do not newly force policy, and unsupported policies retain
+    # their original conversion behavior on every emission.
+    boundary <- if (is.null(threshold)) {
+      value <- min(1048576, as.numeric(budgets$token_bytes))
+      if (!is.null(limit)) threshold <<- value
+      value
+    } else threshold
+    if (count - observed >= boundary) {
       flush(sink); .wb_graph_spill_admit(budgets, scratch_path)
       observed <<- count
     }
