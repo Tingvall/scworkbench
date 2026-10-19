@@ -70,6 +70,9 @@
 .wb_manifest_table_identity <- function(con, table, chunk_size = 5000L,
                                        observer = NULL, budgets = list(), windows = NULL) {
   budgets <- .wb_graph_effective_budgets(con, budgets)
+  native_json <- exists("C_scwb_manifest_scalar_json", inherits = TRUE) &&
+    identical(as.character(getRversion()), "4.4.1") &&
+    identical(as.character(getNamespaceVersion("jsonlite")), "1.8.8")
   if (RSQLite::sqliteIsTransacting(con) || con@dbname %in% c("", ":memory:")) {
     .wb_graph_require(is.null(con@ref$wb_graph_policy), "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE",
       "Bounded manifest observation requires committed file-backed state.")
@@ -325,8 +328,17 @@
               decoded_reservation_bytes = 8 * budgets$partition_bytes,
               fetched_carrier_bytes = as.numeric(admission$n[[1L]]) * (24 * nrow(fields) + 32) +
                 as.numeric(admission$bytes[[1L]])))
-            json <- as.character(jsonlite::toJSON(.wb_json_sanitize(rows[selected, , drop = FALSE]),
+            candidate <- eligible <- charge <- cumulative_charge <- eligible_prefix <- admissible <- NULL
+            selected_rows <- rows[selected, , drop = FALSE]
+            json <- if (native_json) .Call(C_scwb_manifest_scalar_json, selected_rows,
+              key_tokens, encoded_bytes) else NULL
+            .wb_graph_storage_fault("manifest_native_json", list(con = con, table = table,
+              mode = if (is.null(json)) "fallback" else "native", rows = take, budgets = budgets,
+              encoded_bytes = encoded_bytes, actual_bytes = if (is.null(json)) NA_real_ else nchar(json, type = "bytes"),
+              buffer_ledger_bytes = if (is.null(json)) NA_real_ else 6 * (nchar(json, type = "bytes") + 1) + 256))
+            if (is.null(json)) json <- as.character(jsonlite::toJSON(.wb_json_sanitize(selected_rows),
               dataframe = "rows", auto_unbox = TRUE, null = "null", na = "null"))
+            selected_rows <- NULL
             .wb_graph_require(nchar(json, type = "bytes") <= encoded_bytes,
               "GRAPH_RESOURCE_EXCEEDED", "Manifest scalar batch exceeded pre-admitted encoded size.")
             emit(substr(json, 2L, nchar(json) - 1L))
