@@ -30,9 +30,16 @@
     inputs = list(), params = list(), outputs = list(vector = graph))
   x$promote <- function(run) wb_promote_analysis(bundle, setNames(list(run), run$run_id),
     head_run_id = run$run_id, outputs = "vector")
-  x$logical_rows <- function() lapply(c("artifacts", "artifact_graph_meta", "artifact_graph_rows"),
+  x$artifact_rows <- function() lapply(c("artifacts", "artifact_graph_meta", "artifact_graph_rows"),
     function(table) DBI::dbGetQuery(bundle$con, paste0("SELECT * FROM ", table, " ORDER BY rowid;")))
-  x$pending <- function() sort(list.files(file.path(root, "provenance", ".pending"), all.files = TRUE, no.. = TRUE))
+  x$logical_rows <- function() list(artifacts = x$artifact_rows(),
+    registry = scworkbench:::.wb_manifest_registry_snapshot(bundle$con))
+  x$pending <- function() list(
+    bundle_files = sort(list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE)),
+    pending_files = sort(list.files(file.path(root, "provenance", ".pending"),
+      recursive = TRUE, all.files = TRUE, no.. = TRUE)),
+    graph_scratch = sort(list.files(tempdir(),
+      pattern = "^scwb_graph_(stage_|tokens_|identity_)", full.names = TRUE)))
   x$policy <- function() list(policy = bundle$con@ref$wb_graph_policy,
     cap = bundle$con@ref$wb_graph_cache_kib,
     cache = DBI::dbGetQuery(bundle$con, "PRAGMA cache_size;")[[1L]][[1L]],
@@ -43,24 +50,28 @@
 
 test_engine_graph_owned_closure_single_pass_and_default_contract <- function() {
   .engine_owned_closure_fixture(function(x) {
-    calls <- 0L; sources <- 0L
-    x$replace(".wb_graph_sql_content_hash", function(original) function(...) {
-      calls <<- calls + 1L; original(...)
+    staged_calls <- 0L; retained <- list(); sources <- 0L
+    x$replace(".wb_graph_sql_content_hash", function(original) function(con, artifact_id, budgets) {
+      if (identical(artifact_id, "staged")) staged_calls <<- staged_calls + 1L else
+        retained[[length(retained)+1L]] <<- list(id = artifact_id, ref = con@ref)
+      original(con, artifact_id, budgets)
     })
     x$replace(".wb_graph_sources_assert", function(original) function(...) {
       sources <<- sources + 1L; original(...)
     })
     default <- x$stage()
-    stopifnot(calls == 1L, !is.null(default$content))
+    stopifnot(staged_calls == 1L, length(retained) == 0L, !is.null(default$content))
     scworkbench:::.wb_graph_stage_discard(default)
-    calls <- 0L
+    staged_calls <- 0L
     paths <- character()
     options(scworkbench.graph_storage_test_hook = function(event, state) {
       if (event == "configured") paths <<- c(paths, state$path)
     })
     promoted <- x$promote(x$run())
-    stopifnot(calls == 1L, sources == 2L, length(paths) == 1L, !any(file.exists(paths)))
     id <- promoted$promoted$artifact_id[[1L]]
+    stopifnot(staged_calls == 1L, length(retained) == 1L,
+      identical(retained[[1L]]$id, id), identical(retained[[1L]]$ref, x$bundle$con@ref),
+      sources == 2L, length(paths) == 1L, !any(file.exists(paths)))
     literal <- paste0('{"attributes":{"edge":[],"graph":[],"incidence":[],"node":[]},',
       '"direction_mode":"undirected","edges":[],"incidences":[],"nodes":[{"node_id":"c2"},{"node_id":"c1"}],',
       '"schema":"scworkbench.graph.content.v1"}')
@@ -72,13 +83,16 @@ test_engine_graph_owned_closure_single_pass_and_default_contract <- function() {
 
 test_engine_graph_owned_closure_malformed_actual_sql_contract <- function() {
   .engine_owned_closure_fixture(function(x) {
-    broken <- TRUE; validated <- 0L; paths <- character()
+    broken <- TRUE; validated <- 0L; retained <- 0L; paths <- character()
     options(scworkbench.graph_storage_test_hook = function(event, state)
       if (event == "configured") paths <<- c(paths, state$path))
     x$replace(".wb_graph_sql_content_hash", function(original) function(con, artifact_id, budgets) {
-      validated <<- validated + 1L
-      if (broken) stopifnot(identical(before, x$logical_rows()))
-      if (broken) DBI::dbExecute(con,
+      staged <- identical(artifact_id, "staged")
+      if (staged) validated <<- validated + 1L else retained <<- retained + 1L
+      # Active promotion already has a pending provenance commit. Check full
+      # registry equality after rollback, not against this legitimate live row.
+      if (broken && staged) stopifnot(identical(before$artifacts, x$artifact_rows()))
+      if (broken && staged) DBI::dbExecute(con,
         "UPDATE artifact_graph_rows SET record_json='{}' WHERE component='nodes' AND row_ordinal=0;")
       original(con, artifact_id, budgets)
     })
@@ -87,13 +101,13 @@ test_engine_graph_owned_closure_malformed_actual_sql_contract <- function() {
     stopifnot(inherits(old_failure, "wb_graph_error"), validated == 1L, !any(file.exists(paths)))
     run <- x$run()
     failure <- tryCatch(x$promote(run), error = identity)
-    stopifnot(inherits(failure, "error"), validated == 2L,
+    stopifnot(inherits(failure, "error"), validated == 2L, retained == 0L,
       grepl(conditionMessage(old_failure), conditionMessage(failure), fixed = TRUE),
       identical(before, x$logical_rows()), identical(pending, x$pending()),
       !any(file.exists(paths)), !RSQLite::sqliteIsTransacting(x$bundle$con))
     broken <- FALSE
     retry <- x$promote(run)
-    stopifnot(identical(retry$promoted$status, "ok"), validated == 3L, !any(file.exists(paths)))
+    stopifnot(identical(retry$promoted$status, "ok"), validated == 3L, retained == 1L, !any(file.exists(paths)))
   })
 }
 
@@ -152,12 +166,13 @@ test_engine_graph_owned_closure_borrowed_seal_and_collision_contract <- function
     stage <- x$stage()
     stage$seal <- scworkbench:::.wb_graph_sql_identities(stage$con, "staged", stage$budgets)
     borrowed <- x$graph; attr(borrowed, "graph_stage") <- stage
-    run <- x$run(borrowed); before <- x$logical_rows()
+    run <- x$run(borrowed); before <- x$logical_rows(); pending <- x$pending()
     DBI::dbExecute(stage$con,
       "UPDATE artifact_graph_rows SET record_json='{\"node_id\":\"changed\"}' WHERE component='nodes' AND row_ordinal=0;")
     failure <- tryCatch(x$promote(run), error = identity)
     stopifnot(inherits(failure, "error"), grepl("GRAPH_SEAL_MISMATCH", conditionMessage(failure), fixed = TRUE),
-      identical(before, x$logical_rows()), file.exists(stage$path), DBI::dbIsValid(stage$con))
+      identical(before, x$logical_rows()), identical(pending, x$pending()),
+      file.exists(stage$path), DBI::dbIsValid(stage$con))
     DBI::dbExecute(stage$con,
       "UPDATE artifact_graph_rows SET record_json='{\"node_id\":\"c2\"}' WHERE component='nodes' AND row_ordinal=0;")
     first <- x$promote(run); id <- first$promoted$artifact_id[[1L]]
@@ -191,8 +206,9 @@ test_engine_graph_owned_closure_bound_source_freshness_contract <- function() {
       mapping = list(list(node_id = "c2", axis_id = "c2"), list(node_id = "c1", axis_id = "c1")))
     graph <- wb_prim_graph(x$graph$content$nodes, list(), list(), associations = list(binding), direction_mode = "undirected")
     run <- x$run(graph)
-    original <- DBI::dbGetQuery(x$bundle$con,
-      "SELECT label FROM artifact_labels WHERE artifact_id=? AND payload_ordinal=0;", params = list(source))$label[[1L]]
+    source_rows <- DBI::dbGetQuery(x$bundle$con,
+      "SELECT * FROM artifact_labels WHERE artifact_id=? ORDER BY payload_ordinal;", params = list(source))
+    original <- source_rows$label[[1L]]
     DBI::dbExecute(x$bundle$con,
       "UPDATE artifact_labels SET label='changed_source' WHERE artifact_id=? AND payload_ordinal=0;", params = list(source))
     before <- x$logical_rows(); pending <- x$pending()
@@ -201,6 +217,8 @@ test_engine_graph_owned_closure_bound_source_freshness_contract <- function() {
       identical(before, x$logical_rows()), identical(pending, x$pending()))
     DBI::dbExecute(x$bundle$con,
       "UPDATE artifact_labels SET label=? WHERE artifact_id=? AND payload_ordinal=0;", params = list(original, source))
+    stopifnot(identical(source_rows, DBI::dbGetQuery(x$bundle$con,
+      "SELECT * FROM artifact_labels WHERE artifact_id=? ORDER BY payload_ordinal;", params = list(source))))
     promoted <- x$promote(run); info <- wb_art_graph_info(x$bundle, promoted$promoted$artifact_id[[1L]])
     expected <- wb_graph_identity(graph)
     stopifnot(identical(info$content_identity, expected$content_identity),
