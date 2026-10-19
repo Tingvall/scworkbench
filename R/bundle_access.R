@@ -52,7 +52,7 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
     if (file.exists(paste0(db_path, "-wal")) || file.exists(paste0(db_path, "-shm"))) {
       stop("Bundle is not recipient-finalized: unresolved SQLite WAL sidecars are present. Open writable and run wb_finalize_recipient_bundle() before read-only transfer.", call.=FALSE)
     }
-    DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db_path, winslash="/", mustWork=TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO,cache_size=-cache_kib)
+    .wb_sqlite_connect_immutable(db_path, cache_size = -cache_kib)
   } else DBI::dbConnect(RSQLite::SQLite(), db_path,cache_size=-cache_kib)
   opened <- FALSE
   on.exit(if (!opened && DBI::dbIsValid(con)) try(DBI::dbDisconnect(con), silent = TRUE), add = TRUE)
@@ -155,7 +155,7 @@ wb_recipient_readiness <- function(bundle_dir) {
   wal <- paste0(db, "-wal"); shm <- paste0(db, "-shm")
   unresolved <- file.exists(wal) || file.exists(shm)
   jm <- if (unresolved) NA_character_ else {
-    con <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db, winslash="/", mustWork=TRUE), "?immutable=1"), flags=RSQLite::SQLITE_RO)
+    con <- .wb_sqlite_connect_immutable(db)
     on.exit(DBI::dbDisconnect(con), add=TRUE)
     .wb_sqlite_configure_connection(con, writable = FALSE)
     as.character(DBI::dbGetQuery(con, "PRAGMA journal_mode;")[[1]][1])

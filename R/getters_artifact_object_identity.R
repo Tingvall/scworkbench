@@ -174,11 +174,7 @@ prefix <- if(field=='value')'{"type":"double","attributes":{},"value":[' else '{
   budgets <- .wb_graph_effective_budgets(con,budgets)
   kind <- DBI::dbGetQuery(con,"SELECT m.kind,a.type FROM artifact_object_payload_meta m JOIN artifacts a ON a.artifact_id=m.artifact_id WHERE m.artifact_id=?;",params=list(id))
   .wb_graph_require(nrow(kind)==1L && identical(kind$kind,kind$type),"GRAPH_SOURCE_PAYLOAD_INVALID","Artifact and physical payload kinds disagree.")
-  database <- DBI::dbGetQuery(con,"PRAGMA database_list;")
-  path <- database$file[database$name=="main"][[1L]]
-  .wb_graph_require(nzchar(path),"GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE",
-    "Bounded legacy descriptor verification requires file-backed source storage.")
-  selector <- DBI::dbConnect(RSQLite::SQLite(),path,flags=RSQLite::SQLITE_RO,cache_size=-64)
+  selector <- .wb_sqlite_aux_read_connect(con, cache_size = -64)
   on.exit(if(!is.null(selector))DBI::dbDisconnect(selector),add=TRUE)
   DBI::dbExecute(selector,"PRAGMA temp_store=FILE;")
   descriptor <- .wb_getter_legacy_object_descriptor(con,selector,id,budgets)

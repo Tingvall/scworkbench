@@ -24,22 +24,26 @@
 
 .wb_matrix_native_byte_observer <- function(con) {
   .wb_matrix_native_byte_api_initialize()
-  databases <- DBI::dbGetQuery(con, "PRAGMA database_list;")
-  path <- databases$file[databases$name == "main"][[1L]]
-  if (!nzchar(path)) return(NULL)
+  target <- .wb_sqlite_aux_read_target(con)
+  if (!nzchar(target$path)) return(NULL)
   call <- function(symbol, ...) tryCatch(.Call(symbol, ...), error = function(error) {
     message <- conditionMessage(error)
     code <- if (startsWith(message, "GRAPH_RESOURCE_")) sub(":.*", "", message) else
       "GRAPH_SOURCE_PAYLOAD_INVALID"
     .wb_graph_error(code, message)
   })
-  pointer <- call(C_scwb_graph_bytes_open, path)
+  pointer <- call(C_scwb_graph_bytes_open, target$dsn, target$immutable)
   list(column = function(rowid, column, table = "matrix_fragments") call(C_scwb_graph_bytes_column,
       pointer, as.character(rowid), column, table),
     read = function(offset, count) call(C_scwb_graph_bytes_read, pointer, offset, count),
     numeric = function(rowid, column, table, type, maximum) call(C_scwb_graph_bytes_numeric,
       pointer, as.character(rowid), column, table, type, maximum),
-    finish = function() call(C_scwb_graph_bytes_finish, pointer),
+    finish = function() {
+      if (isTRUE(target$immutable)) .wb_sqlite_aux_read_target(con)
+      result <- call(C_scwb_graph_bytes_finish, pointer)
+      if (isTRUE(target$immutable)) .wb_sqlite_aux_read_target(con)
+      result
+    },
     close = function() call(C_scwb_graph_bytes_close, pointer))
 }
 

@@ -3,6 +3,64 @@
   if (length(x) != 1) stop("Expected scalar (length 1), got length ", length(x), call. = FALSE)
   as.character(x)
 }
+
+# Actual immutable connection construction, not an inference from a bundle flag
+# or from SQLite read-only mode. Preserve the callers' two existing admissions.
+.wb_sqlite_immutable_admit <- function(path, admission) {
+  .wb_assert(admission %in% c("no_sidecars", "empty_wal"),
+    "Unknown immutable SQLite admission policy.")
+  wal <- paste0(path, "-wal")
+  allowed <- if (identical(admission, "no_sidecars"))
+    !file.exists(wal) && !file.exists(paste0(path, "-shm")) else
+    !file.exists(wal) || isTRUE(file.info(wal)$size == 0)
+  .wb_assert(allowed, "Immutable SQLite admission no longer holds for this source.")
+  invisible(TRUE)
+}
+
+.wb_sqlite_immutable_uri <- function(path) {
+  # URLencode escapes literal %, ?, # and UTF-8 bytes; keep path separators.
+  encoded <- gsub("%2F", "/", utils::URLencode(enc2utf8(path),
+    reserved = TRUE, repeated = TRUE), fixed = TRUE)
+  paste0("file:", encoded, "?immutable=1")
+}
+
+.wb_sqlite_connect_immutable <- function(path, ..., .admission = "no_sidecars") {
+  path <- normalizePath(path, winslash = "/", mustWork = TRUE)
+  .wb_sqlite_immutable_admit(path, .admission)
+  dsn <- .wb_sqlite_immutable_uri(path)
+  con <- DBI::dbConnect(RSQLite::SQLite(), dsn, flags = RSQLite::SQLITE_RO, ...)
+  ready <- FALSE
+  on.exit(if (!ready && DBI::dbIsValid(con)) DBI::dbDisconnect(con), add = TRUE)
+  con@ref$wb_immutable_sqlite_reader <- list(path = path, dsn = dsn,
+    dbname = con@dbname, admission = .admission)
+  ready <- TRUE
+  con
+}
+
+.wb_sqlite_aux_read_target <- function(con) {
+  databases <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+  path <- databases$file[databases$name == "main"][[1L]]
+  issued <- con@ref$wb_immutable_sqlite_reader
+  if (is.null(issued)) return(list(path = path, dsn = path, immutable = FALSE))
+  .wb_assert(is.list(issued) && identical(names(issued),
+      c("path", "dsn", "dbname", "admission")) &&
+      identical(con@dbname, issued$dbname) &&
+      identical(issued$dsn, .wb_sqlite_immutable_uri(issued$path)) && nzchar(path) &&
+      identical(normalizePath(path, winslash = "/", mustWork = TRUE), issued$path),
+    "Immutable SQLite auxiliary reader differs from its issuing connection.")
+  .wb_sqlite_immutable_admit(issued$path, issued$admission)
+  list(path = issued$path, dsn = issued$dsn, immutable = TRUE,
+    admission = issued$admission)
+}
+
+.wb_sqlite_aux_read_connect <- function(con, ...) {
+  target <- .wb_sqlite_aux_read_target(con)
+  .wb_graph_require(nzchar(target$path), "GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE",
+    "Auxiliary SQLite reader requires file-backed source storage.")
+  if (isTRUE(target$immutable)) return(.wb_sqlite_connect_immutable(
+    target$path, ..., .admission = target$admission))
+  DBI::dbConnect(RSQLite::SQLite(), target$path, flags = RSQLite::SQLITE_RO, ...)
+}
 # internal: force a scalar string (or NA)
 .wb_scalar_chr <- function(x) {
   if (is.null(x) || length(x) == 0) return(NA_character_)

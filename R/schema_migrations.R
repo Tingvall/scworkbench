@@ -703,7 +703,7 @@ wb_bundle_schema_status <- function(bundle_or_dir) {
   db <- .wb_bundle_path_require(path,as.character(manifest$storage$sqlite$path)[1L],expected_type="file",purpose="manifest SQLite database")
   .wb_assert(!file.exists(paste0(db, "-wal")) && !file.exists(paste0(db, "-shm")),
              "Bundle schema status requires finalized SQLite state without WAL sidecars.")
-  con <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db, winslash = "/", mustWork = TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO)
+  con <- .wb_sqlite_connect_immutable(db)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   .wb_sqlite_configure_connection(con, writable = FALSE)
   .wb_schema_status(con, verify_structure = TRUE)

@@ -85,25 +85,39 @@ static int data_version(graph_bytes *state)
     return value;
 }
 
-SEXP scwb_graph_bytes_open(SEXP path)
+SEXP scwb_graph_bytes_open(SEXP path, SEXP immutable_uri)
 {
     if (!sqlite3_api)
         Rf_error("GRAPH_RESOURCE_ACCOUNTING_UNAVAILABLE: RSQLite byte API is not initialized.");
     if (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 || STRING_ELT(path, 0) == NA_STRING)
         Rf_error("GRAPH_SOURCE_PAYLOAD_INVALID: missing native database path.");
+    if (TYPEOF(immutable_uri) != LGLSXP || XLENGTH(immutable_uri) != 1 ||
+        LOGICAL_ELT(immutable_uri, 0) == NA_LOGICAL)
+        Rf_error("GRAPH_SOURCE_PAYLOAD_INVALID: invalid native URI mode.");
+    const char *filename = Rf_translateCharUTF8(STRING_ELT(path, 0));
+    const char *immutable_suffix = "?immutable=1";
+    size_t filename_bytes = strlen(filename), suffix_bytes = strlen(immutable_suffix);
+    if (LOGICAL_ELT(immutable_uri, 0) && (strncmp(filename, "file:", 5) ||
+        filename_bytes < suffix_bytes ||
+        strcmp(filename + filename_bytes - suffix_bytes, immutable_suffix)))
+        Rf_error("GRAPH_SOURCE_PAYLOAD_INVALID: native immutable URI is not core-framed.");
     SEXP pointer = PROTECT(R_MakeExternalPtr(NULL, Rf_install("scwb_graph_bytes"), R_NilValue));
     graph_bytes *state = calloc(1, sizeof(graph_bytes));
     if (!state) Rf_error("GRAPH_RESOURCE_EXCEEDED: native reader allocation failed.");
     R_SetExternalPtrAddr(pointer, state);
     R_RegisterCFinalizerEx(pointer, bytes_close, TRUE);
     int flags = SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX;
+    if (LOGICAL_ELT(immutable_uri, 0)) flags |= SQLITE_OPEN_URI;
 #ifdef SQLITE_OPEN_NOFOLLOW
     flags |= SQLITE_OPEN_NOFOLLOW;
 #endif
-    int rc = sqlite3_open_v2(Rf_translateCharUTF8(STRING_ELT(path, 0)), &state->db, flags, NULL);
+    int rc = sqlite3_open_v2(filename, &state->db, flags, NULL);
     if (rc != SQLITE_OK) bytes_fail(state, "native read-only database open");
     if (sqlite3_db_readonly(state->db, "main") != 1)
         bytes_fail(state, "native database is not read-only");
+    if (LOGICAL_ELT(immutable_uri, 0) &&
+        !sqlite3_uri_boolean(sqlite3_db_filename(state->db, "main"), "immutable", 0))
+        bytes_fail(state, "native immutable URI admission was not preserved");
     rc = sqlite3_exec(state->db,
         "PRAGMA query_only=ON; PRAGMA cache_size=-64; PRAGMA temp_store=FILE;", NULL, NULL, NULL);
     if (rc != SQLITE_OK) bytes_fail(state, "native reader cache admission");

@@ -15,9 +15,7 @@
   on.exit(if (!ready) close(), add = TRUE)
   observer <- .wb_matrix_native_byte_observer(con)
   if (is.null(observer)) return(NULL)
-  database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
-  read_path <- database$file[database$name == "main"][[1L]]
-  windows <- DBI::dbConnect(RSQLite::SQLite(), read_path, flags = RSQLite::SQLITE_RO,
+  windows <- .wb_sqlite_aux_read_connect(con,
     bigint = con@bigint, extended_types = con@extended_types)
   DBI::dbExecute(windows, "PRAGMA cache_size=-64;")
   DBI::dbExecute(windows, "PRAGMA temp_store=FILE;")
@@ -113,9 +111,7 @@
     ")>256 THEN 'text_deferred' WHEN typeof(", quoted,
     ")='blob' THEN 'blob_deferred' ELSE typeof(", quoted, ") END")
   if (is.null(windows)) {
-    database <- DBI::dbGetQuery(con, "PRAGMA database_list;")
-    read_path <- database$file[database$name == "main"][[1L]]
-    windows <- DBI::dbConnect(RSQLite::SQLite(), read_path, flags = RSQLite::SQLITE_RO,
+    windows <- .wb_sqlite_aux_read_connect(con,
       bigint = con@bigint, extended_types = con@extended_types)
     on.exit(DBI::dbDisconnect(windows), add = TRUE)
     DBI::dbExecute(windows, "PRAGMA cache_size=-64;")

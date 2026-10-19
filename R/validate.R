@@ -387,9 +387,8 @@ wb_bundle_validation_report <- function(bundle_dir,
             path = substring(wal_path, nchar(root) + 2L), observed = paste0(file.info(wal_path)$size, " bytes"),
             message = "A non-empty WAL cannot be authoritatively validated by path without mutating SHM lock bytes; finalize the bundle or provide a supported immutable snapshot.")
         NULL
-      } else tryCatch(DBI::dbConnect(
-        RSQLite::SQLite(), paste0("file:", checked$absolute, "?immutable=1"), flags = RSQLite::SQLITE_RO
-      ), error = function(e) e)
+      } else tryCatch(.wb_sqlite_connect_immutable(checked$absolute,
+        .admission = "empty_wal"), error = function(e) e)
       if (is.null(con)) {
         bundle <- NULL
       } else if (inherits(con, "error")) {
@@ -1606,7 +1605,7 @@ wb_bundle_validation_report <- function(bundle_dir,
       for (p in hit) add("SQLITE_UNRESOLVED_JOURNAL_STATE",check_class="recipient",entity_kind="sqlite",entity_id="main",path=substring(p,nchar(root)+2L),observed="present",message="Recipient bundle contains unresolved SQLite WAL/SHM/journal state.")
       if (!length(hit) && file.exists(db)) {
         immutable <- tryCatch({
-          icon <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db,winslash="/",mustWork=TRUE), "?immutable=1"), flags=RSQLite::SQLITE_RO)
+          icon <- .wb_sqlite_connect_immutable(db)
           on.exit(DBI::dbDisconnect(icon), add=TRUE)
           .wb_sqlite_configure_connection(icon, writable = FALSE)
           DBI::dbGetQuery(icon,"SELECT COUNT(*) AS n FROM sqlite_schema;")

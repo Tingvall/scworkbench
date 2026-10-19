@@ -55,7 +55,7 @@ extern SEXP scwb_graph_readlink(SEXP, SEXP);
 extern SEXP scwb_graph_spill_path_kind(SEXP);
 extern SEXP scwb_graph_bytes_api_ready(void);
 extern SEXP scwb_graph_bytes_api_version(void);
-extern SEXP scwb_graph_bytes_open(SEXP);
+extern SEXP scwb_graph_bytes_open(SEXP, SEXP);
 extern SEXP scwb_graph_bytes_column(SEXP, SEXP, SEXP, SEXP);
 extern SEXP scwb_graph_bytes_read(SEXP, SEXP, SEXP);
 extern SEXP scwb_graph_bytes_numeric(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -90,7 +90,7 @@ static const R_CallMethodDef sdk_calls[] = {
     {"scwb_graph_spill_path_kind", (DL_FUNC) &scwb_graph_spill_path_kind, 1},
     {"scwb_graph_bytes_api_version", (DL_FUNC) &scwb_graph_bytes_api_version, 0},
     {"scwb_graph_bytes_api_ready", (DL_FUNC) &scwb_graph_bytes_api_ready, 0},
-    {"scwb_graph_bytes_open", (DL_FUNC) &scwb_graph_bytes_open, 1},
+    {"scwb_graph_bytes_open", (DL_FUNC) &scwb_graph_bytes_open, 2},
     {"scwb_graph_bytes_column", (DL_FUNC) &scwb_graph_bytes_column, 4},
     {"scwb_graph_bytes_read", (DL_FUNC) &scwb_graph_bytes_read, 3},
     {"scwb_graph_bytes_numeric", (DL_FUNC) &scwb_graph_bytes_numeric, 6},
