@@ -76,8 +76,8 @@ wb_register_matrix_fragment <- function(
 
   fragment_id <- .wb_new_fragment_id(matrix_id, con)
 
-  feature_ids_json <- as.character(jsonlite::toJSON(as.list(feature_ids), auto_unbox = TRUE))
-  cell_ids_json <- as.character(jsonlite::toJSON(as.list(cell_ids), auto_unbox = TRUE))
+  feature_ids_json <- .wb_matrix_fragment_axis_json(feature_ids)
+  cell_ids_json <- .wb_matrix_fragment_axis_json(cell_ids)
 
   savepoint <- .wb_allocate_identifier("scwb_fragment_", 12L, purpose = "SQLite savepoint")
   DBI::dbExecute(con, paste("SAVEPOINT", savepoint, ";"))
@@ -132,6 +132,33 @@ wb_register_matrix_fragment <- function(
   released <- TRUE
 
   invisible(fragment_id)
+}
+
+# This is only the fragment registry's existing JSON array representation, not
+# a canonical-identity encoder. Keep unfamiliar carriers on the literal old
+# route, without attempting serialization or dispatching another coercion.
+.wb_matrix_fragment_axis_json_vector_eligible <- function(ids) {
+  if (typeof(ids) != "character" || !is.null(attributes(ids))) return(FALSE)
+  if (!length(ids) || anyNA(ids)) return(FALSE)
+  if (!identical(as.character(utils::packageVersion("jsonlite")), "1.8.8")) return(FALSE)
+  if (any(Encoding(ids) != "unknown") || any(grepl("[^ -~]", ids, useBytes = TRUE))) return(FALSE)
+  limit <- getOption("scworkbench.max_dense_materialize_mb", 256)
+  if (!is.null(attributes(limit)) || !(typeof(limit) %in% c("integer", "double"))) return(FALSE)
+  if (length(limit) != 1L || !is.finite(limit) || limit <= 0) return(FALSE)
+  # ASCII quotes/backslashes at most double. Include the fetched character
+  # carrier and eight simultaneous encoded carriers; this optimization may
+  # decline admission but must never introduce a new public memory error.
+  n <- length(ids)
+  encoded_bound <- 2 * sum(nchar(ids, type = "bytes")) + 3 * n + 2
+  working_bound <- 128 * n + 8 * encoded_bound
+  is.finite(working_bound) && working_bound <= min(32 * 1024^2, limit * 1024^2 / 8)
+}
+
+.wb_matrix_fragment_axis_json <- function(ids) {
+  if (.wb_matrix_fragment_axis_json_vector_eligible(ids)) {
+    return(as.character(jsonlite::toJSON(ids, auto_unbox = FALSE)))
+  }
+  as.character(jsonlite::toJSON(as.list(ids), auto_unbox = TRUE))
 }
 
 .wb_new_fragment_id <- function(matrix_id, con = NULL) {
