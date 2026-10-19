@@ -30,6 +30,10 @@ entry, restore only after successful ordinary core-owned read-only backup and
 all fallible cleanup, with same valid connection/directory, unchanged safe exact
 original three-counter epoch, no transaction, held owner exclusion and no hook.
 Never rebase evidence or restore destination/publication/schema/graph/context
-slots. All errors, hooks, source changes, unknowns and other forget boundaries
-retain fresh observation. This is the existing trusted-R source-cache model,
+slots. On errors/hooks the original stays discarded; absent later independent
+issuance the slot remains NULL. A genuinely newer observation issued by another
+boundary during a hook is not erased or overwritten: this matches the literal
+df8 helper, and that evidence retains its own ordinary epoch admission. Source
+changes, unknowns and other forget boundaries still require fresh observation.
+This is the existing trusted-R source-cache model,
 not new hostile-code schema-cookie or out-of-band write protection.

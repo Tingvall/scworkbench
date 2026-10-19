@@ -27,6 +27,34 @@
 }
 
 .wb_session_sqlite_backup <- function(source_con, destination_path) {
+  # Only carry the ORIGINAL actual source observation through this read-only
+  # helper. All other observations must still be forgotten, including on error.
+  observation <- tryCatch(if (inherits(source_con, "SQLiteConnection") &&
+    DBI::dbIsValid(source_con)) source_con@ref$wb_session_source_observation else NULL,
+    error = function(error) NULL)
+  source_ref <- if (inherits(source_con, "SQLiteConnection")) source_con@ref else NULL
+  continuity <- function() tryCatch({
+    if (is.null(observation) || !DBI::dbIsValid(source_con) ||
+        !identical(source_con@ref, source_ref) || RSQLite::sqliteIsTransacting(source_con) ||
+        !is.null(getOption("scworkbench.session_backup_test_hook"))) return(NULL)
+    directory <- observation$directory
+    if (!is.character(directory) || length(directory) != 1L || is.na(directory) ||
+        !identical(directory, normalizePath(directory, winslash = "/", mustWork = TRUE)) ||
+        !.wb_writer_lock_held(directory)) return(NULL)
+    key <- .wb_writer_lock_key(directory)
+    entry <- get(key, envir = .wb_writer_lock_state$held, inherits = FALSE)
+    owner <- .wb_writer_lock_read_metadata(entry$lock_path)
+    if (is.null(owner) || !identical(as.character(owner$owner_token), as.character(entry$token))) return(NULL)
+    epoch <- list(changes = DBI::dbGetQuery(source_con, "SELECT total_changes();")[[1L]],
+      data = DBI::dbGetQuery(source_con, "PRAGMA main.data_version;")[[1L]],
+      schema = DBI::dbGetQuery(source_con, "PRAGMA main.schema_version;")[[1L]])
+    if (!all(vapply(epoch, function(value) is.numeric(value) && !is.object(value) &&
+        length(value) == 1L && !is.na(value) && is.finite(value) && value >= 0 &&
+        value <= 2^53 - 1 && value == floor(value), logical(1))) ||
+        !identical(epoch, observation$epoch)) return(NULL)
+    list(directory = directory, epoch = epoch, owner = as.character(entry$token))
+  }, error = function(error) NULL)
+  before <- continuity()
   .wb_session_source_forget(source_con)
   .wb_assert(inherits(source_con, "SQLiteConnection"),
              "Session SQLite backup requires an RSQLite source connection.")
@@ -34,13 +62,17 @@
              paste0("Session SQLite backup destination already exists: ", destination_path))
   dir.create(dirname(destination_path), recursive = TRUE, showWarnings = FALSE)
   policy <- source_con@ref$wb_graph_policy
+  destination_con <- NULL; restore_source <- NULL
+  on.exit({
+    if (!is.null(destination_con) && DBI::dbIsValid(destination_con))
+      try(DBI::dbDisconnect(destination_con), silent = TRUE)
+    if (!is.null(restore_source)) restore_source()
+  }, add = TRUE)
   cache_kib <- if(is.null(policy)) 2000L else floor((policy$sqlite_cache_kib-128L)/2L)
   if(!is.null(policy)) {
     restore_source <- .wb_graph_aggregate_connection_budget(list(source_con),policy,extra=1L)
-    on.exit(restore_source(),add=TRUE)
   }
   destination_con <- DBI::dbConnect(RSQLite::SQLite(), destination_path,cache_size=-cache_kib)
-  on.exit(try(DBI::dbDisconnect(destination_con), silent = TRUE), add = TRUE,after=FALSE)
   .wb_sqlite_configure_connection(destination_con, writable = TRUE)
   if(!is.null(policy)) .wb_graph_scoped_connection_budget(destination_con,policy,cache_kib=cache_kib)
 
@@ -64,6 +96,16 @@
     identical(source_tables, destination_tables),
     "Session SQLite online backup does not match the committed source schema."
   )
+  # Do not restore before destination close/resource cleanup can still fail.
+  closed <- tryCatch({DBI::dbDisconnect(destination_con); !DBI::dbIsValid(destination_con)},
+    error = function(error) FALSE)
+  if (isTRUE(closed)) destination_con <- NULL
+  if (!is.null(restore_source)) {
+    cleanup <- restore_source; restore_source <- NULL; cleanup()
+  }
+  if (isTRUE(closed) && !is.null(before) && is.null(test_hook) &&
+      is.null(source_con@ref$wb_session_source_observation) && identical(before, continuity()))
+    source_con@ref$wb_session_source_observation <- observation
   invisible(TRUE)
 }
 

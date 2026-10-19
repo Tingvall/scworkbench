@@ -60,10 +60,12 @@ test_engine_source_registry_continuity_contract <- function() {
     file.path(fixture$root, "epoch-copy.sqlite"))
   stopifnot(identical(wal$scientific_state_fingerprint,
     scworkbench:::.wb_session_source_identity(b)$scientific_state_fingerprint),
-    calls$n == 6L)
+    # Intentional frequency-policy change: an eligible source-only backup
+    # retains the ORIGINAL actual source observation, not a new authority.
+    calls$n == 5L)
   scworkbench:::.wb_session_source_forget(b$con)
   scworkbench:::.wb_session_source_identity(b)
-  stopifnot(calls$n == 7L)
+  stopifnot(calls$n == 6L)
   TRUE
 }
 
