@@ -126,7 +126,7 @@
   query <- DBI::dbSendQuery(con, paste0("SELECT rowid,", paste(c(projected,
     types), collapse = ","), " FROM ",
     DBI::dbQuoteIdentifier(con, table), " ORDER BY rowid;"))
-  on.exit(if (!is.null(query)) DBI::dbClearResult(query), add = TRUE)
+  on.exit(if (!is.null(query)) DBI::dbClearResult(query), add = TRUE, after = FALSE)
   n <- 0L
   key_tokens <- vapply(fields$name, function(name)
     as.character(jsonlite::toJSON(name, auto_unbox = TRUE)), character(1))
