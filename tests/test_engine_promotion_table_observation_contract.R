@@ -344,7 +344,8 @@ test_engine_promotion_table_public_counts_rollback_and_retry_contract <- functio
       if (i == 1L) stopifnot(identical(projection$feature_id, c("f2", "f1")),
         identical(projection$selected, c(TRUE, FALSE)), typeof(projection$score) == "double")
       if (i == 2L) stopifnot(identical(projection$label, c("NA", "é")),
-        identical(projection$value, c("NA", "0")), typeof(projection$value) == "character")
+        identical(projection$value[[1L]], "NA"), typeof(projection$value) == "character",
+        identical(projection$value[[2L]], as.character(x$prims[[i]]$table$value[[2L]])))
       actual <- scworkbench:::.wb_prov_stored_table_content_sha256(x$b$con, id)
       stopifnot(identical(actual, .engine_promotion_table_old_stored(x$b$con, id)))
       DBI::dbBegin(x$b$con)
