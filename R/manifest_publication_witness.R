@@ -28,10 +28,24 @@
       sql = DBI::dbGetQuery(con, paste0("SELECT type,name,tbl_name,sql FROM ",
         quoted, ".sqlite_schema ORDER BY type,name,tbl_name,sql;")))
   }), names)
-  list(connection = con@ref, writer_key = key, writer_token = entry$token,
+  observed <- list(connection = con@ref, writer_key = key, writer_token = entry$token,
     changes = exact(DBI::dbGetQuery(con, "SELECT total_changes();")[[1L]]),
     data = exact(DBI::dbGetQuery(con, "PRAGMA main.data_version;")[[1L]]),
     databases = databases, schemas = schemas)
+  # Inspecting temp.sqlite_schema can register empty TEMP; scoped sorter
+  # restoration can detach it. Describe the ACTUAL state after our own reads,
+  # without discarding TEMP evidence or concealing another association change.
+  final_databases <- DBI::dbGetQuery(con, "PRAGMA database_list;")
+  non_temp <- function(rows) {
+    rows <- rows[rows$name != "temp", , drop = FALSE]
+    rownames(rows) <- NULL
+    rows
+  }
+  if (!identical(non_temp(databases), non_temp(final_databases)) ||
+      anyDuplicated(final_databases$name) ||
+      !all(final_databases$name %in% names(schemas))) return(NULL)
+  observed$databases <- final_databases
+  observed
 }
 
 .wb_manifest_publication_sha256 <- function(bundle) {
