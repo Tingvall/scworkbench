@@ -27,17 +27,29 @@
 }
 
 test_engine_graph_durable_three_process_recovery_contract <- function() {
-  .engine_graph_recovery_process_fixture(c("writer", "loader", "resume"))
+  result <- .engine_graph_recovery_process_fixture(c("writer", "loader", "resume"))
+  if (inherits(result, "scworkbench_contract_skip")) return(result)
+  stopifnot(isTRUE(result))
+  TRUE
 }
 
 test_engine_graph_durable_tamper_cleanup_restored_retry_contract <- function() {
-  .engine_graph_recovery_process_fixture(c("writer", "attacks"))
+  result <- .engine_graph_recovery_process_fixture(c("writer", "attacks"))
+  if (inherits(result, "scworkbench_contract_skip")) return(result)
+  stopifnot(isTRUE(result))
+  TRUE
 }
 
 test_engine_graph_durable_partial_multi_run_cleanup_contract <- function() {
-  .engine_graph_recovery_process_fixture(c("writer_two", "multi_failure"))
+  result <- .engine_graph_recovery_process_fixture(c("writer_two", "multi_failure"))
+  if (inherits(result, "scworkbench_contract_skip")) return(result)
+  stopifnot(isTRUE(result))
+  TRUE
 }
 
 test_engine_graph_durable_source_rejection_before_import_contract <- function() {
-  .engine_graph_recovery_process_fixture(c("writer", "source_failure"))
+  result <- .engine_graph_recovery_process_fixture(c("writer", "source_failure"))
+  if (inherits(result, "scworkbench_contract_skip")) return(result)
+  stopifnot(isTRUE(result))
+  TRUE
 }

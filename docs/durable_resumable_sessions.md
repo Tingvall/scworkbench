@@ -31,7 +31,18 @@ it does not replace the durable session checkpoint. After a later script or
 input failure, discard the old in-memory handle, call `wb_session_resume()`,
 and continue from the last complete operation instead of retraining.
 
+Graph outputs are recovered from their retained, contained transition records
+and partitions, not from serialized SQLite pointers or compact seals alone.
+Core verifies the original checkpoint, receipt, primitive fields, content,
+bindings and descriptor before reconstructing process-local graph readers.
+The checkpoint generation, metadata and scientific identities are not rewritten.
+Only the returned handle's process-mechanical state binding is refreshed after
+all recovered graphs pass. Changed source state or payloads still reject, and
+failed imports remove only newly owned scratch, preserving the workspace for
+diagnosis and a valid restored retry. Public transition inspection/loading is
+pack-free, including graph outputs; read-only loading does not modify the bundle.
+
 Promotion is terminal: follow the existing `wb_session_promote_current()` and
 finalization lifecycle, and do not attempt to append operations to a promoted
-durable session. A resumed terminal session exposes its durable promotion
+durable session. An opened terminal session exposes its durable promotion
 receipt and must not repeat promotion.
