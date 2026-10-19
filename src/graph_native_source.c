@@ -10,6 +10,37 @@
 #include <unistd.h>
 #endif
 
+/* Exactly the two byte-oriented (^|/) ownership-prefix predicates used after
+ * an actual descriptor readlink. This classifies a name only: the R caller
+ * still observes every descriptor, admits metadata and stats/deduplicates
+ * actual inodes. Unsupported carriers retain the original R predicates. */
+static int graph_spill_path_kind_bytes(const char *start, size_t length)
+{
+    int stage = 0;
+    for (size_t i = 0; i < length; ++i) {
+        if (i && start[i - 1] != '/') continue;
+        const char *p = start + i;
+        size_t left = length - i;
+#define SPILL_PREFIX(text) (left >= sizeof(text) - 1 && !memcmp(p, text, sizeof(text) - 1))
+        if (SPILL_PREFIX("etilqs_") || SPILL_PREFIX("scwb_graph_tokens_") ||
+            SPILL_PREFIX("scwb_graph_identity_") || SPILL_PREFIX("scwb_object_meta_"))
+            return 1;
+        if (SPILL_PREFIX("scwb_graph_stage_")) stage = 1;
+#undef SPILL_PREFIX
+    }
+    return stage ? 2 : 0;
+}
+
+SEXP scwb_graph_spill_path_kind(SEXP value)
+{
+    if (TYPEOF(value) != STRSXP || XLENGTH(value) != 1 || OBJECT(value) ||
+        ATTRIB(value) != R_NilValue || ALTREP(value) ||
+        STRING_ELT(value, 0) == NA_STRING)
+        return R_NilValue;
+    SEXP text = STRING_ELT(value, 0);
+    return Rf_ScalarInteger(graph_spill_path_kind_bytes(CHAR(text), (size_t)LENGTH(text)));
+}
+
 SEXP scwb_graph_readlink(SEXP path, SEXP allowance)
 {
 #if defined(__linux__)
@@ -27,9 +58,13 @@ SEXP scwb_graph_readlink(SEXP path, SEXP allowance)
     double charge = 1024.0 + 8.0 * (bytes + 1.0);
     if (bytes >= (ssize_t)sizeof(target) || charge > limit)
         Rf_error("GRAPH_RESOURCE_EXCEEDED: spill path metadata exceeds bounded admission.");
-    SEXP output = PROTECT(Rf_allocVector(VECSXP, 2));
+    /* The third scalar fits the existing conservative 1024-byte base charge;
+     * preserve target/charge and classify the actual bounded readlink bytes,
+     * which need not be NUL terminated. No additional descriptor observation. */
+    SEXP output = PROTECT(Rf_allocVector(VECSXP, 3));
     SET_VECTOR_ELT(output, 0, Rf_ScalarString(Rf_mkCharLenCE(target, (int)bytes, CE_BYTES)));
     SET_VECTOR_ELT(output, 1, Rf_ScalarReal(charge));
+    SET_VECTOR_ELT(output, 2, Rf_ScalarInteger(graph_spill_path_kind_bytes(target, (size_t)bytes)));
     UNPROTECT(1);
     return output;
 #else

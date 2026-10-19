@@ -179,8 +179,16 @@
       # Only one readlink result remains live. The directory names and owned
       # inode inventory survive the loop; unrelated visited paths do not.
       target <- link[[1L]]; link_charge <- link[[2L]]
-      temporary <- grepl("(^|/)(etilqs_|scwb_graph_tokens_|scwb_graph_identity_|scwb_object_meta_)",target,useBytes=TRUE)
-      if(!temporary && !grepl("(^|/)scwb_graph_stage_",target,useBytes=TRUE))next
+      # Classification accompanies this same actual bounded readlink; older
+      # private adapters without the third scalar retain the literal predicate.
+      kind <- if (length(link) >= 3L) link[[3L]] else NULL
+      if (is.null(kind)) {
+        temporary <- grepl("(^|/)(etilqs_|scwb_graph_tokens_|scwb_graph_identity_|scwb_object_meta_)",target,useBytes=TRUE)
+        if(!temporary && !grepl("(^|/)scwb_graph_stage_",target,useBytes=TRUE))next
+      } else {
+        temporary <- kind == 1L
+        if (kind == 0L) next
+      }
       # Reserve a bounded stat/identity slot before constructing its R carrier.
       .wb_graph_require(used + link_charge + 2048 <= allowance,
         "GRAPH_RESOURCE_EXCEEDED", "Owned spill identity metadata exceeds bounded admission.")
