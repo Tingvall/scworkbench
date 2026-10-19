@@ -72,3 +72,20 @@ an unmeasured causal mechanism. Its original logs/harnesses remain unchanged.
 The fixed-result CSV SHA-256 is
 `6ad286e8185e5181b92f530465bd8c72e368b500c198e00afc3be96bd0f5e348`.
 No ASCII helper code is selected into this projection-admission branch.
+
+## Precode review correction: reserve actual fetch capacity, not remainder
+
+Sable identified a concrete concurrency seam before any implementation:
+COUNT and the source cursor are not guaranteed to share a snapshot. A foreign
+insert after COUNT can make the final `dbFetch(n=chunk_size)` return more than
+the old expected remainder. Rejecting its row count after decoding is too late
+for a predecode reservation based on that remainder.
+
+Consequently, the proposed coarse bound above is superseded as follows:
+**N is the full actual requested fetch capacity `chunk_size` on every fetch,
+including the last partial chunk**, not `min(chunk_size,count-n)`. Charge all
+N carrier slots and320*N*C bytes. If that does not fit, retain the original
+actual-admission query and guard. Do not shorten the actual fetch to hide a
+concurrent insert or change any row-count/source-observer check. Observational
+hooks must call N a reserved capacity, not an observed row count. This stricter
+precode correction changes no numerical budget and introduces no runtime code.
