@@ -63,7 +63,9 @@ test_engine_backup_original_actual_observation_and_other_forget_slots_contract <
   fixture <- .engine_backup_fixture(); b <- fixture$bundle
   on.exit(fixture$close(), add = TRUE)
   original <- b$con@ref$wb_session_source_observation
-  scworkbench:::.wb_with_mutation_context(b, route = "session_execution", code = {
+  # A source assembly bundle is not an engine-created session stage. Use the
+  # legitimate source ingestion context to check invocation-observation clearing.
+  scworkbench:::.wb_with_mutation_context(b, route = "ingestion", code = {
     context <- scworkbench:::.wb_current_mutation_context(b$con)
     context$observations$registry <- list(not_authority = TRUE)
     b$con@ref$wb_schema_structure_observation <- list(not_authority = TRUE)
@@ -162,7 +164,8 @@ test_engine_backup_errors_hooks_unknown_epoch_and_cleanup_contract <- function()
   stopifnot(inherits(error, "error"), grepl("BACKUP_COPY_ERROR", conditionMessage(error)), is.null(b$con@ref$wb_session_source_observation))
   # A real policy restore can fail after completing its own work. No success
   # observation may be installed before that last fallible cleanup returns.
-  p <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608", sqlite_cache_kib = 512L))
+  p <- scworkbench:::.wb_graph_budgets(list(memory_bytes = "8388608",
+    sqlite_cache_kib = 512L, partition_bytes = 65536, collect_bytes = 1048576))
   restore_policy <- scworkbench:::.wb_graph_scoped_connection_budget(b$con, p)
   scworkbench:::.wb_session_source_identity(b)
   aggregate <- get(".wb_graph_aggregate_connection_budget", asNamespace("scworkbench"))
