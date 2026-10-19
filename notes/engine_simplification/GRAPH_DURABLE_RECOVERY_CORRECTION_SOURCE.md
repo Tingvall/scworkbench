@@ -42,4 +42,3 @@ loss is disclosed, not reconstructed. Future child failures retain their full
 available output in the parent raw log before cleanup. Exact success/status
 criteria, all four test definitions, runtime R/src and ownership are unchanged.
 No corrected qualification result is claimed by this source-only change.
-
