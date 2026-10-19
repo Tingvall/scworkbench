@@ -261,10 +261,30 @@ test_engine_promotion_table_durable_session_rollback_retry_contract <- function(
     identical(checkpoint_sha, digest::digest(file = checkpoint, algo = "sha256")))
   options(scworkbench.promotion_transaction_test_hook = NULL)
   promoted <- wb_session_promote_current(b, s, outputs = c("summary", "detail")); s <- promoted$session
-  stopifnot(all(promoted$promoted$status == "ok"))
+  rows <- promoted$promoted
+  head_rows <- rows[rows$run_id == paired$run$run_id, , drop = FALSE]
+  ancestors <- rows[rows$run_id != paired$run$run_id, , drop = FALSE]
+  # The source metadata-vector run remains a provenance ancestor, not a
+  # requested public terminal. The existing promoter reports it as skipped.
+  stopifnot(nrow(head_rows) == 2L, !anyDuplicated(head_rows$output),
+    setequal(head_rows$output, c("summary", "detail")), all(head_rows$status == "ok"),
+    all(!is.na(head_rows$artifact_id) & nzchar(head_rows$artifact_id)),
+    !anyDuplicated(head_rows$artifact_id), !any(rows$status == "error"),
+    nrow(ancestors) == 1L, identical(ancestors$run_id, first$run$run_id),
+    identical(ancestors$status, "skipped"), identical(ancestors$output, ""),
+    all(is.na(ancestors$artifact_id)))
+  edges <- DBI::dbGetQuery(b$con,
+    "SELECT parent_run_id FROM prov_run_edges WHERE parent_run_id=? AND child_run_id=?",
+    params = list(first$run$run_id, paired$run$run_id))
+  stopifnot(nrow(edges) >= 1L)
   for (name in c("summary", "detail")) {
-    id <- promoted$promoted$artifact_id[promoted$promoted$output == name &
-      promoted$promoted$run_id == paired$run$run_id]
+    id <- head_rows$artifact_id[head_rows$output == name]
+    binding <- DBI::dbGetQuery(b$con, paste0(
+      "SELECT artifact_id,materialization_class,content_sha256 FROM prov_run_outputs ",
+      "WHERE run_id=? AND output_name=?"), params = list(paired$run$run_id, name))
+    stopifnot(nrow(binding) == 1L, identical(binding$artifact_id, id),
+      identical(binding$materialization_class, "public_artifact"),
+      identical(binding$content_sha256, .engine_promotion_table_old_content(paired$run$outputs[[name]])))
     expected <- jsonlite::fromJSON(as.character(jsonlite::toJSON(
       scworkbench:::.wb_json_sanitize(paired$run$outputs[[name]]$table),
       dataframe = "rows", auto_unbox = TRUE, null = "null", na = "null")))
