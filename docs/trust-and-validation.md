@@ -16,6 +16,15 @@ projection, not a new logical matrix or scientific filtering decision. The
 scratch representation is removed when the reader closes or preparation fails.
 Changing partition count does not require a full source hash for every block.
 
+Ordinary matrix getters decode fragment cell axes to establish the requested
+selection, then decode feature axes only for cell-intersecting fragments. An
+invalid feature axis in an unselected fragment therefore does not make that
+block read fail. Selected malformed feature axes and undecodable cell axes still
+reject. Explicit content and recipient validation continue checking every
+fragment, including unselected ones. If both axes are malformed, the cell-axis
+diagnostic can appear first. This is a deliberate validation-boundary change,
+not a statement that an ordinary partial read validates the whole matrix.
+
 For trusted R matrix execution, actual consumed source bytes are authenticated
 at lifecycle boundaries, including before publication. Between blocks, scoped
 registry and file observations help detect accidental changes without rescanning

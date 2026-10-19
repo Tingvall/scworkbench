@@ -82,10 +82,10 @@ test_public_sparse_matrix_complete_and_overlap_contract <- function() {
   before <- scworkbench:::.wb_prov_file_tree_sha256(root)
   invisible(read(features, cells))
   stopifnot(identical(before, scworkbench:::.wb_prov_file_tree_sha256(root)))
-  # Feature JSON remains validated first even for a nonintersecting cell axis.
+  # Controller-approved ordinary validation is selected-fragment scoped.
+  # The cell-disjoint fragment's feature JSON is checked by explicit validation.
   DBI::dbExecute(b$con, "UPDATE matrix_fragments SET feature_ids_json='invalid', cell_ids_json='[\"elsewhere\"]' WHERE fragment_id='zeros';")
-  error <- tryCatch(read(features, cells), error = identity)
-  stopifnot(inherits(error, "error"), grepl("invalid", conditionMessage(error), fixed = TRUE))
+  stopifnot(identical(as.matrix(read(features, cells)), expected))
   TRUE
 }
 

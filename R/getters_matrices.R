@@ -115,14 +115,16 @@ wb_matrix_read_features <- function(bundle,
   for (i in seq_len(nrow(frags))) {
     row <- frags[i, , drop = FALSE]
 
-    # Parse indices for this fragment
-    feat_ids_frag <- jsonlite::fromJSON(row$feature_ids_json[1])
+    # Ordinary reads validate selected fragments. Decode the cell axis first:
+    # content/recipient validation still checks every fragment's feature axis.
     cell_ids_frag <- jsonlite::fromJSON(row$cell_ids_json[1])
+    cells_keep <- intersect(cell_ids, cell_ids_frag)
+    if (!length(cells_keep)) next
+    feat_ids_frag <- jsonlite::fromJSON(row$feature_ids_json[1])
 
     # Which requested features/cells are in this fragment?
     feats_keep <- intersect(feature_ids, feat_ids_frag)
-    cells_keep <- intersect(cell_ids, cell_ids_frag)
-    if (!length(feats_keep) || !length(cells_keep)) next
+    if (!length(feats_keep)) next
 
     # Indices in fragment matrix
     rix <- match(feats_keep, feat_ids_frag)

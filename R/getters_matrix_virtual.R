@@ -68,17 +68,18 @@ wb_matrix_read_feature <- function(bundle, matrix_id, feature_id, cell_ids) {
     if (is.null(feat_json) || is.na(feat_json) || !nzchar(feat_json)) next
     if (is.null(cell_json) || is.na(cell_json) || !nzchar(cell_json)) next
 
-    feat_ids <- jsonlite::fromJSON(feat_json)
     cell_ids_frag <- jsonlite::fromJSON(cell_json)
+
+    # Feature-axis validation belongs to this read only if cells intersect.
+    # Explicit content/recipient validation continues checking all fragments.
+    cix <- match(cell_ids, cell_ids_frag)
+    keep <- which(!is.na(cix))
+    if (!length(keep)) next
+    feat_ids <- jsonlite::fromJSON(feat_json)
 
     # feature present?
     rix <- match(feature_id, feat_ids)
     if (is.na(rix)) next
-
-    # requested cells present?
-    cix <- match(cell_ids, cell_ids_frag)
-    keep <- which(!is.na(cix))
-    if (!length(keep)) next
 
     abs_path <- .wb_bundle_path_require(bundle,row$path[1],expected_type="directory",
                                         purpose="virtual matrix fragment")
