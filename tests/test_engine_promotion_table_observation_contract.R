@@ -74,6 +74,27 @@
   state
 }
 
+# Literal old INPUT -> scalar-row JSON -> old parser/NULL normalization/base
+# dataframe assembly. No candidate getter, stored rows, or bulk-DF na policy.
+.engine_promotion_table_old_projection <- function(table) {
+  if (!nrow(table)) return(data.frame(stringsAsFactors = FALSE))
+  row_json <- vapply(seq_len(nrow(table)), function(i) as.character(
+    jsonlite::toJSON(scworkbench:::.wb_json_sanitize(as.list(table[i, , drop = FALSE])),
+      auto_unbox = TRUE, null = "null")), character(1))
+  rr <- lapply(row_json, jsonlite::fromJSON, simplifyVector = FALSE)
+  rr <- lapply(rr, function(x) {
+    if (is.list(x) && length(x)) {
+      is_null <- vapply(x, is.null, logical(1))
+      if (any(is_null)) for (nm in names(x)[is_null]) x[[nm]] <- NA
+    }
+    x
+  })
+  rr <- lapply(rr, as.data.frame, stringsAsFactors = FALSE)
+  out <- do.call(rbind, rr)
+  rownames(out) <- NULL
+  out
+}
+
 test_engine_promotion_table_default_and_actual_observation_contract <- function() {
   .engine_promotion_table_fixture(function(x) {
     calls <- 0L
@@ -285,9 +306,7 @@ test_engine_promotion_table_durable_session_rollback_retry_contract <- function(
     stopifnot(nrow(binding) == 1L, identical(binding$artifact_id, id),
       identical(binding$materialization_class, "public_artifact"),
       identical(binding$content_sha256, .engine_promotion_table_old_content(paired$run$outputs[[name]])))
-    expected <- jsonlite::fromJSON(as.character(jsonlite::toJSON(
-      scworkbench:::.wb_json_sanitize(paired$run$outputs[[name]]$table),
-      dataframe = "rows", auto_unbox = TRUE, null = "null", na = "null")))
+    expected <- .engine_promotion_table_old_projection(paired$run$outputs[[name]]$table)
     stopifnot(length(id) == 1L, identical(wb_art_load(b, id)$table, expected))
   }
   TRUE
@@ -320,10 +339,12 @@ test_engine_promotion_table_public_counts_rollback_and_retry_contract <- functio
       stopifnot(nrow(row) == 1L, identical(row$content_sha256, x$expected[[i]]$content_sha256),
         identical(row$content_identity_scheme, x$expected[[i]]$content_identity_scheme))
       id <- promoted$promoted$artifact_id[promoted$promoted$run_id == names(x$runs)[i]]
-      projection <- jsonlite::fromJSON(as.character(jsonlite::toJSON(
-        scworkbench:::.wb_json_sanitize(x$prims[[i]]$table), dataframe = "rows",
-        auto_unbox = TRUE, null = "null", na = "null")))
+      projection <- .engine_promotion_table_old_projection(x$prims[[i]]$table)
       stopifnot(identical(wb_art_load(x$b, id)$table, projection))
+      if (i == 1L) stopifnot(identical(projection$feature_id, c("f2", "f1")),
+        identical(projection$selected, c(TRUE, FALSE)), typeof(projection$score) == "double")
+      if (i == 2L) stopifnot(identical(projection$label, c("NA", "é")),
+        identical(projection$value, c("NA", "0")), typeof(projection$value) == "character")
       actual <- scworkbench:::.wb_prov_stored_table_content_sha256(x$b$con, id)
       stopifnot(identical(actual, .engine_promotion_table_old_stored(x$b$con, id)))
       DBI::dbBegin(x$b$con)
@@ -336,5 +357,9 @@ test_engine_promotion_table_public_counts_rollback_and_retry_contract <- functio
       stopifnot(identical(actual, scworkbench:::.wb_prov_stored_table_content_sha256(x$b$con, id)))
     }
     stopifnot(stored >= 2L)
+    nullable <- .engine_promotion_table_old_projection(data.frame(
+      logical_value = c(TRUE, NA), character_value = c(NA_character_, "x")))
+    stopifnot(identical(nullable$logical_value, c(TRUE, NA)),
+      identical(nullable$character_value, c(NA_character_, "x")))
   })
 }
