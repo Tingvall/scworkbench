@@ -16,14 +16,19 @@
   "SCWORKBENCH_PHASE3B_PYTHON_PACK_MANIFEST, and",
   "SCWORKBENCH_PYBENCH_PYTHON"))
 
-.wb_phase3b_pybench_commit <-
-  "e0feac65d47b1ca0320f6551aa9a83d9797cfd94"
+.wb_phase3b_pybench_commit <- local({
+  # Qualification may independently pin an explicitly reviewed final peer;
+  # unchanged protocol bytes must still match below. Never infer expected HEAD.
+  env <- new.env(parent = baseenv())
+  sys.source("tests/helpers/operation_pack_test_peer_pin.R", env)
+  env$.operation_pack_test_peer_pin("0ef3c56f9d300e7813ac5a555e6d2ac7cb64a57e")
+})
 
 .wb_phase3b_shared_sha256 <- c(
-  "5090bdf69ad076dcd35e83efae075d73dce3b65fba74b6b52a27fe74d1345f30",
-  "6d18dfc81c357a36846f62efe7a3b334f8533ce8fa99574af32cece683954128",
-  "caa532da565bcdc8d02b4ce25138394a6fc07fe500e56e3dd728d446ce914249",
-  "5dcad38e4fb78cba254e2240b6bbc9c7ebc522072a7c1578fe1658b267e6ca7b")
+  "bc8d65528c01f370379bd90985fa98ea2e4e056959844687de2d7628da80174c",
+  "81f5ef42a3cf35bd8ce92e410d65c4ed3193413d82ad0305fd2f3a2c678d3169",
+  "492ee6fbdd5ef75f6d00130e0c54ff945b7da8ee1160f11d6234a30f905ceae5",
+  "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793")
 
 .wb_phase3b_registry_guard <- function() {
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
