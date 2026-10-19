@@ -60,7 +60,7 @@ test_engine_manifest_projection_exact_fallback_and_predecode_rejection_contract 
       stopifnot(state$mode == "exact", state$reserved_capacity == 5000L,
         state$admitted_rows == 5000L, state$admitted_bytes == 65 * 5000 * 4)
     }
-    if (event %in% c("manifest_chunk", "manifest_scalar_batch", "manifest_small_chunk"))
+    if (event %in% c("manifest_projection_decoded", "manifest_chunk", "manifest_scalar_batch", "manifest_small_chunk"))
       decoded <<- decoded + 1L
   })
   on.exit(options(old), add = TRUE)
