@@ -6,7 +6,8 @@ This documentation-only child preserves the historical
 01–36 exactly once and their original field names; every row records prevented
 failure, authority, frequency/data, disposition, implementation, real source
 file anchors, coverage, evidence and limitations. Additional columns pin assembled53f1 and distinguish inherited historical392,
-later scoped components and PENDING combined qualification. No component gain
+later scoped components and terminal focused qualification. Full performance,
+final qualification, independent audit and archive remain PENDING. No component gain
 waives the historical terminal failed wrapper or whole-engine budget misses.
 Inherited implementation/measurement records remain labeled historical242;
 they are not measurements of this assembled follow-on source.
@@ -16,10 +17,33 @@ they are not measurements of this assembled follow-on source.
 Assembled runtime source `53f1ea8708112b8d07ba6f7e00f6b3a60af4f38b`;
 ownership-only descendant `8240d671dbf08999e8072723716736fec0aaae03`
 has identical R/src. Current discovery555 tests/222files is **discovery only**.
-The new combined69-test execution is **PENDING at this documentation checkpoint**;
-no current combined pass or new full Xenopus duration is claimed. The optional
+Combined focused qualification is now terminal: **69 discovered/executed/passed,
+zero skips/failures,16files, outer exit0**. This is not a new full Xenopus timing
+or complete core suite. The optional
 bounded-space row-encoding experiment a4331e9 is not part of this inventory.
 Every historical392/242 result below remains attached to its actual source.
+
+Exact installed source is53f1, immutable library
+`T/combined_53f1_install/library` where `T` is
+`/tmp/scwb-engine-simplification-forge-20261018`. Actual installed DLL SHA256:
+`ea1a99ab8d11c39d8cc14029577d5a0cae03462703c28961c982cde4f0d16e9d`.
+The runner checks archive source_commit, loaded namespace and actual DLL before
+the selected contracts, and verifies the copied baseline's complete filesystem
+SHA inventory unchanged afterward. Runner invocation:
+
+```sh
+Rscript --vanilla /tmp/scwb-engine-simplification-forge-20261018/run_combined_53f1_focused.R
+```
+
+Runner SHA256:
+`7d2a398e4325ceff132c02d874b065ca05f0723149500fee6577d13051018ae0`.
+Raw `T/combined_53f1_focused.log` SHA256:
+`69fb7c3f7edec4cf8a304c0074096ee25b37e3a3c1597a9bc3a65204a348e1bc`;
+numeric `T/combined_53f1_focused.exit` is0. The31 expanded warnings are29 DBI
+deprecations plus `call dbDisconnect()` and `Already disconnected`; the raw log
+also retains the visible Matrix compression warning. No unsupported cause is
+assigned and this run is not described as warning-free. No fresh full workflow,
+performance acceptance, independent audit or archive completion follows from69/69.
 
 - [Spill classification](SPILL_PATH_CLASSIFICATION_MEASUREMENT.md): original22
   was21PASS/1FAIL; corrected22/22 passed after a same-fixture cold/warm premise
