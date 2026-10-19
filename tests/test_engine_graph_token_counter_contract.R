@@ -149,6 +149,68 @@ test_engine_graph_token_counter_fallback_carriers_and_side_effects_contract <- f
     }
     stopifnot(identical(records$old, records$new), records$new$i64_calls == 4L)
   }
+  # A classed CHARACTER quota has observable length/conversion dispatch, unlike
+  # merely an S3 outer list. Eligibility must inspect attributes before length.
+  methods <- get(".__S3MethodsTable__.", envir = asNamespace("base"))
+  method_names <- c("length.engine_token_classed_quota", "as.double.engine_token_classed_quota")
+  previous <- lapply(method_names, function(name) if (exists(name, methods, inherits = FALSE)) get(name, methods) else NULL)
+  on.exit(for (i in seq_along(method_names)) {
+    if (is.null(previous[[i]])) {
+      if (exists(method_names[[i]], methods, inherits = FALSE)) rm(list = method_names[[i]], envir = methods)
+    } else assign(method_names[[i]], previous[[i]], envir = methods)
+  }, add = TRUE)
+  effects <- new.env(parent = emptyenv())
+  registerS3method("length", "engine_token_classed_quota", function(x) {
+    effects$length_calls <- effects$length_calls + 1L
+    effects$events <- c(effects$events, paste0("length:", effects$length_calls))
+    if (effects$length_calls == effects$fail_at) stop("CLASSED_QUOTA_LATE_LENGTH")
+    length(unclass(x))
+  }, envir = asNamespace("base"))
+  registerS3method("as.double", "engine_token_classed_quota", function(x, ...) {
+    effects$events <- c(effects$events, "as.numeric")
+    as.numeric(unclass(x))
+  }, envir = asNamespace("base"))
+  for (fail_at in c(Inf, 2)) {
+    records <- list()
+    for (old in c(TRUE, FALSE)) {
+      effects$length_calls <- 0L; effects$events <- character(); effects$fail_at <- fail_at
+      p <- .engine_token_policy(); class(p$token_bytes) <- "engine_token_classed_quota"
+      emitted <- character()
+      result <- .engine_token_run(function(emit) for (value in c("a", "", "b", "c")) {
+        error <- tryCatch({emit(value); NULL}, error = identity)
+        emitted <<- c(emitted, if (is.null(error)) "ok" else conditionMessage(error))
+      }, p, old)
+      records[[if (old) "old" else "new"]] <- list(result = result,
+        events = effects$events, emitted = emitted, length_calls = effects$length_calls)
+    }
+    stopifnot(identical(records$old, records$new), records$new$length_calls >= 4L,
+      any(records$new$events == "as.numeric"))
+    if (is.finite(fail_at)) stopifnot(any(records$new$emitted == "CLASSED_QUOTA_LATE_LENGTH"))
+  }
+  # The private copy reservation is also an unsupported carrier when classed.
+  # Even an eligibility predicate must not newly dispatch is.numeric on it.
+  method_name <- "is.numeric.engine_token_owned_reservation"
+  previous_owned <- if (exists(method_name, methods, inherits = FALSE)) get(method_name, methods) else NULL
+  on.exit({
+    if (is.null(previous_owned)) {
+      if (exists(method_name, methods, inherits = FALSE)) rm(list = method_name, envir = methods)
+    } else assign(method_name, previous_owned, envir = methods)
+  }, add = TRUE)
+  numeric_calls <- 0L
+  registerS3method("is.numeric", "engine_token_owned_reservation", function(x) {
+    numeric_calls <<- numeric_calls + 1L; stop("OWNED_NUMERIC_DISPATCH")
+  }, envir = asNamespace("base"))
+  reservation <- structure(0, class = "engine_token_owned_reservation")
+  probe <- try(is.numeric(reservation), silent = TRUE)
+  stopifnot(inherits(probe, "try-error"), grepl("OWNED_NUMERIC_DISPATCH", probe), numeric_calls == 1L)
+  numeric_calls <- 0L
+  records <- list()
+  for (old in c(TRUE, FALSE)) {
+    p <- .engine_token_policy(); attr(p, "wb_graph_session_copy_bytes") <- reservation
+    records[[if (old) "old" else "new"]] <- .engine_token_run(
+      function(emit) for (value in c("a", "", "雪", "b")) emit(value), p, old)
+  }
+  stopifnot(numeric_calls == 0L, identical(records$old, records$new), !records$new$error)
   TRUE
 }
 
@@ -171,6 +233,9 @@ test_engine_graph_token_counter_int64_limits_and_arithmetic_oracle_contract <- f
 
 test_engine_graph_token_counter_actual_i64_and_integer64_add_calls_contract <- function() {
   # Temporary S3 method instrumentation, restored before leaving the test.
+  # This test is discovered first; register bit64's real S3 methods explicitly
+  # before looking them up. Source diagnosis confirms +.integer64, not Ops.
+  loadNamespace("bit64")
   original <- getS3method("+", "integer64"); additions <- 0L
   registerS3method("+", "integer64", function(e1, e2) {
     additions <<- additions + 1L; original(e1, e2)

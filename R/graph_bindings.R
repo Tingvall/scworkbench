@@ -156,14 +156,14 @@ wb_graph_identity <- function(graph) {
         # Only immutable ordinary policy values may share their conversion.
         # Unknown attributes/classes/reference-like carriers keep the old path.
         owned <- attr(budgets, "wb_graph_session_copy_bytes", exact = TRUE)
-        plain_owned <- is.null(owned) || (is.numeric(owned) &&
-          is.null(attributes(owned)) && length(owned) == 1L &&
+        plain_owned <- is.null(owned) || (is.null(attributes(owned)) &&
+          is.numeric(owned) && length(owned) == 1L &&
           !is.na(owned) && is.finite(owned) && owned >= 0)
         plain <- is.list(budgets) && !is.object(budgets) &&
           !length(setdiff(names(attributes(budgets)),
             c("names", "wb_graph_session_copy_bytes"))) && plain_owned &&
           is.character(budgets$token_bytes) &&
-          length(budgets$token_bytes) == 1L && is.null(attributes(budgets$token_bytes))
+          is.null(attributes(budgets$token_bytes)) && length(budgets$token_bytes) == 1L
         if (plain) {
           limit <<- actual_limit
           if (limit <= bit64::as.integer64("9007199254740991")) {
