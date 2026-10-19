@@ -1,7 +1,7 @@
 # Reopen is independent of pack installation and never trusts a compact seal
 # in place of the actual contained partitions.
 .wb_operation_pack_v4_graph_payload <- function(root, name, observation, grant,
-  connections = list(), cache_slots = 1L) {
+  connections = list(), cache_slots = 1L, .immutable_seal = FALSE) {
   path <- file.path(root, "outputs", name, "payload.json")
   parts <- file.path(root, "outputs", name, "graph.parts.ndjson")
   for (target in c(path, parts)) .wb_graph_require(file.exists(target) &&
@@ -20,7 +20,8 @@
     "GRAPH_RESOURCE_EXCEEDED", "Complete graph stage including descriptor exceeds admitted storage budget.")
   staged <- .wb_graph_import_parts(parts,
     .wb_operation_pack_v4_graph_budgets(grant$resource_budgets), expected = observation,
-    connections = connections, cache_slots = cache_slots)
+    connections = connections, cache_slots = cache_slots,
+    .immutable_seal = .immutable_seal)
   succeeded <- FALSE
   on.exit(if (!succeeded) .wb_graph_stage_discard(staged), add = TRUE)
   # Independently enforce the manifest-issued ceilings for Python admission
@@ -92,12 +93,16 @@
 }
 
 .wb_operation_pack_v4_graph_output_value <- function(path, item, receipt, request,
-  connections = list(), cache_slots = length(request$graph_write_grants)) {
+  connections = list(), cache_slots = length(request$graph_write_grants),
+  .validated_handoff = NULL) {
   name <- item$name
   grant <- Filter(function(x) identical(x$output_name, name), request$graph_write_grants)[[1L]]
   seal <- Filter(function(x) identical(x$output_name, name), receipt$graph_write_observations)[[1L]]
-  staged <- .wb_operation_pack_v4_graph_payload(path, name, seal, grant,
-    connections = connections, cache_slots = cache_slots)
+  staged <- if (is.null(.validated_handoff))
+    .wb_operation_pack_v4_graph_payload(path, name, seal, grant,
+      connections = connections, cache_slots = cache_slots) else
+    .wb_operation_pack_v4_graph_handoff_accept(.validated_handoff, path,
+      item, receipt, request)
   value <- structure(list(kind = "graph", content_identity = staged$seal$content_identity,
     binding_identity = staged$seal$binding_identity, descriptor_identity = staged$seal$descriptor_identity),
     class = "wb_primitive")

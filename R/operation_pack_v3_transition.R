@@ -2971,7 +2971,8 @@
 
 .wb_operation_pack_v3_record_validate <- function(request, receipt, path,
                                                     load_payloads = FALSE,
-                                                    graph_connections = list()) {
+                                                    graph_connections = list(),
+                                                    .defer_graph_payloads = FALSE) {
   fail <- function(code, output = NULL) list(ok = FALSE, code = code,
     output = output)
   checked <- tryCatch({
@@ -2982,7 +2983,8 @@
     schema_assert(receipt, "receipt",
       "PYBENCH_REOPEN_VALIDATION_FAILED")
     if (identical(request$pack_abi_version, "4"))
-      .wb_operation_pack_v4_graph_record_assert(request, receipt, path, load_payloads,
+      .wb_operation_pack_v4_graph_record_assert(request, receipt, path,
+        load_payloads && !isTRUE(.defer_graph_payloads),
         connections = graph_connections)
     .wb_operation_pack_v3_assert_self_identity(request, "request_identity",
       "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")

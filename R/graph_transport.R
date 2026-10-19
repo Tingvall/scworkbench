@@ -92,7 +92,7 @@
 }
 
 .wb_graph_import_parts <- function(path, budgets = list(), expected = NULL,
-  connections = list(), cache_slots = 1L) {
+  connections = list(), cache_slots = 1L, .immutable_seal = FALSE) {
   budgets <- .wb_graph_budgets(budgets)
   for (con in Filter(function(con) !is.null(con) && DBI::dbIsValid(con), connections))
     budgets <- .wb_graph_effective_budgets(con, budgets)
@@ -132,6 +132,28 @@
     observations <- .wb_graph_observe_part(observations, part)
   }
   .wb_graph_require(!first, "GRAPH_READER_INCOMPLETE", "Missing graph header.")
+  if (isTRUE(.immutable_seal)) {
+    # Only the fresh private handoff opts in. Quiesce BEFORE computing actual
+    # semantic identities, not after hashing an already-claimed mutable stage.
+    # Immutable SQLite uses no POSIX locks, so raw-byte observation cannot
+    # cancel the owning SQLite connection's advisory locks.
+    policy <- state$con@ref$wb_graph_policy
+    share <- state$con@ref$wb_graph_cache_kib
+    DBI::dbDisconnect(state$con)
+    state$con <- NULL
+    .wb_graph_require(!any(file.exists(paste0(state$path,
+      c("-wal", "-shm", "-journal")))), "GRAPH_PAYLOAD_INVALID",
+      "A quiescent graph stage still has journal sidecars.")
+    state$con <- .wb_sqlite_connect_immutable(state$path, bigint = "character",
+      cache_size = -cache_kib)
+    attr(state$con, "wb_graph_owned_stage") <- TRUE
+    .wb_graph_configure(state$con, state$budgets, cache_kib)
+    state$con@ref$wb_graph_policy <- policy
+    state$con@ref$wb_graph_cache_kib <- share
+    state$handoff_bytes <- .wb_operation_pack_v4_graph_stage_guard(state)
+    .wb_graph_require(!is.null(state$handoff_bytes), "GRAPH_PAYLOAD_INVALID",
+      "Cannot observe the quiescent graph stage before semantic validation.")
+  }
   state$seal <- .wb_graph_sql_identities(state$con, "staged", state$budgets)
   state$observations <- observations
   if (!is.null(expected)) {
@@ -147,6 +169,10 @@
       .wb_graph_require(identical(state$seal[[field]], expected[[field]]),
         "GRAPH_SEAL_MISMATCH", "Imported payload disagrees with the complete declared output seal.")
   }
+  if (isTRUE(.immutable_seal))
+    .wb_graph_require(identical(state$handoff_bytes,
+      .wb_operation_pack_v4_graph_stage_guard(state)), "GRAPH_PAYLOAD_INVALID",
+      "Graph stage bytes changed during semantic validation.")
   state$finished <- TRUE; succeeded <- TRUE
   state
 }

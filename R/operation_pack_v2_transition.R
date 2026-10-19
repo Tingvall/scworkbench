@@ -1159,12 +1159,15 @@
 
 .wb_operation_pack_v2_record_validate <- function(path, load_payloads = FALSE,
     graph_connections = list(), fresh_rds_outputs = character(),
-    .retain_payloads = character()) {
+    .retain_payloads = character(), .retain_graph_payload = FALSE,
+    .expected_graph_identities = NULL) {
   retained_payloads <- list()
   receipt_path <- file.path(path, "receipt.json")
   request_path <- file.path(path, "request.json")
   state_path <- file.path(path, "state.json")
   if (!file.exists(receipt_path) || !file.exists(request_path) || !file.exists(state_path)) return(list(ok = FALSE, code = "incomplete_record"))
+  graph_headers <- if (isTRUE(.retain_graph_payload))
+    .wb_operation_pack_v4_graph_header_bytes(path) else NULL
   request <- tryCatch(jsonlite::read_json(request_path, simplifyVector = FALSE), error = identity)
   receipt <- tryCatch(jsonlite::read_json(receipt_path, simplifyVector = FALSE), error = identity)
   state <- tryCatch(jsonlite::read_json(state_path, simplifyVector = FALSE), error = identity)
@@ -1173,12 +1176,21 @@
   receipt_id <- receipt$receipt_identity; receipt$receipt_identity <- NULL
   if (!identical(request_id$sha256, .wb_operation_pack_sha256(request)) ||
       !identical(receipt_id$sha256, .wb_operation_pack_sha256(receipt))) return(list(ok = FALSE, code = "identity_mismatch"))
+  if (isTRUE(.retain_graph_payload) && !is.null(.expected_graph_identities) &&
+      (!identical(.wb_operation_pack_canonical_json(request_id),
+        .wb_operation_pack_canonical_json(.expected_graph_identities$request)) ||
+       !identical(.wb_operation_pack_canonical_json(receipt_id),
+        .wb_operation_pack_canonical_json(.expected_graph_identities$receipt))))
+    return(list(ok = FALSE, code = "identity_mismatch"))
+  defer_graph <- isTRUE(load_payloads) && !is.null(graph_headers) &&
+    .wb_operation_pack_v4_graph_handoff_eligible(request, receipt)
   if (as.character(request$schema %||% "")[1] %in%
       c("scworkbench.operation_pack.transition_request.v3", "scworkbench.operation_pack.transition_request.v4")) {
     request$request_identity <- request_id
     receipt$receipt_identity <- receipt_id
     v3 <- .wb_operation_pack_v3_record_validate(request, receipt, path,
-      load_payloads = load_payloads, graph_connections = graph_connections)
+      load_payloads = load_payloads, graph_connections = graph_connections,
+      .defer_graph_payloads = defer_graph)
     if (!isTRUE(v3$ok)) return(v3)
     request$request_identity <- NULL
     receipt$receipt_identity <- NULL
@@ -1389,9 +1401,28 @@
       }
     }
   }
+  handoff <- NULL
+  handoff_transferred <- FALSE
+  on.exit(if (!handoff_transferred && !is.null(handoff))
+    .wb_graph_stage_discard(handoff$stage), add = TRUE)
+  if (defer_graph) {
+    # Only fresh custody defers this actual import. All other request/receipt,
+    # sibling, registry and payload audits above have completed first. Default
+    # retained/recovery validation keeps its original independent import order.
+    checked_graph <- tryCatch({
+      handoff <- .wb_operation_pack_v4_graph_handoff_create(path, request,
+        receipt, request_id, receipt_id, graph_headers, graph_connections)
+      if (is.null(handoff)) .wb_operation_pack_v4_graph_record_assert(request,
+        receipt, path, load_payloads = TRUE, connections = graph_connections)
+      TRUE
+    }, error = function(error) FALSE)
+    if (!isTRUE(checked_graph)) return(list(ok = FALSE, code = "v3_request_receipt_invalid"))
+  }
   result <- list(ok = TRUE, request = request, request_identity = request_id,
     receipt = receipt, receipt_identity = receipt_id, state = state)
   if (length(.retain_payloads)) result$retained_payloads <- retained_payloads
+  if (!is.null(handoff)) result$graph_handoff <- handoff
+  handoff_transferred <- TRUE
   result
 }
 
@@ -1882,26 +1913,35 @@
   # registry requests have different byte closures and retain the full path.
   direct_rds_names <- .wb_operation_pack_v2_direct_rds_names(receipt,
     python_backend, abi_v4)
+  graph_return_stages <- list()
+  on.exit(if (!published) for (owned_stage in graph_return_stages)
+    .wb_graph_stage_discard(owned_stage), add = TRUE)
+  retain_fresh_graph <- abi_v4 && !python_backend &&
+    length(request$graph_write_grants %||% list()) == 1L
   reopen <- .wb_operation_pack_v2_record_validate(final,
     load_payloads = TRUE, fresh_rds_outputs = direct_rds_names,
-    graph_connections = graph_connections)
+    graph_connections = graph_connections,
+    .retain_graph_payload = retain_fresh_graph,
+    .expected_graph_identities = if (retain_fresh_graph)
+      list(request = request$request_identity, receipt = receipt$receipt_identity) else NULL)
   if (!isTRUE(reopen$ok)) .wb_operation_pack_v2_error("PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Fresh transition reopen failed: ", reopen$code,
       if (!is.null(reopen$output)) paste0(" (", reopen$output, ")") else ""), "reopen")
+  if (!is.null(reopen$graph_handoff))
+    graph_return_stages[[1L]] <- reopen$graph_handoff$stage
   .wb_operation_pack_v2_fault("before_reopened", transition_id = transition_id)
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "reopened", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(final, "state.json"))
   .wb_operation_pack_v2_fault("reopened", transition_id = transition_id)
-  graph_return_stages <- list()
-  on.exit(if (!published) for (owned_stage in graph_return_stages)
-    .wb_graph_stage_discard(owned_stage), add = TRUE)
   values <- stats::setNames(lapply(receipt$outputs %||% list(), function(item) {
     if (abi_v4 && identical(item$descriptor$kind, "graph")) {
       value <- .wb_operation_pack_v4_graph_output_value(final, item, receipt, request,
         connections = c(graph_connections, lapply(graph_return_stages, function(stage) stage$con)),
-        cache_slots = length(request$graph_write_grants) - length(graph_return_stages))
-      graph_return_stages[[length(graph_return_stages) + 1L]] <<-
-        attr(value, "graph_stage", exact = TRUE)
+        cache_slots = length(request$graph_write_grants) - length(graph_return_stages),
+        .validated_handoff = reopen$graph_handoff %||% NULL)
+      if (is.null(reopen$graph_handoff))
+        graph_return_stages[[length(graph_return_stages) + 1L]] <<-
+          attr(value, "graph_stage", exact = TRUE)
       return(value)
     }
     if (python_backend) {
