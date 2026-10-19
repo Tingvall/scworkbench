@@ -109,3 +109,42 @@
   attr(value, "graph_stage") <- staged
   value
 }
+
+# Recovery/public loading ALWAYS validates the actual complete retained record.
+# Fresh-invocation handoff authority is deliberately not accepted here.
+.wb_operation_pack_v4_graph_transition_load <- function(bundle, transition_id,
+  output_name, connections = list(), .expected_receipt = NULL) {
+  transition_id <- .wb_operation_pack_v2_safe_component(transition_id, "transition_id")
+  output_name <- .wb_operation_pack_v2_safe_component(output_name, "output_name")
+  path <- .wb_bundle_path_require(bundle$dir,
+    file.path("operation_pack_v2", transition_id), expected_type = "directory",
+    must_exist = TRUE, purpose = "retained graph transition")
+  connections <- c(.wb_graph_bundle_connections(bundle), connections)
+  checked <- .wb_operation_pack_v2_record_validate(path, load_payloads = TRUE,
+    graph_connections = connections)
+  .wb_operation_pack_assert(isTRUE(checked$ok) && identical(checked$state$state, "reopened"),
+    "PYBENCH_REOPEN_VALIDATION_FAILED", paste0("Invalid retained graph transition: ",
+      checked$code %||% "not_reopened"), class = "wb_operation_pack_v2_error")
+  if (!is.null(.expected_receipt)) .wb_operation_pack_assert(
+    identical(checked$receipt_identity, .expected_receipt),
+    "PYBENCH_REOPEN_VALIDATION_FAILED", "Retained graph receipt differs from checkpoint.",
+    class = "wb_operation_pack_v2_error")
+  items <- Filter(function(item) identical(item$name, output_name), checked$receipt$outputs)
+  .wb_operation_pack_assert(length(items) == 1L &&
+    identical(items[[1L]]$descriptor$kind, "graph") &&
+    identical(checked$request$pack_abi_version, "4"),
+    "PYBENCH_REOPEN_VALIDATION_FAILED", "Retained output is not one declared ABI4 graph.",
+    class = "wb_operation_pack_v2_error")
+  value <- .wb_operation_pack_v4_graph_output_value(path, items[[1L]],
+    checked$receipt, checked$request, connections = connections)
+  stage <- attr(value, "graph_stage", exact = TRUE)
+  .wb_operation_pack_assert(is.environment(stage), "PYBENCH_REOPEN_VALIDATION_FAILED",
+    "Graph import returned no owned stage.", class = "wb_operation_pack_v2_error")
+  transferred <- FALSE
+  on.exit(if (!transferred) .wb_graph_stage_discard(stage), add = TRUE)
+  grant <- Filter(function(item) identical(item$output_name, output_name),
+    checked$request$graph_write_grants)[[1L]]
+  .wb_operation_pack_v4_graph_output_bindings_assert(stage, grant)
+  transferred <- TRUE
+  value
+}

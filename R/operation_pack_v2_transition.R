@@ -2174,9 +2174,20 @@ wb_operation_pack_transition_outputs <- function(bundle, transition_id) {
   values <- c(result$receipt$outputs %||% list(), result$receipt$registry_requests %||% list())
   if (!length(values)) return(data.frame(name = character(), allocated_id = character(),
     category = character(), kind = character(), storage_profile = character(), stringsAsFactors = FALSE))
-  do.call(rbind, lapply(values, function(x) data.frame(name = x$name, allocated_id = x$allocated_id,
-    category = x$descriptor$category, kind = x$descriptor$kind,
-    storage_profile = x$descriptor$storage_profile, stringsAsFactors = FALSE)))
+  do.call(rbind, lapply(values, function(x) {
+    declared <- Filter(function(item) identical(item$name, x$name), result$request$outputs)
+    # ABI4 graph observed descriptors are closed and intentionally omit category.
+    # Use the independently validated request declaration, not an invented field.
+    category <- x$descriptor$category
+    if (is.null(category) && identical(x$descriptor$kind, "graph")) {
+      .wb_operation_pack_assert(length(declared) == 1L,
+        "PYBENCH_REOPEN_VALIDATION_FAILED", "Graph output declaration is missing or ambiguous.")
+      category <- declared[[1L]]$descriptor$category
+    }
+    data.frame(name = x$name, allocated_id = x$allocated_id,
+      category = category, kind = x$descriptor$kind,
+      storage_profile = x$descriptor$storage_profile, stringsAsFactors = FALSE)
+  }))
 }
 
 #' Load One Durable ABI v2 Transition Output
@@ -2194,6 +2205,8 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
   output_name <- as.character(output_name)[1]
   .wb_operation_pack_assert(output_name %in% table$name, "PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Transition has no output named '", output_name, "'."), class = "wb_operation_pack_v2_error")
+  if (identical(table$kind[match(output_name, table$name)], "graph"))
+    return(.wb_operation_pack_v4_graph_transition_load(bundle, transition_id, output_name))
   receipt <- jsonlite::read_json(file.path(.wb_operation_pack_v2_store(bundle), transition_id, "receipt.json"), simplifyVector = FALSE)
   request <- jsonlite::read_json(file.path(.wb_operation_pack_v2_store(bundle),
     transition_id, "request.json"), simplifyVector = FALSE)

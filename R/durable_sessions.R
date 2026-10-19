@@ -405,6 +405,10 @@ wb_session_list <- function(workspace_root = .wb_session_workspace_root()) {
 #' @return A session with its private staging bundle reopened.
 #' @export
 wb_session_open <- function(workspace) {
+  .wb_session_open(workspace)
+}
+
+.wb_session_open <- function(workspace, source_bundle = NULL) {
   workspace <- normalizePath(as.character(workspace)[1], winslash = "/", mustWork = TRUE)
   lock <- .wb_bundle_writer_lock_acquire(workspace, operation = "durable session open")
   on.exit(.wb_bundle_writer_lock_release(lock), add = TRUE)
@@ -432,7 +436,69 @@ wb_session_open <- function(workspace) {
   s$durable$checkpoint_state_sha <- as.character(meta$checkpoint_state_sha256)[1]
   s$staging_bundle <- NULL
   staged <- .wb_session_stage_bundle(structure(list(), class="scworkbench_bundle"), s)
-  staged$session
+  restored <- FALSE
+  on.exit(if (!restored) try(wb_close_bundle(staged$bundle), silent = TRUE), add = TRUE)
+  s <- staged$session
+  if (!is.null(source_bundle)) {
+    .wb_assert(identical(as.character(s$durable$state), "active"),
+      paste0("DURABLE_SESSION_", toupper(as.character(s$durable$state)), ": terminal sessions are inspectable but cannot resume execution."))
+    .wb_session_validate_source(s, source_bundle)
+    # Only the private resume route supplies this freshly authenticated source.
+    # Its live cache is included in every following graph import admission.
+    s$staging_bundle$staging_source_bundle <- source_bundle
+  }
+  s <- .wb_session_rehydrate_graph_outputs(s)
+  restored <- TRUE
+  s
+}
+
+# Called only AFTER wb_session_open authenticated original checkpoint bytes,
+# generation/metadata and the OLD checkpoint-state SHA. Never a generic repair
+# of a caller-supplied mutable session or a persisted freshness claim.
+.wb_session_rehydrate_graph_outputs <- function(session) {
+  owned <- list()
+  complete <- FALSE
+  on.exit(if (!complete) for (stage in owned)
+    try(.wb_graph_stage_discard(stage), silent = TRUE), add = TRUE)
+  changed <- FALSE
+  for (run_id in names(session$runs %||% list())) {
+    run <- session$runs[[run_id]]
+    for (name in names(run$outputs %||% list())) {
+      original <- run$outputs[[name]]
+      if (!.wb_is_primitive(original) || !identical(original$kind, "graph") ||
+          is.null(attr(original, "graph_stage", exact = TRUE))) next
+      transition <- run$operation_pack_transition$transition_id %||% ""
+      receipt <- run$operation_pack_transition$receipt_identity
+      .wb_assert(nzchar(transition) && !is.null(receipt),
+        "DURABLE_SESSION_PAYLOAD_CORRUPT: graph has no retained transition/receipt.")
+      value <- .wb_operation_pack_v4_graph_transition_load(session$staging_bundle,
+        transition, name, connections = lapply(owned, function(stage) stage$con),
+        .expected_receipt = receipt)
+      stage <- attr(value, "graph_stage", exact = TRUE)
+      .wb_assert(is.environment(stage),
+        "DURABLE_SESSION_PAYLOAD_CORRUPT: graph import returned no owned stage.")
+      owned[[length(owned) + 1L]] <- stage
+      .wb_assert(!isTRUE(stage$closed) && !is.null(stage$con) && DBI::dbIsValid(stage$con),
+        "DURABLE_SESSION_PAYLOAD_CORRUPT: graph import returned a retired stage.")
+      old_data <- original; attr(old_data, "graph_stage") <- NULL
+      new_data <- value; attr(new_data, "graph_stage") <- NULL
+      .wb_assert(identical(old_data, new_data, attrib.as.set = FALSE),
+        "DURABLE_SESSION_PAYLOAD_CORRUPT: recovered graph primitive differs from checkpoint.")
+      expected <- session$durable$payload_identities[[run_id]][[name]]
+      observed <- .wb_prov_payload_identity(session$staging_bundle, value)
+      .wb_assert(!is.null(expected) && identical(expected, observed),
+        "DURABLE_SESSION_PAYLOAD_CORRUPT: recovered graph content or bindings differ from checkpoint.")
+      # Preserve every original data field/attribute; replace ONLY the dead
+      # process-mechanical stage. Ownership passes to the existing session
+      # discard/promotion lifecycle only after ALL graphs are authenticated.
+      attr(original, "graph_stage") <- stage
+      session$runs[[run_id]]$outputs[[name]] <- original
+      changed <- TRUE
+    }
+  }
+  if (changed) session$durable$checkpoint_state_sha <- .wb_session_checkpoint_state_sha(session)
+  complete <- TRUE
+  session
 }
 
 #' Resume A Durable Analysis Session
@@ -442,20 +508,17 @@ wb_session_open <- function(workspace) {
 #' @export
 wb_session_resume <- function(bundle, workspace) {
   .wb_session_source_forget(bundle$con)
-  s <- wb_session_open(workspace)
+  s <- .wb_session_open(workspace, source_bundle = bundle)
   validated <- FALSE
   on.exit({
     if (!validated && !is.null(s$staging_bundle) && inherits(s$staging_bundle, "scworkbench_bundle")) {
+      for (run in s$runs %||% list()) for (value in run$outputs %||% list()) {
+        graph_stage <- attr(value, "graph_stage", exact = TRUE)
+        if (is.environment(graph_stage)) try(.wb_graph_stage_discard(graph_stage), silent = TRUE)
+      }
       try(wb_close_bundle(s$staging_bundle), silent = TRUE)
     }
   }, add = TRUE)
-  .wb_assert(identical(as.character(s$durable$state), "active"),
-             paste0("DURABLE_SESSION_", toupper(as.character(s$durable$state)), ": terminal sessions are inspectable but cannot resume execution."))
-  .wb_session_validate_source(s, bundle)
-  # A checkpoint cannot serialize the source's SQLite connection. Restore its
-  # verified live handle only after checking the exact source path and registry
-  # identity, so stage-leaf authentication remains available after replacement.
-  s$staging_bundle$staging_source_bundle <- bundle
   .wb_session_validate_payloads(s)
   validated <- TRUE
   s
