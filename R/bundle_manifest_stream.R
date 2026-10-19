@@ -216,6 +216,7 @@
         nchar(json, type = "bytes") <= as.numeric(budgets$token_bytes),
         "GRAPH_RESOURCE_EXCEEDED", "Manifest small chunk exceeded pre-admitted encoded size.")
       sha <- digest::digest(json, algo = "sha256", serialize = FALSE)
+      json <- NULL
     } else sha <- .wb_graph_token_hash(function(emit) {
       emit("[")
       i <- 1L
@@ -226,9 +227,32 @@
         # fields retain the existing incremental byte-reader path unchanged.
         first_deferred <- any(vapply(seq_len(nrow(fields)), function(j)
           batch[[nrow(fields) + 1L + j]][[i]] %in% c("text_deferred", "blob_deferred"), logical(1)))
-        candidate_limit <- min(512L, budgets$partition_rows, nrow(batch) - i + 1L)
-        if (!first_deferred && 4096 + 576 * nrow(fields) +
-          64 * candidate_limit <= 8 * budgets$partition_bytes) {
+        # Metadata JSON emission is not a graph wire partition. Reserve ALL
+        # candidate-vector scratch before constructing it, independently of
+        # partition_rows, while retaining the original 5000-row hash fold.
+        base_carrier <- 4096 + 576 * nrow(fields)
+        selected_carrier <- 16 * nrow(fields) + 32
+        available <- 8 * budgets$partition_bytes - base_carrier
+        candidate_limit <- min(5000L, nrow(batch) - i + 1L,
+          max(0, floor(available / 128)))
+        if (!first_deferred && candidate_limit > 0L) {
+          # This first-row estimate only limits speculative allocation. Every
+          # candidate's ACTUAL conservative charge below still controls take.
+          first_charge <- key_charge
+          for (j in seq_len(nrow(fields))) {
+            value <- rows[[j]][i]
+            first_charge <- first_charge + if (is.character(rows[[j]])) {
+              if (is.na(value)) 4 else 6 * nchar(value, type = "bytes") + 2
+            } else if (is.integer(rows[[j]]) && !is.object(rows[[j]]) &&
+                is.null(attributes(rows[[j]]))) {
+              if (is.na(value)) 4 else 16
+            } else if (is.list(rows[[j]])) 512 else if (is.na(value)) 4 else 512
+          }
+          value <- NULL
+          candidate_limit <- min(candidate_limit, max(0, floor((available - 16) /
+            (128 + selected_carrier + 8 * first_charge))))
+        }
+        if (!first_deferred && candidate_limit > 0L) {
           candidate <- seq.int(i, i + candidate_limit - 1L)
           eligible <- rep(TRUE, length(candidate))
           charge <- rep(key_charge, length(candidate))
@@ -246,40 +270,50 @@
             } else if (is.list(rows[[j]])) rep(512, length(candidate)) else
               ifelse(is.na(rows[[j]][candidate]), 4, 512)
             charge <- charge + scalar_charge
+            scalar_charge <- bytes <- NULL
           }
           # Worst-case JSON escaping (six bytes per source byte), numeric,
           # date/time and small coerced raw-vector representations are charged
           # before serializing. The output/copies fit within the existing
           # eight-partition reservation. No logical hash chunk is changed.
-          admissible <- cumprod(eligible) == 1L & cumsum(charge) <= budgets$partition_bytes / 2
+          cumulative_charge <- cumsum(charge)
+          eligible_prefix <- cumprod(eligible) == 1L
+          # One monotone prefix calculation replaces the old repeated
+          # take--/sum(prefix) search. All live vector temporaries (including
+          # cumsum/cumprod, subset indices and per-column copies) share 128N.
+          admissible <- eligible_prefix & base_carrier + 128 * length(candidate) +
+            selected_carrier * seq_along(candidate) +
+            8 * (cumulative_charge + 2) <= 8 * budgets$partition_bytes &
+            cumulative_charge + 2 <= as.numeric(budgets$token_bytes)
           take <- sum(admissible)
           # Bound the selected dataframe/list/type carriers plus row indices,
           # eligibility/charge vectors and serializer intermediates separately
           # from the live fetched batch (which was admitted above).
-          while (take > 0L) {
-            carrier_bytes <- 4096 + 512 * nrow(fields) + 16 * take * nrow(fields) +
-              32 * take + 64 * length(candidate) + 64 * nrow(fields)
-            encoded_bytes <- sum(charge[seq_len(take)]) + 2L
-            batch_reservation <- carrier_bytes + 8 * encoded_bytes
-            if (batch_reservation <= 8 * budgets$partition_bytes) break
-            take <- take - 1L
-          }
           if (take > 0L) {
+            carrier_bytes <- base_carrier + selected_carrier * take +
+              128 * length(candidate)
+            encoded_bytes <- cumulative_charge[[take]] + 2L
+            batch_reservation <- carrier_bytes + 8 * encoded_bytes
             selected <- candidate[seq_len(take)]
             .wb_graph_storage_fault("manifest_scalar_batch", list(con = con, table = table,
               budgets = budgets, rows = take, carrier_bytes = carrier_bytes,
+              candidate_rows = length(candidate),
               encoded_bytes = encoded_bytes, reservation_bytes = batch_reservation,
               decoded_reservation_bytes = 8 * budgets$partition_bytes,
               fetched_carrier_bytes = as.numeric(admission$n[[1L]]) * (24 * nrow(fields) + 32) +
                 as.numeric(admission$bytes[[1L]])))
             json <- as.character(jsonlite::toJSON(.wb_json_sanitize(rows[selected, , drop = FALSE]),
               dataframe = "rows", auto_unbox = TRUE, null = "null", na = "null"))
-            .wb_graph_require(nchar(json, type = "bytes") <= sum(charge[seq_len(take)]) + 2L,
+            .wb_graph_require(nchar(json, type = "bytes") <= encoded_bytes,
               "GRAPH_RESOURCE_EXCEEDED", "Manifest scalar batch exceeded pre-admitted encoded size.")
             emit(substr(json, 2L, nchar(json) - 1L))
             i <- i + take
+            candidate <- eligible <- charge <- cumulative_charge <- eligible_prefix <-
+              admissible <- selected <- json <- NULL
             next
           }
+          candidate <- eligible <- charge <- cumulative_charge <- eligible_prefix <-
+            admissible <- selected <- json <- NULL
         }
         emit("{")
         for (j in seq_len(nrow(fields))) {

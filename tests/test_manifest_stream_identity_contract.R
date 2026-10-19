@@ -140,7 +140,10 @@ test_manifest_stream_small_batch_aggregate_and_fault_restoration_contract <- fun
       batches <<- batches + 1L
       max_batch_rows <<- max(max_batch_rows, state$rows)
       max_reserved <<- max(max_reserved, state$reservation_bytes)
-      stopifnot(state$rows <= min(512L, state$budgets$partition_rows),
+      stopifnot(state$rows <= state$candidate_rows, state$candidate_rows <= 5000L,
+        state$carrier_bytes == 4096 + 576 * 4 + (16 * 4 + 32) * state$rows +
+          128 * state$candidate_rows,
+        state$carrier_bytes + 8 * state$encoded_bytes == state$reservation_bytes,
         state$budgets$memory_bytes == "8388608",
         state$reservation_bytes <= state$decoded_reservation_bytes,
         state$fetched_carrier_bytes + state$budgets$sqlite_cache_kib * 1024 +
