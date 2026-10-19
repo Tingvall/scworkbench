@@ -76,11 +76,24 @@ handled conservatively. Connection replacement, restore, migration, resume and
 close discard relevant observations. This is not a general payload cache and
 does not authenticate matrix, space or model bytes from database counters.
 
+When a fresh registry fingerprint is required, its original ordered rows and
+logical hash chunks are still inspected. Eligible metadata JSON can be encoded
+in bounded native batches, including an admitted complete logical chunk;
+unsupported types, encodings, policies or backends keep the original encoder.
+This removes intermediate representations, not source observations or content
+checks. It does not introduce a persistent fingerprint cache or a new identity
+scheme.
+
 Ordinary schema checks still read the migration ledger on every call. Only a
 previously successful foreign-key/nullability verdict can be reused, on the
 same connection with exactly unchanged relevant SQLite definitions. TEMP
 shadows disable reuse. Explicit schema inspection, migration and deep bundle
 validation perform fresh structural checks; graph-policy checks do likewise.
+
+An issued native typed-space reader plan admits its schema once, then checks
+the exact source binding on each block. A new final plan repeats admission and
+content authentication. That scoped plan does not give ordinary getters,
+recovered requests or a later invocation an exemption.
 
 ## Fresh outputs and publication
 
@@ -99,6 +112,16 @@ The final-path RDS bytes are still hashed and verified before return. This is
 not a general instruction to trust any seal. Matrix/model manifests, graphs,
 registry requests, Python outputs and recovery retain their full persisted
 validation paths.
+
+Fresh native-R graph outputs are independently imported and validated once.
+Within that invocation, core can retain the exact verified stage through
+primitive construction rather than import the same bytes a second time.
+Private custody, effective resource policy, file-byte observations, receipt
+bindings and complete closure remain enforced. A changed, transferred,
+recovered or otherwise ineligible stage uses independent persisted validation;
+neither a public seal nor a serialized connection pointer supplies authority.
+The handoff applies only to same-process execution; graph checkpoint
+process-replacement recovery remains a separate, unqualified path.
 
 Table publication encodes and inserts row JSON in bounded batches while retaining
 the existing row representation and content identity. An ordinary table primitive

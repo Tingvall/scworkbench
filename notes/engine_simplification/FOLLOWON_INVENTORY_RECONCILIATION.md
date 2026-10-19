@@ -1,23 +1,81 @@
-# Follow-on integrity-cost inventory: assembled source, acceptance still pending
+# Follow-on integrity-cost inventory: current9ce, acceptance still pending
+
+## Current assembled N/G/H: scoped results, not final acceptance
+
+Current runtime source is `9ce055d3b730618d4f8edc5d80284ac00b4f7ab5`.
+The CSV keeps all36 original IDs, failure protections, authority boundaries and
+historical row-specific evidence. Its current source/qualification fields now
+identify9ce; the former53f1 combined qualification is retained explicitly in a
+historical column. Later N/G/H scope is a separate column, not an attribution of
+all older measurements to this assembled runtime.
+
+The coordinator's current-only AST regeneration reports **590 definitions in231
+files,350 introduced identities and254 explicit engine additions**; ownership
+contract and frozen-file comparisons exit0. These are discovery/accounting,
+not590 tests executed or passed. Frozen242/139, migrated63 references and the
+historical85 ledger remain unchanged. The four H additions do not duplicate
+existing B identities whose fixtures/assertions changed.
+
+- N: the original native metadata serializer6875fa6 had scoped19/19 but large
+  median4.085s MISSED4.0509. Actual source diagnosis found positive compact
+  rownames rejected; corrected c396 supports both actual compact signs without
+  changing C JSON framing. Corrected scoped20/20 and matched large median3.542s
+  passed the newer large caps; historical tiny.160s still MISSED. This is not a
+  new full workflow result.
+- G: owned fresh graph handoff runtime b1dcb52 and test cleanup649c740 are
+  included. Original39 and separate cleanup6 results stay distinct; later
+  combined39/39 and metadata20/20 were scoped passes on their recorded sources,
+  not a new complete core run. Latest matched whole36.467s passes36.5904, but
+  public run14.893s **MISSES14.4336**. Earlier G-alone15.562/37.559 misses remain
+  historical. Direct+3s and the whole-engine criteria are not waived. Actual
+  stage/file/seal/receipt/resource closure and default recovery remain required.
+- H: runtime4611 and corrected testf92/docab33 are included; C remains unchanged
+  from N. Initial installed24 executed22PASS/2FAIL is preserved. Installed-parent
+  diagnostics proved unsupported classed token first-error and mixed TEXT/BLOB
+  NUL fixture premises; supported bit64 dispatch and valid ASCII BLOB retain
+  positive coverage, with strict negative/retry assertions. Corrected clean
+  ab33 qualification is24/24, outer0, not a replacement label for the old gate.
+  Matched large3.499/3.372/3.368s gives median**3.372s**, versus N3.542s:4.8%
+  lower, but **MISS3.0107s** prospective15% target. RSS193132KiB passes219599.6;
+  tiny.339s passes.4204 but historical.160 remains MISS. Component17gates has
+  16zero/budget1, outer1. Census records70 whole chunks/348070rows/30848654bytes;
+  150 scalar batches comprise12 native and138 fallback. Original46
+  tables/487202rows, exact identities, SQL, complete source filesystem and
+  software guards remain preserved. Counts are not additional physical scans.
+
+H reuses only the unchanged C encoder after the old small-whole bound declines:
+owned observer only, all deferred physical placeholders excluded, N<=5000/C<=8,
+the same8P/token admission, original source begin/finish and exact registry.v1
+5000-row fold. Opaque policy inputs retain original dispatch/fallback; no new
+cache, graph quota, scientific encoder or expected-claim authority was added.
+
+Full assembled core qualification, fresh full Xenopus, independent final reviews
+and evidence archive freeze remain **PENDING**. Historical392462.58s versus
+171.124s remains a whole-workflow MISS, as do typed-space5s/direct-graph+3s and
+other retained failed criteria. Selecting a coherent component with a modest
+gain does not convert its failed prospective target into a pass. No excluded
+R-ASCII, same-owner SQL or other rejected experiment is silently included.
+
+## Historical assembled53f1 reconciliation (preserved evidence)
 
 This documentation-only child preserves the historical
 [terminal242 inventory](INVENTORY_RECONCILIATION_CURRENT.md) and CSV unchanged.
 [The new CSV](FOLLOWON_INVENTORY_RECONCILIATION.csv) retains all original IDs
 01–36 exactly once and their original field names; every row records prevented
 failure, authority, frequency/data, disposition, implementation, real source
-file anchors, coverage, evidence and limitations. Additional columns pin assembled53f1 and distinguish inherited historical392,
+file anchors, coverage, evidence and limitations. Historical columns pin assembled53f1 and distinguish inherited historical392,
 later scoped components and terminal focused qualification. Full performance,
 final qualification, independent audit and archive remain PENDING. No component gain
 waives the historical terminal failed wrapper or whole-engine budget misses.
 Inherited implementation/measurement records remain labeled historical242;
 they are not measurements of this assembled follow-on source.
 
-## Assembled53f1: later scoped evidence, not engine acceptance
+### Historical assembled53f1: later scoped evidence, not engine acceptance
 
 Assembled runtime source `53f1ea8708112b8d07ba6f7e00f6b3a60af4f38b`;
 ownership-only descendant `8240d671dbf08999e8072723716736fec0aaae03`
-has identical R/src. Current discovery555 tests/222files is **discovery only**.
-Combined focused qualification is now terminal: **69 discovered/executed/passed,
+has identical R/src. Historical discovery555 tests/222files is **discovery only**.
+That combined focused qualification was terminal: **69 discovered/executed/passed,
 zero skips/failures,16files, outer exit0**. This is not a new full Xenopus timing
 or complete core suite. The optional
 bounded-space row-encoding experiment a4331e9 is not part of this inventory.
