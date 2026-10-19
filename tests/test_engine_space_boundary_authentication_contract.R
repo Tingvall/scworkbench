@@ -159,7 +159,7 @@ test_engine_space_boundary_lifecycle_rollback_retry_contract <- function() {
   before<-list.files(file.path(b$dir,"operation_pack_v2"),recursive=TRUE,all.files=TRUE)
   for(failed_boundary in c(1L,2L)) {
     calls<-0L
-    replace(function(bundle,request) {
+    replace(function(bundle,request,...) {
       calls<<-calls+1L
       if(calls==failed_boundary) {
         previous<-DBI::dbGetQuery(bundle$con,"SELECT description FROM spaces WHERE space_id='source'")
@@ -167,7 +167,7 @@ test_engine_space_boundary_lifecycle_rollback_retry_contract <- function() {
           params=list(previous$description[[1L]])),add=TRUE)
         DBI::dbExecute(bundle$con,"UPDATE spaces SET description='stale association' WHERE space_id='source'")
       }
-      original(bundle,request)
+      original(bundle,request,...)
     })
     failure<-tryCatch(run(),error=identity);replace(original)
     stopifnot(inherits(failure,"wb_operation_pack_v3_error"),

@@ -959,6 +959,7 @@
   }
   typed_input_names <- unique(vapply(operation$typed_slice_reads %||% list(),
     `[[`, character(1), "input"))
+  matrix_guards <- list()
   for (i in seq_along(base$inputs)) {
     name <- as.character(base$inputs[[i]]$name)[1]
     value <- inputs[[name]]
@@ -968,8 +969,14 @@
       # Authenticate the exact stage-visible fragment bytes that typed slices
       # will consume. Unchanged committed leaves remain containment-safe links;
       # stage-only predecessor fragments remain private regular files.
+      source_guard <- if (identical(as.character(registration$identity$backend)[1L], "R"))
+        .wb_operation_pack_matrix_light_guard(bundle, value$matrix_id) else NULL
       observed <- .wb_operation_pack_v3_matrix_consumed_identity(bundle,
         value$matrix_id, "resolution")
+      if (!is.null(source_guard)) {
+        source_guard()
+        matrix_guards[[name]] <- source_guard
+      }
       if (!identical(as.character(observed$verification_status)[1],
           "content_verified")) .wb_operation_pack_v3_error(
         "PYBENCH_INPUT_IDENTITY_MISMATCH",
@@ -1585,6 +1592,18 @@
       features = attr(grant, "operation_pack_v3_features"),
       input = inputs[[grant$input_name]])), vapply(typed_slice_grants, `[[`,
         character(1), "name"))
+  native_matrix_grants <- Filter(function(grant)
+    !is.null(matrix_guards[[grant$input_name]]), typed_slice_grants)
+  attr(base, "operation_pack_v3_native_matrix_issuance") <-
+    stats::setNames(lapply(native_matrix_grants, function(grant) list(
+      guard = matrix_guards[[grant$input_name]], con_ref = bundle$con@ref,
+      bundle_dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE),
+      issued_grant = grant,
+      issued_input_record = Filter(function(record) identical(
+        as.character(record$name)[1L], as.character(grant$input_name)[1L]), base$inputs),
+      features = attr(grant, "operation_pack_v3_features"),
+      cells = attr(grant, "operation_pack_v3_cells"))),
+      vapply(native_matrix_grants, `[[`, character(1), "name"))
   attr(base, "operation_pack_v3_typed_space_values") <-
     stats::setNames(lapply(typed_space_grants, function(grant) list(
       cells = attr(grant, "operation_pack_v3_cells"),
@@ -1980,7 +1999,7 @@
 }
 
 .wb_operation_pack_v3_typed_slice_sources_assert_current <- function(bundle,
-    request, .authenticated_native_spaces = character()) {
+    request, .authenticated_native_spaces = character(), .native_middle = FALSE) {
   stage <- attr(request, "operation_pack_stage_root")
   graph_enabled <- length(request$graph_read_grants %||% list()) > 0L ||
     length(request$graph_write_grants %||% list()) > 0L
@@ -1996,11 +2015,42 @@
     x$source_reference$source_kind, "bundle_matrix"),
     request$typed_slice_grants %||% list())
   spaces <- request$typed_space_grants %||% list()
-  if (!length(durable) && !length(spaces)) return(invisible(TRUE))
   # Authenticate the exact stage-visible bytes, including stage-only
   # predecessors, against both the source reference and grant identity.
-  for (grant in durable)
-    .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant)
+  issued <- attr(request, "operation_pack_v3_native_matrix_issuance") %||% list()
+  current_names <- vapply(request$typed_slice_grants %||% list(), `[[`, character(1), "name")
+  if (length(issued) && (anyDuplicated(current_names) ||
+      length(setdiff(names(issued), current_names))))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Native matrix private issuance grant set changed.", "audit")
+  for (name in names(issued)) {
+    entry <- issued[[name]]
+    grant <- request$typed_slice_grants[[match(name, current_names)]]
+    records <- Filter(function(record) identical(as.character(record$name)[1L],
+      as.character(grant$input_name)[1L]), request$inputs)
+    if (!DBI::dbIsValid(bundle$con) || !identical(bundle$con@ref, entry$con_ref) ||
+        !identical(normalizePath(bundle$dir, winslash = "/", mustWork = TRUE), entry$bundle_dir) ||
+        !identical(grant, entry$issued_grant) ||
+        !identical(records, entry$issued_input_record) ||
+        !identical(attr(grant, "operation_pack_v3_features"), entry$features) ||
+        !identical(attr(grant, "operation_pack_v3_cells"), entry$cells))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Native matrix private issuance binding changed.", "audit")
+  }
+  if (!length(durable) && !length(spaces)) return(invisible(TRUE))
+  for (grant in durable) {
+    entry <- if (isTRUE(.native_middle)) issued[[grant$name]] else NULL
+    if (is.null(entry)) {
+      .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant)
+      next
+    }
+    entry$guard()
+    current_state <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.scientific_state.v1", .wb_operation_pack_registry_snapshot(bundle))
+    if (!identical(current_state, grant$source_reference$transition_source_state_identity))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Native matrix scientific registry changed after issuance.", "audit")
+  }
   for (grant in spaces) {
     if (as.character(grant$name)[1L] %in% .authenticated_native_spaces) next
     source <- grant$source_reference
@@ -3699,10 +3749,11 @@
     request$typed_slice_grants %||% list(), function(grant) {
       name <- as.character(grant$name)[1]
       force(name); force(grant)
-      # Trusted in-process R: full byte authentication remains at dispatch and
+      # Trusted in-process R: full byte authentication remains at request and
       # publication. Between chunks inspect registry/file evidence, not all
       # matrix bytes. Python's supervised broker retains its existing policy.
-      source_check <- if (!is.null(bundle) && identical(
+      native_issuance <- (attr(request, "operation_pack_v3_native_matrix_issuance") %||% list())[[name]]
+      source_check <- if (!is.null(native_issuance)) native_issuance$guard else if (!is.null(bundle) && identical(
           grant$source_reference$source_kind, "bundle_matrix"))
         .wb_operation_pack_matrix_light_guard(bundle,
           grant$source_reference$matrix_id) else NULL

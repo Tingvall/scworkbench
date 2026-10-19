@@ -180,8 +180,10 @@
 
 # Invocation-private issued plans alone permit byte-authority consolidation.
 # Recovered/deserialized requests have no closures and use the old semantic
-# checks. This function is called afresh at BOTH execution boundaries.
-.wb_operation_pack_v3_native_space_sources_authenticate <- function(bundle, request) {
+# checks. Full authentication is the default, including publication. Only the
+# executor's freshly issued native-R predispatch call selects the light guard.
+.wb_operation_pack_v3_native_space_sources_authenticate <- function(bundle, request,
+    .native_middle = FALSE) {
   issued <- attr(request,"operation_pack_v3_typed_space_values") %||% list()
   native_names <- names(Filter(function(entry) is.function(entry$plan$authenticate),issued))
   current_names <- vapply(request$typed_space_grants %||% list(),
@@ -211,7 +213,13 @@
     # authenticated only once in THIS boundary call, never across boundaries.
     if (!any(vapply(authenticated_plans,function(authenticate)
         identical(authenticate,entry$plan$authenticate),logical(1)))) {
-      result <- tryCatch(entry$plan$authenticate(bundle),error=identity)
+      result <- tryCatch({
+        if (isTRUE(.native_middle)) {
+          # Only the executor's fresh native request selects this lane. The
+          # private binding above remains mandatory for EVERY declaration.
+          entry$plan$guard(bundle)
+        } else entry$plan$authenticate(bundle)
+      },error=identity)
       if (inherits(result,"error")) .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
         paste0("Typed-space source changed after authentication for '",name,"': ",
           conditionMessage(result)),"audit")

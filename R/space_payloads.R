@@ -395,6 +395,7 @@
   .wb_assert_observational_schema(bundle, c("space_payloads", "spaces", "cells"),
     "typed-space reader")
   issuing_con <- bundle$con
+  issuing_dir <- normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
   registry_row <- function() {
     .wb_assert(DBI::dbIsValid(issuing_con) &&
       identical(bundle$con@ref, issuing_con@ref),
@@ -461,12 +462,32 @@
   registry <- registry_row()
   logical <- logical_row()
   path <- .wb_space_payload_path(bundle, registry, must_exist = TRUE)
+  # Bracket issuance with the SAME observation used by native callbacks and
+  # the middle execution boundary; never adopt a post-hash baseline.
+  observe <- function() list(registry = registry_row(), logical = logical_row(),
+    path = .wb_space_payload_path(bundle, registry, must_exist = TRUE),
+    resolved = normalizePath(path, mustWork = TRUE),
+    file = file.info(path)[, c("size", "mode", "mtime", "ctime"), drop = FALSE])
+  initial <- observe()
+  .wb_assert(identical(registry, initial$registry) && identical(logical, initial$logical),
+    "Typed-space registry changed before byte authentication.")
+  guard <- function(current_bundle = bundle) {
+    if (released) stop("Typed-space reader is closed.", call. = FALSE)
+    .wb_assert(DBI::dbIsValid(issuing_con) &&
+      identical(current_bundle$con@ref, issuing_con@ref) &&
+      identical(normalizePath(current_bundle$dir, winslash = "/", mustWork = TRUE), issuing_dir),
+      "Typed-space guard requires the issuing connection and bundle path.")
+    now <- tryCatch(observe(), error = function(e) NULL)
+    if (!identical(initial, now)) stop("Typed-space registry or file changed after authentication.", call. = FALSE)
+    invisible(TRUE)
+  }
   # Authenticate the registered producer bytes before decoding variable-length
   # axes. Fixed-width R and VLEN Python payloads share this boundary.
   issuance_sha <- tolower(.wb_prov_sha256_file(path))
   .wb_assert(identical(issuance_sha,
     tolower(as.character(registry$content_sha256[[1L]]))),
     "SPACE_PAYLOAD_CONTENT_HASH_MISMATCH: payload bytes differ from registry identity.")
+  guard()
   ids <- character(n)
   maximum <- DBI::dbGetQuery(bundle$con,
     "SELECT COALESCE(MAX(length(CAST(cell_id AS BLOB))),0) AS n FROM cells;")$n[[1L]]
@@ -513,16 +534,7 @@
   # Exact fresh binding/file observations remain per block. The already issued
   # getter does not re-admit the complete bundle schema before and after each
   # coordinate tile; the independent final reader does that at its boundary.
-  observe <- function() list(registry = registry_row(), logical = logical_row(),
-    path = .wb_space_payload_path(bundle, registry, must_exist = TRUE),
-    resolved = normalizePath(path, mustWork = TRUE),
-    file = file.info(path)[, c("size", "mode", "mtime", "ctime"), drop = FALSE])
-  initial <- observe()
-  guard <- function() {
-    now <- tryCatch(observe(), error = function(e) NULL)
-    if (!identical(initial, now)) stop("Typed-space registry or file changed after authentication.", call. = FALSE)
-    invisible(TRUE)
-  }
+  guard()
   # Let SQLite compare its own signed64 rowids; never narrow them to R doubles.
   cells <- character(n)
   query <- DBI::dbSendQuery(bundle$con,paste0("SELECT cell_id FROM cells WHERE cell_id IN ",
@@ -557,6 +569,7 @@
   # Only core-owned invocation state consumes this observation. It never
   # supplies a digest: a newly admitted reader independently hashes current
   # bytes and validates the complete current axes and logical/payload rows.
+  guard()
   authority <- list(registry=registry, logical=logical, sha256=issuance_sha,
     path=path, resolved=normalizePath(path,mustWork=TRUE), cells=cells,
     physical_cells=meta$cell_ids, dimensions=as.integer(c(n,d)), labels=logical_labels)

@@ -58,7 +58,10 @@
 # content cache. Full hashes are still recomputed at publication. A transient
 # mutation restored before publication is outside this approved trust model.
 .wb_operation_pack_matrix_light_guard <- function(bundle, matrix_id) {
+  issuing_con <- bundle$con
   observe <- function() {
+    if (!DBI::dbIsValid(issuing_con) || !identical(bundle$con@ref, issuing_con@ref))
+      stop("Matrix source issuing connection changed or closed.", call. = FALSE)
     fragments <- wb_matrix_fragments(bundle, matrix_id)
     registry <- DBI::dbGetQuery(bundle$con,
       "SELECT * FROM matrices WHERE matrix_id=?;", params = list(matrix_id))
