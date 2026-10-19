@@ -16,12 +16,14 @@ test_engine_manifest_native_whole_opaque_policy_old_dispatch_contract <- functio
   # the probe stops at its FIRST scalar hook, before either C serializer.
   local$getNamespaceVersion <- function(package) "0.0.0"
   environment(legacy) <- local
-  methods <- c("as.double.manifest_whole_opaque_token", "Ops.manifest_whole_opaque_partition")
+  methods <- c("as.double.manifest_whole_opaque_token", "Ops.manifest_whole_opaque_partition",
+    "as.integer64.manifest_whole_opaque_token")
   previous <- lapply(methods, function(name) if (exists(name, globalenv(), inherits = FALSE))
     list(present = TRUE, value = get(name, globalenv(), inherits = FALSE)) else list(present = FALSE))
   on.exit(for (i in seq_along(methods)) if (previous[[i]]$present)
     assign(methods[[i]], previous[[i]]$value, globalenv()) else rm(list = methods[[i]], envir = globalenv()), add = TRUE)
-  calls <- 0L
+  if (exists(methods[[3L]], globalenv(), inherits = FALSE)) rm(list = methods[[3L]], envir = globalenv())
+  calls <- integer64_calls <- 0L
   assign(methods[[1L]], function(x, ...) {calls <<- calls + 1L; as.double(unclass(x))}, globalenv())
   assign(methods[[2L]], function(e1, e2) {
     calls <<- calls + 1L
@@ -32,26 +34,49 @@ test_engine_manifest_native_whole_opaque_policy_old_dispatch_contract <- functio
   stopifnot(as.numeric(token) == 8589934592, partition + 1 == 262145, calls == 2L)
   old <- getOption("scworkbench.graph_storage_test_hook")
   on.exit(options(scworkbench.graph_storage_test_hook = old), add = TRUE)
-  observe_first_scalar <- function(fn, policy) {
+  observe_first_scalar <- function(fn, policy, field) {
     captured <- NULL; whole <- 0L
     options(scworkbench.graph_storage_test_hook = function(event, state) {
-      if (event == "manifest_projection_decoded") calls <<- 0L
+      if (event == "manifest_projection_decoded") {calls <<- 0L; integer64_calls <<- 0L}
       if (event == "manifest_native_json" && state$scope == "whole") whole <<- whole + 1L
       if (event == "manifest_scalar_batch") {
+        stopifnot(identical(class(state$budgets[[if (field == "token_supported") "token_bytes" else field]]),
+          if (field == "partition_bytes") "manifest_whole_opaque_partition" else "manifest_whole_opaque_token"))
         captured <<- calls
         stop("OPAQUE_LEGACY_SCALAR_BOUNDARY")
       }
     })
     failure <- tryCatch(fn(con, "entries", budgets = policy), error = identity)
-    stopifnot(inherits(failure, "error"), grepl("OPAQUE_LEGACY_SCALAR_BOUNDARY", conditionMessage(failure), fixed = TRUE),
-      !is.null(captured), whole == 0L)
-    captured
+    stopifnot(inherits(failure, "error"), whole == 0L)
+    if (field != "token_bytes") {
+      stopifnot(grepl("OPAQUE_LEGACY_SCALAR_BOUNDARY", conditionMessage(failure), fixed = TRUE), !is.null(captured))
+    } else {
+      # The literal old route rejects this unsupported S3 token at its existing
+      # bit64 conversion BEFORE reaching a scalar hook. Preserve that first error.
+      stopifnot(is.null(captured), grepl("no applicable method for 'as.integer64'", conditionMessage(failure), fixed = TRUE),
+        grepl("manifest_whole_opaque_token", conditionMessage(failure), fixed = TRUE))
+    }
+    list(captured = captured, calls = calls, integer64_calls = integer64_calls,
+      class = class(failure), message = conditionMessage(failure))
   }
+  unsupported <- .engine_manifest_whole_policy(); unsupported$token_bytes <- token
+  stopifnot(identical(observe_first_scalar(actual, unsupported, "token_bytes"),
+    observe_first_scalar(legacy, unsupported, "token_bytes")))
+  # A real supported custom conversion retains its class at the new whole
+  # boundary, so both quota families also exercise that optional guard itself.
+  assign(methods[[3L]], function(x, ...) {
+    integer64_calls <<- integer64_calls + 1L
+    bit64::as.integer64(unclass(x))
+  }, globalenv())
+  integer64_calls <- 0L
+  stopifnot(identical(bit64::as.integer64(token), bit64::as.integer64("8589934592")), integer64_calls == 1L)
   for (field in c("token_bytes", "partition_bytes")) {
     policy <- .engine_manifest_whole_policy()
     policy[[field]] <- if (field == "token_bytes") token else partition
-    expected <- observe_first_scalar(legacy, policy)
-    observed <- observe_first_scalar(actual, policy)
+    probe_field <- if (field == "token_bytes") "token_supported" else field
+    expected <- observe_first_scalar(legacy, policy, probe_field)
+    observed <- observe_first_scalar(actual, policy, probe_field)
+    if (field == "token_bytes") stopifnot(expected$integer64_calls > 0L)
     stopifnot(identical(observed, expected)) # No EXTRA optional-path dispatch.
   }
   options(scworkbench.graph_storage_test_hook = old)
@@ -130,7 +155,7 @@ test_engine_manifest_native_whole_deferred_and_unsupported_contract <- function(
     stopifnot(identical(expected, scworkbench:::.wb_manifest_table_identity(con, "entries")), attempts == before)
     DBI::dbExecute(con, "UPDATE entries SET label='x' WHERE rowid=?;", params = list(position))
   }
-  for (value in list("é", "quote\"", "late\n", as.raw(c(0, 255)))) {
+  for (value in list("é", "quote\"", "late\n", charToRaw("ascii_blob"))) {
     DBI::dbExecute(con, "UPDATE entries SET label=? WHERE rowid=5000;",
       params = list(if (is.raw(value)) list(value) else value))
     before_hits <- hits
@@ -139,6 +164,16 @@ test_engine_manifest_native_whole_deferred_and_unsupported_contract <- function(
       hits == before_hits)
     DBI::dbExecute(con, "UPDATE entries SET label='x' WHERE rowid=5000;")
   }
+  # A BLOB in a TEXT-declared column containing NUL is rejected by the old
+  # native source reader too; it was never a valid positive identity fixture.
+  DBI::dbExecute(con, "UPDATE entries SET label=? WHERE rowid=5000;", params = list(list(as.raw(c(0, 255)))))
+  before <- attempts
+  failure <- tryCatch(suppressWarnings(scworkbench:::.wb_manifest_table_identity(con, "entries")), error = identity)
+  stopifnot(inherits(failure, "wb_graph_error"),
+    grepl("GRAPH_SOURCE_PAYLOAD_INVALID: Native TEXT contains NUL", conditionMessage(failure), fixed = TRUE), attempts == before)
+  DBI::dbExecute(con, "UPDATE entries SET label='x' WHERE rowid=5000;")
+  stopifnot(identical(scworkbench:::.wb_manifest_table_identity_materialized(con, "entries"),
+    scworkbench:::.wb_manifest_table_identity(con, "entries")))
   DBI::dbExecute(con, "UPDATE entries SET id=1.5 WHERE rowid=5000;")
   before_hits <- hits
   stopifnot(identical(suppressWarnings(scworkbench:::.wb_manifest_table_identity_materialized(con, "entries")),
