@@ -44,3 +44,34 @@ Numerical budgets fixed before implementation:
   guards. Source mutation and rollback checks remain mandatory.
 
 No implementation or measured performance acceptance follows from this budget.
+
+## Measured baseline, frozen before runtime implementation
+
+`T/typed_space_receipt_53f1_baseline_retry1` (T as above) completed three fresh
+plain installed53f1 processes; all numeric gates and outer supervisor are zero.
+The supervising source is clean budget-only `a4331e9`; R/src are exactly53f1.
+Independent old partition preimages, source/envelope/output identities, ordered
+values, source SQL/full filesystem purity and a real committed registry mutation
+with an unchanged-read positive control passed in each process. Mutation probes
+use a separate owned copy, not the timed source. No source runtime was edited.
+
+| Complete measured case | Old median, s | Fixed new ceiling, s |
+| --- | ---: | ---: |
+| Content identities of eight actual partition blocks | 0.982 | 0.491 |
+| Public row-sum invocation, eight partitions | 9.710 | 9.22450 |
+| Public row-sum invocation, 32 partitions | 9.491 | 9.01645 |
+
+Fresh matched pairs must also meet the original50%/5% improvements. The original
+<=5s invocation target remains MISSED on every baseline trial and is not waived.
+Maximum whole-process baseline RSS is287800KiB; its fixed+10% ceiling is316580KiB.
+The frozen absolute timing CSV SHA256 is
+`75c2979b701664d6a3056e72c7299b0a3644a9e93763bd4f37462341844e1574`;
+the RSS CSV SHA256 is
+`074a830019d18fee5562b587cfed29195286378781a68d9274cdbad8036faee5`.
+The first baseline setup assertion failed before timers because `split()` names
+were retained on a dimension-count vector. Its raw old1/outer exit1 remains at
+`T/typed_space_receipt_53f1_baseline`. The derivative only unnames that count
+vector; seven1650-row blocks plus one1649-row block still cover13199 cells.
+The pre-execution mutation-probe correction and Forge/root (not Controller)
+review-attribution erratum are retained separately. No retiming result replaces
+the failed record, and no scientific value, fixture or budget was changed.
