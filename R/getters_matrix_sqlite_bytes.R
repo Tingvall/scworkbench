@@ -39,9 +39,12 @@
     numeric = function(rowid, column, table, type, maximum) call(C_scwb_graph_bytes_numeric,
       pointer, as.character(rowid), column, table, type, maximum),
     finish = function() {
-      if (isTRUE(target$immutable)) .wb_sqlite_aux_read_target(con)
+      verify_target <- function() .wb_graph_require(
+        identical(.wb_sqlite_aux_read_target(con), target),
+        "GRAPH_SOURCE_PAYLOAD_INVALID", "Immutable SQLite reader changed during observation.")
+      if (isTRUE(target$immutable)) verify_target()
       result <- call(C_scwb_graph_bytes_finish, pointer)
-      if (isTRUE(target$immutable)) .wb_sqlite_aux_read_target(con)
+      if (isTRUE(target$immutable)) verify_target()
       result
     },
     close = function() call(C_scwb_graph_bytes_close, pointer))

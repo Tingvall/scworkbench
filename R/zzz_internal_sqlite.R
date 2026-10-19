@@ -32,7 +32,7 @@
   ready <- FALSE
   on.exit(if (!ready && DBI::dbIsValid(con)) DBI::dbDisconnect(con), add = TRUE)
   con@ref$wb_immutable_sqlite_reader <- list(path = path, dsn = dsn,
-    dbname = con@dbname, admission = .admission)
+    dbname = con@dbname, admission = .admission, ref = con@ref)
   ready <- TRUE
   con
 }
@@ -43,7 +43,8 @@
   issued <- con@ref$wb_immutable_sqlite_reader
   if (is.null(issued)) return(list(path = path, dsn = path, immutable = FALSE))
   .wb_assert(is.list(issued) && identical(names(issued),
-      c("path", "dsn", "dbname", "admission")) &&
+      c("path", "dsn", "dbname", "admission", "ref")) &&
+      identical(con@ref, issued$ref) &&
       identical(con@dbname, issued$dbname) &&
       identical(issued$dsn, .wb_sqlite_immutable_uri(issued$path)) && nzchar(path) &&
       identical(normalizePath(path, winslash = "/", mustWork = TRUE), issued$path),

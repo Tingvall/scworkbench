@@ -178,6 +178,23 @@ test_engine_immutable_aux_admission_and_issuance_fail_closed_contract <- functio
     }
     stopifnot(opened == 0L)
   }, finally = { con@ref$wb_immutable_sqlite_reader <- original; undo() })
+  peer <- scworkbench:::.wb_sqlite_connect_immutable(f$db)
+  tryCatch({
+    peer@ref$wb_immutable_sqlite_reader <- original
+    .engine_immutable_aux_error("differs from its issuing connection",
+      scworkbench:::.wb_sqlite_aux_read_connect(peer))
+  }, finally = DBI::dbDisconnect(peer))
+  observer <- scworkbench:::.wb_matrix_native_byte_observer(con)
+  tryCatch({
+    for (change in c("remove", "downgrade")) {
+      altered <- original
+      if (change == "remove") altered <- NULL else altered$admission <- "empty_wal"
+      con@ref$wb_immutable_sqlite_reader <- altered
+      .engine_immutable_aux_error("Immutable SQLite reader changed during observation", observer$finish())
+      con@ref$wb_immutable_sqlite_reader <- original
+    }
+    observer$finish()
+  }, finally = { con@ref$wb_immutable_sqlite_reader <- original; observer$close() })
   # Actual SQLITE_RO alone (even with an unrelated forged bundle-style flag)
   # cannot manufacture evidence of immutable URI construction.
   # A plain read-only open may itself create sidecars on a WAL-header database.
