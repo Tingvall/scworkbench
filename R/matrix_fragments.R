@@ -140,8 +140,6 @@ wb_register_matrix_fragment <- function(
 .wb_matrix_fragment_axis_json_vector_eligible <- function(ids) {
   if (typeof(ids) != "character" || !is.null(attributes(ids))) return(FALSE)
   if (!length(ids) || anyNA(ids)) return(FALSE)
-  if (!identical(as.character(utils::packageVersion("jsonlite")), "1.8.8")) return(FALSE)
-  if (any(Encoding(ids) != "unknown") || any(grepl("[^ -~]", ids, useBytes = TRUE))) return(FALSE)
   limit <- getOption("scworkbench.max_dense_materialize_mb", 256)
   if (!is.null(attributes(limit)) || !(typeof(limit) %in% c("integer", "double"))) return(FALSE)
   if (length(limit) != 1L || !is.finite(limit) || limit <= 0) return(FALSE)
@@ -149,9 +147,13 @@ wb_register_matrix_fragment <- function(
   # carrier and eight simultaneous encoded carriers; this optimization may
   # decline admission but must never introduce a new public memory error.
   n <- length(ids)
+  cap <- min(32 * 1024^2, limit * 1024^2 / 8)
+  if (128 * n > cap) return(FALSE)
+  if (!identical(as.character(getNamespaceVersion("jsonlite")), "1.8.8")) return(FALSE)
+  if (any(Encoding(ids) != "unknown") || any(grepl("[^ -~]", ids, useBytes = TRUE))) return(FALSE)
   encoded_bound <- 2 * sum(nchar(ids, type = "bytes")) + 3 * n + 2
   working_bound <- 128 * n + 8 * encoded_bound
-  is.finite(working_bound) && working_bound <= min(32 * 1024^2, limit * 1024^2 / 8)
+  is.finite(working_bound) && working_bound <= cap
 }
 
 .wb_matrix_fragment_axis_json <- function(ids) {

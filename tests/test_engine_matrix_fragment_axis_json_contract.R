@@ -45,7 +45,7 @@ test_engine_matrix_fragment_axis_json_literal_bytes_contract <- function() {
     .engine_fragment_axis_outcome(.engine_fragment_axis_json_old, ids)))
   old <- options(scworkbench.max_dense_materialize_mb = 256)
   on.exit(options(old), add = TRUE)
-  supported <- identical(as.character(utils::packageVersion("jsonlite")), "1.8.8")
+  supported <- identical(as.character(getNamespaceVersion("jsonlite")), "1.8.8")
   stopifnot(identical(eligible(c("a", "quote\"", "back\\slash")), supported),
     !eligible(character()))
   # Locale is not changed by production. Exercise any installed alternates and

@@ -16,9 +16,16 @@ It uses `toJSON(ids, auto_unbox=FALSE)` rather than constructing a scalar list.
 The literal old expression handles empty, named, attributed, unfamiliar encoding,
 control/Unicode, missing and unknown-policy cases without a fast attempt. The
 helper performs no extra axis coercion and no warning/error-catching retry.
+Backend eligibility observes the actual loaded jsonlite namespace rather than
+reading a potentially different installation DESCRIPTION through library paths.
 The working estimate includes128bytes/element and8encoded upper-bound carriers,
 limited to min32MiB and one eighth of the ordinary dense guard. Ineligibility
 never introduces a public memory error. No observation or result is cached.
+The128bytes/element lower bound is checked before Encoding/grepl/nchar scans.
+
+Source inspection confirms `wb_init_bundle()` registers its returned connection
+as an assembly bundle with its owned writer lock; therefore the low-level
+registration fault test runs in the existing legitimate assembly context.
 
 Five authored contracts use a literal pre-change encoder and captured ordered
 warnings/errors, including supported31535-ID axes, locale alternatives, unusual
