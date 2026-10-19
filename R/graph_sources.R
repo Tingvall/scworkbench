@@ -123,21 +123,33 @@
       list(min(256, budgets$partition_bytes))))
   .wb_graph_require(!nrow(oversized), "GRAPH_SOURCE_AUTHORITY_INVALID", "Invalid/oversized source axis ID.")
   emit_axis <- function(emit, membership = FALSE) {
-    cursor <- DBI::dbSendQuery(con, paste0("SELECT axis_id FROM (", query$sql,
-      ") ORDER BY ", if (membership) "CAST(axis_id AS BLOB)" else "axis_ordinal", ";"),
-      params = query$params)
+    # Project actual type/size in the same query snapshot as the fetch. A late
+    # oversized or non-text value becomes an invalid scalar, never a huge R
+    # carrier or a mixed-type batch silently coerced into valid character IDs.
+    sql <- paste0("SELECT CASE WHEN typeof(axis_id)='text' ",
+      "AND octet_length(axis_id)<=? THEN axis_id ELSE NULL END axis_id FROM (", query$sql,
+      ") source ORDER BY ", if (membership) "CAST(source.axis_id AS BLOB)" else "source.axis_ordinal", ";")
+    params <- c(list(min(256, budgets$partition_bytes)), query$params)
+    page <- .wb_matrix_axis_page_rows(budgets, sql, params)
+    cursor <- DBI::dbSendQuery(con, sql, params = params)
     first <- TRUE; previous <- NULL; count <- "0"
     tryCatch(repeat {
       if (as.numeric(count) %% budgets$partition_rows == 0)
         .wb_graph_transient_admit(budgets, database_path)
-      rows <- DBI::dbFetch(cursor, n = 1L)
+      rows <- DBI::dbFetch(cursor, n = page)
       if (!nrow(rows)) break
-      id <- rows$axis_id[[1]]
-      .wb_graph_require(.wb_graph_string(id) && (!membership || !identical(id, previous)),
-        "GRAPH_SOURCE_AUTHORITY_INVALID", "Invalid/duplicate source axis ID.")
-      if (!first) emit(",")
-      emit(.wb_operation_pack_canonical_json(id))
-      first <- FALSE; previous <- id; count <- .wb_graph_add_count(count, 1L)
+      for (i in seq_len(nrow(rows))) {
+        if (i > 1L && as.numeric(count) %% budgets$partition_rows == 0)
+          .wb_graph_transient_admit(budgets, database_path)
+        id <- rows$axis_id[[i]]
+        .wb_graph_require(.wb_graph_string(id) && (!membership || !identical(id, previous)),
+          "GRAPH_SOURCE_AUTHORITY_INVALID", "Invalid/duplicate source axis ID.")
+        if (!first) emit(",")
+        # canonical_json's valid scalar-character branch is exactly this encoder;
+        # do not reconstruct its recursive object/numeric plans for every ID.
+        emit(.wb_operation_pack_canonical_string(id))
+        first <- FALSE; previous <- id; count <- .wb_graph_add_count(count, 1L)
+      }
     }, finally = DBI::dbClearResult(cursor))
     count
   }
