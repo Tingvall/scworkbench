@@ -59,7 +59,7 @@ One private registered native encoder makes two complete bounded passes over
 already admitted plain integer/logical/safe-ASCII scalar rows. It independently
 matches actual field names to existing key tokens; decimal integers, nulls,
 ordering and all bytes are unchanged. Both raw signed compact numeric row-name
-forms are admitted only when their count exactly matches the actual columns.
+forms are admitted only when their count exactly matches the actual row count.
 No unknown object, ALTREP or deferred carrier is forced into this path.
 
 Eligibility and exact extent precede one output-buffer allocation; checked
