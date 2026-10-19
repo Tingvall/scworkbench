@@ -87,6 +87,36 @@
 
 .wb_operation_pack_v3_space_content <- function(values, cells) {
   values <- .wb_operation_pack_v3_space_matrix(values)
+  # Values are already a bounded reader block. Reuse the existing row-major
+  # numeric encoder, not one R list per row/scalar. This emits the SAME sorted
+  # canonical preimage; unsupported carriers/options keep the entire old path.
+  # Keep all failed candidate temporaries local and released before fallback.
+  bytes <- (function() {
+    if (is.object(values) || !typeof(values) %in% c("integer", "double") ||
+        length(values) > 131072L || !is.character(cells) ||
+        !is.null(attributes(cells)) ||
+        !exists("C_scwb_canonical_numeric_array", inherits = TRUE) ||
+        !identical(getOption("OutDec", "."), ".") ||
+        !identical(Sys.localeconv()[["decimal_point"]], ".")) return(NULL)
+    limit <- getOption("scworkbench.max_dense_materialize_mb", 256)
+    if (!is.null(attributes(limit)) || !is.numeric(limit) || length(limit) != 1L ||
+        !is.finite(limit) || limit <= 0) return(NULL)
+    available <- min(32 * 1024^2, limit * 1024^2 / 4)
+    base <- 65536 + 256 * as.double(length(values)) + 64 * as.double(length(cells))
+    if (!is.finite(base) || base > available) return(NULL)
+    reservation <- base + 8 * .wb_operation_pack_space_json_bound(cells)
+    if (!is.finite(reservation) || reservation > available) return(NULL)
+    rows <- .Call(C_scwb_canonical_numeric_array, values, TRUE)
+    if (is.null(rows)) return(NULL)
+    encode <- .wb_operation_pack_canonical_json
+    paste0('{"cell_id":', encode(unname(as.list(cells))),
+      ',"dimensions":', encode(unname(as.list(as.integer(dim(values))))),
+      ',"schema":', encode("scworkbench.operation_pack.space_slice.content.v1"),
+      ',"values":', rows, '}')
+  })()
+  if (!is.null(bytes)) return(list(
+    scheme = "scworkbench.operation_pack.space_slice.content.v1",
+    sha256 = digest::digest(enc2utf8(bytes), algo = "sha256", serialize = FALSE)))
   .wb_operation_pack_v2_identity_plain(
     "scworkbench.operation_pack.space_slice.content.v1", list(
       schema = "scworkbench.operation_pack.space_slice.content.v1",
