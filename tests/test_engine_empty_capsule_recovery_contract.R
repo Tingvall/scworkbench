@@ -1,15 +1,36 @@
-.ecr_fixture <- function() {
+.ecr_fixture <- function(assembly = FALSE) {
   f <- new.env(parent = emptyenv())
   f$root <- tempfile("empty_capsule_recovery_")
-  f$bundle <- wb_init_bundle(f$root)
+  f$bundle <- NULL
   f$close <- function() {
     if (!is.null(f$bundle) && DBI::dbIsValid(f$bundle$con)) {
       if (RSQLite::sqliteIsTransacting(f$bundle$con)) DBI::dbRollback(f$bundle$con)
       try(wb_close_bundle(f$bundle), silent = TRUE)
     }
+    f$bundle <- NULL
     unlink(f$root, recursive = TRUE, force = TRUE)
   }
+  ready <- FALSE
+  on.exit(if (!ready) f$close(), add = TRUE)
+  f$bundle <- wb_init_bundle(f$root)
+  if (!assembly) {
+    # wb_init_bundle intentionally owns its assembly lock until public close.
+    # These fixtures exercise the separately opened, initially unheld boundary.
+    wb_close_bundle(f$bundle); f$bundle <- NULL
+    f$bundle <- wb_open_bundle(f$root, read_only = FALSE, validate = FALSE)
+    stopifnot(!scworkbench:::.wb_writer_lock_held(f$bundle),
+      !scworkbench:::.wb_is_assembly_connection(f$bundle$con))
+  }
+  ready <- TRUE
   f
+}
+.ecr_owner <- function(b) {
+  key <- scworkbench:::.wb_writer_lock_key(b)
+  held <- scworkbench:::.wb_writer_lock_held(b)
+  entry <- if (held) get(key, scworkbench:::.wb_writer_lock_state$held) else NULL
+  list(held = held, token = if (held) entry$token else NULL,
+    depth = if (held) entry$depth else NULL,
+    assembly = scworkbench:::.wb_is_assembly_connection(b$con))
 }
 .ecr_inventory <- function(root) {
   paths <- sort(list.files(root, recursive = TRUE, full.names = TRUE, all.files = TRUE, no.. = TRUE))
@@ -167,6 +188,25 @@ test_engine_empty_capsule_invalid_paths_and_unlink_failure_contract <- function(
 }
 
 test_engine_empty_capsule_nested_transaction_and_readonly_contract <- function() {
+  # Cover the original constructor's intentional lifetime owner independently
+  # from the unheld public-reopen fixture used by the assertions below.
+  (function() {
+    assembly <- .ecr_fixture(assembly = TRUE); on.exit(assembly$close(), add = TRUE)
+    b <- assembly$bundle; owner <- .ecr_owner(b); state <- .ecr_state(b)
+    changes <- DBI::dbGetQuery(b$con, "SELECT total_changes()")[[1L]]
+    stopifnot(owner$held, owner$assembly, identical(owner$depth, 1L))
+    result <- scworkbench:::.wb_capsule_recover_residue(b)
+    stopifnot(identical(result, list(removed_pending = 0L, removed_orphan = 0L)),
+      identical(owner, .ecr_owner(b)), identical(state, .ecr_state(b)))
+    DBI::dbBegin(b$con)
+    on.exit(if (DBI::dbIsValid(b$con) && RSQLite::sqliteIsTransacting(b$con)) DBI::dbRollback(b$con), add = TRUE, after = FALSE)
+    result <- scworkbench:::.wb_capsule_recover_residue(b)
+    stopifnot(identical(result, list(removed_pending = 0L, removed_orphan = 0L)),
+      RSQLite::sqliteIsTransacting(b$con), identical(owner, .ecr_owner(b)),
+      identical(changes, DBI::dbGetQuery(b$con, "SELECT total_changes()")[[1L]]))
+    DBI::dbRollback(b$con)
+    stopifnot(identical(owner, .ecr_owner(b)), identical(state, .ecr_state(b)))
+  })()
   f <- .ecr_fixture(); on.exit(f$close(), add = TRUE)
   spy <- .ecr_spy(); on.exit(spy$close(), add = TRUE, after = FALSE)
   b <- f$bundle
@@ -185,7 +225,7 @@ test_engine_empty_capsule_nested_transaction_and_readonly_contract <- function()
   held <- get(key, scworkbench:::.wb_writer_lock_state$held)
   stopifnot(identical(snapshot, list(token = held$token, depth = held$depth)))
   DBI::dbRollback(b$con)
-  scworkbench:::.wb_bundle_writer_lock_release(lock)
+  scworkbench:::.wb_bundle_writer_lock_release(lock); lock <- NULL
   # Without an existing owner, the old route rejects lock acquisition first.
   DBI::dbBegin(b$con); spy$reset()
   failed <- try(scworkbench:::.wb_capsule_recover_residue(b), silent = TRUE)
@@ -221,7 +261,7 @@ test_engine_empty_capsule_publication_failure_and_explicit_retry_contract <- fun
     identical(snapshot, list(token = held$token, depth = held$depth)),
     spy$counts$publishers == 1L, identical(spy$counts$force, TRUE), spy$counts$checkpoints == 0L)
   options(saved)
-  scworkbench:::.wb_bundle_writer_lock_release(lock)
+  scworkbench:::.wb_bundle_writer_lock_release(lock); lock <- NULL
   stopifnot(!scworkbench:::.wb_writer_lock_held(b))
   # Cleanup is irreversible; explicit manifest refresh completes publication.
   wb_refresh_manifest(b)
