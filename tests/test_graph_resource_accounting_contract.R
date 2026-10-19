@@ -268,10 +268,27 @@ test_graph_resource_aggregate_cache_and_nested_policy_contract <- function() {
     head_run_id = run$run_id, outputs = "vector")
   id <- promoted$promoted$artifact_id[[1L]]
   retained <- scworkbench:::.wb_graph_load_reference(bundle, id)
+  # Loading already performs an actual retained observation. Advance this
+  # owned fixture's real SQLite epoch, without changing its scientific header,
+  # so the following assertion deliberately covers the cold admission branch.
+  # Do not clear private observations or require redundant warm recomputation.
+  header_before <- DBI::dbGetQuery(bundle$con,
+    "SELECT * FROM artifact_graph_meta WHERE artifact_id=?;", params = list(id))
+  changes_before <- DBI::dbGetQuery(bundle$con, "SELECT total_changes();")[[1L]][[1L]]
+  updated <- DBI::dbExecute(bundle$con,
+    "UPDATE artifact_graph_meta SET direction_mode=direction_mode WHERE artifact_id=?;", params = list(id))
+  stopifnot(updated == 1L,
+    DBI::dbGetQuery(bundle$con, "SELECT total_changes();")[[1L]][[1L]] > changes_before,
+    identical(header_before, DBI::dbGetQuery(bundle$con,
+      "SELECT * FROM artifact_graph_meta WHERE artifact_id=?;", params = list(id))))
   observed <- scworkbench:::.wb_prov_payload_identity(bundle, retained)
   stopifnot(identical(observed$content_sha256, wb_graph_identity(graph)$content_identity$sha256),
     identical(cache(), admitted), identical(bundle$con@ref$wb_graph_policy, policy),
     all(c("stage_payload", "published_certificate", "retained_reference") %in% branches))
+  branch_count <- length(branches)
+  warm <- scworkbench:::.wb_prov_payload_identity(bundle, retained)
+  stopifnot(identical(warm, observed), length(branches) == branch_count,
+    identical(cache(), admitted), identical(bundle$con@ref$wb_graph_policy, policy))
   restore()
   stopifnot(identical(cache(), before), is.null(bundle$con@ref$wb_graph_policy))
   TRUE
