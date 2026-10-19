@@ -15,3 +15,31 @@ Four installed-core definitions exercise public TRUE process replacement: writer
 The child hashes CURRENT.json plus its session.json/RDS before two resumes and requires them byte-identical afterward; actual stage-open manifest publication is excluded deliberately, not mislabeled whole-workspace purity. Pack-free loader records full stage/source tree file types/sizes/modes/link targets/SHA before and after public RO load+close. Partial-import/source-rejection tests preserve checkpoint hashes and scratch inventory; new run/head/active edits reject and later stale-generation promotion still rejects. No regression assertion is relaxed to bypass active-WAL validation.
 
 Root's first source-parse gate exited1 on the process driver's standalone newline `else`; six runtime/test-definition files parsed successfully. The driver alone was corrected to braced if/else; a distinct second parse gate exited0 for all seven files. Both logs/sidecars are retained at T/registry_graph_drafts_parse*; neither is a runtime test. No installed execution of this correction, build or performance qualification has run. Sable exact-source review0382b784d8a075e67d7a93cec04d85277aad24fa787c025fd0eaad95d086da3c clears the source for a clean checkpoint and installed focused qualification, not acceptance. Existing failures are not relabeled; graph process-replacement correctness remains pending installed qualification. No official pack, schema, protocol, storage migration, public resource quota or scientific algorithm change.
+# Installed qualification marker correction (test/fixture only)
+
+The first installed selection at source `52465933d17c81ee59b5dfd8ddc0568255a0ef58`
+terminated with 15 executed, 11 passed, zero skipped and four failed. All four
+new graph recovery contracts stopped at the first writer-mode exact success
+marker assertion. Install and pre/post input, source, installed-library and
+worktree guards were zero. The retained records under
+`/tmp/scwb-engine-simplification-forge-20261018/graph_recovery_5246593_setsid_install`
+remain unchanged.
+
+The fixture footer used `cat("GRAPH_DURABLE_PROCESS_OK", mode, "\n")`:
+the default space separator left a trailing blank on the marker line. The
+parent deliberately compared exact `paste("GRAPH_DURABLE_PROCESS_OK", mode)`
+without that blank. Child writer status zero proves only writer completion;
+the parent assertion prevented later loader/resume/attack modes from running.
+This evidence is NOT a graph recovery pass or a runtime recovery failure.
+
+The narrow fixture correction emits the same exact intended marker using
+`sep = ""`. The helper now prints BEGIN/mode/numeric status, complete merged
+child stdout/stderr, an escaped `dput` representation exposing whitespace, and
+END before either existing status or exact-marker assertion. Previously its
+owned-root cleanup removed child log files after marker failure without
+printing their successful-child contents into the parent log: that diagnostic
+loss is disclosed, not reconstructed. Future child failures retain their full
+available output in the parent raw log before cleanup. Exact success/status
+criteria, all four test definitions, runtime R/src and ownership are unchanged.
+No corrected qualification result is claimed by this source-only change.
+

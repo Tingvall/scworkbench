@@ -179,4 +179,4 @@ if (mode %in% c("writer", "writer_two")) {
     wb_close_bundle(b)
   }
 }
-cat("GRAPH_DURABLE_PROCESS_OK", mode, "\n")
+cat(paste("GRAPH_DURABLE_PROCESS_OK", mode), "\n", sep = "")

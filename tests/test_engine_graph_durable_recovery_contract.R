@@ -20,6 +20,11 @@
     status <- system2(file.path(R.home("bin"), "Rscript"),
       c("--vanilla", shQuote(script), mode, shQuote(root), shQuote(dirname(package)), dll), stdout = log, stderr = log)
     output <- readLines(log, warn = FALSE)
+    cat("GRAPH_DURABLE_CHILD_BEGIN mode=", mode, " status=", status, "\n", sep = "")
+    writeLines(output, stdout())
+    cat("GRAPH_DURABLE_CHILD_OUTPUT_DPUT\n")
+    dput(output)
+    cat("GRAPH_DURABLE_CHILD_END mode=", mode, " status=", status, "\n", sep = "")
     if (status != 0L) stop(paste(mode, status, paste(output, collapse = "\n")))
     stopifnot(any(output == paste("GRAPH_DURABLE_PROCESS_OK", mode)))
   }
