@@ -28,10 +28,12 @@ test_relative_bundle_writer_lock_identity_contract <- function() {
   stopifnot(identical(before, normalizePath(absolute, winslash = "/", mustWork = FALSE)),
             identical(before, target_id(absolute)), scworkbench:::.wb_path_is_absolute(before))
   b <- wb_init_bundle(relative)
-  stopifnot(identical(before, target_id(relative)), identical(before, target_id(b)),
-            isTRUE(wb_validate_bundle(relative)))
+  stopifnot(identical(before, target_id(relative)), identical(before, target_id(b)))
   wb_close_bundle(b)
-  stopifnot(!isTRUE(wb_bundle_writer_lock_info(relative)$locked), !length(residue(relative)))
+  # Path-only validation requires a closed snapshot when initialization retains
+  # its fresh WAL writer. Do not checkpoint or weaken validation for this test.
+  stopifnot(isTRUE(wb_validate_bundle(relative)),
+            !isTRUE(wb_bundle_writer_lock_info(relative)$locked), !length(residue(relative)))
 
   absolute_fresh <- file.path(root, "absolute.bundle")
   absolute_before <- target_id(absolute_fresh)
