@@ -33,3 +33,13 @@ threshold changes. Literal new test count remains5; focused union remains10.
 Source parse/diff checks only for this delta; exact source review required before
 commit/retry. Original failures and cleanup warnings remain evidence until an
 actual corrected retry is terminal.
+
+First corrected retry executed5:4passed,1failed at direct wb_refresh_manifest on
+the correctly reopened nonassembly fixture. That direct write is intentionally
+forbidden by the existing committed-bundle mutation boundary; raw4P1F log/exit
+remain unchanged. Test-only follow-up uses public close/reopen(writable), whose
+existing wb_migrate_bundle route forces authorized publication. Assert exactly
+one forced builder/publisher, identical actual SQL state, manifest fingerprint
+equal to that actual state, public recipient finalization readiness, and no
+additional publication on the subsequent empty recovery. No runtime guard or
+production behavior is relaxed; no retry result is claimed before execution.

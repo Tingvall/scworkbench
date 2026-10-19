@@ -18,7 +18,8 @@ New file tests/test_engine_empty_capsule_recovery_contract.R has5literal tests:
   FS unchanged.
 - publication_failure_and_explicit_retry: actual cleanup remains deleted after
   failed atomic manifest publication; old manifest and SQL intact; outer token/
-  depth restored; explicit refresh and no-op recovery retry; no caller lock leak.
+  depth restored; authorized public writable-reopen publication and no-op recovery
+  retry; recipient readiness; no caller lock leak.
 
 Namespace spies restore in reverse order before fixture teardown. Strict FS
 observation starts after establishing the SQL observer, so that observer's first

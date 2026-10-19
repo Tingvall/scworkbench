@@ -263,11 +263,18 @@ test_engine_empty_capsule_publication_failure_and_explicit_retry_contract <- fun
   options(saved)
   scworkbench:::.wb_bundle_writer_lock_release(lock); lock <- NULL
   stopifnot(!scworkbench:::.wb_writer_lock_held(b))
-  # Cleanup is irreversible; explicit manifest refresh completes publication.
-  wb_refresh_manifest(b)
-  stopifnot(identical(state, .ecr_state(b)), !scworkbench:::.wb_writer_lock_held(b))
+  # Cleanup is irreversible. Public writable reopen performs the authorized
+  # forced migration publication; direct committed-bundle refresh is forbidden.
+  spy$reset(); wb_close_bundle(b); f$bundle <- NULL
+  f$bundle <- wb_open_bundle(f$root, read_only = FALSE, validate = FALSE); b <- f$bundle
+  published <- jsonlite::read_json(file.path(b$dir, "manifest.json"), simplifyVector = TRUE)
+  stopifnot(identical(state, .ecr_state(b)), !scworkbench:::.wb_writer_lock_held(b),
+    identical(published$current_state$fingerprint, state$fingerprint),
+    spy$counts$publishers == 1L, spy$counts$builders == 1L, identical(spy$counts$force, TRUE))
+  stopifnot(wb_finalize_recipient_bundle(b)$ready)
   spy$reset(); answer <- scworkbench:::.wb_capsule_recover_residue(b)
   stopifnot(identical(answer, list(removed_pending = 0L, removed_orphan = 0L)),
-    spy$counts$publishers == 0L, !scworkbench:::.wb_writer_lock_held(b))
+    spy$counts$publishers == 0L, !scworkbench:::.wb_writer_lock_held(b),
+    identical(state, .ecr_state(b)))
   TRUE
 }
