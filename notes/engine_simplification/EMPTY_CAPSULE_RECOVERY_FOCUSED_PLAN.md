@@ -13,8 +13,9 @@ New file tests/test_engine_empty_capsule_recovery_contract.R has5literal tests:
   symlink target untouched; lexical unlink failures for ordinary and empty-root
   cleanup reject and leave lock retryable. No production test hook.
 - nested_transaction_and_readonly: exact outer token/depth retained; nested
-  caller TX stays active; outermost caller TX retains old strict precommit
-  publication error without commit/rollback; RO rejects with strict FS unchanged.
+  caller TX stays active; outermost caller TX retains the old acquire-before-TX
+  rejection before any publisher, without commit/rollback; RO rejects with strict
+  FS unchanged.
 - publication_failure_and_explicit_retry: actual cleanup remains deleted after
   failed atomic manifest publication; old manifest and SQL intact; outer token/
   depth restored; explicit refresh and no-op recovery retry; no caller lock leak.

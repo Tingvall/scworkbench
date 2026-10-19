@@ -186,11 +186,11 @@ test_engine_empty_capsule_nested_transaction_and_readonly_contract <- function()
   stopifnot(identical(snapshot, list(token = held$token, depth = held$depth)))
   DBI::dbRollback(b$con)
   scworkbench:::.wb_bundle_writer_lock_release(lock)
-  # Outermost caller-TX keeps the original strict precommit publication error.
+  # Without an existing owner, the old route rejects lock acquisition first.
   DBI::dbBegin(b$con); spy$reset()
   failed <- try(scworkbench:::.wb_capsule_recover_residue(b), silent = TRUE)
-  stopifnot(inherits(failed, "try-error"), grepl("Manifest publication cannot precede", as.character(failed), fixed = TRUE),
-    RSQLite::sqliteIsTransacting(b$con), spy$counts$publishers == 1L,
+  stopifnot(inherits(failed, "try-error"), grepl("Exclusive bundle-writer lock must be acquired before opening a SQLite transaction", as.character(failed), fixed = TRUE),
+    RSQLite::sqliteIsTransacting(b$con), spy$counts$publishers == 0L,
     !scworkbench:::.wb_writer_lock_held(b))
   DBI::dbRollback(b$con)
   stopifnot(wb_finalize_recipient_bundle(b)$ready)
