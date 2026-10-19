@@ -165,8 +165,16 @@
     token <- substr(buffer, 1L, length)
     .wb_graph_require(nchar(token, type = "bytes") <= 1540L,
       "GRAPH_RESOURCE_EXCEEDED", "Matrix axis scalar exceeds encoded admission.")
-    value <- tryCatch({.wb_operation_pack_v2_assert_strict_json(token); .wb_graph_parse(token)}, error = function(error)
-      .wb_graph_error("GRAPH_SOURCE_PAYLOAD_INVALID", conditionMessage(error)))
+    # The existing lexer has isolated one COMPLETE quoted token, and its
+    # bounded native reader has already checked UTF-8/no NUL. With neither
+    # escapes nor raw JSON controls, decoding is exactly removal of the two
+    # quotes; general object grammar and numeric decoration add no authority.
+    # Every other token retains the exact old strict decoder and diagnostics.
+    plain <- !grepl("\\", token, fixed = TRUE) &&
+      !grepl("[\\x00-\\x1F]", token, perl = TRUE, useBytes = TRUE)
+    value <- if (plain) substr(token, 2L, nchar(token) - 1L) else
+      tryCatch({.wb_operation_pack_v2_assert_strict_json(token); .wb_graph_parse(token)}, error = function(error)
+        .wb_graph_error("GRAPH_SOURCE_PAYLOAD_INVALID", conditionMessage(error)))
     .wb_graph_require(.wb_graph_string(value), "GRAPH_SOURCE_PAYLOAD_INVALID", "Invalid matrix axis ID.")
     buffer <<- substring(buffer, length + 1L); state <<- "delimiter"
     value
