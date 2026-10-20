@@ -1,6 +1,6 @@
 # Trusted native-R source-and-selection observation
 
-Status: consolidated design candidate for adoption review; no runtime adoption.
+Status: reconciled design frozen for Controller adoption decision; no runtime adoption.
 Controller approved a versioned observation DESIGN on2026-10-20. This document
 does not claim implementation, protocol adoption, performance or final acceptance.
 Forge consolidates the single specification; Sable and Quill supply review inputs.
@@ -213,3 +213,14 @@ acceptance is implied. After adoption approval, measure/freeze the v1 parent
 budget, implement only this scope, issue an immutable schema/fixture checkpoint
 for Quill, qualify focused authority/rollback/recovery/parity boundaries and
 finally run the one coordinated frozen-candidate workflow qualification.
+
+## Final design-review disposition
+
+Quill and Sable both fully reviewed exact design commit
+8a35c4978fbe75926a38f71e24b29480ffd4a48e and returned DESIGN CLEAR, with no
+additional guarantee reduction or conflicting specification. Neither disposition
+is runtime, performance or whole-engine acceptance. This final status paragraph
+adds the review record only; it changes no normative field or policy above.
+Remaining Controller choice: adopt this explicit v2 omission and authorize its
+implementation, or retain v1 returned-value observations. No runtime/protocol
+implementation begins on the strength of design-only approval.
