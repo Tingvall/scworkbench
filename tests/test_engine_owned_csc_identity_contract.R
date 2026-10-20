@@ -131,6 +131,13 @@ test_engine_owned_csc_decline_before_emission_contract <- function() {
 
 test_engine_owned_csc_errors_cleanup_and_retry_contract <- function() {
   source <- .owned_csc_fixture()
+  for (width in c(NA_real_, 0, -1, Inf, .5)) {
+    stream <- .owned_csc_stream()
+    observe <- function(owned) tryCatch(stream(paste0("f", seq_len(nrow(source))),
+      c("c1", "c2"), function(columns) source[, columns, drop = FALSE], width,
+      .owned_csc = if (owned) source else NULL), error = conditionMessage)
+    stopifnot(identical(observe(TRUE), observe(FALSE)))
+  }
   for (bad in c(Inf, -Inf, .Machine$double.xmin, 5e-324)) {
     x <- source; x@x[[4001L]] <- bad
     before <- serialize(x, NULL)
