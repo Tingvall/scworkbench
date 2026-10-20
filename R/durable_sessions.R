@@ -284,7 +284,8 @@
   invisible(TRUE)
 }
 
-.wb_session_validate_payloads <- function(session, run_ids = NULL, .collect_tables = FALSE) {
+.wb_session_validate_payloads <- function(session, run_ids = NULL, .collect_tables = FALSE,
+                                           .outputs = NULL) {
   observations <- list(); observation_bytes <- 0; observation_count <- 0L
   if (is.null(session$durable) || !length(session$durable$payload_identities %||% list()))
     return(if (isTRUE(.collect_tables)) observations else invisible(TRUE))
@@ -295,7 +296,13 @@
     run <- session$runs[[rid]]
     .wb_assert(!is.null(run), paste0("DURABLE_SESSION_CORRUPT: checkpoint references missing run ", rid))
     recorded <- session$durable$payload_identities[[rid]]
-    for (nm in names(recorded)) {
+    output_names <- names(recorded)
+    if (!is.null(.outputs[[rid]])) {
+      .wb_assert(all(.outputs[[rid]] %in% output_names),
+        "DURABLE_SESSION_PAYLOAD_CORRUPT: consumed output has no checkpoint identity.")
+      output_names <- output_names[output_names %in% .outputs[[rid]]]
+    }
+    for (nm in output_names) {
       borrowed <- NULL
       # Extract exactly once INSIDE the original error boundary, including for
       # unsupported outer run/output carriers with custom $ or [[ methods.
@@ -331,12 +338,33 @@
   if (isTRUE(.collect_tables)) observations else invisible(TRUE)
 }
 
-.wb_session_validate_dependencies <- function(session, resolved, parents) {
+.wb_session_validate_dependencies <- function(session, resolved, parents, .bindings = NULL) {
   if (is.null(session$durable)) return(invisible(TRUE))
   selected <- as.character(parents)
-  for (value in resolved) {
+  # Only the completed resolver path may narrow output scope. Direct helper
+  # calls and missing/incomplete bindings retain the old whole-parent behavior.
+  scoped <- is.list(.bindings) && identical(names(.bindings), names(resolved)) &&
+    length(.bindings) == length(resolved) &&
+    (!length(resolved) || (!is.null(names(resolved)) &&
+      !anyNA(names(resolved)) && all(nzchar(names(resolved))) && !anyDuplicated(names(resolved)))) &&
+    all(vapply(.bindings, is.list, logical(1)))
+  outputs <- list(); whole <- character()
+  for (input_index in seq_along(resolved)) {
+    value <- resolved[[input_index]]
     if (!.wb_is_primitive(value)) next
     kind <- as.character(value$kind)[1L]
+    binding <- if (scoped) .bindings[[input_index]] else list()
+    refs <- list()
+    if (length(binding)) {
+      valid <- identical(sort(names(binding)), c("output", "run_id")) &&
+        is.character(binding$run_id) && length(binding$run_id) == 1L &&
+        !is.na(binding$run_id) && binding$run_id %in% parents &&
+        is.character(binding$output) && length(binding$output) == 1L &&
+        !is.na(binding$output) && binding$output %in%
+          names(session$runs[[binding$run_id]]$outputs) &&
+        identical(value, session$runs[[binding$run_id]]$outputs[[binding$output]])
+      if (!isTRUE(valid)) scoped <- FALSE else refs <- list(binding)
+    }
     if (kind %in% c("matrix", "space", "space_2d")) {
       id <- if (kind == "matrix") value$matrix_id else value$space_id
       refs <- .wb_session_output_refs_by_id(session, kind, id %||% "")
@@ -348,9 +376,20 @@
         session$runs[[rid]]$outputs %||% list(), function(output)
           identical(value, output), logical(1))), logical(1)))
       if (!known) return(.wb_session_validate_payloads(session))
+      # Associated model/graph closure is not established by one output name.
+      whole <- unique(c(whole, selected))
+    }
+    if (scoped && !kind %in% c("model_ref", "graph")) {
+      for (ref in refs) outputs[[ref$run_id]] <- unique(c(
+        outputs[[ref$run_id]], ref$output))
     }
   }
-  .wb_session_validate_payloads(session, run_ids = selected)
+  if (!scoped) return(.wb_session_validate_payloads(session, run_ids = selected))
+  # Unexplained parents remain whole-parent. This map is merely a filter on
+  # the ORIGINAL actual identity checks, not a claim or cached authentication.
+  whole <- unique(c(whole, setdiff(selected, names(outputs))))
+  outputs[intersect(names(outputs), whole)] <- NULL
+  .wb_session_validate_payloads(session, run_ids = selected, .outputs = outputs)
 }
 
 #' Create A Durable, Resumable Analysis Session

@@ -193,6 +193,7 @@ wb_session_add_run <- function(session, run) {
 .wb_resolve_input <- function(bundle, session, name, expected_kind, inputs) {
   parents <- character(0)
   prov_refs <- list()
+  dependency <- list()
 
   # legacy aliases
   alias <- switch(
@@ -263,6 +264,7 @@ wb_session_add_run <- function(session, run) {
                    paste0("Run ", ref$run_id, " has no output '", ref$output, "'."))
         val <- run$outputs[[ref$output]]
         parents <- unique(c(parents, ref$run_id))
+        dependency <- list(run_id = ref$run_id, output = ref$output)
       } else if (identical(ref$ref_type, "artifact")) {
         val <- try(wb_art_load(bundle, artifact_id = ref$artifact_id, expected_kind = expected_kind), silent = TRUE)
         if (inherits(val, "try-error") && !is.null(session$staging_source_dir)) {
@@ -307,7 +309,11 @@ wb_session_add_run <- function(session, run) {
   }
 
   .wb_assert_kind(val, expected_kind, where = paste0(" for input '", name, "'"))
-  list(value = val, parents = parents, prov_refs = prov_refs)
+  # Private invocation-local resolver evidence, never part of pack inputs,
+  # public provenance or the checkpoint. Direct axis ownership is resolved by
+  # the dependency validator using its existing unique-ID rule.
+  list(value = val, parents = parents, prov_refs = prov_refs,
+       dependency = dependency)
 }
 
 .wb_optional_input_present <- function(session, name, inputs) {
@@ -465,6 +471,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   resolved <- list()
   parents <- character(0)
   prov_refs <- list()
+  dependency_bindings <- list()
 
   req <- op$requires %||% list()
   if (length(req)) {
@@ -472,6 +479,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
       kind <- req[[nm]]
       rr <- .wb_resolve_input(work_bundle, session, nm, kind, inputs)
       resolved[[nm]] <- rr$value
+      dependency_bindings[[nm]] <- rr$dependency
       parents <- unique(c(parents, rr$parents))
       prov_refs <- c(prov_refs, rr$prov_refs)
     }
@@ -484,12 +492,14 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
       kind <- opt_req[[nm]]
       rr <- .wb_resolve_input(work_bundle, session, nm, kind, inputs)
       resolved[[nm]] <- rr$value
+      dependency_bindings[[nm]] <- rr$dependency
       parents <- unique(c(parents, rr$parents))
       prov_refs <- c(prov_refs, rr$prov_refs)
     }
   }
   .wb_validate_resolved_op_inputs(op_name, resolved)
-  .wb_session_validate_dependencies(session, resolved, parents)
+  .wb_session_validate_dependencies(session, resolved, parents,
+    .bindings = dependency_bindings)
   attr(resolved, "operation_pack_v4_matrix_source_selections") <- matrix_source_selections
 
   # This is the sole operation-runner ownership point for effective cells.

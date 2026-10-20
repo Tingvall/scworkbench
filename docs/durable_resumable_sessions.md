@@ -6,6 +6,13 @@ the content identities of every checkpointed staged output before returning a
 session.  The source bundle remains untouched until the ordinary
 `wb_session_promote_current()` transaction succeeds.
 
+Ordinary dispatch authenticates consumed outputs rather than unused siblings,
+where the resolver establishes their exact producer binding. Uncertain bindings
+and model/graph closures retain broader checks. This intentionally defers an
+unused sibling's corruption diagnostic to its consumption or a full boundary;
+resume, promotion and explicit validation are still full. Whole-checkpoint
+graph, generation and in-memory state binding remain mandatory before dispatch.
+
 The lifecycle API is `wb_session_create()`, `wb_session_list()`,
 `wb_session_open()`, `wb_session_resume()`, `wb_session_finalize()`, and
 `wb_session_discard()`.  Workspaces are owned by their session identifier and

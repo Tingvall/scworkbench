@@ -167,39 +167,116 @@ test_engine_selected_dependency_corruption_contract <- function() {
   victim <- if (dir.exists(path)) list.files(path, recursive = TRUE,
     full.names = TRUE)[1L] else path
   stopifnot(file.exists(victim))
+  original_bytes <- readBin(victim, "raw", n = file.info(victim)$size)
   connection <- file(victim, "ab")
   tryCatch(writeBin(charToRaw("changed retained bytes"), connection),
     finally = close(connection))
+  # Controller-approved sibling scope: authenticate the intact embedding, not
+  # its unused model sibling. Full checkpoint binding still precedes dispatch.
+  source_before <- scworkbench:::.wb_prov_file_tree_sha256(b$dir)
+  clean <- wb_session_run_op(session, b, "scwbv3phase5::derived_subset",
+    inputs = list(source = wb_ref_run(fit$run$run_id, "embedding"),
+      selected_cells = fixture$cells[c(1L, 3L)], key_prefix = "scope_",
+      cell_set = "all", min_cells = 1L))
+  session <- clean$session
+  stopifnot(identical(clean$run$outputs$vector$cell_id, fixture$cells[c(1L, 3L)]),
+    identical(as.numeric(clean$run$outputs$vector$value), c(1, 3)),
+    identical(clean$run$inputs$parents, fit$run$run_id),
+    identical(source_before, scworkbench:::.wb_prov_file_tree_sha256(b$dir)))
   # Unrelated metadata execution is not a whole-history verification boundary.
   unrelated <- wb_session_run_op(session, b, "metadata_cell_vector",
     inputs = list(source_column = "group", vector_name = "independent",
       value_type = "categorical", cell_set = "all", min_cells = 1L))
   session <- unrelated$session
-  stopifnot(length(session$runs) == 2L)
+  stopifnot(length(session$runs) == 3L)
   before <- nrow(wb_art_list(b))
+  calls <- new.env(parent = emptyenv()); calls$n <- 0L
+  options(scwb.test.dependency_dispatch = calls)
+  trace(".wb_operation_pack_v2_execute", where = asNamespace("scworkbench"),
+    print = FALSE, tracer = quote({
+      counter <- getOption("scwb.test.dependency_dispatch"); counter$n <- counter$n + 1L
+    }))
+  on.exit({untrace(".wb_operation_pack_v2_execute", where = asNamespace("scworkbench"))
+    options(scwb.test.dependency_dispatch = NULL)}, add = TRUE)
   for (input in list(wb_ref_run(fit$run$run_id, "model"), fit$run$outputs$model)) {
+    stage_before <- scworkbench:::.wb_prov_file_tree_sha256(session$staging_bundle$dir)
+    checkpoint_before <- digest::digest(file = scworkbench:::.wb_session_checkpoint_file(session), algo = "sha256")
     failure <- try(wb_session_run_op(session, b,
       "scwbv3phase5::consume_self_linked_model", inputs = list(model = input,
         cell_set = "all", min_cells = 1L)), silent = TRUE)
     stopifnot(inherits(failure, "try-error"),
-      grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure), nrow(wb_art_list(b)) == before)
+      grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure), nrow(wb_art_list(b)) == before,
+      identical(stage_before, scworkbench:::.wb_prov_file_tree_sha256(session$staging_bundle$dir)),
+      identical(checkpoint_before, digest::digest(file = scworkbench:::.wb_session_checkpoint_file(session), algo = "sha256")))
   }
   failure <- try(wb_session_run_op(session, b,
     "scwbv3phase5::consume_self_linked_model", inputs = list(
       cell_set = "all", min_cells = 1L)), silent = TRUE)
   stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure))
+  edited <- session
+  edited$runs[[fit$run$run_id]]$outputs$embedding$value[[1L]] <- 999
+  failure <- try(wb_session_run_op(edited, b, "scwbv3phase5::derived_subset",
+    inputs = list(source = wb_ref_run(fit$run$run_id, "embedding"),
+      selected_cells = fixture$cells[c(1L, 3L)], key_prefix = "scope_",
+      cell_set = "all", min_cells = 1L)), silent = TRUE)
+  stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_UNCHECKPOINTED_STATE", failure))
   failure <- try(wb_session_promote_current(b, session,
     outputs = list(wb_ref_run(fit$run$run_id, "model"))), silent = TRUE)
   stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure),
     nrow(wb_art_list(b)) == before)
   failure <- try(wb_session_resume(b, session$durable$workspace), silent = TRUE)
   stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure))
+  stopifnot(calls$n == 0L)
+  # Restore actual bytes, not a recorded hash: full validation and retry work.
+  connection <- file(victim, "wb")
+  tryCatch(writeBin(original_bytes, connection), finally = close(connection))
+  scworkbench:::.wb_session_validate_payloads(session)
+  retry <- wb_session_run_op(session, b, "scwbv3phase5::derived_subset",
+    inputs = list(source = wb_ref_run(fit$run$run_id, "embedding"),
+      selected_cells = fixture$cells[c(1L, 3L)], key_prefix = "scope_",
+      cell_set = "all", min_cells = 1L))
+  session <- retry$session
+  stopifnot(calls$n == 1L,
+    identical(retry$run$outputs$vector, clean$run$outputs$vector))
   # Selecting only the independent branch does not silently promote the model.
   promoted <- wb_session_promote_current(b, session,
     outputs = list(wb_ref_run(unrelated$run$run_id, "vector")))
   stopifnot(nrow(promoted$promoted) == 1L,
     all(promoted$promoted$status == "ok"), nrow(wb_art_list(b)) == before + 1L)
   session <- promoted$session
+  TRUE
+}
+
+test_engine_consumed_output_binding_fallback_contract <- function() {
+  state <- new.env(parent = asNamespace("scworkbench"))
+  state$selected <- NULL; state$outputs <- NULL
+  state$.wb_session_validate_payloads <- function(session, run_ids = NULL, .outputs = NULL) {
+    state$selected <- run_ids; state$outputs <- .outputs; invisible(TRUE)
+  }
+  check <- scworkbench:::.wb_session_validate_dependencies
+  environment(check) <- state
+  vector <- wb_prim_cell_vector(c(c2 = 1, c1 = 2), value_type = "continuous")
+  session <- list(durable = list(), runs = list(a = list(outputs = list(
+    left = vector, right = vector)), b = list(outputs = list(vector = vector))))
+  binding <- list(source = list(run_id = "a", output = "right"))
+  check(session, list(source = vector), "a", .bindings = binding)
+  stopifnot(identical(state$selected, "a"), identical(state$outputs, list(a = "right")))
+  # Equal values cannot select the first sibling or explain another parent.
+  check(session, list(source = vector), c("a", "b"), .bindings = binding)
+  stopifnot(identical(state$selected, c("a", "b")), identical(state$outputs, list(a = "right")))
+  for (bad in list(NULL, list(), list(other = binding$source),
+      list(source = list(run_id = "a", output = "missing")),
+      list(source = list(run_id = "b", output = "vector")),
+      list(source = list(run_id = "a", output = "right", extra = TRUE)))) {
+    check(session, list(source = vector), "a", .bindings = bad)
+    stopifnot(identical(state$selected, "a"), is.null(state$outputs))
+  }
+  check(session, list(), "a")
+  stopifnot(identical(state$selected, "a"), is.null(state$outputs))
+  # Unnamed direct helper input retains original matrix ownership checking.
+  session$runs$m <- list(outputs = list(matrix = wb_prim_matrix("stage")))
+  check(session, list(wb_prim_matrix("stage")), character())
+  stopifnot(identical(state$selected, "m"), is.null(state$outputs))
   TRUE
 }
 

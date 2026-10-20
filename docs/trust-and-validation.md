@@ -170,11 +170,18 @@ complete promotion closure and rolls back failed publication.
 
 ## Sessions, recovery and transferred bundles
 
-An ordinary durable operation validates the producer groups it actually consumes,
-including run references and recognized stage-backed matrix/space IDs. Uncertain
-direct file-backed inputs retain conservative broader verification. An unrelated
-operation need not rehash every earlier output in the session. Consequently,
-corruption in an unused branch may first be reported when that branch is consumed,
+An ordinary durable operation validates the exact producer outputs it actually
+consumes, using resolver-bound run/output names and unique stage-backed
+matrix/space IDs. Unknown or incomplete bindings, associated model/graph closure
+and direct file-backed inputs retain conservative broader verification. This is
+not value-based ownership inference: equal sibling values do not select the
+first output. Every operation still verifies the entire checkpoint's graph,
+generation and in-memory state binding before resolving inputs.
+
+An unrelated operation need not rehash every earlier output in the session.
+An intact selected output can also be consumed when an unused sibling payload
+is damaged. Consequently, corruption in an unused sibling or branch may first
+be reported when that output is consumed,
 selected for promotion, resumed or explicitly validated; it is not silently
 declared sound by unrelated work.
 
