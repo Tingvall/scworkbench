@@ -243,6 +243,9 @@ static void append_cleanup(void *data, Rboolean jump) {
 
 static SEXP append_body(void *data) {
     append_context *context = data;
+    /* Dense admission proved an ordinary non-ALTREP REAL carrier. Keep only
+     * its live read pointer, not a copied/cached scientific observation. */
+    const double *dense_values = context->dense_rows ? REAL(context->values) : NULL;
     char buffer[65536];
     size_t used = 0;
     char column[64];
@@ -262,7 +265,7 @@ static SEXP append_body(void *data) {
             /* The ordinary owned matrix is already materialized. Inspect its
              * values without allocating sparse/coordinate representations. */
             if (i % 8192 == 0) R_CheckUserInterrupt();
-            double x = REAL(context->values)[i];
+            double x = dense_values[i];
             if (ISNAN(x) || x == 0) continue;
             row_index = (int)(i % context->dense_rows) + 1;
             current_column = (int)(i / context->dense_rows) + 1;
@@ -290,7 +293,7 @@ static SEXP append_body(void *data) {
         if (TYPEOF(context->values) == LGLSXP)
             strcpy(value, LOGICAL(context->values)[i] ? "true" : "false");
         else {
-            double x = REAL(context->values)[i];
+            double x = context->dense_rows ? dense_values[i] : REAL(context->values)[i];
             /* Exact positive int32 values need no floating conversion either.
              * This changes token construction only; nonintegers retain %.15g. */
             if (x >= 1 && x <= INT_MAX && x == (int)x)
