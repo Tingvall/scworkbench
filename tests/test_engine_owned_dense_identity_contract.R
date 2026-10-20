@@ -119,7 +119,8 @@ test_engine_owned_dense_decline_and_deferred_contract <- function() {
     isTRUE(.Call(flag, deferred)), compact(deferred),
     identical(readBin(path, "raw", n = file.info(path)$size), prefix))
   twin <- matrix(0, end, 1L); twin[, 1L] <- seq_len(end)
-  stopifnot(identical(twin, deferred), isTRUE(.owned_dense_native(path, twin)))
+  stopifnot(!isTRUE(.Call(flag, twin)), identical(twin, deferred),
+    isTRUE(.owned_dense_native(path, twin)))
   cat("OWNED_DENSE_ACTUAL_ALTREP_DECLINE TRUE\n")
   TRUE
 }
