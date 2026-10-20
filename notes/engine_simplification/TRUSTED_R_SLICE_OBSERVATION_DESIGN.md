@@ -1,6 +1,14 @@
 # Trusted native-R source-and-selection observation
 
-Status: reconciled design frozen for Controller adoption decision; no runtime adoption.
+Status: DEFERRED historical design-only evidence; not adopted or implemented.
+Controller's 2026-10-20 delivery order stops optimization and defers BOTH this
+per-read v2 proposal and the simpler per-grant completion alternative. The
+reviewed design at8a35c497 and design-status freeze at07e6b749 remain historical
+evidence, not runtime contracts or delivery prerequisites. See
+[deferred work](DEFERRED_READER_OBSERVATIONS.md) and the
+[current delivery handoff](DELIVERY_HANDOFF_20261020.md). The text below records
+the earlier design; its prescriptive language is conditional on future adoption.
+
 Controller approved a versioned observation DESIGN on2026-10-20. This document
 does not claim implementation, protocol adoption, performance or final acceptance.
 Forge consolidates the single specification; Sable and Quill supply review inputs.
