@@ -208,6 +208,7 @@ typedef struct {
     int first;
     SEXP pointers;
     int csc;
+    int dense_rows;
 } append_context;
 
 static void append_write(append_context *context, const void *bytes, size_t length) {
@@ -257,7 +258,15 @@ static SEXP append_body(void *data) {
     for (R_xlen_t i = 0; i < XLENGTH(context->values); ++i) {
         char row[64], value[64], record[256];
         int row_index, current_column;
-        if (context->csc) {
+        if (context->dense_rows) {
+            /* The ordinary owned matrix is already materialized. Inspect its
+             * values without allocating sparse/coordinate representations. */
+            if (i % 8192 == 0) R_CheckUserInterrupt();
+            double x = REAL(context->values)[i];
+            if (ISNAN(x) || x == 0) continue;
+            row_index = (int)(i % context->dense_rows) + 1;
+            current_column = (int)(i / context->dense_rows) + 1;
+        } else if (context->csc) {
             /* Include filtered values in interrupt accounting. Structural
              * admission has already proved every pointer and row bound. */
             if (i % 8192 == 0) R_CheckUserInterrupt();
@@ -332,7 +341,7 @@ SEXP scwb_matrix_slice_append(SEXP path, SEXP rows, SEXP columns, SEXP values, S
         XLENGTH(rows) != XLENGTH(values) || XLENGTH(columns) != XLENGTH(values))
         Rf_error("Invalid matrix identity append vectors.");
     append_context context = {NULL, R_NilValue, rows, columns, values,
-        Rf_asLogical(first) == TRUE, R_NilValue, 0};
+        Rf_asLogical(first) == TRUE, R_NilValue, 0, 0};
     if (TYPEOF(path) == EXTPTRSXP) context.digest = path;
     else {
         context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
@@ -411,7 +420,57 @@ SEXP scwb_matrix_slice_csc_append(SEXP path, SEXP matrix, SEXP nr, SEXP nc) {
     append_context context = {NULL, R_NilValue,
         Rf_getAttrib(matrix, Rf_install("i")), R_NilValue,
         Rf_getAttrib(matrix, Rf_install("x")), 1,
-        Rf_getAttrib(matrix, Rf_install("p")), 1};
+        Rf_getAttrib(matrix, Rf_install("p")), 1, 0};
+    if (TYPEOF(path) == EXTPTRSXP) context.digest = path;
+    else {
+        context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
+        if (!context.file) Rf_error("Cannot open private matrix identity stream.");
+    }
+    R_UnwindProtect(append_body, &context, append_cleanup, &context, NULL);
+    return Rf_ScalarLogical(1);
+}
+
+/* A separate ordinary REAL matrix admission leaves the legacy array and CSC
+ * entry-point contracts unchanged. Unknown carriers decline before opening a
+ * target, translating strings, forcing deferred data or emitting entries. */
+static int ordinary_dense(SEXP matrix, SEXP nr, SEXP nc) {
+    if (TYPEOF(matrix) != REALSXP || OBJECT(matrix) || IS_S4_OBJECT(matrix) ||
+        ALTREP(matrix) || TYPEOF(nr) != INTSXP || XLENGTH(nr) != 1 ||
+        TYPEOF(nc) != INTSXP || XLENGTH(nc) != 1) return 0;
+    int nrow = INTEGER(nr)[0], ncol = INTEGER(nc)[0];
+    if (nrow <= 0 || ncol <= 0) return 0;
+    SEXP dims = R_NilValue, dn = R_NilValue;
+    int seen_dim = 0, seen_names = 0;
+    for (SEXP a = ATTRIB(matrix); a != R_NilValue; a = CDR(a)) {
+        if (TAG(a) == R_DimSymbol && !seen_dim++) dims = CAR(a);
+        else if (TAG(a) == R_DimNamesSymbol && !seen_names++) dn = CAR(a);
+        else return 0;
+    }
+    if (!seen_dim || TYPEOF(dims) != INTSXP || ALTREP(dims) ||
+        OBJECT(dims) || ATTRIB(dims) != R_NilValue || XLENGTH(dims) != 2 ||
+        INTEGER(dims)[0] != nrow || INTEGER(dims)[1] != ncol) return 0;
+    /* Both factors are positive int32, so their widened product fits int64. */
+    if ((R_xlen_t)nrow > R_XLEN_T_MAX / (R_xlen_t)ncol ||
+        (R_xlen_t)nrow * (R_xlen_t)ncol != XLENGTH(matrix)) return 0;
+    if (dn != R_NilValue) {
+        if (TYPEOF(dn) != VECSXP || OBJECT(dn) || ALTREP(dn) ||
+            ATTRIB(dn) != R_NilValue || XLENGTH(dn) != 2) return 0;
+        for (int j = 0; j < 2; ++j) {
+            SEXP names = VECTOR_ELT(dn, j);
+            if (names != R_NilValue && (TYPEOF(names) != STRSXP || OBJECT(names) ||
+                ALTREP(names) || ATTRIB(names) != R_NilValue ||
+                XLENGTH(names) != (j ? ncol : nrow))) return 0;
+        }
+    }
+    return 1;
+}
+
+SEXP scwb_matrix_slice_dense_append(SEXP path, SEXP matrix, SEXP nr, SEXP nc) {
+    if (!ordinary_dense(matrix, nr, nc)) return Rf_ScalarLogical(0);
+    if (TYPEOF(path) != EXTPTRSXP && (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 ||
+        STRING_ELT(path, 0) == NA_STRING)) Rf_error("Invalid matrix identity append vectors.");
+    append_context context = {NULL, R_NilValue, R_NilValue, R_NilValue,
+        matrix, 1, R_NilValue, 0, INTEGER(nr)[0]};
     if (TYPEOF(path) == EXTPTRSXP) context.digest = path;
     else {
         context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");

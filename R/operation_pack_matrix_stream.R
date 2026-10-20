@@ -45,9 +45,12 @@
     !is.object(chunk_size) && is.null(attributes(chunk_size)) && length(chunk_size) == 1L &&
     !is.na(chunk_size) && is.finite(chunk_size) && chunk_size >= 1 &&
     chunk_size <= .Machine$integer.max && chunk_size == floor(chunk_size)
-  owned <- ordinary_width && isTRUE(.Call(C_scwb_matrix_slice_csc_append,
+  owned <- ordinary_width && (isTRUE(.Call(C_scwb_matrix_slice_csc_append,
     if (is.null(sink)) path else sink, .owned_csc,
-    as.integer(length(features)), as.integer(length(cells))))
+    as.integer(length(features)), as.integer(length(cells)))) ||
+    isTRUE(.Call(C_scwb_matrix_slice_dense_append,
+      if (is.null(sink)) path else sink, .owned_csc,
+      as.integer(length(features)), as.integer(length(cells)))))
   if (!owned) for (start in seq.int(1L, max(1L, length(cells)), by = chunk_size)) {
     if (!length(cells)) break
     end <- min(length(cells), start + chunk_size - 1L)
