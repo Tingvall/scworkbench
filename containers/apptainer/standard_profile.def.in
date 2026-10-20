@@ -1,0 +1,72 @@
+Bootstrap: localimage
+From: @BASE_SIF@
+
+%labels
+    Package scworkbench
+    Stack core
+    Profile standard-seven-pack
+    Architecture @ARCH@
+    CoreCommit @CORE_COMMIT@
+    PyBenchCommit @PYBENCH_COMMIT@
+    ProfileSHA256 @PROFILE_SHA256@
+    BaseSIFSHA256 @BASE_SHA256@
+
+%files
+    scworkbench /opt/standard_profile_update/scworkbench
+    pybench /opt/standard_profile_update/pybench
+    operation_packs /opt/standard_profile_update/operation_packs
+
+%environment
+    export PATH=/opt/pyenv/bin:/usr/local/bin:$PATH
+    export SCWB_LATENT_PYTHON=/opt/pyenv/bin/python
+    export SCWORKBENCH_PYBENCH_PYTHON=/opt/pyenv/bin/python
+    export RETICULATE_PYTHON=/opt/pyenv/bin/python
+
+%post
+    set -eu
+    case "@ARCH@:$(uname -m)" in
+        arm64:aarch64|arm64:arm64|amd64:x86_64) ;;
+        *) echo "Base SIF architecture does not match native build" >&2; exit 1 ;;
+    esac
+    # Reuse the working scientific dependency stack; replace project sources.
+    rm -rf /opt/scworkbench /opt/pybench /opt/operation_packs
+    mv /opt/standard_profile_update/scworkbench /opt/scworkbench
+    mv /opt/standard_profile_update/pybench /opt/pybench
+    mv /opt/standard_profile_update/operation_packs /opt/operation_packs
+    /opt/pyenv/bin/python -m pip install --no-deps --force-reinstall /opt/pybench
+    /opt/pyenv/bin/python -m pip check
+    /opt/pyenv/bin/python -c 'import pybench, scvi, anndata, scipy, torch, ruptures; print("Python runtime and scientific dependencies: OK")'
+    Rscript --vanilla /opt/scworkbench/inst/standard_profile/install.R \
+      /opt/scworkbench /opt/pybench /opt/operation_packs \
+      /opt/pyenv/bin/python /usr/local/lib/R/site-library \
+      /opt/standard_profile_installation_receipt.json
+    printf '%s\n' \
+      'core_commit=@CORE_COMMIT@' \
+      'pybench_commit=@PYBENCH_COMMIT@' \
+      'standard_profile_sha256=@PROFILE_SHA256@' \
+      'base_sif_sha256=@BASE_SHA256@' \
+      'architecture=@ARCH@' \
+      'installation_receipt=/opt/standard_profile_installation_receipt.json' \
+      > /opt/scworkbench_standard_profile_provenance.txt
+    rm -rf /opt/scworkbench/.git /opt/pybench/.git /opt/operation_packs/*/.git
+    /opt/scworkbench/inst/ci/check_container_source_hygiene.sh \
+      /opt/scworkbench /opt/pybench /opt/operation_packs
+    rm -rf /opt/standard_profile_update
+    # Remove inherited project labels so the definition can set the new pins
+    # without --force (which could overwrite an existing output image).
+    /opt/pyenv/bin/python - <<'PY'
+import json
+from pathlib import Path
+path = Path("/.singularity.d/labels.json")
+if path.exists():
+    labels = json.loads(path.read_text())
+    for key in ("Package", "Stack", "Profile", "Architecture", "CoreCommit",
+                "PyBenchCommit", "ProfileSHA256", "BaseSIFSHA256"):
+        labels.pop(key, None)
+    path.write_text(json.dumps(labels))
+PY
+
+%help
+    scworkbench core, PyBench and seven explicitly activated operation packs.
+    Installation receipt: /opt/standard_profile_installation_receipt.json.
+    Scientific dependencies are inherited from the recorded native-architecture base SIF.

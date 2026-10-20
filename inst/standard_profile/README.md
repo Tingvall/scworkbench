@@ -20,6 +20,13 @@ must match these pins, not an earlier profile's revisions. Rebuild the instance
 receipt through the installer; receipts from the earlier profile are invalid
 for this lock even when operation definitions are unchanged.
 
+The engine-simplification integration advances PyBench to the delivered protocol
+peer without changing any pack pin, manifest, operation identity or operation
+count. Use a fresh installation receipt for this profile revision. The optional
+trusted-R reader observation redesign is deferred and is not part of this build.
+For a native ARM64 or AMD64 rebuild over an existing dependency-complete SIF,
+see `containers/apptainer/STANDARD_PROFILE.md` in the source repository.
+
 From clean source worktrees at the pinned commits, prepare a clean library and
 instance receipt explicitly:
 

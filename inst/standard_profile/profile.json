@@ -8,7 +8,7 @@
     "slingshot_adopt"
   ],
   "packed_operation_count": 57,
-  "pybench_source_commit": "e724f55f709c5f1f3e99e1afc5cf83301c7a86bd",
+  "pybench_source_commit": "f815def0127b7a63a5e81455c270cff6572dc8ea",
   "core_start_commit": "0aaa68893e595993c2664e104f7e0dc20702f960",
   "packs": [
     {
