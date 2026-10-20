@@ -79,3 +79,34 @@ No complete operation/workflow speedup follows from this helper cohort. Original
 whole377.17>171.124s and graph/mixed/typed-space misses remain unwaived.
 Sable/Quill source reviews and independent component audit are separate from
 these owner execution results; no acceptance transfer is inferred.
+
+## Independent component review
+
+Meridian-9 report-only commit
+`d47cc7b981dc26710e27e70d68b924635ee24179` accepts the exact a73e3f4
+component, not the assembled workflow or its timing budgets. The complete
+report was read by Forge. Its SHA-256 is
+`64d3e711aba1f6a985bb227eeef36cc6991b71e33499d95073b7099fe880e647`.
+
+The original independent probe and first control diagnosis both remain exit1:
+a literal deferred-control sequence was already expanded. The force-only
+hypothesis was disproved; the cause of that expansion was not established.
+A distinct dynamic-endpoint diagnosis and separately authorized full retry
+both exit0, with installed pre/post guards0. Actual compact integer-index AND
+double-value controls decline without expansion; equal-valued ordinary twins
+are admitted. All426075 independently framed bytes match both native sinks.
+The retry also proves real nonfinite-error unwind after partial file emission,
+closed target descriptor, unchanged source and exact retry. It does not prove
+asynchronous C interrupt delivery or cross-platform behavior.
+
+Raw independent attempts are retained under
+`/tmp/meridian9-owned-csc-a73e3f4-20261020.V1F33i/`; the successful distinct
+run is `dynamic_full_retry01/`, not a relabeling of the original failure.
+The successful probe log SHA-256 is
+`69f95e391f8c4ea2875c7f2f5f81188ff762c9485ce01feb251803a4525210db`.
+The owner component has EIGHT numeric gate sidecars, all0 (not ten).
+
+An attribution-only manifest probe at the same installed runtime observed
+zero strict same-owner publication-witness matches at two normalization
+request boundaries. Ignoring an owner token is not authority. No registry
+seeding/cache extension was implemented or selected from that probe.
