@@ -65,7 +65,7 @@ test_engine_manifest_native_json_literal_oracle_contract <- function() {
 
 test_engine_manifest_native_json_fallback_before_allocation_contract <- function() {
   base <- data.frame(label = rep("ordinary", 2L), ordinal = rep(1L, 2L))
-  variants <- lapply(c("late\n", "late\r\n", "quote\"", "slash\\", "</", "é", "apostrophe'",
+  variants <- lapply(c("late\n", "late\r\n", "quote\"", "slash\\", "</", "é",
     strrep("a", 257L), paste0("DEL", intToUtf8(127L))), function(value) {
       x <- base; x$label[[2L]] <- value; x
     })

@@ -20,8 +20,10 @@ static int safe_text(SEXP x, int digits, int nonempty) {
     for (int i = 0; i < n; ++i) {
         unsigned char c = p[i];
         if (c >= '0' && c <= '9') continue;
-        if (digits || !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-            c == '_' || c == '.' || c == ':' || c == ' ' || c == '/' || c == '-')) return 0;
+        /* jsonlite1.8.8 emits these printable ASCII bytes literally. '<' is
+         * excluded because its following '/' is contextually escaped. */
+        if (digits || c < 32 || c > 126 || c == '"' || c == '<' || c == '\\')
+            return 0;
     }
     return 1;
 }
