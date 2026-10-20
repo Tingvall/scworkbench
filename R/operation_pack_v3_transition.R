@@ -787,7 +787,8 @@
     "scworkbench.max_dense_materialize_mb", 256)) * 1024^2 / 8)
   width <- max(1L, min(128L, floor(allowance / max(1, 64 * length(features)))))
   .wb_operation_pack_matrix_stream_identity(features, cells,
-    function(columns) values[, columns, drop = FALSE], width)
+    function(columns) values[, columns, drop = FALSE], width,
+    .owned_csc = values)
 }
 
 .wb_operation_pack_v3_private_source_validate <- function(stage, grant,

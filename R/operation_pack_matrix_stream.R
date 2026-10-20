@@ -15,7 +15,7 @@
 }
 
 .wb_operation_pack_matrix_stream_identity <- function(features, cells,
-    read_columns, chunk_size) {
+    read_columns, chunk_size, .owned_csc = NULL) {
   sink <- .wb_operation_pack_matrix_digest_open()
   path <- con <- NULL
   on.exit({
@@ -38,7 +38,13 @@
       as.integer(length(cells)))), ',"entries":['))
   if (is.null(sink)) close(con)
   first <- TRUE
-  for (start in seq.int(1L, max(1L, length(cells)), by = chunk_size)) {
+  # Only the literal already-owned selected-value caller opts in. Every
+  # ordinary source callback retains its existing bounded schedule. Admission
+  # declines opaque/malformed carriers BEFORE appending any entry bytes.
+  owned <- !is.null(.owned_csc) && isTRUE(.Call(C_scwb_matrix_slice_csc_append,
+    if (is.null(sink)) path else sink, .owned_csc,
+    as.integer(length(features)), as.integer(length(cells))))
+  if (!owned) for (start in seq.int(1L, max(1L, length(cells)), by = chunk_size)) {
     if (!length(cells)) break
     end <- min(length(cells), start + chunk_size - 1L)
     matrix <- read_columns(seq.int(start, end))

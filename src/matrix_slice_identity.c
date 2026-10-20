@@ -206,6 +206,8 @@ typedef struct {
     SEXP digest;
     SEXP rows, columns, values;
     int first;
+    SEXP pointers;
+    int csc;
 } append_context;
 
 static void append_write(append_context *context, const void *bytes, size_t length) {
@@ -251,10 +253,27 @@ static SEXP append_body(void *data) {
     uint64_t token_keys[64];
     unsigned char token_valid[64] = {0};
     char token_values[64][64];
+    int csc_column = 0;
     for (R_xlen_t i = 0; i < XLENGTH(context->values); ++i) {
         char row[64], value[64], record[256];
-        size_t row_bytes = coordinate(INTEGER(context->rows)[i], row);
-        int current_column = INTEGER(context->columns)[i];
+        int row_index, current_column;
+        if (context->csc) {
+            /* Include filtered values in interrupt accounting. Structural
+             * admission has already proved every pointer and row bound. */
+            if (i % 8192 == 0) R_CheckUserInterrupt();
+            double x = REAL(context->values)[i];
+            if (ISNAN(x) || x == 0) continue;
+            while (i >= INTEGER(context->pointers)[csc_column + 1]) {
+                ++csc_column;
+                if (csc_column % 1024 == 0) R_CheckUserInterrupt();
+            }
+            row_index = INTEGER(context->rows)[i] + 1;
+            current_column = csc_column + 1;
+        } else {
+            row_index = INTEGER(context->rows)[i];
+            current_column = INTEGER(context->columns)[i];
+        }
+        size_t row_bytes = coordinate(row_index, row);
         if (!have_column || current_column != previous_column) {
             column_bytes = coordinate(current_column, column);
             previous_column = current_column; have_column = 1;
@@ -312,13 +331,94 @@ SEXP scwb_matrix_slice_append(SEXP path, SEXP rows, SEXP columns, SEXP values, S
         (TYPEOF(values) != REALSXP && TYPEOF(values) != LGLSXP) ||
         XLENGTH(rows) != XLENGTH(values) || XLENGTH(columns) != XLENGTH(values))
         Rf_error("Invalid matrix identity append vectors.");
-    append_context context = {NULL, R_NilValue, rows, columns, values, Rf_asLogical(first) == TRUE};
+    append_context context = {NULL, R_NilValue, rows, columns, values,
+        Rf_asLogical(first) == TRUE, R_NilValue, 0};
     if (TYPEOF(path) == EXTPTRSXP) context.digest = path;
     else {
         context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
         if (!context.file) Rf_error("Cannot open private matrix identity stream.");
     }
     return R_UnwindProtect(append_body, &context, append_cleanup, &context, NULL);
+}
+
+/* Non-dispatch admission of an already owned ordinary Matrix dgCMatrix.
+ * Decline BEFORE entry emission; the caller retains its original coercion,
+ * selection and error behavior for every unsupported carrier. No values are
+ * copied, sorted, aggregated or materialized while making this decision. */
+static int ordinary_csc(SEXP matrix, SEXP nr, SEXP nc) {
+    if (!IS_S4_OBJECT(matrix) || TYPEOF(nr) != INTSXP || XLENGTH(nr) != 1 ||
+        TYPEOF(nc) != INTSXP || XLENGTH(nc) != 1) return 0;
+    int nrow = INTEGER(nr)[0], ncol = INTEGER(nc)[0];
+    if (nrow <= 0 || ncol <= 0) return 0; /* Empty axes keep legacy behavior. */
+    const char *names[] = {"i", "p", "x", "Dim", "Dimnames", "factors", "class"};
+    unsigned int seen = 0;
+    for (SEXP a = ATTRIB(matrix); a != R_NilValue; a = CDR(a)) {
+        int slot = -1;
+        for (int j = 0; j < 7; ++j)
+            if (TAG(a) == Rf_install(names[j])) { slot = j; break; }
+        if (slot < 0 || (seen & (1U << slot))) return 0;
+        seen |= 1U << slot;
+    }
+    if (seen != 127U) return 0;
+    SEXP cls = Rf_getAttrib(matrix, R_ClassSymbol);
+    if (TYPEOF(cls) != STRSXP || ALTREP(cls) || XLENGTH(cls) != 1 ||
+        STRING_ELT(cls, 0) == NA_STRING || strcmp(CHAR(STRING_ELT(cls, 0)), "dgCMatrix")) return 0;
+    SEXP ca = ATTRIB(cls);
+    if (ca == R_NilValue || CDR(ca) != R_NilValue || TAG(ca) != Rf_install("package")) return 0;
+    SEXP package = CAR(ca);
+    if (TYPEOF(package) != STRSXP || ALTREP(package) || ATTRIB(package) != R_NilValue ||
+        XLENGTH(package) != 1 || STRING_ELT(package, 0) == NA_STRING ||
+        strcmp(CHAR(STRING_ELT(package, 0)), "Matrix")) return 0;
+    SEXP dims = Rf_getAttrib(matrix, Rf_install("Dim"));
+    SEXP p = Rf_getAttrib(matrix, Rf_install("p"));
+    SEXP rows = Rf_getAttrib(matrix, Rf_install("i"));
+    SEXP x = Rf_getAttrib(matrix, Rf_install("x"));
+    SEXP dn = Rf_getAttrib(matrix, Rf_install("Dimnames"));
+    SEXP factors = Rf_getAttrib(matrix, Rf_install("factors"));
+    if (TYPEOF(dims) != INTSXP || ALTREP(dims) || ATTRIB(dims) != R_NilValue || XLENGTH(dims) != 2 ||
+        INTEGER(dims)[0] != nrow || INTEGER(dims)[1] != ncol ||
+        TYPEOF(p) != INTSXP || ALTREP(p) || ATTRIB(p) != R_NilValue || XLENGTH(p) != (R_xlen_t)ncol + 1 ||
+        TYPEOF(rows) != INTSXP || ALTREP(rows) || ATTRIB(rows) != R_NilValue ||
+        TYPEOF(x) != REALSXP || ALTREP(x) || ATTRIB(x) != R_NilValue ||
+        XLENGTH(rows) != XLENGTH(x) || XLENGTH(x) > INT_MAX ||
+        TYPEOF(dn) != VECSXP || ALTREP(dn) || ATTRIB(dn) != R_NilValue || XLENGTH(dn) != 2 ||
+        TYPEOF(factors) != VECSXP || ATTRIB(factors) != R_NilValue || XLENGTH(factors)) return 0;
+    for (int j = 0; j < 2; ++j) {
+        SEXP names = VECTOR_ELT(dn, j);
+        if (names != R_NilValue && (TYPEOF(names) != STRSXP || ALTREP(names) ||
+            OBJECT(names) || ATTRIB(names) != R_NilValue ||
+            XLENGTH(names) != (j ? ncol : nrow))) return 0;
+    }
+    const int *ptr = INTEGER(p), *index = INTEGER(rows);
+    if (ptr[0] != 0 || ptr[ncol] != XLENGTH(x)) return 0;
+    for (int col = 0; col < ncol; ++col) {
+        if (col % 1024 == 0) R_CheckUserInterrupt();
+        if (ptr[col] < 0 || ptr[col + 1] < ptr[col] || ptr[col + 1] > XLENGTH(x)) return 0;
+        int previous = -1;
+        for (int k = ptr[col]; k < ptr[col + 1]; ++k) {
+            if (k % 8192 == 0) R_CheckUserInterrupt();
+            if (index[k] <= previous || index[k] >= nrow) return 0;
+            previous = index[k];
+        }
+    }
+    return 1;
+}
+
+SEXP scwb_matrix_slice_csc_append(SEXP path, SEXP matrix, SEXP nr, SEXP nc) {
+    if (!ordinary_csc(matrix, nr, nc)) return Rf_ScalarLogical(0);
+    if (TYPEOF(path) != EXTPTRSXP && (TYPEOF(path) != STRSXP || XLENGTH(path) != 1 ||
+        STRING_ELT(path, 0) == NA_STRING)) Rf_error("Invalid matrix identity append vectors.");
+    append_context context = {NULL, R_NilValue,
+        Rf_getAttrib(matrix, Rf_install("i")), R_NilValue,
+        Rf_getAttrib(matrix, Rf_install("x")), 1,
+        Rf_getAttrib(matrix, Rf_install("p")), 1};
+    if (TYPEOF(path) == EXTPTRSXP) context.digest = path;
+    else {
+        context.file = fopen(Rf_translateCharUTF8(STRING_ELT(path, 0)), "ab");
+        if (!context.file) Rf_error("Cannot open private matrix identity stream.");
+    }
+    R_UnwindProtect(append_body, &context, append_cleanup, &context, NULL);
+    return Rf_ScalarLogical(1);
 }
 
 typedef struct {
