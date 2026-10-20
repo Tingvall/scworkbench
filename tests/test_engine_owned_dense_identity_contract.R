@@ -93,13 +93,33 @@ test_engine_owned_dense_decline_and_deferred_contract <- function() {
     }, 2L, .owned_csc = value)
     stopifnot(identical(old, actual), calls == 2L)
   }
-  # Runtime endpoints avoid pre-expanded constant sequences. Require an ACTUAL
-  # deferred control, not an expanded-as-compact or conditional fallback pass.
+  # R's dim<- (also attr/attributes/structure/matrix) materializes a REAL
+  # sequence. A test-only DLL attaches dimensions to its freshly created
+  # carrier directly; it never modifies the installed core or a source value.
+  fixture_root <- tempfile("owned_dense_altrep_fixture_"); dir.create(fixture_root)
+  fixture_source <- normalizePath("tests/fixtures/engine_dense_fixture.c", mustWork = TRUE)
+  stopifnot(file.copy(fixture_source, file.path(fixture_root, "engine_dense_fixture.c")))
+  fixture_dll <- NULL
+  on.exit({if (!is.null(fixture_dll)) dyn.unload(fixture_dll[["path"]]);
+    unlink(fixture_root, recursive = TRUE)}, add = TRUE)
+  previous <- setwd(fixture_root)
+  built <- tryCatch(system2(file.path(R.home("bin"), "R"),
+    c("CMD", "SHLIB", "engine_dense_fixture.c"), stdout = TRUE, stderr = TRUE),
+    finally = setwd(previous))
+  cat(built, sep = "\n")
+  stopifnot(is.null(attr(built, "status")) || attr(built, "status") == 0L)
+  fixture_dll <- dyn.load(file.path(fixture_root, paste0("engine_dense_fixture", .Platform$dynlib.ext)))
+  create <- getNativeSymbolInfo("dense_deferred", PACKAGE = fixture_dll)
+  flag <- getNativeSymbolInfo("is_deferred", PACKAGE = fixture_dll)
   end <- as.integer(Sys.getpid() %% 7L + 30L)
-  deferred <- as.double(seq.int(1L, end)); dim(deferred) <- c(end, 1L)
+  deferred <- .Call(create, end)
   compact <- function(x) any(grepl("compact|deferred", capture.output(.Internal(inspect(x)))))
-  stopifnot(compact(deferred), identical(.owned_dense_native(path, deferred), FALSE),
-    compact(deferred), identical(readBin(path, "raw", n = file.info(path)$size), prefix))
+  stopifnot(isTRUE(.Call(flag, deferred)), is.matrix(deferred), typeof(deferred) == "double",
+    compact(deferred), identical(.owned_dense_native(path, deferred), FALSE),
+    isTRUE(.Call(flag, deferred)), compact(deferred),
+    identical(readBin(path, "raw", n = file.info(path)$size), prefix))
+  twin <- matrix(0, end, 1L); twin[, 1L] <- seq_len(end)
+  stopifnot(identical(twin, deferred), isTRUE(.owned_dense_native(path, twin)))
   cat("OWNED_DENSE_ACTUAL_ALTREP_DECLINE TRUE\n")
   TRUE
 }
