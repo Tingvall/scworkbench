@@ -163,6 +163,14 @@ no prior invocation inherits the native middle-boundary exemption. Canonical num
 may be formatted in bounded native batches; byte rules and identity schemes are
 unchanged, and unsupported carriers retain the existing encoder and diagnostics.
 
+Large already-owned ordinary numeric vectors and matrices use bounded
+65,536-element batches for the existing flat canonical representation. Numeric
+storage and propagated name metadata must be ordinary, not deferred/custom
+carriers; otherwise the original encoder remains authoritative. This changes no
+ordering, numeric precision, schema or identity scheme. The complete ordinary
+canonical JSON result is still materialized: bounded intermediate numeric
+slices do not make that general serializer a streaming-output interface.
+
 This is not a Python typed-space execution capability: schema parity does not
 supply a Python reader transport. Ordinary full-value readers, caller-provided
 coordinate matrices, legacy storage and non-POSIX compatibility paths retain
