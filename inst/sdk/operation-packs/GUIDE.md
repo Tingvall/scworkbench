@@ -78,6 +78,12 @@ may build one disposable row-major BPCells index, removed on success or failure.
 This does not add a logical source fragment or change scientific parameters.
 Matrix-slice content identities stream the existing canonical JSON v1 bytes;
 they do not allocate a dense complete fragment or one R list per nonzero.
+On Linux/glibc 2.34 or newer, an optional core-private SHA-256 sink can consume
+those exact bytes without writing and rereading a temporary canonical JSON
+file. It uses public EVP functions from the already loaded OpenSSL dependency,
+with owned lifetime and checked completion. Unsupported builds/providers retain
+the original file-based path. This is not a different identity scheme, reader
+contract or source-authentication policy, and requires no pack changes.
 
 For trusted in-process R packs, complete source bytes are authenticated during
 request preparation and independently before publication. For a fresh core-issued
