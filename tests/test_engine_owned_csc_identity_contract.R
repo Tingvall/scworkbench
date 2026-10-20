@@ -70,6 +70,15 @@ test_engine_owned_csc_complete_identity_and_callback_contract <- function() {
       }, 1L, .owned_csc = values)
       stopifnot(identical(actual, expected), calls == ncol(values))
     }
+    large <- .owned_csc_fixture(); large@x[1:4] <- c(NA_real_, NaN, 0, -0)
+    features_large <- paste0("雪_f", seq_len(nrow(large)))
+    expected <- stream(features_large, cells[1:2], function(columns)
+      large[, columns, drop = FALSE], 16L)
+    literal <- get(".wb_operation_pack_v3_matrix_slice_content", asNamespace("scworkbench"))
+    literal_env <- new.env(parent = environment(literal))
+    literal_env$.wb_operation_pack_matrix_stream_identity <- stream
+    environment(literal) <- literal_env
+    stopifnot(identical(literal(large, features_large, cells[1:2]), expected))
   }
   stopifnot(identical(serialize(x, NULL), before))
   TRUE
@@ -102,6 +111,20 @@ test_engine_owned_csc_decline_before_emission_contract <- function() {
     }, 1L, .owned_csc = value)
     stopifnot(calls == 1L, is.list(actual))
   }
+  # Observe the actual deferred carrier BEFORE any serialization can force it.
+  deferred <- methods::new("dgCMatrix", i = 0:9, p = c(0L, 10L),
+    x = as.double(seq_len(10L)), Dim = c(10L, 1L))
+  compact <- any(grepl("compact|deferred", capture.output(.Internal(inspect(deferred@i)))))
+  if (compact) stopifnot(identical(.owned_csc_native(path, deferred), FALSE),
+    identical(readBin(path, "raw", n = file.info(path)$size), prefix))
+  cat("OWNED_CSC_ACTUAL_ALTREP_DECLINE", compact, "\n")
+  class_name <- "scwbOwnedCscDeclineFixture"
+  stopifnot(!methods::isClass(class_name))
+  methods::setClass(class_name, contains = "dgCMatrix", where = .GlobalEnv)
+  on.exit(methods::removeClass(class_name, where = .GlobalEnv), add = TRUE)
+  subclass <- methods::as(x, class_name)
+  stopifnot(identical(.owned_csc_native(path, subclass), FALSE),
+    identical(readBin(path, "raw", n = file.info(path)$size), prefix))
   stopifnot(identical(.owned_csc_native(path, x, nr = 2L), FALSE))
   TRUE
 }
