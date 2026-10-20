@@ -7,6 +7,19 @@
   list(bundle = b, root = root, cells = cells)
 }
 
+# Observation only: durable workspaces legitimately link immutable source
+# payloads. Do not confuse this filesystem inventory with the contained model
+# tree validator (which correctly rejects links escaping its payload root).
+.engine_epoch_fingerprint <- function(root) {
+  paths <- sort(list.files(root, recursive = TRUE, full.names = TRUE,
+    all.files = TRUE, no.. = TRUE, include.dirs = TRUE))
+  info <- file.info(paths)
+  data.frame(path = substring(paths, nchar(root) + 2L), directory = info$isdir,
+    link = Sys.readlink(paths), bytes = info$size,
+    sha256 = vapply(seq_along(paths), function(i) if (info$isdir[[i]]) "" else
+      digest::digest(file = paths[[i]], algo = "sha256"), ""), row.names = NULL)
+}
+
 test_engine_source_registry_continuity_contract <- function() {
   fixture <- .engine_epoch_fixture(); b <- fixture$bundle
   other <- NULL
@@ -173,7 +186,7 @@ test_engine_selected_dependency_corruption_contract <- function() {
     finally = close(connection))
   # Controller-approved sibling scope: authenticate the intact embedding, not
   # its unused model sibling. Full checkpoint binding still precedes dispatch.
-  source_before <- scworkbench:::.wb_prov_file_tree_sha256(b$dir)
+  source_before <- .engine_epoch_fingerprint(b$dir)
   clean <- wb_session_run_op(session, b, "scwbv3phase5::derived_subset",
     inputs = list(source = wb_ref_run(fit$run$run_id, "embedding"),
       selected_cells = fixture$cells[c(1L, 3L)], key_prefix = "scope_",
@@ -182,7 +195,7 @@ test_engine_selected_dependency_corruption_contract <- function() {
   stopifnot(identical(clean$run$outputs$vector$cell_id, fixture$cells[c(1L, 3L)]),
     identical(as.numeric(clean$run$outputs$vector$value), c(1, 3)),
     identical(clean$run$inputs$parents, fit$run$run_id),
-    identical(source_before, scworkbench:::.wb_prov_file_tree_sha256(b$dir)))
+    identical(source_before, .engine_epoch_fingerprint(b$dir)))
   # Unrelated metadata execution is not a whole-history verification boundary.
   unrelated <- wb_session_run_op(session, b, "metadata_cell_vector",
     inputs = list(source_column = "group", vector_name = "independent",
@@ -199,14 +212,14 @@ test_engine_selected_dependency_corruption_contract <- function() {
   on.exit({untrace(".wb_operation_pack_v2_execute", where = asNamespace("scworkbench"))
     options(scwb.test.dependency_dispatch = NULL)}, add = TRUE)
   for (input in list(wb_ref_run(fit$run$run_id, "model"), fit$run$outputs$model)) {
-    stage_before <- scworkbench:::.wb_prov_file_tree_sha256(session$staging_bundle$dir)
+    stage_before <- .engine_epoch_fingerprint(session$staging_bundle$dir)
     checkpoint_before <- digest::digest(file = scworkbench:::.wb_session_checkpoint_file(session), algo = "sha256")
     failure <- try(wb_session_run_op(session, b,
       "scwbv3phase5::consume_self_linked_model", inputs = list(model = input,
         cell_set = "all", min_cells = 1L)), silent = TRUE)
     stopifnot(inherits(failure, "try-error"),
       grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure), nrow(wb_art_list(b)) == before,
-      identical(stage_before, scworkbench:::.wb_prov_file_tree_sha256(session$staging_bundle$dir)),
+      identical(stage_before, .engine_epoch_fingerprint(session$staging_bundle$dir)),
       identical(checkpoint_before, digest::digest(file = scworkbench:::.wb_session_checkpoint_file(session), algo = "sha256")))
   }
   failure <- try(wb_session_run_op(session, b,
@@ -277,6 +290,66 @@ test_engine_consumed_output_binding_fallback_contract <- function() {
   session$runs$m <- list(outputs = list(matrix = wb_prim_matrix("stage")))
   check(session, list(wb_prim_matrix("stage")), character())
   stopifnot(identical(state$selected, "m"), is.null(state$outputs))
+  TRUE
+}
+
+test_engine_consumed_output_actual_identity_filter_contract <- function() {
+  fixture <- .engine_epoch_fixture(); b <- fixture$bundle
+  on.exit({wb_close_bundle(b); unlink(fixture$root, recursive = TRUE)}, add = TRUE)
+  left <- wb_prim_feature_table(data.frame(feature_id = c("f2", "f1"),
+    score = c(2, 1)), table_type = "generic")
+  right <- wb_prim_cell_vector(c(cell_2 = 2, cell_1 = 1), value_type = "continuous")
+  claims <- lapply(list(left = left, right = right), function(prim)
+    scworkbench:::.wb_prov_payload_identity(b, prim))
+  session <- list(staging_bundle = b, runs = list(a = list(outputs = list(
+    left = left, right = right))), durable = list(payload_identities = list(a = claims)))
+  # This intentionally contradictory private-helper fixture is NOT a valid
+  # public checkpoint. It isolates semantic checks from the separate mandatory
+  # whole-checkpoint state gate exercised by the public lifecycle regression.
+  session$durable$payload_identities$a$left$content_sha256 <- paste(rep("0", 64), collapse = "")
+  scworkbench:::.wb_session_validate_dependencies(session, list(source = right), "a",
+    .bindings = list(source = list(run_id = "a", output = "right")))
+  for (check in list(
+      function() scworkbench:::.wb_session_validate_payloads(session),
+      function() scworkbench:::.wb_session_validate_dependencies(session, list(source = right), "a"),
+      function() scworkbench:::.wb_session_validate_dependencies(session, list(source = left), "a",
+        .bindings = list(source = list(run_id = "a", output = "left"))))) {
+    failure <- try(check(), silent = TRUE)
+    stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure))
+  }
+  session$runs$a$outputs$right$value[[1L]] <- 999
+  failure <- try(scworkbench:::.wb_session_validate_dependencies(session,
+    list(source = session$runs$a$outputs$right), "a",
+    .bindings = list(source = list(run_id = "a", output = "right"))), silent = TRUE)
+  stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure))
+  TRUE
+}
+
+test_engine_consumed_output_resolver_binding_contract <- function() {
+  fixture <- .engine_epoch_fixture(); b <- fixture$bundle
+  on.exit({wb_close_bundle(b); unlink(fixture$root, recursive = TRUE)}, add = TRUE)
+  vector <- wb_prim_cell_vector(c(cell_2 = 2, cell_1 = 1), value_type = "continuous")
+  session <- wb_session_new()
+  session$runs$a <- list(run_id = "a", outputs = list(left = vector,
+    right = vector, space = wb_prim_space("fitted")))
+  ref <- wb_ref_run("a", "right")
+  for (input in list(list(source = ref), list(source_ref = ref), list())) {
+    session$active$source <- ref
+    rr <- scworkbench:::.wb_resolve_input(b, session, "source", "cell_vector", input)
+    stopifnot(identical(rr$value, vector), identical(rr$parents, "a"),
+      identical(rr$prov_refs, list()),
+      identical(rr$dependency, list(run_id = "a", output = "right")))
+  }
+  for (name in c("space", "in_space", "model_space")) {
+    alias <- if (name == "space") "space_id" else paste0(name, "_id")
+    rr <- scworkbench:::.wb_resolve_input(b, session, name, "space",
+      setNames(list("fitted"), alias))
+    stopifnot(identical(rr$parents, "a"),
+      identical(rr$dependency, list(run_id = "a", output = "space")))
+  }
+  rr <- scworkbench:::.wb_resolve_input(b, session, "source", "cell_vector",
+    list(source = vector))
+  stopifnot(identical(rr$dependency, list()), identical(rr$parents, character()))
   TRUE
 }
 
