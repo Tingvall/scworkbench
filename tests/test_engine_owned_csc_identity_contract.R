@@ -112,12 +112,19 @@ test_engine_owned_csc_decline_before_emission_contract <- function() {
     stopifnot(calls == 1L, is.list(actual))
   }
   # Observe the actual deferred carrier BEFORE any serialization can force it.
-  deferred <- methods::new("dgCMatrix", i = 0:9, p = c(0L, 10L),
-    x = as.double(seq_len(10L)), Dim = c(10L, 1L))
-  compact <- any(grepl("compact|deferred", capture.output(.Internal(inspect(deferred@i)))))
-  if (compact) stopifnot(identical(.owned_csc_native(path, deferred), FALSE),
-    identical(readBin(path, "raw", n = file.info(path)$size), prefix))
-  cat("OWNED_CSC_ACTUAL_ALTREP_DECLINE", compact, "\n")
+  deferred <- methods::new("dgCMatrix", i = as.integer(seq_len(10L) - 1L),
+    p = c(0L, 10L), x = rep(1.25, 10L), Dim = c(10L, 1L))
+  for (slot in c("i", "x")) {
+    value <- deferred
+    # Assign the valid slot directly AFTER constructor validation; otherwise
+    # Matrix's constructor can force its sequence before the admission probe.
+    attr(value, slot) <- if (slot == "i") 0:9 else as.double(1:10)
+    compact <- any(grepl("compact|deferred", capture.output(.Internal(inspect(attr(value, slot))))))
+    if (compact) stopifnot(identical(.owned_csc_native(path, value), FALSE),
+      identical(readBin(path, "raw", n = file.info(path)$size), prefix),
+      any(grepl("compact|deferred", capture.output(.Internal(inspect(attr(value, slot)))))))
+    cat("OWNED_CSC_ACTUAL_ALTREP_DECLINE", slot, compact, "\n")
+  }
   class_name <- "scwbOwnedCscDeclineFixture"
   stopifnot(!methods::isClass(class_name))
   methods::setClass(class_name, contains = "dgCMatrix", where = .GlobalEnv)
