@@ -93,6 +93,14 @@ Unsupported, deferred, custom or malformed carriers retain the original bounded
 callback/coercion path. Scientific reads, identities and authentication remain
 unchanged; this is not a new public reader or storage contract.
 
+The same applies when core already owns an ordinary double-valued R matrix:
+its identity formatter can read that matrix directly without temporary sparse
+or coordinate representations. This does not allocate a new dense source or
+change a reader's bounded schedule. The existing canonical bytes, missing/zero
+policy, value checks and source/publication authentication remain unchanged.
+The input matrix still occupies its existing memory; only the extra formatter
+workspace is constant. Opaque, classed or deferred carriers use the old path.
+
 For trusted in-process R packs, complete source bytes are authenticated during
 request preparation and independently before publication. For a fresh core-issued
 backed-matrix request only, the middle predispatch check reuses the original
