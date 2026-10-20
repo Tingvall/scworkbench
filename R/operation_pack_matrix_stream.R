@@ -41,11 +41,11 @@
   # Only the literal already-owned selected-value caller opts in. Every
   # ordinary source callback retains its existing bounded schedule. Admission
   # declines opaque/malformed carriers BEFORE appending any entry bytes.
-  ordinary_width <- typeof(chunk_size) %in% c("integer", "double") &&
+  ordinary_width <- !is.null(.owned_csc) && typeof(chunk_size) %in% c("integer", "double") &&
     !is.object(chunk_size) && is.null(attributes(chunk_size)) && length(chunk_size) == 1L &&
     !is.na(chunk_size) && is.finite(chunk_size) && chunk_size >= 1 &&
     chunk_size <= .Machine$integer.max && chunk_size == floor(chunk_size)
-  owned <- !is.null(.owned_csc) && ordinary_width && isTRUE(.Call(C_scwb_matrix_slice_csc_append,
+  owned <- ordinary_width && isTRUE(.Call(C_scwb_matrix_slice_csc_append,
     if (is.null(sink)) path else sink, .owned_csc,
     as.integer(length(features)), as.integer(length(cells))))
   if (!owned) for (start in seq.int(1L, max(1L, length(cells)), by = chunk_size)) {
