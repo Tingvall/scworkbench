@@ -31,9 +31,37 @@ static SEXP is_deferred(SEXP value) {
     return Rf_ScalarLogical(ALTREP(value));
 }
 
+/* Attach caller-owned metadata without invoking names<- (which may wrap the
+ * numeric source in ALTREP). Used only to distinguish data and metadata gates. */
+static SEXP numeric_names(SEXP value, SEXP names, SEXP array) {
+    if (TYPEOF(value) != REALSXP || OBJECT(value) || ALTREP(value) ||
+        ATTRIB(value) != R_NilValue || TYPEOF(names) != STRSXP ||
+        XLENGTH(names) != XLENGTH(value) || TYPEOF(array) != LGLSXP ||
+        XLENGTH(array) != 1 || LOGICAL(array)[0] == NA_LOGICAL)
+        Rf_error("Invalid numeric-name test fixture.");
+    SEXP result = PROTECT(Rf_duplicate(value));
+    if (LOGICAL(array)[0]) {
+        SEXP dims = PROTECT(Rf_ScalarInteger((int)XLENGTH(value)));
+        SEXP axes = PROTECT(Rf_allocVector(VECSXP, 1));
+        SET_VECTOR_ELT(axes, 0, names);
+        SEXP tail = PROTECT(Rf_cons(axes, R_NilValue));
+        SET_TAG(tail, R_DimNamesSymbol);
+        SEXP attrs = PROTECT(Rf_cons(dims, tail));
+        SET_TAG(attrs, R_DimSymbol); SET_ATTRIB(result, attrs);
+        UNPROTECT(4);
+    } else {
+        SEXP attrs = PROTECT(Rf_cons(names, R_NilValue));
+        SET_TAG(attrs, R_NamesSymbol); SET_ATTRIB(result, attrs);
+        UNPROTECT(1);
+    }
+    UNPROTECT(1);
+    return result;
+}
+
 static const R_CallMethodDef calls[] = {
     {"dense_deferred", (DL_FUNC)&dense_deferred, 1},
     {"is_deferred", (DL_FUNC)&is_deferred, 1},
+    {"numeric_names", (DL_FUNC)&numeric_names, 3},
     {NULL, NULL, 0}
 };
 

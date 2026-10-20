@@ -16,7 +16,8 @@ test_engine_numeric_partition_exact_flat_bytes_contract <- function() {
   for(n in c(65535L,65536L,65537L,131071L,131072L,131073L,200003L)) {
     value <- rep(pattern,length.out=n)
     expected <- paste0("[",paste(rep(tokens,length.out=n),collapse=","),"]")
-    variants <- list(value,structure(value,names=rep("duplicate",n)),
+    named <- rep(pattern,length.out=n);names(named) <- rep("duplicate",n)
+    variants <- list(value,named,
       matrix(value,nrow=1L,dimnames=list("nonlex_row",rev(paste0("d",seq_len(n))))))
     for(item in variants) stopifnot(.engine_partition_admit(item),
       identical(charToRaw(encode(item)),charToRaw(expected)),
@@ -98,5 +99,42 @@ test_engine_numeric_partition_locale_and_missing_symbol_contract <- function() {
   old <- .engine_partition_old()
   stopifnot(identical(.engine_partition_outcome(encode,value),
     .engine_partition_outcome(old,value)))
+  TRUE
+}
+
+test_engine_numeric_partition_deferred_metadata_contract <- function() {
+  fixture_root <- tempfile("partition_metadata_fixture_");dir.create(fixture_root)
+  fixture_source <- normalizePath("tests/fixtures/engine_dense_fixture.c",mustWork=TRUE)
+  stopifnot(file.copy(fixture_source,file.path(fixture_root,"engine_dense_fixture.c")))
+  dll <- NULL
+  on.exit({if(!is.null(dll))dyn.unload(dll[["path"]]);
+    unlink(fixture_root,recursive=TRUE)},add=TRUE)
+  previous <- setwd(fixture_root)
+  built <- tryCatch(system2(file.path(R.home("bin"),"R"),
+    c("CMD","SHLIB","engine_dense_fixture.c"),stdout=TRUE,stderr=TRUE),
+    finally=setwd(previous))
+  cat(built,sep="\n")
+  stopifnot(is.null(attr(built,"status"))||attr(built,"status")==0L)
+  dll <- dyn.load(file.path(fixture_root,paste0("engine_dense_fixture",.Platform$dynlib.ext)))
+  create <- getNativeSymbolInfo("numeric_names",PACKAGE=dll)
+  flag <- getNativeSymbolInfo("is_deferred",PACKAGE=dll)
+  encode <- scworkbench:::.wb_operation_pack_canonical_json
+  old <- .engine_partition_old()
+  values <- rep(c(1/3,NA_real_,0),length.out=65538L)
+  stopifnot(!.Call(flag,values),.engine_partition_admit(values))
+  for(array in c(FALSE,TRUE)) {
+    labels <- as.character(seq_len(length(values)))
+    stopifnot(.Call(flag,labels))
+    value <- .Call(create,values,labels,array)
+    metadata <- if(array)dimnames(value)[[1L]] else names(value)
+    stopifnot(!.Call(flag,value),.Call(flag,metadata),
+      !.engine_partition_admit(value),.Call(flag,metadata),
+      identical(encode(value),old(value)),.Call(flag,metadata))
+    ordinary <- rep(labels,length.out=length(labels))
+    twin <- .Call(create,values,ordinary,array)
+    stopifnot(!.Call(flag,ordinary),.engine_partition_admit(twin),
+      identical(encode(twin),encode(value)))
+  }
+  cat("NUMERIC_PARTITION_ACTUAL_DEFERRED_METADATA_DECLINE TRUE\n")
   TRUE
 }

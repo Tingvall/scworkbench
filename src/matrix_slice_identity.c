@@ -132,9 +132,30 @@ SEXP scwb_canonical_numeric_partitionable(SEXP value) {
     if ((TYPEOF(value) != INTSXP && TYPEOF(value) != REALSXP) ||
         OBJECT(value) || IS_S4_OBJECT(value) || ALTREP(value))
         return Rf_ScalarLogical(0);
-    for (SEXP attr = ATTRIB(value); attr != R_NilValue; attr = CDR(attr))
+    for (SEXP attr = ATTRIB(value); attr != R_NilValue; attr = CDR(attr)) {
         if (TAG(attr) != R_DimSymbol && TAG(attr) != R_DimNamesSymbol &&
             TAG(attr) != R_NamesSymbol) return Rf_ScalarLogical(0);
+        /* R subsets names before unname() can drop them. Do not admit deferred
+         * or custom metadata extraction even when numeric storage is ordinary.
+         * Check carriers only, never traverse or materialize their strings. */
+        SEXP meta = CAR(attr);
+        if (OBJECT(meta) || IS_S4_OBJECT(meta) || ALTREP(meta) ||
+            ATTRIB(meta) != R_NilValue) return Rf_ScalarLogical(0);
+        if (TAG(attr) == R_NamesSymbol && TYPEOF(meta) != STRSXP)
+            return Rf_ScalarLogical(0);
+        if (TAG(attr) == R_DimSymbol && TYPEOF(meta) != INTSXP)
+            return Rf_ScalarLogical(0);
+        if (TAG(attr) == R_DimNamesSymbol) {
+            if (TYPEOF(meta) != VECSXP || XLENGTH(meta) > 32)
+                return Rf_ScalarLogical(0);
+            for (R_xlen_t i = 0; i < XLENGTH(meta); ++i) {
+                SEXP axis = VECTOR_ELT(meta, i);
+                if (axis != R_NilValue && (TYPEOF(axis) != STRSXP ||
+                    OBJECT(axis) || IS_S4_OBJECT(axis) || ALTREP(axis) ||
+                    ATTRIB(axis) != R_NilValue)) return Rf_ScalarLogical(0);
+            }
+        }
+    }
     return Rf_ScalarLogical(1);
 }
 
