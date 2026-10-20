@@ -433,6 +433,24 @@
       if (fast_numeric_array) {
         array <- .Call(C_scwb_canonical_numeric_array, value, FALSE)
         if (!is.null(array)) return(array)
+        if (length(value) > 1L &&
+            exists("C_scwb_canonical_numeric_partitionable", inherits = TRUE) &&
+            isTRUE(.Call(C_scwb_canonical_numeric_partitionable, value))) {
+          # The same flat column-major bytes, with bounded ordinary slices;
+          # never unclass/coerce an entire numeric carrier or force ALTREP.
+          # Unsupported late values discard ALL private text and retain the
+          # original scalar fallback and its first diagnostic below.
+          parts <- vector("list", ceiling(length(value) / 65536))
+          admitted <- TRUE
+          for (part in seq_along(parts)) {
+            start <- (as.double(part) - 1) * 65536 + 1
+            block <- unname(value[seq.int(start, min(length(value), start + 65535))])
+            text <- .Call(C_scwb_canonical_numeric_array, block, FALSE)
+            if (is.null(text)) { admitted <- FALSE; break }
+            parts[[part]] <- substr(text, 2L, nchar(text, type = "bytes") - 1L)
+          }
+          if (admitted) return(paste0("[", paste(parts, collapse = ","), "]"))
+        }
       }
       if (fast_numeric_tokens) {
         batch <- .Call(C_scwb_canonical_numeric_tokens, value)

@@ -124,6 +124,20 @@ SEXP scwb_canonical_numeric_tokens(SEXP value) {
     return result;
 }
 
+/* R slicing is bounded only for ordinary numeric storage. This is admission,
+ * not content authority; every admitted slice is still fully encoded below.
+ * Matrix/name attributes never entered the historical atomic preimage. Do not
+ * inspect or force their values, or admit custom extraction/ALTREP carriers. */
+SEXP scwb_canonical_numeric_partitionable(SEXP value) {
+    if ((TYPEOF(value) != INTSXP && TYPEOF(value) != REALSXP) ||
+        OBJECT(value) || IS_S4_OBJECT(value) || ALTREP(value))
+        return Rf_ScalarLogical(0);
+    for (SEXP attr = ATTRIB(value); attr != R_NilValue; attr = CDR(attr))
+        if (TAG(attr) != R_DimSymbol && TAG(attr) != R_DimNamesSymbol &&
+            TAG(attr) != R_NamesSymbol) return Rf_ScalarLogical(0);
+    return Rf_ScalarLogical(1);
+}
+
 /* Same bounded tokens, emitted into one managed buffer instead of one R
  * string per number followed by paste(). Row mode is private to the existing
  * row-major space preimage; flat mode preserves ordinary array framing. */
