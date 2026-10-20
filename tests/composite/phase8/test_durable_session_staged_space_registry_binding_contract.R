@@ -33,7 +33,10 @@ test_durable_session_staged_space_registry_binding_contract <- function() {
   bad_resume <- try(wb_session_resume(bundle, executed$session$durable$workspace),
     silent = TRUE)
   bad_promote <- try(wb_session_promote_current(bundle, executed$session,
-    outputs = "space_2d"), silent = TRUE)
+    # The accepted pack publishes the space as the model's materialization.
+    # Request its real terminal so validation reaches the corrupted registry
+    # binding rather than correctly rejecting a nonterminal promotion request.
+    outputs = "model"), silent = TRUE)
   stopifnot(inherits(bad_resume, "try-error"),
     inherits(bad_promote, "try-error"),
     grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_resume),
