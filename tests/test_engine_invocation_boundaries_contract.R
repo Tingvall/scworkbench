@@ -237,8 +237,6 @@ test_engine_selected_dependency_corruption_contract <- function() {
     outputs = list(wb_ref_run(fit$run$run_id, "model"))), silent = TRUE)
   stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure),
     nrow(wb_art_list(b)) == before)
-  failure <- try(wb_session_resume(b, session$durable$workspace), silent = TRUE)
-  stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure))
   stopifnot(calls$n == 0L)
   # Restore actual bytes, not a recorded hash: full validation and retry work.
   connection <- file(victim, "wb")
@@ -251,6 +249,14 @@ test_engine_selected_dependency_corruption_contract <- function() {
   session <- retry$session
   stopifnot(calls$n == 1L,
     identical(retry$run$outputs$vector, clean$run$outputs$vector))
+  # Writable recovery may remove an invalid retained transition. Exercise
+  # retry before that existing recovery cleanup, then independently re-corrupt
+  # the actual bytes and require full resume to reject as before.
+  connection <- file(victim, "ab")
+  tryCatch(writeBin(charToRaw("changed retained bytes"), connection),
+    finally = close(connection))
+  failure <- try(wb_session_resume(b, session$durable$workspace), silent = TRUE)
+  stopifnot(inherits(failure, "try-error"), grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", failure))
   # Selecting only the independent branch does not silently promote the model.
   promoted <- wb_session_promote_current(b, session,
     outputs = list(wb_ref_run(unrelated$run$run_id, "vector")))
