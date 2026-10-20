@@ -85,6 +85,14 @@ with owned lifetime and checked completion. Unsupported builds/providers retain
 the original file-based path. This is not a different identity scheme, reader
 contract or source-authentication policy, and requires no pack changes.
 
+Already-owned ordinary `dgCMatrix` projections can feed the same formatter
+directly from validated sparse slots. This avoids temporary column copies and
+coordinate vectors; its extra formatter workspace is constant, not the size of
+the already-owned matrix. It does not request or materialize a whole source.
+Unsupported, deferred, custom or malformed carriers retain the original bounded
+callback/coercion path. Scientific reads, identities and authentication remain
+unchanged; this is not a new public reader or storage contract.
+
 For trusted in-process R packs, complete source bytes are authenticated during
 request preparation and independently before publication. For a fresh core-issued
 backed-matrix request only, the middle predispatch check reuses the original
