@@ -27,6 +27,12 @@ trusted-R reader observation redesign is deferred and is not part of this build.
 For a native ARM64 or AMD64 rebuild over an existing dependency-complete SIF,
 see `containers/apptainer/STANDARD_PROFILE.md` in the source repository.
 
+The scVI GPU-restoration integration selects scwbLatent 0.1.1. CPU remains the
+default; explicit `use_gpu = TRUE` requests one CUDA device and must fail rather
+than fall back to CPU. Source/CPU checks passed; real allocated-GPU qualification
+is still pending. Neither profile activation nor this source pin proves a GPU
+fit. The other six pack pins and all operation counts are unchanged.
+
 From clean source worktrees at the pinned commits, prepare a clean library and
 instance receipt explicitly:
 
@@ -43,8 +49,9 @@ anything. It installs core plus packs without activating them, validates each
 installed pack, and atomically writes a receipt outside the R library.
 `SCWB_LATENT_PYTHON` is set to the supplied interpreter for scwbLatent's CPU
 dependency probe and its venv entry is bound into the installation receipt.
-The interpreter must provide scvi-tools, anndata, scipy and
-CPU torch. This step does not run any scientific operation.
+The interpreter must provide scvi-tools, anndata, scipy and Torch with CPU
+execution support. GPU scVI additionally requires CUDA-enabled Torch and an
+allocated visible device. This step does not run any scientific operation.
 
 In every R process that needs the full profile, opt in explicitly:
 

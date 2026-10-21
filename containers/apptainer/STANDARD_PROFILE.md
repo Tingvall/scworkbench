@@ -6,6 +6,11 @@ ruptures and the latent Python dependencies. This rebuild replaces core,
 PyBench and the seven pinned packs; it does not reinstall the scientific stack.
 The same helper supports native AMD64. Cross-architecture building is not provided.
 
+For GPU scVI, the base must already contain CUDA-enabled PyTorch compatible with
+the allocated node. The helper deliberately does not replace Torch. `--nv` exposes
+NVIDIA drivers/devices but cannot turn CPU-only Torch into a CUDA build. A build
+and activation smoke on CPU are not GPU qualification.
+
 Update the source repositories first:
 
 ```bash
@@ -57,3 +62,16 @@ source(system.file("standard_profile", "activate.R", package = "scworkbench"))
 scwb_standard_profile_activate("/opt/standard_profile_installation_receipt.json")
 stopifnot(nrow(wb_operation_packs()) == 7L, length(wb_list_ops()) == 62L)
 ```
+
+Before launching Honeybee, run the retained synthetic GPU gate inside the new
+image on an allocated job with exactly one scheduler-visible CUDA device:
+
+```bash
+apptainer exec --nv --cleanenv /path/to/new-standard-profile-arm64.sif \
+  env SCWB_LATENT_PYTHON=/opt/pyenv/bin/python \
+  Rscript /opt/operation_packs/scwbLatent/tests/composite/run_scvi_gpu_smoke.R
+```
+
+Use the site's actual container executable and scheduler-provided device setup.
+Do not seize a GPU from the Council model server. The script must end with
+`SCVI_GPU_SMOKE_PASS`; CPU fallback or an unavailable-GPU stop is not a pass.

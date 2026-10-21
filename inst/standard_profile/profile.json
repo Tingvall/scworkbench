@@ -59,10 +59,10 @@
     {
       "package": "scwbLatent",
       "namespace": "scwblatent",
-      "version": "0.1.0",
-      "source_commit": "fe83554d4904861e76b7dd616e34c84fd23d3a16",
-      "manifest_source_sha256": "f8c1b2f3293f06d4c72d0126a074b2dc1a862bb812651977e5026e71e030e393",
-      "manifest_sha256": "90d7409d59a73880638e1b8c3f06061ef775286bb9637a2899aea0948093ef2c",
+      "version": "0.1.1",
+      "source_commit": "c97e61b9692d9083731da8ab23148d731d140e82",
+      "manifest_source_sha256": "29632c53b6707cb8bec8e15652088adc2415ab752f40a7ec6773ddccba1983a6",
+      "manifest_sha256": "594e807547572e64adad96a53e934f98731cfce5bd64d613b4730431f840e24a",
       "operation_count": 4
     },
     {
