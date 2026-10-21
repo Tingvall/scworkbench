@@ -1,3 +1,49 @@
+test_operation_pack_v3_ordered_cell_metadata_large_axis_contract <- function() {
+  root <- tempfile("scwb-large-ordered-meta-")
+  bundle <- wb_init_bundle(root)
+  on.exit({try(wb_close_bundle(bundle), silent = TRUE);
+    unlink(root, recursive = TRUE, force = TRUE)}, add = TRUE)
+  cells <- sprintf("cell_%06d", seq_len(120895L))
+  batch <- rep(c("sample_b", "sample_a"), length.out = length(cells))
+  quality <- seq_along(cells) / length(cells)
+  wb_define_cells(bundle, cells, metadata = data.frame(cell_id = cells,
+    sample_id = batch, quality = quality, stringsAsFactors = FALSE))
+  input <- list(kind = "matrix", matrix_id = "counts", cell_id = cells,
+    feature_id = c("gene_a", "gene_b"))
+  record <- list(descriptor_identity = list(scheme =
+    "scworkbench.operation_pack.input_descriptor.v2", sha256 = strrep("a", 64L)),
+    content_identity = list(scheme = "scworkbench.matrix.content.v1",
+      sha256 = strrep("b", 64L)))
+  declaration <- list(matrix_input = "matrix", field_parameters = list(
+    list(parameter = "batch_key", role = "categorical", cardinality = "zero_or_one"),
+    list(parameter = "continuous_covariates", role = "continuous",
+      cardinality = "zero_or_more")))
+  for (params in list(list(batch_key = NULL, continuous_covariates = NULL),
+      list(batch_key = "sample_id", continuous_covariates = "quality"))) {
+    snapshot <- .wb_operation_pack_v3_cell_metadata_snapshot(bundle,
+      declaration, list(matrix = input), list(matrix = record), params, cells)
+    .wb_operation_pack_v3_registry_snapshot_validate(snapshot, "ordered_cell_metadata")
+    stopifnot(identical(snapshot$cell_count, length(cells)),
+      identical(unlist(snapshot$cell_id, use.names = FALSE), cells))
+    if (length(snapshot$fields)) stopifnot(
+      identical(unlist(snapshot$fields[[1]]$values, use.names = FALSE), batch),
+      identical(unlist(snapshot$fields[[2]]$values, use.names = FALSE), quality))
+    encoded <- .wb_operation_pack_canonical_json(snapshot)
+    restored <- .wb_operation_pack_parse_canonical_json(encoded)
+    .wb_operation_pack_v3_registry_snapshot_validate(restored, "ordered_cell_metadata")
+    altered <- restored
+    altered$cell_count <- length(cells) - 1L
+    stopifnot(inherits(try(.wb_operation_pack_v3_registry_snapshot_validate(
+      altered, "ordered_cell_metadata"), silent = TRUE), "try-error"))
+  }
+  for (invalid in list(rev(cells), c(cells[-length(cells)], cells[[1]]))) {
+    stopifnot(inherits(try(.wb_operation_pack_v3_cell_metadata_snapshot(bundle,
+      declaration, list(matrix = input), list(matrix = record), list(), invalid),
+      silent = TRUE), "try-error"))
+  }
+  TRUE
+}
+
 test_operation_pack_v3_ordered_cell_metadata_protocol_fixture_contract <- function() {
   path <- file.path("inst", "protocol", "fixtures", "operation-pack-v3",
     "phase6-ordered-cell-metadata-identities.json")

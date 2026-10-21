@@ -36,7 +36,7 @@ expected <- c(
   scwbRNA = "151dd29211b219343dce6247c5e48fc932b4c83d",
   scwbRepresentation = "be51127ca0d7c11a0667be826c24449a5c7e8912",
   scwbTrajectory = "de6e0810578e918cf9425858eddd0549e41195be",
-  scwbLatent = "c97e61b9692d9083731da8ab23148d731d140e82",
+  scwbLatent = "5d0f705b95b2fcf3a6a82d3e5ccc852c6dde0cdd",
   scwbATAC = "0d0b2c0728e0db543442c1783fdc9398ee309eb5")
 for (package in names(expected)) {
   path <- file.path(pack_root, package)

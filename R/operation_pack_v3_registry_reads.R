@@ -14,7 +14,7 @@
   input <- inputs[[input_name]]
   matrix_id <- as.character(input$matrix_id %||% "")[1]
   cells <- as.character(effective_cells %||% input$cell_id %||% character())
-  if (!nzchar(matrix_id) || !length(cells) || length(cells) > 100000L ||
+  if (!nzchar(matrix_id) || !length(cells) ||
       anyNA(cells) || any(!nzchar(cells)) || anyDuplicated(cells) ||
       !identical(cells, as.character(input$cell_id)))
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
@@ -129,7 +129,7 @@
       nzchar(snapshot$matrix_input) &&
       is.character(snapshot$matrix_id) && length(snapshot$matrix_id) == 1L &&
       nzchar(snapshot$matrix_id) && length(cells) > 0L &&
-      length(cells) <= 100000L && !anyNA(cells) && all(nzchar(cells)) &&
+      !anyNA(cells) && all(nzchar(cells)) &&
       !anyDuplicated(cells) &&
       identical(as.integer(snapshot$cell_count)[1], length(cells)) &&
       identical(snapshot$cell_order_identity,

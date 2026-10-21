@@ -27,11 +27,15 @@ trusted-R reader observation redesign is deferred and is not part of this build.
 For a native ARM64 or AMD64 rebuild over an existing dependency-complete SIF,
 see `containers/apptainer/STANDARD_PROFILE.md` in the source repository.
 
-The scVI GPU-restoration integration selects scwbLatent 0.1.1. CPU remains the
+The scVI GPU-restoration integration selects scwbLatent 0.1.2. CPU remains the
 default; explicit `use_gpu = TRUE` requests one CUDA device and must fail rather
 than fall back to CPU. Source/CPU checks passed; real allocated-GPU qualification
 is still pending. Neither profile activation nor this source pin proves a GPU
-fit. The other six pack pins and all operation counts are unchanged.
+fit. The other six pack pins and all operation counts are unchanged. Core ordered
+metadata and the pack's shared sparse-matrix loader no longer impose an arbitrary
+100,000-cell ceiling. The loader also removes fixed total feature, chunk-count and
+nonzero-count caps; its declared per-chunk size bound remains. The complete Python
+training matrix still needs sufficient RAM; this is not out-of-core training.
 
 From clean source worktrees at the pinned commits, prepare a clean library and
 instance receipt explicitly:
