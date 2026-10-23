@@ -104,6 +104,16 @@ test_pybench_typed_table_binding_contract <- function() {
           .wb_prov_stored_table_content_sha256(stage$con, adversarial_id)))
     })
   expected_table <- wb_art_load(stage, adversarial_id)$table
+  before_listing <- .wb_prov_stored_table_content_sha256(stage$con, adversarial_id)
+  light <- wb_art_list(stage)
+  full <- wb_art_list(stage, include_provenance = TRUE)
+  stopifnot(adversarial_id %in% light$artifact_id,
+    !"provenance_json" %in% names(light),
+    "provenance_json" %in% names(full),
+    identical(light, full[, setdiff(names(full), "provenance_json")]),
+    identical(wb_art_load(stage, adversarial_id)$table, expected_table),
+    identical(.wb_prov_stored_table_content_sha256(stage$con, adversarial_id),
+      before_listing))
   empty_output <- adversarial_output
   empty_output$table$artifact_id <- "obs_table_empty_probe"
   .wb_with_mutation_context(bundle = stage, route = "session_execution",
