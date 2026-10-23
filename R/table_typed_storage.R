@@ -75,6 +75,32 @@
 
 .wb_table_typed_row_json <- function(table, rows, storage) {
   block <- table[rows, , drop = FALSE]
+  ordinary <- ncol(block) > 0L && !any(storage$types == "legacy") &&
+    all(vapply(block, function(x) is.null(attributes(x)) &&
+      typeof(x) %in% c("integer", "double", "logical", "character"), logical(1)))
+  if (ordinary) {
+    for (j in seq_along(block)) {
+      column <- block[[j]]
+      if (is.double(column) && any(is.nan(column) | is.infinite(column))) {
+        # List scalars let JSON retain finite numbers/null NA while encoding
+        # only NaN/Inf as the typed format's existing string sentinels.
+        values <- as.list(column)
+        nan <- which(is.nan(column)); infinite <- which(is.infinite(column))
+        if (length(nan)) values[nan] <- rep(list("NaN"), length(nan))
+        if (length(infinite)) values[infinite] <- as.list(as.character(column[infinite]))
+        block[[j]] <- values
+      }
+    }
+    # Scalar-list row JSON excludes dataframe row names. Preserve its bytes,
+    # including 17-digit doubles, signed zero, column order and null spelling.
+    rownames(block) <- NULL
+    lines <- character()
+    con <- textConnection("lines", "w", local = TRUE)
+    on.exit(close(con), add = TRUE)
+    jsonlite::stream_out(block, con, verbose = FALSE, pagesize = 1000L,
+      auto_unbox = TRUE, null = "null", na = "null", digits = 17)
+    return(lines)
+  }
   # Ordinary columns bypass the historical sanitizer, which turns numeric NA
   # into strings. Non-finite doubles retain the already supported value domain;
   # the declared double type makes their string encodings unambiguous.
