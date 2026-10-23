@@ -210,7 +210,14 @@
     raw_path <- .wb_certificate_scalar(val$path)
     uri <- .wb_certificate_scalar(val$uri)
     uri_identity <- if (is.null(uri)) .wb_certificate_state("not_applicable") else if (grepl("^file:", uri, ignore.case = TRUE)) .wb_certificate_state("redacted", "host_file_uri") else .wb_certificate_state("available", value = uri)
-    return(list(source = list(uri = uri_identity, path_identity = if (is.null(raw_path)) .wb_certificate_state("not_applicable") else list(status = "available", basename = basename(raw_path)), accession = .wb_certificate_scalar(val$accession), role = .wb_certificate_scalar(val$role %||% val$file_kind), format = .wb_certificate_scalar(val$format)), checksum = list(status = as.character(row$checksum_status[[1]]), algorithm = .wb_certificate_scalar(val$checksum_algorithm %||% if (!is.null(val$sha256)) "sha256" else NULL), value = .wb_certificate_scalar(val$sha256 %||% val$checksum)), consuming_ingestion_runs = sort(unique(as.character(row$run_id)))))
+    # External paths are outside the recipient trust boundary. Describe their
+    # retention status without probing or hashing a host path during inspection.
+    availability <- if (identical(as.character(val$scope %||% val$source_scope %||% ""), "in_memory"))
+      .wb_certificate_state("nonportable_in_memory", "original_file_not_identified") else if (isTRUE(val$bundled %||% val$bundle_owned %||% FALSE))
+      .wb_certificate_state("bundle_owned", "inspect_with_explicit_content_validation") else
+      .wb_certificate_state("external_uninspected", "identified_source_not_bundled",
+        file_presence = "not_inspected", available_in_bundle = FALSE)
+    return(list(availability = availability, source = list(uri = uri_identity, path_identity = if (is.null(raw_path)) .wb_certificate_state("not_applicable") else list(status = "available", basename = basename(raw_path)), accession = .wb_certificate_scalar(val$accession), role = .wb_certificate_scalar(val$role %||% val$file_kind), format = .wb_certificate_scalar(val$format)), checksum = list(status = as.character(row$checksum_status[[1]]), algorithm = .wb_certificate_scalar(val$checksum_algorithm %||% if (!is.null(val$sha256)) "sha256" else NULL), value = .wb_certificate_scalar(val$sha256 %||% val$checksum)), consuming_ingestion_runs = sort(unique(as.character(row$run_id)))))
   }
   if (identical(kind, "cell_set")) {
     rows <- .wb_certificate_query(

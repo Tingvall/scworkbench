@@ -7,8 +7,11 @@ events remain provenance runs but are not external-source nodes. In-memory
 sources are visible as `in_memory_source`/`InMemorySource`, distinct from public
 files.
 
-Strict file declarations require `source_id`, `accession`, `role`, `format`, a
-local `path` or declared `uri`, and SHA-256. Construct them without shell-output
+Strict file declarations require `source_id`, `role`, `format`, a
+local `path` or declared `uri`, and SHA-256. `public_file` additionally requires
+an archive accession. A local `external_file` does not require an accession;
+`accession_derived = TRUE` still requires the accession used to form its URI.
+Construct declarations without shell-output
 parsing:
 
 ```r
@@ -62,3 +65,38 @@ declaration, checksum, conversion child, parent, and relation from the bundle.
 `wb_entity_certificate()` exposes the same external and conversion nodes in an
 imported matrix or space's upstream relationships. Recipient validation fails
 when a declared nested chain is missing, forged, or ambiguous.
+
+
+## Original files and converted objects
+
+`wb_bundle_from_sce(readRDS(path), ...)` receives an in-memory object, so it
+cannot infer the original RDS path or its checksum. Pass the RDS path itself to
+`wb_bundle_from_sce(path, ...)` to retain the supplied file's SHA-256 and format.
+The same distinction applies to a separately converted H5AD: an SCE with
+`source_identity = NULL` identifies only the in-memory boundary.
+
+For a source-preserving pure-R H5AD route, use the native wrapper with its R
+reader selection; it records the checksummed original file and the converted
+SCE as its existing `CONVERTS_TO` child, even without a report artifact:
+
+```r
+options(scworkbench.h5ad_reader = "R")
+source <- wb_source_input(path = "input.h5ad", source_id = "local_h5ad",
+  role = "source_object", format = "h5ad", scope = "external_file")
+b <- wb_bundle_from_h5ad("input.h5ad", "analysis.scwb",
+  source_identity = list(inputs = list(source)))
+```
+
+Known archive accessions, citations, release labels and other attribution can
+be supplied in `source_identity`; omitting an unknown local accession is valid.
+No checksum of a serialized SCE is substituted for the original file checksum.
+
+External source certificates retain the declaration when the file is absent
+from a relocated bundle. Their `details$availability` is `external_uninspected`
+with reason `identified_source_not_bundled`: the file is not available *in the
+bundle*, and host-file presence is deliberately not inspected. A checksum
+remains a declaration at recipient inspection, not a claim that external bytes
+were rechecked. In-memory boundaries retain scope `in_memory` and checksum status
+`nonportable_in_memory`; no original file identity is asserted.
+Use explicit source preflight at ingestion for external-byte verification;
+ordinary getters/certificates do not rescan external files.

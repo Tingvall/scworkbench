@@ -57,7 +57,9 @@ made unique while preserving original IDs.}
 \item{emit_report_artifact}{Whether to promote an ingest report artifact.}
 
 \item{source_identity}{Optional immutable structured source declaration. File
-and in-memory inputs receive a canonical declaration when omitted.}
+and in-memory inputs receive a canonical declaration when omitted. An
+already converted SCE does not identify its original file automatically;
+use \code{\link[=wb_bundle_from_h5ad]{wb_bundle_from_h5ad()}} for the retained H5AD conversion/source chain.}
 }
 \value{
 An open scworkbench bundle.

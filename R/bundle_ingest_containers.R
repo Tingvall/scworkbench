@@ -12,6 +12,14 @@
   list(object = obj, source_path = source_path, class_label = class_label)
 }
 
+# The checksum names the supplied file bytes, never the converted R object.
+.wb_ingest_file_source_input <- function(path, source_id, format) {
+  sha <- wb_source_sha256(path)
+  list(scope = "external_file", source_id = source_id, path = path,
+    role = "source_object", format = format, sha256 = sha, checksum = sha,
+    checksum_algorithm = "sha256", bundled = FALSE)
+}
+
 .wb_ingest_clean_id <- function(x, fallback = "object") {
   x <- as.character(x %||% fallback)[1]
   x <- gsub("[^A-Za-z0-9_.-]+", "_", x)
@@ -315,8 +323,8 @@
   artifact_id
 }
 
-.wb_h5ad_nested_source_identity <- function(source_identity, input_path) {
-  checked <- wb_source_preflight(source_identity, verify_files = TRUE, strict = TRUE)$source_identity
+.wb_h5ad_nested_source_identity <- function(source_identity, input_path, verify_files = TRUE) {
+  checked <- wb_source_preflight(source_identity, verify_files = verify_files, strict = TRUE)$source_identity
   inputs <- checked$inputs %||% list()
   candidates <- which(vapply(inputs, function(x) {
     scope <- as.character(x$scope %||% "")[1]
@@ -349,7 +357,7 @@
     relation = "CONVERTS_TO",
     importer = "wb_bundle_from_h5ad"
   )
-  wb_source_preflight(checked, verify_files = TRUE, strict = TRUE)$source_identity
+  wb_source_preflight(checked, verify_files = FALSE, strict = TRUE)$source_identity
 }
 
 .wb_h5ad_fault <- function(boundary, ...) {
@@ -1020,14 +1028,7 @@ wb_bundle_from_seurat <- function(input,
   .wb_assert(inherits(seurat, "Seurat"), "input must be a Seurat object or an .rds containing one")
   if (is.null(source_identity)) {
     source_input <- if (!is.null(src$source_path) && nzchar(src$source_path)) {
-      list(
-        scope = "external_file", source_id = "seurat_rds", accession = basename(src$source_path),
-        path = src$source_path,
-        role = "source_object",
-        format = "rds",
-        checksum = .wb_prov_sha256_file(src$source_path),
-        checksum_algorithm = "sha256"
-      )
+      .wb_ingest_file_source_input(src$source_path, "seurat_rds", "rds")
     } else {
       list(
         scope = "in_memory", source_id = "in_memory_seurat",
@@ -1037,8 +1038,8 @@ wb_bundle_from_seurat <- function(input,
       )
     }
     source_identity <- list(source_type = "Seurat", inputs = list(source_input))
+    source_identity <- wb_source_preflight(source_identity, verify_files=FALSE, strict=TRUE)$source_identity
   }
-  source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
 
   bundle <- wb_init_bundle(bundle_dir, overwrite = overwrite)
   completed <- FALSE
@@ -1137,7 +1138,9 @@ wb_bundle_from_seurat <- function(input,
 #' @param created_by Optional provenance actor.
 #' @param emit_report_artifact Whether to promote an ingest report artifact.
 #' @param source_identity Optional immutable structured source declaration. File
-#'   and in-memory inputs receive a canonical declaration when omitted.
+#'   and in-memory inputs receive a canonical declaration when omitted. An
+#'   already converted SCE does not identify its original file automatically;
+#'   use [wb_bundle_from_h5ad()] for the retained H5AD conversion/source chain.
 #' @return An open scworkbench bundle.
 #' @export
 wb_bundle_from_sce <- function(input,
@@ -1166,13 +1169,12 @@ wb_bundle_from_sce <- function(input,
   sce <- src$object
   .wb_assert(methods::is(sce, "SingleCellExperiment"), "input must be a SingleCellExperiment object or an .rds containing one")
   if (is.null(source_identity)) {
-    source_input <- if (!is.null(src$source_path) && nzchar(src$source_path)) list(
-      scope="external_file", source_id="sce_rds", accession=basename(src$source_path), path=src$source_path,
-      role="source_object", format="rds", sha256=wb_source_sha256(src$source_path), checksum=wb_source_sha256(src$source_path), checksum_algorithm="sha256", bundled=FALSE
-    ) else list(scope="in_memory", source_id="in_memory_sce", uri="scworkbench-ingestion://bundle_from_sce/in-memory-sce", role="source_object", format="SingleCellExperiment", bundled=FALSE)
+    source_input <- if (!is.null(src$source_path) && nzchar(src$source_path)) {
+      .wb_ingest_file_source_input(src$source_path, "sce_rds", "rds")
+    } else list(scope="in_memory", source_id="in_memory_sce", uri="scworkbench-ingestion://bundle_from_sce/in-memory-sce", role="source_object", format="SingleCellExperiment", bundled=FALSE)
     source_identity <- list(source_type="SingleCellExperiment", inputs=list(source_input))
+    source_identity <- wb_source_preflight(source_identity, verify_files=FALSE, strict=TRUE)$source_identity
   }
-  source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
 
   cell_ids <- colnames(sce)
   if (is.null(cell_ids)) cell_ids <- paste0("cell_", seq_len(ncol(sce)))
@@ -1352,11 +1354,12 @@ wb_bundle_from_h5ad <- function(input,
   duplicate_cell_id_policy <- match.arg(duplicate_cell_id_policy)
   duplicate_feature_id_policy <- match.arg(duplicate_feature_id_policy)
   input_path <- normalizePath(input, winslash = "/", mustWork = TRUE)
-  if (is.null(source_identity)) source_identity <- list(source_type="AnnData/h5ad", inputs=list(list(
-    scope="external_file", source_id="h5ad_source", accession=basename(input_path), path=input_path,
-    role="source_object", format="h5ad", sha256=wb_source_sha256(input_path), checksum=wb_source_sha256(input_path), checksum_algorithm="sha256", bundled=FALSE)))
-  source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
-  source_identity <- .wb_h5ad_nested_source_identity(source_identity, input_path)
+  if (is.null(source_identity)) source_identity <- list(source_type="AnnData/h5ad",
+    inputs=list(.wb_ingest_file_source_input(input_path, "h5ad_source", "h5ad")))
+  # Supplied identities were verified at entry; generated checksums were just
+  # streamed above. Nested declaration construction is metadata-only.
+  source_identity <- wb_source_preflight(source_identity, verify_files=FALSE, strict=TRUE)$source_identity
+  source_identity <- .wb_h5ad_nested_source_identity(source_identity, input_path, verify_files=FALSE)
   .wb_assert(is.character(bundle_dir) && length(bundle_dir) == 1L && nzchar(bundle_dir), "bundle_dir must be a non-empty string")
   final_dir <- normalizePath(bundle_dir, winslash = "/", mustWork = FALSE)
   if (dir.exists(final_dir) && !isTRUE(overwrite)) {

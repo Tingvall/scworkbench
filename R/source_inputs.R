@@ -88,7 +88,8 @@ wb_source_sha256 <- function(path) {
     if (!scope %in% c(.wb_source_scopes(), "legacy_external")) diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_SCOPE_UNSUPPORTED", i, "scope", "Unsupported source scope.")
     id <- trimws(as.character(x$source_id %||% "")[1]); ids[i] <- id
     file_scope <- scope %in% c("public_file", "external_file")
-    required <- if (file_scope) c("source_id", "accession", "role", "format") else if (identical(scope, "in_memory")) c("source_id", "role", "format") else character()
+    required <- if (identical(scope, "public_file")) c("source_id", "accession", "role", "format") else if (file_scope || identical(scope, "in_memory")) c("source_id", "role", "format") else character()
+    if (isTRUE(x$accession_derived) && !"accession" %in% required) required <- c(required, "accession")
     for (field in required) if (!.wb_source_nonempty(x[[field]])) diagnostics[[length(diagnostics)+1L]] <- list(paste0("SOURCE_", toupper(field), "_MISSING"), i, field, paste0("Strict ", scope, " declarations require ", field, "."))
     path <- as.character(x$path %||% x$local_path %||% "")[1]
     uri <- as.character(x$uri %||% "")[1]
@@ -163,7 +164,8 @@ wb_source_sha256 <- function(path) {
 #' @param path Optional local file path.
 #' @param uri Optional declared URI; no network request is made.
 #' @param source_id Stable identity within one declaration.
-#' @param accession Public archive or source accession.
+#' @param accession Public archive accession, required for `public_file`. Optional
+#'   for an honest local `external_file` declaration; do not invent an accession.
 #' @param role Source role in ingestion.
 #' @param format File/object format.
 #' @param scope Explicit source scope.
@@ -176,12 +178,13 @@ wb_source_input <- function(path=NULL, uri=NULL, source_id, accession=NULL, role
                             format, scope=c("public_file", "external_file", "in_memory", "internal_assembly"),
                             bundled=FALSE, checksum=NULL, sha256=NULL, accession_derived=FALSE) {
   scope <- match.arg(scope)
-  if (scope %in% c("public_file", "external_file") && is.null(checksum) && is.null(sha256) && .wb_source_nonempty(path) && file.exists(path)) sha256 <- wb_source_sha256(path)
+  computed <- scope %in% c("public_file", "external_file") && is.null(checksum) && is.null(sha256) && .wb_source_nonempty(path) && file.exists(path)
+  if (computed) sha256 <- wb_source_sha256(path)
   identity <- list(inputs=list(list(scope=scope, source_id=source_id, accession=accession, role=role, format=format,
                                          path=path, uri=uri, bundled=isTRUE(bundled), checksum=checksum, sha256=sha256,
                                          checksum_algorithm=if (!is.null(checksum)||!is.null(sha256)) "sha256" else NULL,
                                          accession_derived=isTRUE(accession_derived))))
-  out <- wb_source_preflight(identity, verify_files=TRUE, strict=TRUE)$source_identity$inputs[[1L]]
+  out <- wb_source_preflight(identity, verify_files=!computed, strict=TRUE)$source_identity$inputs[[1L]]
   out
 }
 

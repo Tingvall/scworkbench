@@ -25,7 +25,8 @@ wb_source_input(
 
 \item{source_id}{Stable identity within one declaration.}
 
-\item{accession}{Public archive or source accession.}
+\item{accession}{Public archive accession, required for \code{public_file}. Optional
+for an honest local \code{external_file} declaration; do not invent an accession.}
 
 \item{role}{Source role in ingestion.}
 
