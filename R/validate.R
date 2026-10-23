@@ -434,7 +434,7 @@ wb_bundle_validation_report <- function(bundle_dir,
     complete <- FALSE
     on.exit(if (!complete) table_observations <<- list(), add = TRUE)
     actual <- function() list(content_sha256 = .wb_prov_stored_table_content_sha256(con, id),
-      content_identity_scheme = unname(.wb_content_identity_schemes()[["table"]]))
+      content_identity_scheme = .wb_table_stored_identity_scheme(con, id))
     key <- function() {
       tryCatch({
         epoch <- table_epoch()

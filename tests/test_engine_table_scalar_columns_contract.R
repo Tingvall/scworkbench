@@ -126,6 +126,8 @@ test_engine_table_scalar_columns_public_identity_and_purity_contract <- function
     score = c(-0, NA_real_, .8), ordinal = c(NA_integer_, 2L, 1L),
     empty = rep(NA_real_, 3L), label = c("雪", "", "quote\"\\\n"))
   prim <- wb_prim_feature_table(table, table_type = "generic", meta = list(label = "retained"))
+  # Explicit legacy primitive: preserve the frozen historical identity fixture.
+  prim$table_storage <- NULL
   run <- wb_new_run("metadata_cell_vector", outputs = list(vector = prim),
     notes = "Synthetic table storage fixture; no scientific method execution.")
   promoted <- wb_promote_analysis(b, setNames(list(run), run$run_id),

@@ -463,22 +463,24 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       )
       .wb_assert(nrow(rows) >= 0, paste0("wb_art_load(): failed reading table rows for ", artifact_id))
 
-      tbl <- if (nrow(rows) == 0) {
-        data.frame(stringsAsFactors = FALSE)
-      } else {
-        .wb_art_table_rows_to_df(rows)
-      }
       meta <- if (!is.null(info$meta_json[[1]]) && nzchar(as.character(info$meta_json[[1]]))) {
         jsonlite::fromJSON(as.character(info$meta_json[[1]]), simplifyVector = TRUE)
       } else {
         list()
       }
 
-      wb_prim_feature_table(
+      decoded <- .wb_table_decode_meta(meta, .wb_table_artifact_is_typed(con, artifact_id))
+      tbl <- if (is.null(decoded$storage)) .wb_art_table_rows_to_df(rows) else
+        .wb_art_table_rows_to_df(rows, decoded$storage)
+      meta <- decoded$meta
+      prim <- wb_prim_feature_table(
         table = tbl,
         table_type = as.character(info$table_type[[1]] %||% "generic"),
         meta = meta
       )
+      if (is.null(decoded$storage)) prim$table_storage <- NULL else
+        prim$table_storage$columns <- decoded$storage
+      prim
     },
 
     "obs_table" = {
@@ -499,23 +501,25 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
          ORDER BY row_idx ASC;",
         params = list(artifact_id)
       )
-      tbl <- if (nrow(rows) == 0) {
-        data.frame(stringsAsFactors = FALSE)
-      } else {
-        .wb_art_table_rows_to_df(rows)
-      }
       meta <- if (!is.null(info$meta_json[[1]]) && nzchar(as.character(info$meta_json[[1]]))) {
         jsonlite::fromJSON(as.character(info$meta_json[[1]]), simplifyVector = TRUE)
       } else {
         list()
       }
 
-      wb_prim_obs_table(
+      decoded <- .wb_table_decode_meta(meta, .wb_table_artifact_is_typed(con, artifact_id))
+      tbl <- if (is.null(decoded$storage)) .wb_art_table_rows_to_df(rows) else
+        .wb_art_table_rows_to_df(rows, decoded$storage)
+      meta <- decoded$meta
+      prim <- wb_prim_obs_table(
         table = tbl,
         table_type = as.character(info$table_type[[1]] %||% "generic"),
         entity_kind = as.character(info$entity_kind[[1]] %||% "generic"),
         meta = meta
       )
+      if (is.null(decoded$storage)) prim$table_storage <- NULL else
+        prim$table_storage$columns <- decoded$storage
+      prim
     },
 
     stop("wb_art_load(): Unsupported artifact type: ", type, call. = FALSE)

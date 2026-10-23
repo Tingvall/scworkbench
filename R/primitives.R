@@ -235,7 +235,8 @@ wb_prim_feature_table <- function(table, table_type = "generic", meta = list()) 
       kind = "feature_table",
       table_type = as.character(table_type)[1],
       table = table,
-      meta = meta
+      meta = meta,
+      table_storage = .wb_table_storage_declaration(table)
     ),
     class = "wb_primitive"
   )
@@ -265,7 +266,8 @@ wb_prim_obs_table <- function(table, table_type = "generic", entity_kind = "gene
       table_type = as.character(table_type)[1],
       entity_kind = as.character(entity_kind)[1],
       table = table,
-      meta = meta
+      meta = meta,
+      table_storage = .wb_table_storage_declaration(table)
     ),
     class = "wb_primitive"
   )

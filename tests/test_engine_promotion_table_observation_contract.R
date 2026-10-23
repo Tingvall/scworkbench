@@ -18,6 +18,8 @@
       score = c(-0, sin(1)), selected = c(TRUE, FALSE)), meta = list(label = "plain")),
     observation = wb_prim_obs_table(data.frame(label = c("NA", "é"),
       value = c(NA_real_, 1e-200)), entity_kind = "generic", meta = list(n = 2L)))
+  # Historical preimage oracles below deliberately exercise legacy primitives.
+  prims <- lapply(prims, function(p) { p$table_storage <- NULL; p })
   runs <- lapply(prims, function(p) wb_new_run("metadata_cell_vector",
     outputs = list(vector = p), notes = "Synthetic table storage; no method execution."))
   names(runs) <- vapply(runs, `[[`, "", "run_id")

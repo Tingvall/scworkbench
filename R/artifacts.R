@@ -114,7 +114,8 @@ wb_art_list <- function(bundle, type = NULL, include_history = FALSE) {
 }, warning = function(w) stop("Ordinary table assembly fallback.", call. = FALSE)),
   error = function(e) NULL)
 
-.wb_art_table_rows_to_df <- function(rows) {
+.wb_art_table_rows_to_df <- function(rows, storage = NULL) {
+  if (!is.null(storage)) return(.wb_table_typed_rows_to_df(rows, storage))
   if (!is.data.frame(rows) || !nrow(rows)) {
     return(data.frame(stringsAsFactors = FALSE))
   }
@@ -272,7 +273,12 @@ wb_art_table_slice <- function(bundle, artifact_id, filters = NULL, limit = NULL
     ";"
   )
   rows <- DBI::dbGetQuery(bundle$con, sql, params = c(list(aid), filt$params))
-  .wb_art_table_rows_to_df(rows)
+  text <- as.character(info$meta_json[[1L]])
+  meta <- if (is.na(text) || !nzchar(text)) list() else
+    jsonlite::fromJSON(text, simplifyVector = TRUE)
+  storage <- .wb_table_decode_meta(meta, .wb_table_artifact_is_typed(bundle$con, aid))$storage
+  if (is.null(storage)) .wb_art_table_rows_to_df(rows) else
+    .wb_art_table_rows_to_df(rows, storage)
 }
 
 #' Summarize A Promoted `trajectory_smooth` Artifact
@@ -726,7 +732,8 @@ wb_art_trajectory_de_slice_primitive <- function(bundle, artifact_id, lineage_id
   meta_json <- as.character(info$meta_json[1] %||% "")[1]
   if (nzchar(meta_json)) {
     parsed <- try(jsonlite::fromJSON(meta_json, simplifyVector = TRUE), silent = TRUE)
-    if (!inherits(parsed, "try-error") && is.list(parsed)) meta <- parsed
+    if (!inherits(parsed, "try-error") && is.list(parsed))
+      meta <- .wb_table_decode_meta(parsed, .wb_table_artifact_is_typed(bundle$con, artifact_id))$meta
   }
   meta$lineage_id <- lin
   meta$slice_n_rows <- nrow(tbl)

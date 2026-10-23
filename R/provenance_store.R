@@ -374,6 +374,7 @@
     object = "scworkbench.content.object.canonical-json.v1",
     graph = "scworkbench.graph.content.canonical-json.v1",
     table = "scworkbench.content.table.row-json-fold.v1",
+    table_typed = "scworkbench.content.table.typed-row-json-fold.v1",
     matrix = "scworkbench.content.matrix.fragment-tree.v2",
     space = "scworkbench.content.space.canonical-json.v1",
     dense_space = "scworkbench.content.dense-space-hdf5.sha256.v1",
@@ -470,8 +471,10 @@
 }
 
 .wb_prov_table_content_sha256 <- function(prim) {
+  storage <- .wb_table_storage(prim)
   header <- list(
-    identity_version = "scworkbench.payload.table.stream.v1",
+    identity_version = if (is.null(storage)) "scworkbench.payload.table.stream.v1" else
+      "scworkbench.payload.table.stream.v2",
     kind = as.character(prim$kind),
     table_type = as.character(prim$table_type %||% "generic")[1],
     entity_kind = if (identical(prim$kind, "obs_table")) as.character(prim$entity_kind %||% "generic")[1] else NULL,
@@ -479,13 +482,14 @@
       .wb_json_sanitize(prim$meta %||% list()), auto_unbox = TRUE, null = "null"
     )), simplifyVector = TRUE)
   )
+  if (!is.null(storage)) header$storage <- storage
   state <- .wb_prov_sha256_object(header)
   fold <- .wb_prov_table_fold(state)
   table <- prim$table
   if (is.data.frame(table) && nrow(table)) for (start in
       seq.int(1L, nrow(table), by = 1000L)) {
     rows <- seq.int(start, min(nrow(table), start + 999L))
-    state <- fold(.wb_prov_table_row_json(table, rows))
+    state <- fold(.wb_prov_table_row_json(table, rows, storage))
   }
   state
 }
@@ -495,12 +499,17 @@
   .wb_assert(nrow(info)==1L, paste0("Missing stored table artifact identity header: ",artifact_id))
   meta_text <- as.character(info$meta_json[1] %||% "{}")[1]
   meta <- if (!is.na(meta_text) && nzchar(meta_text)) jsonlite::fromJSON(meta_text,simplifyVector=TRUE) else list()
+  decoded <- .wb_table_decode_meta(meta, .wb_table_artifact_is_typed(con, artifact_id))
+  storage <- decoded$storage
+  meta <- decoded$meta
   header <- list(
-    identity_version = "scworkbench.payload.table.stream.v1",
+    identity_version = if (is.null(storage)) "scworkbench.payload.table.stream.v1" else
+      "scworkbench.payload.table.stream.v2",
     kind = as.character(info$type[1]), table_type = as.character(info$table_type[1]),
     entity_kind = if (identical(as.character(info$type[1]),"obs_table")) as.character(info$entity_kind[1]) else NULL,
     meta = meta
   )
+  if (!is.null(storage)) header$storage <- storage
   state <- .wb_prov_sha256_object(header)
   fold <- .wb_prov_table_fold(state)
   last <- -1L
@@ -592,7 +601,7 @@
       verification_level = "content", verification_status = "content_verified"))
   }
   if (kind %in% c("feature_table", "obs_table")) {
-    return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_table_content_sha256(prim), content_identity_scheme = unname(.wb_content_identity_schemes()[["table"]]), verification_level = "content", verification_status = "content_verified"))
+    return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_table_content_sha256(prim), content_identity_scheme = .wb_table_identity_scheme(.wb_table_storage(prim)), verification_level = "content", verification_status = "content_verified"))
   }
   if (kind %in% c("cell_vector", "cell_vector_family", "relation_family", "path_2d_family", "space_path_family")) {
     return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(unclass(prim)), content_identity_scheme = unname(.wb_content_identity_schemes()[["object"]]), verification_level = "content", verification_status = "content_verified"))

@@ -1,7 +1,8 @@
 # Bounded emission of the existing artifact row JSON. Keep the legacy fallback
 # for attributed/list columns: dataframe JSON and scalar-list JSON do not share
 # all class/missing-value rules. This changes no durable representation.
-.wb_prov_table_row_json <- function(table, rows) {
+.wb_prov_table_row_json <- function(table, rows, storage = NULL) {
+  if (!is.null(storage)) return(.wb_table_typed_row_json(table, rows, storage))
   block <- table[rows, , drop = FALSE]
   ordinary <- ncol(block) > 0L && !anyDuplicated(names(block)) &&
     all(nzchar(names(block))) && all(vapply(block, function(x)

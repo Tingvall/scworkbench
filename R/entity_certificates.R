@@ -343,7 +343,7 @@
       art <- .wb_certificate_query(con, "artifacts", "SELECT type FROM artifacts WHERE artifact_id = ?;", list(id))
       atype <- if (nrow(art)) as.character(art$type[[1L]]) else ""
       if (atype %in% c("feature_table", "obs_table")) {
-        list(content_sha256 = .wb_prov_stored_table_content_sha256(con, id), content_identity_scheme = unname(.wb_content_identity_schemes()[["table"]]))
+        list(content_sha256 = .wb_prov_stored_table_content_sha256(con, id), content_identity_scheme = .wb_table_stored_identity_scheme(con, id))
       } else if (identical(atype, "model_ref")) {
         row <- .wb_certificate_query(con, "artifact_model_ref", "SELECT model_path FROM artifact_model_ref WHERE artifact_id = ?;", list(id))
         path <- .wb_bundle_path_require(bundle, as.character(row$model_path[[1L]]), expected_type = "either", must_exist = TRUE, purpose = "certificate artifact model payload")

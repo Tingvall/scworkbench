@@ -137,6 +137,8 @@ test_engine_table_row_hash_stored_primitive_identity_contract <- function() {
   table <- data.frame(feature_id = c("f_2", "f_10", "f_1"),
     score = c(.2, .5, .8), label = c("é雪", "quote\"\\\n", ""))
   prim <- wb_prim_feature_table(table, table_type = "generic", meta = list(label = "nonempty"))
+  # Explicit legacy primitive: preserve the frozen historical identity fixture.
+  prim$table_storage <- NULL
   header <- list(identity_version = "scworkbench.payload.table.stream.v1",
     kind = "feature_table", table_type = "generic", entity_kind = NULL,
     meta = jsonlite::fromJSON(as.character(jsonlite::toJSON(prim$meta,

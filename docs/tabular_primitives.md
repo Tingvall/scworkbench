@@ -134,3 +134,34 @@ The model-backed dynamics operations require a retained model. Their separate
 `scwbtrajectory::trajectory_geneset_dynamics_explicit` and
 `scwbtrajectory::trajectory_signal_dynamics_explicit` counterparts take typed
 pseudotime and an explicit key. Activate the pack before either route.
+
+## Numeric storage fidelity
+
+New `wb_prim_feature_table()` and `wb_prim_obs_table()` values declare a
+`table_storage` version and column types. Promotion stores this declaration in
+a versioned envelope in the existing `artifact_tables.meta_json`, selected by a
+writer-owned `table_storage` marker in artifact provenance JSON; user metadata
+remains inside the envelope and getters return it as `meta`. Ordinary integer,
+double, logical and character columns retain their types, including empty and
+all-missing columns. Doubles use 17-digit JSON encoding. Numeric missing values
+are JSON null; the declared double type also distinguishes the supported NaN,
+Inf and -Inf encodings from character values with those spellings. Display
+formatting does not define persisted scientific precision.
+
+Column declarations are part of content identity. Construct a new primitive
+when changing column names or types. New identities use
+`scworkbench.content.table.typed-row-json-fold.v1`, with a
+`scworkbench.payload.table.stream.v2` header. Historical primitives without a
+storage declaration and historical table metadata retain their existing reader
+and `scworkbench.content.table.row-json-fold.v1` preimage. No historical precision
+is recovered or rewritten. Replaying an old method with a new constructor can
+produce a new scheme; equality across these schemes is not asserted.
+
+Attributed columns keep their historical projection rather than acquiring an
+R class-preservation guarantee: factors and Dates reopen as their JSON labels.
+List and matrix columns have no supported scalar round-trip contract and new
+publication rejects them explicitly. Empty attributed columns remain unsupported.
+Ordinary numeric columns alongside supported attributed columns retain the new
+precision and missingness guarantees. Python's existing table payload writer
+has no matching type declaration or empty-column contract; typed-table Python
+publication/read parity requires separate work.

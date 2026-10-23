@@ -334,6 +334,8 @@
   for (aid in unique(as.character(info$artifact_id))) {
     table_type <- as.character(info$table_type[as.character(info$artifact_id) == aid][1])
     table_meta <- .wb_prov_json_read(as.character(info$meta_json[as.character(info$artifact_id) == aid][1] %||% "{}"))
+    table_meta <- .wb_table_decode_meta(table_meta,
+      .wb_table_artifact_is_typed(con, aid))$meta
     rows <- DBI::dbGetQuery(
       con,
       "SELECT row_json FROM artifact_table_rows WHERE artifact_id = ? ORDER BY row_idx;",

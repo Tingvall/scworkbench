@@ -96,3 +96,10 @@ Historical `scworkbench.runtime_attestation.v1` records keep their original
 BPCells loadability-probe interpretation and bytes. Read-only provenance and
 certificate inspection and durable recovery accept them without relabeling or
 rewriting them. New v2 records may coexist with historical v1 evidence.
+
+New typed tables use `scworkbench.content.table.typed-row-json-fold.v1`.
+Their `scworkbench.payload.table.stream.v2` header adds the ordered column
+storage declaration to the existing kind, table type, entity kind and user
+metadata header. The row digest recurrence is unchanged. Historical tables
+retain `scworkbench.content.table.row-json-fold.v1` and the stream.v1 header;
+new code does not recalculate their rows at higher precision under that scheme.

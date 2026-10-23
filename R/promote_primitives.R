@@ -1429,7 +1429,13 @@ wb_promote_analysis <- function(bundle,
 
   artifact_id <- .wb_new_artifact_id(artifact_type, bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
+  storage <- .wb_table_storage(prim)
   prov_json <- .wb_prov_json(run, parent_artifacts)
+  if (!is.null(storage)) {
+    provenance <- jsonlite::fromJSON(prov_json, simplifyVector = FALSE)
+    provenance$table_storage <- prim$table_storage$format
+    prov_json <- as.character(jsonlite::toJSON(provenance, auto_unbox = TRUE, null = "null"))
+  }
 
   DBI::dbExecute(con, "
     INSERT INTO artifacts(
@@ -1454,8 +1460,10 @@ wb_promote_analysis <- function(bundle,
   ))
 
   tbl <- prim$table
-  meta <- prim$meta %||% list()
-  meta_json <- jsonlite::toJSON(.wb_json_sanitize(meta), auto_unbox = TRUE, null = "null")
+  meta <- .wb_json_sanitize(prim$meta %||% list())
+  if (!is.null(storage)) meta <- list(storage_format = "scworkbench.table.typed-json.v1",
+    columns = storage, meta = meta)
+  meta_json <- jsonlite::toJSON(meta, auto_unbox = TRUE, null = "null")
 
   DBI::dbExecute(con, "
     INSERT INTO artifact_tables(
@@ -1471,7 +1479,7 @@ wb_promote_analysis <- function(bundle,
   if (nrow(tbl)) for (start in seq.int(1L, nrow(tbl), by = 1000L)) {
     rows <- seq.int(start, min(nrow(tbl), start + 999L))
     row_df <- data.frame(artifact_id = rep(artifact_id, length(rows)),
-      row_idx = rows, row_json = .wb_prov_table_row_json(tbl, rows),
+      row_idx = rows, row_json = .wb_prov_table_row_json(tbl, rows, storage),
       stringsAsFactors = FALSE)
     .wb_db_append_chunked(con, "artifact_table_rows", row_df, chunk_size = 1000L)
   }
