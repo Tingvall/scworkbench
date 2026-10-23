@@ -1,7 +1,8 @@
 #' List Promoted Artifacts
 #'
 #' Return artifact registry rows from the bundle, optionally restricted to a
-#' single promoted artifact type.
+#' single promoted artifact type. Default SQL excludes retained provenance
+#' descriptors and never loads scientific payloads.
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param type Optional artifact type filter such as `"feature_table"` or
@@ -9,23 +10,39 @@
 #' @param include_history If `FALSE`, omit ephemeral, superseded, rejected, and retracted
 #'   artifacts. Historical evidence remains loadable by id.
 #'
-#' @return A data frame of artifact registry rows ordered by `created_at`
-#'   descending.
+#' @param include_provenance If `TRUE`, return all registry columns including
+#'   potentially large `provenance_json`. Default `FALSE` omits that column.
+#' @return A data frame ordered by `created_at` descending, then `artifact_id`
+#'   descending. Default columns are `artifact_id`, `type`, `name`, `description`,
+#'   `created_at`, `created_by`, `source_op`, `input_space_id`, `input_matrix_id`,
+#'   `cell_set`, `provenance_snapshot_id`, `lineage_status`, `scworkbench_version`,
+#'   `lifecycle_state`, and `provenance_bound`. Omitted provenance is not an
+#'   assertion that none exists. Names/descriptions are returned unchanged.
+#' @examples
+#' \dontrun{
+#' wb_art_list(bundle)
+#' wb_art_list(bundle, type = "feature_table", include_provenance = TRUE)
+#' }
 #'
-# pybench-parity: yes
+# pybench-parity: no (Python retains full registry rows by default)
 # pybench-counterpart: pybench.getters.art_list
-# contract-note: artifact registry rows ordered by created_at DESC
+# contract-note: explicit provenance opt-in; stable created_at/artifact_id DESC
 #' @export
-wb_art_list <- function(bundle, type = NULL, include_history = FALSE) {
+wb_art_list <- function(bundle, type = NULL, include_history = FALSE,
+                        include_provenance = FALSE) {
   con <- bundle$con
   has_lifecycle <- .wb_table_exists(con, "entity_lifecycle")
+  columns <- if (isTRUE(include_provenance)) "a.*" else paste0("a.", c(
+    "artifact_id", "type", "name", "description", "created_at", "created_by",
+    "source_op", "input_space_id", "input_matrix_id", "cell_set",
+    "provenance_snapshot_id", "lineage_status", "scworkbench_version"), collapse = ", ")
   select <- if (has_lifecycle) {
-    "SELECT a.*, COALESCE(el.lifecycle_state, 'current') AS lifecycle_state, COALESCE(el.provenance_bound, 0) AS provenance_bound FROM artifacts a LEFT JOIN entity_lifecycle el ON el.entity_kind = 'artifact' AND el.entity_id = a.artifact_id"
-  } else "SELECT a.*, 'current' AS lifecycle_state, 0 AS provenance_bound FROM artifacts a"
+    paste0("SELECT ", columns, ", COALESCE(el.lifecycle_state, 'current') AS lifecycle_state, COALESCE(el.provenance_bound, 0) AS provenance_bound FROM artifacts a LEFT JOIN entity_lifecycle el ON el.entity_kind = 'artifact' AND el.entity_id = a.artifact_id")
+  } else paste0("SELECT ", columns, ", 'current' AS lifecycle_state, 0 AS provenance_bound FROM artifacts a")
   where <- character(0); params <- list()
   if (!is.null(type)) { where <- c(where, "a.type = ?"); params <- c(params, list(type)) }
   if (!isTRUE(include_history) && has_lifecycle) where <- c(where, "COALESCE(el.lifecycle_state, 'current') = 'current'")
-  sql <- paste0(select, if (length(where)) paste0(" WHERE ", paste(where, collapse = " AND ")) else "", " ORDER BY a.created_at DESC;")
+  sql <- paste0(select, if (length(where)) paste0(" WHERE ", paste(where, collapse = " AND ")) else "", " ORDER BY a.created_at DESC, a.artifact_id DESC;")
   if (length(params)) DBI::dbGetQuery(con, sql, params = params) else DBI::dbGetQuery(con, sql)
 }
 
@@ -314,7 +331,7 @@ wb_art_trajectory_smooth_overview <- function(bundle, artifact_id) {
   feature_set <- as.character(params$feature_set %||% "")[1]
   model_signature <- .wb_art_trajectory_model_signature(info, prov = prov)
 
-  arts <- wb_art_list(bundle, type = "obs_table")
+  arts <- wb_art_list(bundle, type = "obs_table", include_provenance = TRUE)
   summary_artifact_id <- NA_character_
   summary_tbl <- data.frame(stringsAsFactors = FALSE)
   if (is.data.frame(arts) && nrow(arts)) {
@@ -410,7 +427,7 @@ wb_art_trajectory_related <- function(bundle, artifact_id) {
   model_sig <- .wb_art_trajectory_model_signature(info, prov = prov)
   model_fields <- .wb_art_trajectory_model_fields(info, prov = prov)
 
-  arts <- wb_art_list(bundle)
+  arts <- wb_art_list(bundle, include_provenance = TRUE)
   if (!is.data.frame(arts) || !nrow(arts)) {
     empty_df <- data.frame(stringsAsFactors = FALSE)
     return(list(
@@ -618,7 +635,7 @@ wb_art_trajectory_de_overview <- function(bundle, artifact_id) {
   feature_set <- as.character(params$feature_set %||% "")[1]
   model_signature <- .wb_art_trajectory_model_signature(info, prov = prov)
 
-  arts <- wb_art_list(bundle, type = "obs_table")
+  arts <- wb_art_list(bundle, type = "obs_table", include_provenance = TRUE)
   summary_artifact_id <- NA_character_
   summary_tbl <- data.frame(stringsAsFactors = FALSE)
   if (is.data.frame(arts) && nrow(arts)) {

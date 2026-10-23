@@ -228,7 +228,7 @@ wb_session_dag <- function(session,
 
   # artifact linkage (if available)
   if (isTRUE(include_artifacts) && !is.null(bundle) && exists("wb_art_list", mode = "function")) {
-    arts <- try(wb_art_list(bundle), silent = TRUE)
+    arts <- try(wb_art_list(bundle, include_provenance = TRUE), silent = TRUE)
     if (!inherits(arts, "try-error") && is.data.frame(arts) && nrow(arts)) {
       for (j in seq_len(nrow(arts))) {
         aid <- as.character(arts$artifact_id[j] %||% "")[1]
@@ -365,7 +365,7 @@ wb_session_dag_run_details <- function(session, run_id, bundle = NULL) {
     stringsAsFactors = FALSE
   )
   if (!is.null(bundle) && exists("wb_art_list", mode = "function")) {
-    arts <- try(wb_art_list(bundle), silent = TRUE)
+    arts <- try(wb_art_list(bundle, include_provenance = TRUE), silent = TRUE)
     if (!inherits(arts, "try-error") && is.data.frame(arts) && nrow(arts)) {
       src <- vapply(arts$provenance_json %||% "", .wb_dag_artifact_source_run, character(1))
       keep <- which(src == rid)

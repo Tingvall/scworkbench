@@ -4,7 +4,12 @@
 \alias{wb_art_list}
 \title{List Promoted Artifacts}
 \usage{
-wb_art_list(bundle, type = NULL, include_history = FALSE)
+wb_art_list(
+  bundle,
+  type = NULL,
+  include_history = FALSE,
+  include_provenance = FALSE
+)
 }
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
@@ -14,12 +19,27 @@ wb_art_list(bundle, type = NULL, include_history = FALSE)
 
 \item{include_history}{If \code{FALSE}, omit ephemeral, superseded, rejected, and retracted
 artifacts. Historical evidence remains loadable by id.}
+
+\item{include_provenance}{If \code{TRUE}, return all registry columns including
+potentially large \code{provenance_json}. Default \code{FALSE} omits that column.}
 }
 \value{
-A data frame of artifact registry rows ordered by \code{created_at}
-descending.
+A data frame ordered by \code{created_at} descending, then \code{artifact_id}
+descending. Default columns are \code{artifact_id}, \code{type}, \code{name}, \code{description},
+\code{created_at}, \code{created_by}, \code{source_op}, \code{input_space_id}, \code{input_matrix_id},
+\code{cell_set}, \code{provenance_snapshot_id}, \code{lineage_status}, \code{scworkbench_version},
+\code{lifecycle_state}, and \code{provenance_bound}. Omitted provenance is not an
+assertion that none exists. Names/descriptions are returned unchanged.
 }
 \description{
 Return artifact registry rows from the bundle, optionally restricted to a
-single promoted artifact type.
+single promoted artifact type. Default SQL excludes retained provenance
+descriptors and never loads scientific payloads.
+}
+\examples{
+\dontrun{
+wb_art_list(bundle)
+wb_art_list(bundle, type = "feature_table", include_provenance = TRUE)
+}
+
 }

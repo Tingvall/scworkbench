@@ -366,10 +366,10 @@
       function_name = "wb_art_list",
       title = "Artifacts",
       category = "artifacts",
-      description = "List current promoted artifacts by default, optionally filtered by type or expanded to retained history.",
+      description = "List current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle", "type", "include_history"),
+      arguments = c("bundle", "type", "include_history", "include_provenance"),
       use_when = c("find promoted outputs", "choose artifact for plotting or loading")
     ),
     list(

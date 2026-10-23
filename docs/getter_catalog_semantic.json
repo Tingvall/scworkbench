@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "source-controlled",
+  "generated_at": "2026-10-23T23:05:08+0000",
   "getter_count": 87,
   "getters": [
     {
@@ -403,10 +403,10 @@
       "function_name": "wb_art_list",
       "title": "Artifacts",
       "category": "artifacts",
-      "description": "List current promoted artifacts by default, optionally filtered by type or expanded to retained history.",
+      "description": "List current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": ["bundle", "type", "include_history"],
+      "arguments": ["bundle", "type", "include_history", "include_provenance"],
       "use_when": ["find promoted outputs", "choose artifact for plotting or loading"],
       "mutates": false
     },

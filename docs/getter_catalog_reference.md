@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: source-controlled
+Generated at: 2026-10-23T23:05:08+0000
 
 Getter count: 87
 
@@ -15,13 +15,13 @@ The machine-readable companion is `docs/getter_catalog_semantic.json`.
 
 Title: Artifacts
 
-Description: List current promoted artifacts by default, optionally filtered by type or expanded to retained history.
+Description: List current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance.
 
 Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle, type, include_history
+Arguments: bundle, type, include_history, include_provenance
 
 Use when:
 - find promoted outputs

@@ -179,3 +179,21 @@ artifact provenance. Its payload writer receives the same declaration through
 `table_storage`; omitting it retains legacy storage. Supported Python writer
 types are integer (R's non-missing 32-bit range), double, logical and character.
 Construct a new output declaration when changing the ordered column schema.
+
+## Artifact discovery and retained provenance
+
+`wb_art_list(bundle)` now returns discovery metadata without the
+`provenance_json` column. Its SQL excludes that field; it does not load a
+payload or deserialize provenance. Artifact IDs, type/name/description,
+source operation, input references, provenance snapshot/lineage references,
+and lifecycle fields remain available. Ordering is `created_at` descending,
+then `artifact_id` descending for ties; type/history filters retain their meaning.
+
+Use `wb_art_list(bundle, include_provenance = TRUE)` when full registry rows
+are needed. Existing callers that read `provenance_json` must opt in explicitly.
+Omission is not an assertion that provenance is absent. Typed and legacy
+artifact loading/slicing is unchanged. Full provenance and user-provided
+names/descriptions can still be large; this API change does not bound retained
+storage, explicit detailed inspection, or arbitrary user metadata. Python's
+listing still returns full registry rows by default; R/Python default parity
+is not claimed.
