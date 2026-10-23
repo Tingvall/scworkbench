@@ -60,5 +60,8 @@ An open scworkbench_bundle at bundle_dir.
 Imports one or more Cell Ranger-style Matrix Market triplets
 (\code{matrix.mtx[.gz]}, \code{barcodes.tsv[.gz]}, \code{features.tsv[.gz]}) into a
 scworkbench bundle. Multiple libraries are stored as BPCells fragments under
-one logical matrix.
+one logical matrix. After all fragments are written, the importer seals one
+producer/content baseline for the logical counts matrix, independently of
+report emission. This streams the contained payload files once at sealing;
+ordinary matrix block reads do not recompute the baseline.
 }

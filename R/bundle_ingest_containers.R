@@ -653,7 +653,10 @@
 #' Imports one or more Cell Ranger-style Matrix Market triplets
 #' (`matrix.mtx[.gz]`, `barcodes.tsv[.gz]`, `features.tsv[.gz]`) into a
 #' scworkbench bundle. Multiple libraries are stored as BPCells fragments under
-#' one logical matrix.
+#' one logical matrix. After all fragments are written, the importer seals one
+#' producer/content baseline for the logical counts matrix, independently of
+#' report emission. This streams the contained payload files once at sealing;
+#' ordinary matrix block reads do not recompute the baseline.
 #'
 #' @param input Directory containing one 10x triplet, a directory of triplets,
 #'   or a sample table-compatible source descriptor.
@@ -898,6 +901,15 @@ wb_bundle_from_10x_mtx <- function(input,
       n_features = length(all_feature_final),
       n_cells = length(all_cells),
       path = first_rel_path
+    )
+
+    # Fragments are complete and contained before a single logical-matrix
+    # baseline is issued. Report suppression must not suppress ownership.
+    phase <- "seal_counts"
+    .wb_record_declared_ingestion(
+      bundle, transaction_name = "bundle_ingest_10x_mtx_counts",
+      matrix_ids = matrix_id, source = "10x_mtx", created_by = created_by,
+      source_identity = source_identity
     )
 
     phase <- "feature_metadata"

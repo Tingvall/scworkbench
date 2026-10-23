@@ -28,3 +28,15 @@ authoritative source and the converted SingleCellExperiment is a mediated
 in-memory child in the same declaration. Imported matrices, spaces, metadata,
 and feature metadata retain that ancestry. Ingest reports are evidence only;
 setting `emit_report_artifact = FALSE` omits the report, not source provenance.
+
+Multi-library `wb_bundle_from_10x_mtx()` seals the completed bundle-owned counts
+matrix after every fragment is written. The single `bundle_ingest_10x_mtx_counts`
+producer records the existing fragment-tree content identity and lifecycle
+binding even when `emit_report_artifact = FALSE`. The baseline hashes contained
+payload files with bounded streaming at this import/seal boundary; it does not
+convert the logical matrix to a dense object. Public matrix certificates and
+explicit content validation can compare current files with this baseline after
+relocation. Ordinary slices/block reads do not reauthenticate whole sources.
+An omitted external `source_identity` remains an internal assembly boundary;
+the counts content baseline does not invent upstream source attribution.
+Historical imports are not automatically relabeled or backfilled.
