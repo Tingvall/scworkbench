@@ -162,6 +162,20 @@ R class-preservation guarantee: factors and Dates reopen as their JSON labels.
 List and matrix columns have no supported scalar round-trip contract and new
 publication rejects them explicitly. Empty attributed columns remain unsupported.
 Ordinary numeric columns alongside supported attributed columns retain the new
-precision and missingness guarantees. Python's existing table payload writer
-has no matching type declaration or empty-column contract; typed-table Python
-publication/read parity requires separate work.
+precision and missingness guarantees.
+
+The paired PyBench implementation reads this format through
+`pybench.artifact_table(bundle, artifact_id)`. It returns ordered column names,
+declared types, metadata and row dictionaries; this explicit getter materializes
+the requested table. JSON null becomes Python `None`, distinct from double NaN.
+Factor and Date columns retain only the legacy label projection described above.
+
+Protocol-v2 Python table outputs opt in with an R-issued output specification:
+`table_storage = list(format = "scworkbench.table.typed-json.v1", columns =
+list(names = c("feature_id", "p_adj"), types = c("character", "double")))`.
+Core preregisters the storage marker and checks the returned schema and content
+before publication. Python writes only its existing scoped payload tables, not
+artifact provenance. Its payload writer receives the same declaration through
+`table_storage`; omitting it retains legacy storage. Supported Python writer
+types are integer (R's non-missing 32-bit range), double, logical and character.
+Construct a new output declaration when changing the ordered column schema.

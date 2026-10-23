@@ -120,8 +120,33 @@
   }, character(1))
 }
 
+# jsonlite parses the valid JSON number -0 as integer zero. Change only the
+# parser input for unquoted scalar tokens; persisted row bytes remain untouched.
+.wb_table_signed_zero_parse_text <- function(text) {
+  chars <- strsplit(text, "", fixed = TRUE)[[1L]]
+  quoted <- FALSE; escaped <- FALSE; positions <- integer()
+  n <- length(chars)
+  for (i in seq_len(n)) {
+    ch <- chars[[i]]
+    if (quoted) {
+      if (escaped) escaped <- FALSE else if (ch == "\\") escaped <- TRUE else
+        if (ch == '"') quoted <- FALSE
+    } else if (ch == '"') quoted <- TRUE else
+      if (ch == ":" && i + 3L <= n && chars[[i + 1L]] == "-" &&
+          chars[[i + 2L]] == "0" && chars[[i + 3L]] %in% c(",", "}"))
+        positions <- c(positions, i + 2L)
+  }
+  if (!length(positions)) return(text)
+  chars[positions] <- "0.0"
+  paste0(chars, collapse = "")
+}
+
 .wb_table_typed_rows_to_df <- function(rows, storage) {
-  rr <- lapply(rows$row_json, jsonlite::fromJSON, simplifyVector = FALSE)
+  json <- as.character(rows$row_json)
+  candidate <- grepl(":-0[,}]", json)
+  if (any(candidate)) json[candidate] <- vapply(json[candidate],
+    .wb_table_signed_zero_parse_text, character(1))
+  rr <- lapply(json, jsonlite::fromJSON, simplifyVector = FALSE)
   n <- length(rr)
   keys <- as.character(storage$names); types <- as.character(storage$types)
   .wb_assert(all(vapply(rr, function(row) identical(as.character(names(row)), keys), logical(1))),

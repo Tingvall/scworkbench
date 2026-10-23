@@ -21,9 +21,13 @@ test_numeric_table_precision_types_missing_and_reopen_contract <- function() {
   root <- tempfile("numeric_table_"); b <- wb_init_bundle(root)
   on.exit({try(wb_close_bundle(b), silent = TRUE); unlink(root, recursive = TRUE)}, add = TRUE)
   values <- c(0.0499545077, .05 - .Machine$double.eps / 8,
-    .05, .05 + .Machine$double.eps / 8, 1e-50, 1e-300, 0, -0,
+    .05, .05 + .Machine$double.eps / 8, 1e-50, 1e-300, 0, 0,
     pi, .Machine$double.xmax, .Machine$double.xmin, 5e-324,
     NA_real_, NaN, Inf, -Inf)
+  negative_zero <- raw(8L)
+  negative_zero[[if (.Platform$endian == "little") 8L else 1L]] <- as.raw(128L)
+  values[[8L]] <- readBin(negative_zero, double(), n = 1L,
+    size = 8L, endian = .Platform$endian)
   table <- data.frame(feature_id = paste0("f", seq_along(values)),
     p_val_adj = values, integer = rep(c(NA_integer_, 1L), 8),
     integer_double = rep(1, 16), flag = rep(c(TRUE, FALSE, NA, TRUE), 4),
@@ -31,6 +35,7 @@ test_numeric_table_precision_types_missing_and_reopen_contract <- function() {
     missing_double = rep(NA_real_, 16), missing_integer = rep(NA_integer_, 16),
     missing_logical = rep(NA, 16), missing_character = rep(NA_character_, 16))
   stopifnot(identical(wb_prim_feature_table(table)$table, table))
+  stopifnot(tail(as.integer(writeBin(values[[8L]], raw(), size = 8L)), 1L) == 128L)
   stopifnot(scworkbench:::.wb_promotion_table_observable(wb_prim_feature_table(table)))
   a <- .numeric_table_publish(b, table)
   empty <- .numeric_table_publish(b, table[0, ], "obs_table")

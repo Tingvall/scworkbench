@@ -500,6 +500,7 @@
     .wb_assert(is.function(prepare_transition), "PyBench prepare_transition must be a function")
     prepare_transition(cloned$bundle, request)
   }
+  .wb_pybench_validate_typed_table_binding(cloned$bundle, request)
   pre_db <- .wb_pybench_db_snapshot(cloned$bundle$con)
   pre_payload <- .wb_pybench_payload_snapshot(cloned$root)
   request$bundle_dir <- normalizePath(cloned$root, winslash = "/", mustWork = TRUE)
@@ -512,6 +513,7 @@
   post_payload <- .wb_pybench_payload_snapshot(cloned$root)
   observed <- .wb_pybench_audit_mutations(pre_db, post_db, pre_payload, post_payload, request)
   .wb_pybench_verify_receipt_audit(result$receipt, observed)
+  .wb_pybench_validate_typed_table_binding(cloned$bundle, request, payload = TRUE)
   if (!is.null(validate_transition)) {
     .wb_assert(is.function(validate_transition), "PyBench validate_transition must be a function")
     validate_transition(cloned$bundle, request, result, observed)

@@ -290,6 +290,15 @@
   if (identical(mode, "staging_write") && nzchar(space_id) && !"space_registry" %in% names(outputs)) {
     outputs$space_registry <- list(artifact_id = space_id, type = "space")
   }
+  outputs <- lapply(outputs, function(spec) {
+    storage <- .wb_pybench_table_storage_declaration(spec)
+    if (!is.null(storage)) {
+      spec$table_storage <- list(format = storage$format, columns = list(
+        names = as.list(storage$columns$names),
+        types = as.list(storage$columns$types)))
+    }
+    spec
+  })
   allow <- if (identical(mode, "read_only")) list() else .wb_pybench_write_allowlist(outputs, params)
   capability <- list(
     capability_id = paste0("cap_", .wb_writer_lock_token()), mode = mode,
@@ -315,6 +324,78 @@
   req
 }
 
+.wb_pybench_table_storage_declaration <- function(spec) {
+  storage <- spec$table_storage
+  if (is.null(storage)) return(NULL)
+  .wb_assert(identical(as.character(spec$type), "obs_table") ||
+    identical(as.character(spec$type), "feature_table"),
+    "PYBENCH_TABLE_DECLARATION_INVALID: typed storage requires a table output")
+  .wb_assert(is.list(storage) && setequal(names(storage), c("format", "columns")) &&
+    identical(storage$format, "scworkbench.table.typed-json.v1") &&
+    is.list(storage$columns) &&
+    setequal(names(storage$columns), c("names", "types")),
+    "PYBENCH_TABLE_DECLARATION_INVALID: malformed typed storage declaration")
+  columns <- storage$columns
+  names <- unlist(columns$names, use.names = FALSE)
+  types <- unlist(columns$types, use.names = FALSE)
+  .wb_assert(is.character(names) && is.character(types) &&
+    length(names) == length(types) && !anyNA(names) &&
+    !anyDuplicated(names) && all(nzchar(names)) &&
+    !anyNA(types) && all(types %in% c("integer", "double", "logical", "character")),
+    "PYBENCH_TABLE_DECLARATION_INVALID: invalid ordered table columns")
+  list(format = "scworkbench.table.typed-json.v1",
+    columns = list(names = names, types = types))
+}
+
+.wb_pybench_validate_typed_table_binding <- function(bundle, request, payload = FALSE) {
+  for (nm in names(request$outputs)) {
+    spec <- request$outputs[[nm]]
+    storage <- .wb_pybench_table_storage_declaration(spec)
+    if (is.null(storage)) next
+    id <- as.character(spec$artifact_id)[1]
+    row <- DBI::dbGetQuery(bundle$con,
+      "SELECT provenance_json FROM artifacts WHERE artifact_id=?;", params = list(id))
+    .wb_assert(nrow(row) == 1L, "PYBENCH_TABLE_DECLARATION_MISMATCH: artifact is absent")
+    provenance <- jsonlite::fromJSON(row$provenance_json[[1L]], simplifyVector = FALSE)
+    .wb_assert(identical(provenance$table_storage, storage$format),
+      "PYBENCH_TABLE_DECLARATION_MISMATCH: R-owned storage marker differs")
+    if (!isTRUE(payload)) next
+    info <- DBI::dbGetQuery(bundle$con,
+      "SELECT meta_json FROM artifact_tables WHERE artifact_id=?;", params = list(id))
+    .wb_assert(nrow(info) == 1L,
+      "PYBENCH_TABLE_DECLARATION_MISMATCH: table metadata is absent")
+    meta <- jsonlite::fromJSON(info$meta_json[[1L]], simplifyVector = TRUE)
+    decoded <- .wb_table_decode_meta(meta, typed = TRUE)
+    .wb_assert(identical(decoded$storage$names, storage$columns$names) &&
+      identical(decoded$storage$types, storage$columns$types),
+      "PYBENCH_TABLE_DECLARATION_MISMATCH: table columns differ from R declaration")
+    indices <- DBI::dbGetQuery(bundle$con,
+      "SELECT count(*) n,min(row_idx) first,max(row_idx) last FROM artifact_table_rows WHERE artifact_id=?;",
+      params = list(id))
+    n <- as.integer(indices$n[[1L]])
+    .wb_assert(n == 0L ||
+      (identical(as.integer(indices$first[[1L]]), 1L) &&
+        identical(as.integer(indices$last[[1L]]), n)),
+      "PYBENCH_TABLE_DECLARATION_MISMATCH: table row indices are not contiguous")
+    prim <- wb_art_load(bundle, id, expected_kind = as.character(spec$type)[1])
+    claim <- .wb_prov_table_content_sha256(prim)
+    stored <- .wb_prov_stored_table_content_sha256(bundle$con, id)
+    if (!identical(claim, stored)) {
+      rows <- DBI::dbGetQuery(bundle$con,
+        "SELECT row_json FROM artifact_table_rows WHERE artifact_id=? ORDER BY row_idx;",
+        params = list(id))$row_json
+      expected <- .wb_prov_table_row_json(prim$table, seq_len(n), storage$columns)
+      mismatch <- which(rows != expected)
+      stop("PYBENCH_TABLE_DECLARATION_MISMATCH: typed table content identity differs",
+        if (length(mismatch)) paste0(" at row ", mismatch[[1L]],
+          " (stored=", rows[[mismatch[[1L]]]],
+          ", reconstructed=", expected[[mismatch[[1L]]]], ")") else
+          " in header", call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
 # Pre-register artifact rows for a Python op (internal payload-only bridge).
 .wb_pybench_preregister_outputs <- function(bundle,
                                             run,
@@ -325,12 +406,11 @@
   .wb_assert(is.list(outputs_spec) && length(outputs_spec) > 0L, "outputs_spec must be a non-empty named list")
   .wb_assert(!is.null(names(outputs_spec)) && all(nzchar(names(outputs_spec))), "outputs_spec must be named")
 
+  declarations <- lapply(outputs_spec, .wb_pybench_table_storage_declaration)
+
   wb_migrate_artifacts(bundle)
 
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
-  prov_json <- jsonlite::toJSON(list(pybench_pending = TRUE, run_id = run$run_id %||% NA_character_),
-                                auto_unbox = TRUE, null = "null")
-
   out <- list()
   for (nm in names(outputs_spec)) {
     spec <- outputs_spec[[nm]]
@@ -349,6 +429,10 @@
       )
     }
 
+    provenance <- list(pybench_pending = TRUE, run_id = run$run_id %||% NA_character_)
+    if (!is.null(declarations[[nm]]))
+      provenance$table_storage <- declarations[[nm]]$format
+    prov_json <- jsonlite::toJSON(provenance, auto_unbox = TRUE, null = "null")
     DBI::dbExecute(con, "
       INSERT INTO artifacts(
         artifact_id, type, name, description, created_at, created_by,
@@ -370,6 +454,8 @@
       as.character(utils::packageVersion("scworkbench"))
     ))
     out[[nm]] <- list(artifact_id = artifact_id, type = type)
+    if (!is.null(declarations[[nm]]))
+      out[[nm]]$table_storage <- declarations[[nm]]
   }
   out
 }
