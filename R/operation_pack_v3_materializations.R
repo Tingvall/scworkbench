@@ -945,7 +945,12 @@
             model$model_path)[1], as.character(model$model_primary_path %||%
               "")[1]),
           format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-          jsonlite::toJSON(list(model_linkage = model$model_linkage,
+          jsonlite::toJSON(list(
+            native_model_creation = "scworkbench.native_model_creation.v1",
+            producer_run_id = .wb_current_mutation_context(bundle$con)$run_id,
+            producer_output_name = sibling,
+            model_primary_path = as.character(model$model_primary_path)[1],
+            model_linkage = model$model_linkage,
             payload_manifest_identity =
               model$model_payload_manifest_identity), auto_unbox = TRUE,
             null = "null", digits = NA)))

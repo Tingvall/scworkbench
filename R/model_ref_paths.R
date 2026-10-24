@@ -1,3 +1,19 @@
+# New native fit records identify their primary file within a retained tree.
+# Legacy rows keep their original file boundary; this never migrates identities.
+.wb_native_model_payload_path <- function(model_path, provenance_json = NULL) {
+  path <- as.character(model_path %||% "")[1L]
+  text <- as.character(provenance_json %||% "")[1L]
+  if (is.na(text) || !nzchar(text)) return(path)
+  record <- tryCatch(jsonlite::fromJSON(text, simplifyVector = FALSE),
+    error = function(error) NULL)
+  if (!identical(record$native_model_creation, "scworkbench.native_model_creation.v1")) return(path)
+  primary <- as.character(record$model_primary_path %||% "")[1L]
+  .wb_assert(!is.na(primary) && nzchar(primary) && !.wb_path_is_absolute(primary) &&
+    !any(strsplit(gsub("\\\\", "/", primary), "/", fixed = TRUE)[[1L]] %in% c("", ".", "..")) &&
+    endsWith(path, paste0("/", primary)), "Invalid native fitted-model primary path metadata")
+  substr(path, 1L, nchar(path) - nchar(primary) - 1L)
+}
+
 # Model reference path handling.
 #
 # Contract: model files stored inside a bundle are addressed by a path relative

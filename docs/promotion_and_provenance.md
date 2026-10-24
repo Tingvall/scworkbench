@@ -43,3 +43,18 @@ content SHA-256 values remain recorded and may differ; this policy does not
 claim coordinate equality or geometric identity.
 
 Inspect the persisted decision with `wb_prov_replay_equivalence_results()`.
+
+Native fitted space models and retained `model_ref` artifacts have distinct
+content boundaries. For new paired-model fits, core records the planned fit
+run/output in the native model's registry provenance and binds that native
+entity when the owning run is promoted. The native certificate and model-ref
+artifact share the existing file-tree identity for the contained payload, as
+required by their existing lifecycle alias. The native registry still points
+to its primary model file; certificate storage exposes the contained tree too.
+The embedding keeps its dense-space identity. Query them with
+`wb_entity_certificate(b, "model", space_id)`, `"artifact", model_artifact_id`,
+and `"space", space_id` respectively. A reference re-emitted by another run
+cannot acquire native fit ownership. Retained-model transform/reuse continues
+through the model artifact; it does not refit or reassign the native producer.
+Historical native model rows without a recorded creation owner are not
+backfilled or relabeled during inspection.

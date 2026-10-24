@@ -154,14 +154,22 @@
     rows <- .wb_certificate_query(con, "prov_run_outputs",
       paste0("SELECT snapshot_id, run_id, output_name, primitive_kind, output_hash, ", .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con), " FROM prov_run_outputs WHERE artifact_id = ? ORDER BY snapshot_id, run_id, output_name;"), list(id))
   } else {
-    db_kind <- if (identical(kind, "model")) "model_ref" else kind
+    db_kinds <- if (identical(kind, "model")) c("model", "model_ref") else kind
+    marks <- paste(rep("?", length(db_kinds)), collapse = ",")
     rows <- .wb_certificate_query(con, "prov_run_entity_bindings",
-      "SELECT snapshot_id, run_id, binding_name AS output_name, entity_kind AS primitive_kind, content_hash, content_identity_scheme FROM prov_run_entity_bindings WHERE entity_kind = ? AND entity_id = ? AND relationship_type IN ('PRODUCES','MATERIALIZES') ORDER BY snapshot_id, run_id, binding_name;", list(db_kind, id))
+      paste0("SELECT snapshot_id, run_id, binding_name AS output_name, entity_kind AS primitive_kind, content_hash, content_identity_scheme FROM prov_run_entity_bindings WHERE entity_kind IN (", marks, ") AND entity_id = ? AND relationship_type IN ('PRODUCES','MATERIALIZES') ORDER BY snapshot_id, run_id, binding_name;"), c(as.list(db_kinds), list(id)))
   }
   if (!nrow(rows)) return(.wb_certificate_state("unavailable", "no_canonical_producer_binding"))
   if (nrow(rows) != 1L) return(.wb_certificate_state("corrupt", "producer_binding_is_not_unique", candidates = .wb_certificate_rows(rows)))
   rid <- as.character(rows$run_id[[1]]); sid <- as.character(rows$snapshot_id[[1]])
-  if (!identical(kind, "artifact")) {
+  native_model <- identical(kind, "model") && identical(as.character(rows$primitive_kind[[1L]]), "model")
+  if (native_model) {
+    # Native creation binding uses the same retained-tree identity as its model_ref.
+    rows$content_sha256 <- rows$content_hash
+    rows$verification_level <- "content"
+    rows$verification_status <- "content_recorded"
+  }
+  if (!identical(kind, "artifact") && !native_model) {
     output <- .wb_certificate_query(con, "prov_run_outputs",
       paste0("SELECT ", .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con), " FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;"),
       list(sid, rid, as.character(rows$output_name[[1]])))
@@ -276,15 +284,35 @@
     aid <- if (length(bits) >= 1L) bits[[1]] else id
     row <- .wb_certificate_query(con, "artifact_model_ref", "SELECT * FROM artifact_model_ref WHERE artifact_id = ?;", list(aid))
     model_space_id <- if (length(bits) >= 2L) bits[[2L]] else id
-    if (!nrow(row)) row <- .wb_certificate_query(con, "space_models", "SELECT space_id AS artifact_id, model_type AS engine, space_id AS model_space_id, source_space_id AS in_space_id, model_type, model_path FROM space_models WHERE space_id = ?;", list(model_space_id))
+    if (!nrow(row)) row <- .wb_certificate_query(con, "space_models", "SELECT space_id AS artifact_id, model_type AS engine, space_id AS model_space_id, source_space_id AS in_space_id, model_type, model_path, provenance_json FROM space_models WHERE space_id = ?;", list(model_space_id))
     if (!nrow(row)) return(NULL)
     path <- .wb_certificate_relative_path(row$model_path)
+    tree_path <- path
+    # A native row stores its primary file, but lifecycle/provenance identity
+    # covers the complete contained model. New creation metadata identifies the
+    # primary suffix without duplicating a manifest or changing retained bytes.
+    native_path <- if ("provenance_json" %in% names(row))
+      .wb_native_model_payload_path(row$model_path[[1L]], row$provenance_json[[1L]]) else NULL
+    if (!is.null(native_path) && !identical(native_path, as.character(row$model_path[[1L]]))) {
+      tree_path <- .wb_certificate_relative_path(native_path)
+    } else if (identical(as.character(producer$output$content_identity_scheme %||% ""),
+        unname(.wb_content_identity_schemes()[["file_tree"]]))) {
+      # Retained historical references already have an explicit output owner.
+      # Resolve that owner's artifact; never substitute an unrelated same-space model.
+      owner <- .wb_certificate_query(con, "artifact_model_ref", paste0(
+        "SELECT a.model_path FROM prov_run_outputs o JOIN artifact_model_ref a ",
+        "ON a.artifact_id=o.artifact_id WHERE o.snapshot_id=? AND o.run_id=? ",
+        "AND o.output_name=? AND a.model_space_id=?;"), list(
+          producer$snapshot_id, producer$run_id, producer$output$output_name,
+          .wb_certificate_scalar(row$model_space_id)))
+      if (nrow(owner) == 1L) tree_path <- .wb_certificate_relative_path(owner$model_path[[1L]])
+    }
     identity <- .wb_certificate_state("unavailable", "payload_not_readable")
-    if (identical(path$status, "available")) {
-      abs <- tryCatch(.wb_bundle_path_require(bundle, path$path, expected_type = "either", must_exist = TRUE, purpose = "certificate model payload"), error = function(e) "")
+    if (identical(tree_path$status, "available")) {
+      abs <- tryCatch(.wb_bundle_path_require(bundle, tree_path$path, expected_type = "either", must_exist = TRUE, purpose = "certificate model payload"), error = function(e) "")
       if (nzchar(abs)) identity <- .wb_certificate_state("available", value = .wb_prov_path_identity(abs))
     }
-    return(list(engine = .wb_certificate_scalar(row$engine), model_type = .wb_certificate_scalar(row$model_type), source_space_id = .wb_certificate_scalar(row$in_space_id), associated_spaces = sort(unique(c(.wb_certificate_scalar(row$in_space_id), .wb_certificate_scalar(row$model_space_id)))), storage = list(path = path, contained_payload_tree_identity = identity)))
+    return(list(engine = .wb_certificate_scalar(row$engine), model_type = .wb_certificate_scalar(row$model_type), source_space_id = .wb_certificate_scalar(row$in_space_id), associated_spaces = sort(unique(c(.wb_certificate_scalar(row$in_space_id), .wb_certificate_scalar(row$model_space_id)))), storage = list(path = path, contained_payload_tree_path = tree_path, contained_payload_tree_identity = identity)))
   }
   if (identical(kind, "artifact")) {
     row <- .wb_certificate_query(con, "artifacts", "SELECT artifact_id, type, name, description, created_at, created_by, source_op, cell_set, provenance_snapshot_id, lineage_status FROM artifacts WHERE artifact_id = ?;", list(id)); if (!nrow(row)) return(NULL)
@@ -409,6 +437,8 @@ wb_entity_certificate <- function(bundle, entity_kind, entity_id) {
   con <- reader$con
   graph <- wb_prov_bundle_dag(reader, include_snapshots = TRUE, include_registry_mutations = TRUE, include_superseded = TRUE)
   node_id <- .wb_certificate_node_id(kind, id)
+  if (identical(kind, "model") && paste0("model:", id) %in% as.character(graph$nodes$id))
+    node_id <- paste0("model:", id)
 
   if (kind %in% c("capsule", "capsule_output")) {
     .wb_assert(.wb_table_exists(con,"analysis_capsules"),paste0("ENTITY_CERTIFICATE_NOT_FOUND: no durable ",kind," entity '",id,"'."))

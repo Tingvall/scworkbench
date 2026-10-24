@@ -566,6 +566,58 @@
   ), call. = FALSE)
 }
 
+.wb_prov_bind_native_space_model <- function(bundle, prim, snapshot_id, commit_id,
+                                              run_id, output_name, workspace = NULL,
+                                              staging_bundle = NULL, content_identity = NULL) {
+  if (!.wb_is_primitive(prim) || !identical(prim$kind, "model_ref") ||
+      !.wb_table_exists(bundle$con, "space_models")) return(invisible(FALSE))
+  id <- as.character(prim$model_space_id %||% prim$space_id %||% "")[1L]
+  row <- DBI::dbGetQuery(bundle$con,
+    "SELECT * FROM space_models WHERE space_id=?;", params = list(id))
+  if (!nrow(row)) return(invisible(FALSE))
+  text <- as.character(row$provenance_json[[1L]])
+  if (is.na(text) || !nzchar(text)) return(invisible(FALSE))
+  provenance <- tryCatch(jsonlite::fromJSON(text, simplifyVector = FALSE),
+    error = function(error) NULL)
+  # Only the native creation site's planned run may acquire this producer
+  # binding. Re-emitting a reference or loading historical metadata is not a fit.
+  if (!identical(provenance$native_model_creation, "scworkbench.native_model_creation.v1") ||
+      !identical(provenance$producer_run_id, as.character(run_id)) ||
+      !identical(provenance$producer_output_name, as.character(output_name)))
+    return(invisible(FALSE))
+  .wb_assert(identical(as.character(row$model_type[[1L]]),
+      as.character(prim$model_type %||% prim$engine)[1L]) &&
+      identical(as.character(row$source_space_id[[1L]]), as.character(prim$in_space_id)[1L]),
+    "Native model producer does not match its typed model output")
+  root <- as.character(prim$model_tree_root %||% prim$model_path)[1L]
+  primary <- as.character(prim$model_primary_path %||% "")[1L]
+  .wb_assert(nzchar(primary) && identical(primary, provenance$model_primary_path),
+    "Native model producer requires its recorded contained primary path")
+  absolute_root <- .wb_prov_resolve_payload_location(bundle, root,
+    workspace = workspace, staging_bundle = staging_bundle,
+    kind = "native fitted model", id = id)
+  checked <- .wb_path_status(absolute_root, primary, expected_type = "file",
+    must_exist = TRUE, purpose = "native fitted-model primary payload")
+  .wb_assert(isTRUE(checked$ok), "Native fitted-model primary payload is not contained")
+  expected <- file.path(root, primary)
+  mapped <- if (inherits(workspace, "wb_promotion_workspace"))
+    .wb_promotion_workspace_final_rel_for_source(workspace, checked$absolute) else NULL
+  .wb_assert(as.character(row$model_path[[1L]]) %in% c(expected, mapped),
+    "Native model registry does not point at its producing output's primary file")
+  # The native lifecycle alias already denotes this complete retained tree.
+  # Reuse the same run-local byte identity computed for the typed model output;
+  # do not rescan files or invent a competing primary-file identity.
+  .wb_assert(is.list(content_identity) &&
+    identical(content_identity$content_identity_scheme, unname(.wb_content_identity_schemes()[["file_tree"]])) &&
+    grepl("^[0-9a-f]{64}$", as.character(content_identity$content_sha256)),
+    "Native model producer requires the verified contained-tree output identity")
+  .wb_prov_insert_entity_binding(bundle$con, snapshot_id, commit_id, run_id,
+    "output", output_name, "model", id, "MATERIALIZES", row$model_path[[1L]],
+    content_identity$content_sha256, content_identity$content_identity_scheme,
+    "native_fitted_model_creation")
+  invisible(TRUE)
+}
+
 .wb_prov_file_tree_sha256 <- function(root, .file_sha256 = NULL) {
   file_sha256 <- .file_sha256 %||% .wb_prov_sha256_file
   .wb_assert(file.exists(root), paste0("Missing payload path for SHA-256: ", root))
@@ -1654,6 +1706,8 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           identity_hash <- identity$content_sha256 %||% out_hash
           if (!is.null(primitive_binding)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, primitive_binding$entity_kind, primitive_binding$entity_id, "MATERIALIZES", mat_path, identity_hash, identity$content_identity_scheme, "promotion_materialization")
           if (!is.na(art_id) && nzchar(art_id)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, "artifact", as.character(art_id), "PRODUCES", mat_path, identity_hash, identity$content_identity_scheme, "promotion_artifact")
+          .wb_prov_bind_native_space_model(bundle, prim, sid, commit_id, rid, nm,
+            workspace = workspace, staging_bundle = staging_bundle, content_identity = identity)
         }
       }
       .wb_operation_pack_v2_write_registry_bindings(
