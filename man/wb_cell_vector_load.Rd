@@ -11,7 +11,9 @@ wb_cell_vector_load(bundle, session = NULL, vector_id, expected_kind = NULL)
 
 \item{session}{Optional \code{wb_session} used to resolve \verb{session:*:*} ids.}
 
-\item{vector_id}{Artifact or session vector reference.}
+\item{vector_id}{Exact vector reference from \code{wb_list_cell_vectors()}:
+\code{artifact:<artifact_id>} or \code{session:<run_id>:<output>}. A metadata field
+name or bare artifact ID is not a vector reference.}
 
 \item{expected_kind}{Optional expected primitive kind.}
 }

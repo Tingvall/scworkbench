@@ -393,7 +393,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   if (!is.null(session$durable)) {
     durable_state <- as.character(session$durable$state %||% "")[1]
     .wb_assert(identical(durable_state, "active"),
-               paste0("DURABLE_SESSION_", toupper(durable_state), ": terminal sessions cannot run new operations."))
+               paste0("DURABLE_SESSION_", toupper(durable_state), ": terminal sessions cannot run new operations. Start a new session with wb_session_create(bundle), or wb_session_new() for bounded work, and reference retained outputs."))
   }
   session_lock <- NULL
   if (!is.null(session$durable)) {

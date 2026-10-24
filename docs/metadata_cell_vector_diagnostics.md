@@ -61,3 +61,25 @@ Kruskal/ANOVA and eta-squared summary. Continuous × continuous emits Pearson
 and Spearman correlation summaries. Promoted vectors work with the existing
 `embedding_overlay`, `violin`, and categorical count plot contracts; no
 metadata-specific plotting path is required.
+
+## Getter values and exact identifiers
+
+| Call | Returned value / identifier |
+| --- | --- |
+| `wb_cell_sets(b)` | Character vector of set names, not rows with membership columns. |
+| `wb_cells(b, cell_set="set:high_score")` | Character vector of member cell IDs; pass an exact name from `wb_cell_sets()`. |
+| `wb_metadata_fields(b)` | Data frame of field definitions; these are metadata identities, not vector IDs. |
+| `wb_meta(b, cols=c("cell_id", "score"))` | Metadata data frame. |
+| `wb_list_cell_vectors(b)` | Data frame; its `vector_id` is an exact `artifact:<id>` reference (session outputs use `session:<run_id>:<output>`). |
+| `wb_cell_vector_load(b, vector_id=id)` | Typed primitive; inspect `cell_id`, `value`, and `value_type`. |
+| `wb_read_cell_vector(b, id, cell_ids=cells)` | Named numeric/character vector aligned to requested cells. Separate legacy DB vector IDs remain supported here. |
+| `wb_vector(b, matrix_id="counts", feature_id="g1")` | Named numeric feature vector from a matrix; this is not the cell-vector artifact loader. |
+| `wb_art_load(b, artifact_id, expected_kind="obs_table")$table` | Data frame for a table artifact. Use `expected_kind="feature_table"` for feature tables. |
+
+A metadata field `score`, artifact display name `score_vector`, bare artifact
+ID, and `artifact:<id>` vector reference are distinct. Inspect the relevant
+registry instead of guessing a conversion. To use metadata as a typed vector,
+run `metadata_cell_vector`; to inspect metadata directly, use `wb_meta()`.
+Neither `wb_cell_sets()` nor a loaded primitive is a membership data frame.
+See the executable [continuation example](../inst/examples/public_getters_and_continuation.R)
+for actual signatures, returned types and a fresh session after promotion.

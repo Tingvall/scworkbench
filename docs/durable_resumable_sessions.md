@@ -53,3 +53,20 @@ Promotion is terminal: follow the existing `wb_session_promote_current()` and
 finalization lifecycle, and do not attempt to append operations to a promoted
 durable session. An opened terminal session exposes its durable promotion
 receipt and must not repeat promotion.
+
+After promotion, retain the returned terminal session only for inspection:
+`promoted <- wb_session_promote_current(b, result$session, outputs="vector")`;
+`terminal <- promoted$session`. Start the next chain with
+`next_session <- wb_session_create(b, workspace_root=...)`, then reference
+promoted IDs from `promoted$promoted`. Use `wb_session_new()` for bounded work
+that is cheap to repeat. `wb_session_resume()` resumes only an active checkpoint;
+it does not turn a promoted/finalized session back into an active one.
+`wb_session_finalize()` on an already terminal session is an idempotent no-op;
+it does not finalize the recipient bundle or start another session.
+
+A runnable core-only example is
+[`inst/examples/public_getters_and_continuation.R`](../inst/examples/public_getters_and_continuation.R).
+Source it and call `public_getters_and_continuation(new_bundle_dir,
+new_workspace_root)`. It promotes a metadata vector, starts a fresh durable
+session, selects from that retained vector, promotes a derived set, and reads
+its manifest table through the public API.

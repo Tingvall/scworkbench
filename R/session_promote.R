@@ -50,7 +50,7 @@ wb_session_promote_current <- function(bundle,
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   if (!is.null(session$durable)) {
     .wb_assert(identical(as.character(session$durable$state %||% "")[1], "active"),
-               "DURABLE_SESSION_PROMOTED: terminal durable sessions cannot be promoted again.")
+               paste0("DURABLE_SESSION_", toupper(as.character(session$durable$state %||% "")[1]), ": terminal durable sessions cannot be promoted again. Start a new session with wb_session_create(bundle), or wb_session_new() for bounded work, and reference retained outputs."))
     session_lock <- .wb_bundle_writer_lock_acquire(
       session$durable$workspace, operation = "durable session promotion"
     )

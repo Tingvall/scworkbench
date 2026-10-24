@@ -358,7 +358,9 @@ wb_register_cell_vector <- function(
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param session Optional `wb_session` used to resolve `session:*:*` ids.
-#' @param vector_id Artifact or session vector reference.
+#' @param vector_id Exact vector reference from [wb_list_cell_vectors()]:
+#'   `artifact:<artifact_id>` or `session:<run_id>:<output>`. A metadata field
+#'   name or bare artifact ID is not a vector reference.
 #' @param expected_kind Optional expected primitive kind.
 #'
 #' @return A `cell_vector` or `cell_vector_family` primitive.
@@ -388,7 +390,10 @@ wb_cell_vector_load <- function(bundle, session = NULL, vector_id, expected_kind
     return(prim)
   }
 
-  stop("Unknown vector_id scheme: ", vector_id, call. = FALSE)
+  stop("Unknown vector_id scheme: ", vector_id,
+    ". Use wb_list_cell_vectors()$vector_id: artifact:<artifact_id> or session:<run_id>:<output>. ",
+    "Read metadata fields with wb_meta(bundle, cols=...), or create a typed vector with metadata_cell_vector.",
+    call. = FALSE)
 }
 
 

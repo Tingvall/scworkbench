@@ -505,7 +505,7 @@ wb_session_open <- function(workspace) {
   s <- staged$session
   if (!is.null(source_bundle)) {
     .wb_assert(identical(as.character(s$durable$state), "active"),
-      paste0("DURABLE_SESSION_", toupper(as.character(s$durable$state)), ": terminal sessions are inspectable but cannot resume execution."))
+      paste0("DURABLE_SESSION_", toupper(as.character(s$durable$state)), ": terminal sessions are inspectable but cannot resume execution. Start a new session with wb_session_create(bundle), or wb_session_new() for bounded work, and reference retained outputs."))
     .wb_session_validate_source(s, source_bundle)
     # Only the private resume route supplies this freshly authenticated source.
     # Its live cache is included in every following graph import admission.
