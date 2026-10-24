@@ -55,7 +55,9 @@ wb_capsule_register(
 
 \item{family_hint}{Optional operator-declared discovery hint.}
 
-\item{relationships}{Optional typed capsule relationships.}
+\item{relationships}{Optional typed capsule relationships: \code{reproduction_of},
+\code{variant_of}, \code{correction_of}, or \code{dispute_of}. These are operator-declared
+associations and do not supersede or scientifically invalidate the target.}
 
 \item{limitations}{Optional recipient-facing limitations.}
 }

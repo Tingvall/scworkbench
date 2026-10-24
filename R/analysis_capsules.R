@@ -4,7 +4,7 @@
 .wb_capsule_file_scheme <- function() "scworkbench.content.raw-file.sha256.v1"
 .wb_capsule_signature_scheme <- function(kind) paste0("scworkbench.analysis_capsule.", kind, ".sha256.v1")
 .wb_capsule_purposes <- function() c("dataset_specific_reporting", "custom_visualization", "custom_terminal_summary")
-.wb_capsule_relationship_types <- function() c("reproduction_of", "variant_of")
+.wb_capsule_relationship_types <- function() c("reproduction_of", "variant_of", "correction_of", "dispute_of")
 .wb_capsule_decisions <- function() c("retain_as_capsule", "use_existing_op", "split_standard_and_custom", "propose_new_op")
 
 .wb_ensure_analysis_capsule_tables <- function(con) {
@@ -449,7 +449,9 @@ wb_ref_entity <- function(entity_kind, entity_id) {
 #' @param catalog_review Structured operation-catalog review declaration.
 #' @param language Source language.
 #' @param family_hint Optional operator-declared discovery hint.
-#' @param relationships Optional typed capsule relationships.
+#' @param relationships Optional typed capsule relationships: `reproduction_of`,
+#'   `variant_of`, `correction_of`, or `dispute_of`. These are operator-declared
+#'   associations and do not supersede or scientifically invalidate the target.
 #' @param limitations Optional recipient-facing limitations.
 #' @return Registered capsule inspection record.
 #' @export
@@ -735,6 +737,19 @@ wb_capsule_emit_reproduction <- function(bundle,capsule_id,out_dir) {
       expected_inputs <- lapply(manifest$inputs %||% list(),function(x)list(order=as.integer(x$order),name=as.character(x$name),entity_kind=as.character(x$entity_kind),entity_id=as.character(x$entity_id),content_sha256=as.character(x$content_sha256),content_identity_scheme=as.character(x$content_identity_scheme)))
       observed_inputs <- lapply(seq_len(nrow(ins)),function(j)list(order=as.integer(ins$input_order[j]),name=as.character(ins$input_name[j]),entity_kind=as.character(ins$entity_kind[j]),entity_id=as.character(ins$entity_id[j]),content_sha256=as.character(ins$content_sha256[j]),content_identity_scheme=as.character(ins$content_identity_scheme[j])))
       if(!identical(.wb_capsule_json(expected_inputs),.wb_capsule_json(observed_inputs))) issue("CAPSULE_INPUT_MANIFEST_REGISTRY_DISAGREEMENT",message="Capsule manifest and registry input bindings disagree or historical bindings were deleted.")
+      rels <- DBI::dbGetQuery(con, "SELECT * FROM analysis_capsule_relationships WHERE capsule_id=? ORDER BY relationship_order;", params=list(id))
+      expected_relationships <- lapply(manifest$relationships %||% list(), function(x)
+        list(order=as.integer(x$order), type=as.character(x$type), capsule_id=x$capsule_id,
+          external_manifest_identity=x$external_manifest_identity, assurance=x$assurance))
+      observed_relationships <- lapply(seq_len(nrow(rels)), function(j)
+        list(order=as.integer(rels$relationship_order[j]), type=as.character(rels$relationship_type[j]),
+          capsule_id=if(is.na(rels$related_capsule_id[j])) NULL else as.character(rels$related_capsule_id[j]),
+          external_manifest_identity=if(is.na(rels$external_manifest_identity[j])) NULL else as.character(rels$external_manifest_identity[j]),
+          assurance="operator_declared_relationship"))
+      if (!identical(.wb_capsule_json(expected_relationships), .wb_capsule_json(observed_relationships)))
+        issue("CAPSULE_RELATIONSHIP_MANIFEST_REGISTRY_DISAGREEMENT", message="Capsule manifest and registry relationships disagree or historical associations were deleted.")
+      if (nrow(rels) && any(!rels$relationship_type %in% .wb_capsule_relationship_types()))
+        issue("CAPSULE_RELATIONSHIP_TYPE_INVALID", message="Capsule relationship has an unsupported type.")
       expected_outputs <- lapply(manifest$outputs %||% list(),function(x)list(output_id=as.character(x$output_id),order=as.integer(x$order),name=as.character(x$name),role=as.character(x$role),media_type=as.character(x$media_type),size_bytes=as.numeric(x$size_bytes),path=as.character(x$path),content_sha256=as.character(x$content_sha256)))
       observed_outputs <- lapply(seq_len(nrow(outs)),function(j)list(output_id=as.character(outs$output_id[j]),order=as.integer(outs$output_order[j]),name=as.character(outs$output_name[j]),role=as.character(outs$role[j]),media_type=as.character(outs$media_type[j]),size_bytes=as.numeric(outs$size_bytes[j]),path=as.character(outs$path[j]),content_sha256=as.character(outs$content_sha256[j])))
       if(!identical(.wb_capsule_json(expected_outputs),.wb_capsule_json(observed_outputs))) issue("CAPSULE_OUTPUT_MANIFEST_REGISTRY_DISAGREEMENT",message="Capsule manifest and registry output bindings disagree or historical outputs were deleted.")

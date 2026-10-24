@@ -139,3 +139,69 @@ a maintainer or extension-development aid. Human review defines semantics,
 defaults, ranges, identity and determinism/equivalence behavior, resource
 guards, transactional materialization, and generalized tests. A terminal
 capsule remains valid evidence even if it never becomes an op.
+
+## Append-only corrections and disputes
+
+Use a new documentary capsule for a correction or dispute about retained evidence.
+Do not rewrite the original report, artifact, run or capsule and do not supersede
+a scientifically valid sibling merely to attach commentary. This route records
+an attributable statement and its exact bytes; it does not decide which statement
+is scientifically correct. No general annotation primitive is required.
+
+The existing registration contract supplies the association and content:
+
+- Bind each affected accepted artifact (or matrix/space/model) in `inputs` with
+  `wb_ref_entity()`. Registration retains the target's tagged content identity.
+- Put the correction text in a small report generated externally before
+  registration. Retain its generator source as `script` and the report as an
+  ordinary capsule output. Use `purpose="dataset_specific_reporting"`, a real
+  catalog review and rationale explaining that this is documentary interpretation,
+  not a replacement for a registered scientific transformation.
+- Supply `created_by`, a nonempty `reason` parameter and the statement kind. Use
+  `family_hint="correction"` as a discovery convention for corrections/disputes.
+  These parameter/hint fields are operator declarations, not a new annotation
+  schema enforced by core.
+- For an affected capsule, use `relationships=list(list(type="correction_of",
+  capsule_id=original_capsule_id))`, or `type="dispute_of"`. Both append a typed
+  operator-declared relationship. Existing `variant_of` and `reproduction_of`
+  retain their meanings. No relationship changes target lifecycle state.
+- For an affected producing run, bind its accepted durable output and include
+  `affected_run_id` (and the snapshot if needed) from its public producer record.
+  `wb_prov_run_details()` lets a reader inspect that run/output association.
+  A bare run with no content-bound durable output is outside this small route;
+  adding arbitrary run-only annotations would need a separately scoped design.
+
+For example, after generating `correction.R` / `correction.md` in an external
+workspace and inspecting the operation catalog:
+
+```r
+correction <- wb_capsule_register(
+  b, name="Qualification of retained report", created_by="named-author",
+  inputs=list(affected=wb_ref_entity("artifact", affected_artifact_id)),
+  script="external-work/correction.R",
+  outputs=list(report=list(path="external-work/correction.md", role="report",
+                           media_type="text/markdown")),
+  parameters=list(statement_kind="correction", reason="Explain the disputed claim",
+                  affected_run_id=affected_run_id),
+  purpose="dataset_specific_reporting", rationale="Documentary interpretation only",
+  catalog_review=review, family_hint="correction",
+  relationships=list(list(type="correction_of", capsule_id=original_capsule_id))
+)
+```
+
+A bundle-only reader starts with `wb_capsules(b)`, filters `family_hint`, then
+calls `wb_capsule()` for author/reason/parameters/relationships,
+`wb_capsule_inputs()` for affected content bindings and `wb_capsule_outputs()`
+for report identities. The normalized `parameters` value is a list of records
+with `name` and `value`; it is not a named scalar dictionary. Read report bytes
+through `wb_capsule_output_path(b, id, "report")`, which checks their registered
+SHA-256. The composed DAG includes `CORRECTION_OF` / `DISPUTE_OF` edges. Cumulative
+content validation checks relationship rows against the immutable manifest.
+
+This requires opening the recipient writable, appending the new capsule and
+finalizing it again for the next transfer. The original bytes and identities
+remain unchanged. Corrections of historical/superseded targets may encounter
+the existing capsule current-input rule; this route does not weaken it or
+silently reactivate old scientific state. Content registration remains
+`externally_executed`, `content_registered`, `not_verified`, with declared
+runtime and no scientific-truth or author-authentication attestation.
