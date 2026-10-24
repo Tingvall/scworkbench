@@ -38,7 +38,9 @@ feature types, and descriptions are authoritative.}
 
 \item{metadata_cols}{Optional metadata columns to retain.}
 
-\item{categorical_cols}{Metadata columns to materialize as cell sets.}
+\item{categorical_cols}{Metadata columns requested as cell sets (at most 50
+nonempty levels each). Metadata is retained independently; the import report's
+\code{categorical_dispositions_json} records created, skipped or rejected requests.}
 
 \item{create_cell_sets}{Whether categorical metadata creates cell sets.}
 

@@ -72,6 +72,14 @@ test_h5ad_nested_source_identity_relinking_contract <- function() {
   space_producer <- producer(b, "space", "PCA")
   stopifnot(nrow(matrix_producer) == 1L, nrow(space_producer) == 1L)
 
+  reports <- wb_art_list(b)
+  report_ids <- reports$artifact_id[reports$name == "container_ingest_report"]
+  dispositions <- lapply(report_ids, function(id) {
+    report <- wb_art_load(b, id, expected_kind = "obs_table")$table
+    jsonlite::fromJSON(report$categorical_dispositions_json[[1]], simplifyVector = FALSE)
+  })
+  stopifnot(length(dispositions) == 2L, identical(dispositions[[1]], dispositions[[2]]),
+    dispositions[[1]][[1]]$column == "group", dispositions[[1]][[1]]$status == "created")
   identities <- wb_prov_source_identity(b, "X")
   stopifnot(nrow(identities) == 1L)
   declared <- jsonlite::fromJSON(identities$source_identity_json[[1L]], simplifyVector = FALSE)

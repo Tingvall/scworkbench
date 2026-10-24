@@ -196,36 +196,62 @@
   cand[keep]
 }
 
+# Return one disposition per requested column, including requests filtered out of
+# imported metadata. Automatic selection retains the existing <=50-level policy.
 .wb_ingest_label_cell_sets <- function(bundle,
                                        metadata,
                                        categorical_cols = NULL,
                                        prefix = "label",
                                        source = "container_ingest",
                                        created_by = NULL,
-                                       max_levels = 50L) {
-  cols <- .wb_ingest_categorical_cols(metadata, categorical_cols = categorical_cols, max_levels = max_levels)
+                                       max_levels = 50L,
+                                       create_cell_sets = TRUE) {
+  cols <- if (is.null(categorical_cols)) {
+    .wb_ingest_categorical_cols(metadata, max_levels = max_levels)
+  } else unique(as.character(categorical_cols))
   made <- character(0)
-  if (!length(cols)) return(made)
+  dispositions <- list()
   for (col in cols) {
-    x <- as.character(metadata[[col]])
-    vals <- sort(unique(x[!is.na(x) & nzchar(x)]))
-    if (!length(vals) || length(vals) > max_levels) next
-    for (val in vals) {
-      set_id <- paste0(prefix, "_", .wb_ingest_clean_id(col, "label"), "__", .wb_ingest_clean_id(val, "value"))
-      cells <- as.character(metadata$cell_id[x == val & !is.na(x)])
-      wb_cell_set_replace(
-        bundle = bundle,
-        cell_set = set_id,
-        cell_ids = cells,
-        source = source,
-        created_by = created_by,
-        description = paste0("Imported categorical label ", col, "=", val),
-        strict = TRUE
-      )
-      made <- c(made, paste0("set:", set_id))
+    reason <- NULL
+    status <- "skipped"
+    vals <- character(0)
+    sets <- character(0)
+    if (is.na(col) || !nzchar(col) || !col %in% names(metadata)) {
+      status <- "rejected"
+      reason <- "column_missing_or_not_imported"
+    } else if (col %in% c("cell_id", "dataset_id")) {
+      status <- "rejected"
+      reason <- "reserved_identity_column"
+    } else {
+      x <- as.character(metadata[[col]])
+      vals <- sort(unique(x[!is.na(x) & nzchar(x)]))
+      if (!isTRUE(create_cell_sets)) reason <- "cell_set_creation_disabled"
+      else if (!length(vals)) reason <- "no_nonempty_labels"
+      else if (length(vals) > max_levels) reason <- "cardinality_exceeds_limit"
+      else {
+        for (val in vals) {
+          set_id <- paste0(prefix, "_", .wb_ingest_clean_id(col, "label"), "__", .wb_ingest_clean_id(val, "value"))
+          cells <- as.character(metadata$cell_id[x == val & !is.na(x)])
+          wb_cell_set_replace(
+            bundle = bundle, cell_set = set_id, cell_ids = cells,
+            source = source, created_by = created_by,
+            description = paste0("Imported categorical label ", col, "=", val),
+            strict = TRUE
+          )
+          sets <- c(sets, paste0("set:", set_id))
+        }
+        status <- "created"
+        reason <- "within_cardinality_limit"
+        made <- c(made, sets)
+      }
     }
+    dispositions[[length(dispositions) + 1L]] <- list(
+      column = col, status = status, reason = reason,
+      n_levels = if (identical(status, "rejected")) NA_integer_ else length(vals),
+      max_levels = max_levels, set_ids = unname(as.list(unique(sets)))
+    )
   }
-  unique(made)
+  list(sets = unique(made), dispositions = dispositions)
 }
 
 .wb_container_ingest_report_artifact <- function(bundle,
@@ -234,6 +260,7 @@
                                                 assays_imported = character(0),
                                                 spaces_imported = character(0),
                                                 categorical_sets = character(0),
+                                                categorical_dispositions = list(),
                                                 rowdata_artifact_id = NA_character_,
                                                 unsupported = list(),
                                                 cell_id_policy = NULL,
@@ -268,6 +295,7 @@
     assays_imported_json = jsonlite::toJSON(as.character(assays_imported), auto_unbox = TRUE, null = "null"),
     spaces_imported_json = jsonlite::toJSON(as.character(spaces_imported), auto_unbox = TRUE, null = "null"),
     categorical_sets_json = jsonlite::toJSON(as.character(categorical_sets), auto_unbox = TRUE, null = "null"),
+    categorical_dispositions_json = jsonlite::toJSON(categorical_dispositions, auto_unbox = TRUE, null = "null", na = "null"),
     rowdata_artifact_id = rowdata_artifact_id %||% NA_character_,
     duplicate_cell_id_policy = as.character(cell_id_policy$duplicate_cell_id_policy %||% NA_character_)[1],
     duplicate_cell_id_rows = as.integer(cell_id_policy$duplicate_cell_id_rows %||% NA_integer_)[1],
@@ -1008,7 +1036,9 @@ wb_bundle_from_10x_mtx <- function(input,
 #'   feature types, and descriptions are authoritative.
 #' @param reductions Reduced-dimension names to import; defaults to all.
 #' @param metadata_cols Optional metadata columns to retain.
-#' @param categorical_cols Metadata columns to materialize as cell sets.
+#' @param categorical_cols Metadata columns requested as cell sets (at most 50
+#'   nonempty levels each). Metadata is retained independently; the import report's
+#'   `categorical_dispositions_json` records created, skipped or rejected requests.
 #' @param create_cell_sets Whether categorical metadata creates cell sets.
 #' @param dataset_col Optional metadata column used as dataset identity.
 #' @param overwrite Whether an existing bundle directory may be replaced.
@@ -1108,9 +1138,10 @@ wb_bundle_from_seurat <- function(input,
   space_ids <- names(spaces)
 
   if ("seurat_clusters" %in% names(md)) categorical_cols <- unique(c(categorical_cols, "seurat_clusters"))
-  cat_sets <- if (isTRUE(create_cell_sets)) {
-    .wb_ingest_label_cell_sets(bundle, md, categorical_cols = categorical_cols, prefix = "seurat", source = "seurat", created_by = created_by)
-  } else character(0)
+  categorical <- .wb_ingest_label_cell_sets(
+    bundle, md, categorical_cols = categorical_cols, prefix = "seurat",
+    source = "seurat", created_by = created_by, create_cell_sets = create_cell_sets
+  )
 
   if (isTRUE(emit_report_artifact)) {
     .wb_container_ingest_report_artifact(
@@ -1119,7 +1150,8 @@ wb_bundle_from_seurat <- function(input,
       source_path = src$source_path,
       assays_imported = imported,
       spaces_imported = space_ids,
-      categorical_sets = cat_sets,
+      categorical_sets = categorical$sets,
+      categorical_dispositions = categorical$dispositions,
       unsupported = list(misc = "not imported", graphs = "not imported", commands = "not imported"),
       created_by = created_by,
       matrix_ids = imported,
@@ -1137,7 +1169,9 @@ wb_bundle_from_seurat <- function(input,
 #' @param assays Assay names to import; defaults to all assays.
 #' @param reduced_dims Reduced-dimension names to import; defaults to all.
 #' @param metadata_cols Optional cell metadata columns to retain.
-#' @param categorical_cols Metadata columns to materialize as cell sets.
+#' @param categorical_cols Metadata columns requested as cell sets (at most 50
+#'   nonempty levels each). Metadata is retained independently; the import report's
+#'   `categorical_dispositions_json` records created, skipped or rejected requests.
 #' @param create_cell_sets Whether categorical metadata creates cell sets.
 #' @param dataset_col Optional metadata column used as dataset identity.
 #' @param duplicate_cell_id_policy Whether duplicate cell IDs error or are made
@@ -1274,9 +1308,10 @@ wb_bundle_from_sce <- function(input,
     space_ids <- c(space_ids, space_id)
   }
 
-  cat_sets <- if (isTRUE(create_cell_sets)) {
-    .wb_ingest_label_cell_sets(bundle, md, categorical_cols = categorical_cols, prefix = "sce", source = "single_cell_experiment", created_by = created_by)
-  } else character(0)
+  categorical <- .wb_ingest_label_cell_sets(
+    bundle, md, categorical_cols = categorical_cols, prefix = "sce",
+    source = "single_cell_experiment", created_by = created_by, create_cell_sets = create_cell_sets
+  )
 
   alt_exps <- tryCatch(SingleCellExperiment::altExpNames(sce), error = function(e) character(0))
   if (isTRUE(emit_report_artifact)) {
@@ -1286,7 +1321,8 @@ wb_bundle_from_sce <- function(input,
       source_path = src$source_path,
       assays_imported = imported,
       spaces_imported = space_ids,
-      categorical_sets = cat_sets,
+      categorical_sets = categorical$sets,
+      categorical_dispositions = categorical$dispositions,
       rowdata_artifact_id = rowdata_artifact,
       unsupported = list(
         altExp_names = as.character(alt_exps),
@@ -1426,6 +1462,13 @@ wb_bundle_from_h5ad <- function(input,
     phase <- "h5ad_report"
     if (isTRUE(emit_report_artifact)) {
       .wb_h5ad_fault("before_outer_report_publication", bundle = bundle)
+      # Preserve the nested import's actual dispositions without rereading labels.
+      reports <- wb_art_list(bundle)
+      report_id <- tail(reports$artifact_id[reports$name == "container_ingest_report"], 1L)
+      nested_report <- wb_art_load(bundle, report_id, expected_kind = "obs_table")$table
+      categorical_dispositions <- jsonlite::fromJSON(
+        nested_report$categorical_dispositions_json[[1]], simplifyVector = FALSE
+      )
       .wb_container_ingest_report_artifact(
         bundle,
         source_type = "AnnData/h5ad",
@@ -1433,6 +1476,7 @@ wb_bundle_from_h5ad <- function(input,
         assays_imported = wb_matrices(bundle)$matrix_id,
         spaces_imported = wb_spaces(bundle)$space_id,
         categorical_sets = setdiff(wb_cell_sets(bundle), "core"),
+        categorical_dispositions = categorical_dispositions,
         unsupported = list(
           h5ad_top_level_groups = groups,
           raw = if ("raw" %in% groups) "presence recorded; raw is not separately imported in h5ad importer v1" else "not detected",

@@ -40,3 +40,21 @@ relocation. Ordinary slices/block reads do not reauthenticate whole sources.
 An omitted external `source_identity` remains an internal assembly boundary;
 the counts content baseline does not invent upstream source attribution.
 Historical imports are not automatically relabeled or backfilled.
+
+### Categorical import dispositions
+
+Container imports retain selected metadata independently of cell-set generation.
+Requested categorical columns with 1–50 distinct nonempty labels create sets;
+more than 50 labels are skipped to bound registry growth. For example, a
+187-level perturbation column remains available through `wb_meta()` but creates
+no automatic sets. Use an explicit selector to derive the groups needed later.
+
+With `emit_report_artifact=TRUE`, load the `container_ingest_report` obs-table
+artifact using `wb_art_load()`. Its `categorical_dispositions_json` array records
+every unique explicit request: column, status (`created`, `skipped`, `rejected`),
+reason, level count, limit and created set IDs. Missing/excluded columns and
+reserved identity columns are rejected requests, not fatal import errors;
+empty labels, high cardinality and disabled set creation have explicit skip
+reasons. `metadata_cols` still controls which metadata is imported. With no
+explicit categorical request, automatic selection retains its existing policy.
+H5AD's outer report carries the nested SCE import's actual dispositions.
