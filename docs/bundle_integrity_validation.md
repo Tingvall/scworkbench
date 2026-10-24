@@ -55,7 +55,8 @@ promotion or recovery, and a failed observation is not reused.
 
 The initial recipient fingerprint also supplies a compact, report-local set of
 actual contained-file SHA observations (at most64KiB). Repeated file/tree claims
-may use those observed digests, while paths, file types and tree membership are
+may use those observed digests, including capsule source, manifest and output
+claims, while paths, file types and tree membership are
 checked freshly and every expected claim is compared separately. File size only
 selects observations that fit the cap; it is not content authority. Misses hash
 the actual file. The final fingerprint ALWAYS hashes every contained file again;
@@ -147,3 +148,34 @@ validation (`ok_with_warnings`; warnings were the 30 intentionally uninspected
 external files). All per-check timings completed and the pre/post fingerprints
 were identical. This establishes a measured bounded-memory completion, not an
 OOM inference.
+
+## One ordinary finalize/reopen/validation sequence
+
+Finalize the writable handle, close it, perform the ordinary transfer, reopen
+read-only with `validate=FALSE`, then request **one** structured report at
+`level="recipient"`. See [recipient audit](recipient_audit.md) for executable
+calls. That report includes structural and content checks; do not immediately
+loop over all three levels, call `wb_validate_bundle()` again, or reopen with
+`validate=TRUE` solely to recover the same proof. The TRUE-or-error wrapper
+runs a new report and does not return the earlier structured result. If only
+a fail-closed boolean boundary is needed, `wb_open_bundle(..., read_only=TRUE,
+validate=TRUE)` is an alternative to the explicit report, not a precursor to it.
+A diagnostic benchmark that deliberately times each level is different work.
+
+Keep and read the returned report for diagnostics, coverage and timing. This
+is reuse of an already obtained result for presentation, not fresh verification
+of later state. No report path, timestamp, object or registry fingerprint alone
+establishes that payload bytes are unchanged. There is no cross-report result
+reuse API. A later mutation, transfer, recovery or explicit re-verification
+requires the applicable fresh checks. Selected certificate/getter inspection can
+perform additional work; bulk independently verifying every artifact immediately
+after a report is an additional inspection gate, not ordinary report retrieval.
+
+The current implementation retains two whole-filesystem hash passes per fresh
+recipient report. Capsule file claims now use the same bounded initial actual
+file observations already admitted for other claims; misses still hash actual
+bytes. Final hashing always runs afresh. Content-only reports retain independent
+file reads, as do transfer/recovery boundaries. This does not remove all repeated
+registry, provenance or receipt traversal within a report or read-only open, and
+it makes no whole-workflow linear-scaling or large-biological-bundle latency
+claim. Further broad caching/identity redesign is not part of this correction.

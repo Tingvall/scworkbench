@@ -1583,7 +1583,7 @@ wb_bundle_validation_report <- function(bundle_dir,
   }
 
   if (!is.null(con) && .wb_table_exists(con,"analysis_capsules")) timed("analysis_capsules", {
-    .wb_validate_analysis_capsules(root,con,add,content=has_level("content"))
+    .wb_validate_analysis_capsules(root,con,add,content=has_level("content"), .file_sha256=claim_file_sha256)
   })
 
   if (has_level("recipient")) timed("recipient", {

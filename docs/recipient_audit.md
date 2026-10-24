@@ -10,13 +10,21 @@ and runtime; source/version equality alone does not prove instance compatibility
 Inspect models without deserialization unless trust is explicitly accepted.
 
 ```r
-wb_finalize_recipient_bundle(b)
+stopifnot(wb_finalize_recipient_bundle(b)$ready)
 wb_close_bundle(b)
-# Transfer the finalized bundle to path/to/recipient before reopening it.
-recipient <- wb_open_bundle("path/to/recipient", read_only = TRUE)
-wb_recipient_readiness(recipient)
-wb_validate_bundle(recipient)
+# Transfer the finalized bundle once to recipient_path.
+recipient <- wb_open_bundle(recipient_path, read_only = TRUE, validate = FALSE)
+report <- wb_bundle_validation_report(recipient_path, level = "recipient")
+stopifnot(report$ok)
+# report$completed_levels already includes structural, content and recipient.
+# Retain this report and inspect its diagnostics/content_coverage directly.
 ```
+
+`validate=FALSE` avoids an implicit full report before the explicit structured
+report. Read-only open still checks schema, residue and transition/receipt
+invariants; it is not an unchecked-storage shortcut. Finalization coordinates
+SQLite/readiness and is not a full content verdict. Use the directory path for
+validation/readiness APIs and the handle for typed getters.
 
 Keep the recipient handle open for the inspection below and close it with
 `wb_close_bundle(recipient)` when finished.

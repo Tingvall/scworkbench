@@ -689,7 +689,10 @@ wb_capsule_emit_reproduction <- function(bundle,capsule_id,out_dir) {
   out_dir
 }
 
-.wb_validate_analysis_capsules <- function(root, con, add, content = TRUE) {
+.wb_validate_analysis_capsules <- function(root, con, add, content = TRUE, .file_sha256 = NULL) {
+  # Recipient reports may supply their independently observed initial digests.
+  # Safe paths/types stay fresh; final full fingerprinting is never reused.
+  file_sha256 <- .file_sha256 %||% .wb_prov_sha256_file
   if (!.wb_table_exists(con,"analysis_capsules")) return(invisible(TRUE))
   residue <- .wb_capsule_residue_inventory(root, con)
   relative <- function(path) substring(path, nchar(normalizePath(root, winslash="/", mustWork=TRUE)) + 2L)
@@ -712,7 +715,7 @@ wb_capsule_emit_reproduction <- function(bundle,capsule_id,out_dir) {
       rel <- as.character(row[[spec[[1L]]]][[1L]]); status <- .wb_path_status(root,rel,expected_type="file",must_exist=TRUE,purpose="capsule validation")
       if (!isTRUE(status$ok)) issue(paste0(spec[[3L]],"_MISSING_OR_UNSAFE"),rel,message=paste0(spec[[3L]]," payload is missing, escaped, or unsafe."))
       else if (nzchar(Sys.readlink(status$absolute))) issue(paste0(spec[[3L]],"_SYMLINK"),rel,message="Capsule payload was replaced by a symlink.")
-      else if (isTRUE(content)) { actual <- .wb_prov_sha256_file(status$absolute); expected <- as.character(row[[spec[[2L]]]][[1L]]); if(!identical(tolower(actual),tolower(expected))) issue(paste0(spec[[3L]],"_CONTENT_MISMATCH"),rel,expected,actual,"Capsule payload bytes differ from the immutable registry identity.") }
+      else if (isTRUE(content)) { actual <- file_sha256(status$absolute); expected <- as.character(row[[spec[[2L]]]][[1L]]); if(!identical(tolower(actual),tolower(expected))) issue(paste0(spec[[3L]],"_CONTENT_MISMATCH"),rel,expected,actual,"Capsule payload bytes differ from the immutable registry identity.") }
     }
     manifest <- tryCatch(.wb_capsule_parse(readLines(file.path(root,row$manifest_path[[1L]]),warn=FALSE)),error=function(e) NULL)
     if (is.null(manifest)) issue("CAPSULE_MANIFEST_MALFORMED",row$manifest_path[[1L]],message="Capsule manifest is malformed JSON.")
@@ -758,7 +761,7 @@ wb_capsule_emit_reproduction <- function(bundle,capsule_id,out_dir) {
       rel<-as.character(outs$path[j]);status<-.wb_path_status(root,rel,expected_type="file",must_exist=TRUE,purpose="capsule output validation")
       if(!isTRUE(status$ok)) issue("CAPSULE_OUTPUT_MISSING_OR_UNSAFE",rel,message="Capsule output is missing, escaped, or unsafe.")
       else if(nzchar(Sys.readlink(status$absolute))) issue("CAPSULE_OUTPUT_SYMLINK",rel,message="Capsule output was replaced by a symlink.")
-      else if(isTRUE(content)){actual<-.wb_prov_sha256_file(status$absolute);expected<-as.character(outs$content_sha256[j]);if(!identical(tolower(actual),tolower(expected))) issue("CAPSULE_OUTPUT_CONTENT_MISMATCH",rel,expected,actual,"Capsule output bytes differ from the immutable registry identity.")}
+      else if(isTRUE(content)){actual<-file_sha256(status$absolute);expected<-as.character(outs$content_sha256[j]);if(!identical(tolower(actual),tolower(expected))) issue("CAPSULE_OUTPUT_CONTENT_MISMATCH",rel,expected,actual,"Capsule output bytes differ from the immutable registry identity.")}
     }
   }
   invisible(TRUE)
