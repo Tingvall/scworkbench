@@ -134,7 +134,11 @@ wb_bundle_validation_plan <- function(level=c("content","structural","recipient"
 #' `recipient` adds finalized-transfer invariants: no active writer, SQLite
 #' WAL/SHM/journal sidecars, pending publication or commit, and an immutable
 #' SQLite connection. It fingerprints the bundle before and after validation and
-#' fails if validation changed it.
+#' fails if validation changed it. These filesystem observations use relative
+#' paths, file modes and physical file bytes (including SQLite); they are not
+#' portable logical-content identities. `identity_scopes` labels these values,
+#' registry state and independently verified entity content identities distinctly.
+#' `bundle_path` is the normalized absolute execution location, not a digest.
 #'
 #' The default is `content`: measurements on the package's tiny fixture and the
 #' three published use-case shapes showed acceptable read-only cost, while the
@@ -1651,6 +1655,24 @@ wb_bundle_validation_report <- function(bundle_dir,
       external_paths = "declared_nonportable_uninspected",
       serialized_payloads = "not_loaded_by_validation",
       unsafe_payloads_loaded = FALSE
+    ),
+    identity_scopes = list(
+      filesystem_observation = list(
+        fields = c("pre_validation_fingerprint", "post_validation_fingerprint"),
+        purpose = "same_copy_before_after_validation_guard",
+        path_basis = "bundle_relative", includes_absolute_root = FALSE,
+        includes_file_modes = TRUE, includes_sqlite_physical_bytes = TRUE,
+        portable_logical_content_identity = FALSE
+      ),
+      registry_state = list(
+        getter = "wb_manifest", field = "current_state$fingerprint",
+        purpose = "committed_registry_state", authenticates_payload_bytes = FALSE
+      ),
+      portable_entity_content = list(
+        getter = "wb_entity_certificate", field = "identity",
+        compare = c("content_identity_scheme", "content_sha256"),
+        require = "independently_content_verified"
+      )
     ),
     bundle_path = root,
     bundle_manifest_version = manifest_version,

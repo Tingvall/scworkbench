@@ -44,7 +44,11 @@ closed before any database connection is opened.
 \code{recipient} adds finalized-transfer invariants: no active writer, SQLite
 WAL/SHM/journal sidecars, pending publication or commit, and an immutable
 SQLite connection. It fingerprints the bundle before and after validation and
-fails if validation changed it.
+fails if validation changed it. These filesystem observations use relative
+paths, file modes and physical file bytes (including SQLite); they are not
+portable logical-content identities. \code{identity_scopes} labels these values,
+registry state and independently verified entity content identities distinctly.
+\code{bundle_path} is the normalized absolute execution location, not a digest.
 
 The default is \code{content}: measurements on the package's tiny fixture and the
 three published use-case shapes showed acceptable read-only cost, while the

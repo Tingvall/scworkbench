@@ -103,3 +103,44 @@ storage declaration to the existing kind, table type, entity kind and user
 metadata header. The row digest recurrence is unchanged. Historical tables
 retain `scworkbench.content.table.row-json-fold.v1` and the stream.v1 header;
 new code does not recalculate their rows at higher precision under that scheme.
+
+## Observation scope and transfer comparison
+
+Do not compare all fields named “fingerprint” as though they share a preimage.
+
+| Value | Scope and interpretation |
+| --- | --- |
+| Validation report `bundle_path` | Normalized absolute execution location; changes on relocation and is not a digest. |
+| `pre_validation_fingerprint`, `post_validation_fingerprint` | Same-copy filesystem guard: relative paths, sizes, file modes and physical file SHA-256s, including SQLite bytes. Absolute root is excluded. Relocation alone can preserve it; permissions or SQLite layout changes can change it without changing logical entity content. Compare this pair within one validation to detect mutation. |
+| `wb_manifest(b)$current_state$fingerprint` | Tagged committed registry-state snapshot; does not independently authenticate payload bytes. Registry identity can remain the same after payload corruption. |
+| `wb_entity_certificate(b, kind, id)$identity` | Entity-specific declared scheme and hash plus independent observed verification. Use verified tagged content identities for logical transfer comparison. Structural fingerprints are not content hashes. |
+
+Reports expose `identity_scopes` with these meanings. No existing identity
+preimage or scheme has been redefined. A changed filesystem observation is not
+by itself evidence of scientific recomputation or altered logical values.
+
+Compare a selected entity closure through supported certificates:
+
+```r
+portable_identity <- function(b, kind, id) {
+  x <- wb_entity_certificate(b, kind, id)$identity
+  stopifnot(identical(x$verification_status, "content_verified"),
+            identical(x$observed$status, "verified"),
+            nzchar(x$content_identity_scheme), nzchar(x$content_sha256))
+  list(entity_kind=kind, entity_id=id, scheme=x$content_identity_scheme,
+       sha256=x$content_sha256)
+}
+# Retain this small record before transfer; no second bundle copy is needed.
+before <- portable_identity(original, "artifact", artifact_id)
+# After the ordinary transfer and read-only reopen:
+after <- portable_identity(recipient, "artifact", artifact_id)
+stopifnot(identical(before, after))
+```
+
+Repeat for the required selected entities, preserving kind, ID, scheme and hash;
+do not compare whole certificates because storage/runtime location details have
+other scopes. Certificate content checks can read/hash payloads; this is an
+explicit verification boundary, not a cheap metadata getter. Missing baselines,
+external uninspected sources, unsupported historical schemes and uncovered
+entities remain limitations. Selected equality is not complete bundle coverage
+or a replacement for cumulative recipient validation.
