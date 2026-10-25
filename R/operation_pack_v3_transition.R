@@ -3935,6 +3935,34 @@
   })
 }
 
+# Bind the same effective ordered axis used by grants and registry snapshots.
+# Backed payload authentication still covers the original source; only its
+# descriptor/reader projection changes. In-memory values are sliced once.
+.wb_operation_pack_v3_bind_typed_matrix <- function(bundle, value, effective_cells) {
+  out <- .wb_operation_pack_v2_deep_copy(value)
+  available <- if (is.null(value$values)) {
+    as.character(wb_cells_with_matrix(bundle, value$matrix_id))
+  } else as.character(value$cell_id %||% colnames(value$values))
+  cells <- as.character(effective_cells %||% available)
+  if (anyNA(available) || any(!nzchar(available)) || anyDuplicated(available) ||
+      anyNA(cells) || any(!nzchar(cells)) || anyDuplicated(cells) ||
+      length(setdiff(cells, available)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed matrix input requires a unique effective cell axis covered by its source.",
+      "resolution")
+  out$cell_id <- cells
+  if (!is.null(value$values)) {
+    out$values <- value$values[, match(cells, available), drop = FALSE]
+    out$feature_id <- as.character(value$feature_id %||% rownames(value$values))
+    out$storage_profile <- "matrix_ordinary_v1"
+  } else {
+    out$feature_id <- wb_feature_ids(bundle, value$matrix_id)
+    out$storage_profile <- "matrix_backed_chunked_v1"
+  }
+  out$dimensions <- as.integer(c(length(out$feature_id), length(cells)))
+  out
+}
+
 .wb_operation_pack_v3_runner <- function(op_name, abi = "3") {
   force(op_name); force(abi)
   function(bundle, resolved, effective_cells, inputs, ...) {
@@ -4019,31 +4047,7 @@
         return(.wb_operation_pack_v2_bind_inputs(
             bundle, stats::setNames(list(value), name),
             effective_cells)[[name]])
-      out <- .wb_operation_pack_v2_deep_copy(value)
-      if (!is.null(value$values)) {
-        cells <- as.character(value$cell_id %||% colnames(value$values))
-        input_cells <- as.character(value$cell_id)
-        input_features <- as.character(value$feature_id)
-        indices <- match(cells, input_cells)
-        if (anyNA(indices)) .wb_operation_pack_v3_error(
-          "PYBENCH_INPUT_IDENTITY_MISMATCH",
-          "In-memory typed-slice input does not cover effective cells.",
-          "resolution")
-        out$values <- value$values[, indices, drop = FALSE]
-        out$cell_id <- cells
-        out$feature_id <- input_features
-        out$dimensions <- as.integer(c(length(input_features),
-          length(cells)))
-        out$storage_profile <- "matrix_ordinary_v1"
-        return(out)
-      }
-      available <- wb_cells_with_matrix(bundle, value$matrix_id)
-      out$cell_id <- as.character(available)
-      out$feature_id <- wb_feature_ids(bundle, value$matrix_id)
-      out$dimensions <- as.integer(c(length(out$feature_id),
-        length(out$cell_id)))
-      out$storage_profile <- "matrix_backed_chunked_v1"
-      out
+      .wb_operation_pack_v3_bind_typed_matrix(bundle, value, effective_cells)
     }), names(resolved))
     attr(bound, "operation_pack_v3_source_refs") <- source_refs
     attr(bound, "operation_pack_v4_matrix_source_selections") <-

@@ -65,7 +65,11 @@ readers use declaration names; G4/G5/G6 use their global named callbacks.
 See `callbacks.json` for every field, signature, absence rule and return
 channel, and `capabilities.json` for every accepted ABI constant/enum branch,
 all eleven primitives/profiles, recipe and independent backend statuses.
-Calls use exact authenticated cell/feature order. Numeric chunk sizes resolve
+Calls use exact authenticated cell/feature order. Typed matrix descriptors and
+ordered cell-metadata snapshots share the effective session cell axis, including
+its selected order. Backed matrices keep their source authentication and project
+reads through that axis; ordinary in-memory carriers are sliced to it before
+grant creation. Grants still reject duplicate, foreign or misaligned axes. Numeric chunk sizes resolve
 from admitted params. `wb_operation_pack_map_partitions` only delegates
 `wb_partition_axis` and the issued reader; it supplies no new reader authority.
 Never reslice storage using SQL or paths; never construct receipt hashes.
