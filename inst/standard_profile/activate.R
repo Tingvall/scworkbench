@@ -70,7 +70,7 @@
       !identical(lock$core_start_commit,
         "0aaa68893e595993c2664e104f7e0dc20702f960") ||
       !identical(lock$pybench_source_commit,
-        "f815def0127b7a63a5e81455c270cff6572dc8ea")) {
+        "608066e77583a37d9187a7bb5c8a5c49c082b17d")) {
     .scwb_profile_fail("LOCK_INVALID", "profile shape or declared operation totals differ")
   }
   lock_path <- system.file("standard_profile", "profile.json",

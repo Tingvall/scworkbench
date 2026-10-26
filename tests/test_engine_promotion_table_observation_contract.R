@@ -267,9 +267,29 @@ test_engine_promotion_table_durable_session_rollback_retry_contract <- function(
   first <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(
     source_column = "group", vector_name = "group", value_type = "categorical",
     missing_policy = "error", cell_set = "all", min_cells = 1L)); s <- first$session
-  paired <- wb_session_run_op(s, b, "scwbv2reference::two_table_terminal", inputs = list(
-    a = wb_ref_run(first$run$run_id, "vector"), b = wb_ref_run(first$run$run_id, "vector"),
-    cell_set = "all", min_cells = 1L)); s <- paired$session
+  # This case checks the literal v1 table oracle, like the legacy primitives
+  # in .engine_promotion_table_fixture. Freeze only the synthetic pair's
+  # constructor at that boundary; ordinary typed table tests keep the default.
+  legacy_pair <- function() {
+    ns <- asNamespace("scworkbench")
+    constructor <- get("wb_prim_obs_table", ns)
+    on.exit({
+      unlockBinding("wb_prim_obs_table", ns)
+      assign("wb_prim_obs_table", constructor, ns)
+      lockBinding("wb_prim_obs_table", ns)
+    }, add = TRUE)
+    unlockBinding("wb_prim_obs_table", ns)
+    assign("wb_prim_obs_table", function(...) {
+      primitive <- constructor(...)
+      primitive$table_storage <- NULL
+      primitive
+    }, ns)
+    lockBinding("wb_prim_obs_table", ns)
+    wb_session_run_op(s, b, "scwbv2reference::two_table_terminal", inputs = list(
+      a = wb_ref_run(first$run$run_id, "vector"), b = wb_ref_run(first$run$run_id, "vector"),
+      cell_set = "all", min_cells = 1L))
+  }
+  paired <- legacy_pair(); s <- paired$session
   checkpoint <- scworkbench:::.wb_session_checkpoint_file(s)
   checkpoint_sha <- digest::digest(file = checkpoint, algo = "sha256")
   before <- scworkbench:::.wb_manifest_registry_snapshot(b$con)

@@ -4324,7 +4324,7 @@
     {
       "name": "wb_art_list",
       "source": "R/artifacts.R",
-      "signature": "as.pairlist(alist(bundle = , type = NULL, include_history = FALSE))"
+      "signature": "as.pairlist(alist(bundle = , type = NULL, include_history = FALSE, include_provenance = FALSE))"
     },
     {
       "name": "wb_open_bundle",

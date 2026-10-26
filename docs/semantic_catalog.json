@@ -1771,17 +1771,17 @@
       "record_type": "getter",
       "name": "wb_art_list",
       "title": "Artifacts",
-      "description": "List current promoted artifacts by default, optionally filtered by type or expanded to retained history.",
-      "search_text": "Artifacts\nList current promoted artifacts by default, optionally filtered by type or expanded to retained history.\nartifacts\ndata.frame\nbundle\ntype\ninclude_history\nfind promoted outputs\nchoose artifact for plotting or loading",
+      "description": "List current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance.",
+      "search_text": "Artifacts\nList current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance.\nartifacts\ndata.frame\nbundle\ntype\ninclude_history\ninclude_provenance\nfind promoted outputs\nchoose artifact for plotting or loading",
       "tags": ["getter", "artifacts"],
       "payload": {
         "function_name": "wb_art_list",
         "title": "Artifacts",
         "category": "artifacts",
-        "description": "List current promoted artifacts by default, optionally filtered by type or expanded to retained history.",
+        "description": "List current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance.",
         "returns": "data.frame",
         "payload_level": "metadata",
-        "arguments": ["bundle", "type", "include_history"],
+        "arguments": ["bundle", "type", "include_history", "include_provenance"],
         "use_when": ["find promoted outputs", "choose artifact for plotting or loading"],
         "mutates": false
       }

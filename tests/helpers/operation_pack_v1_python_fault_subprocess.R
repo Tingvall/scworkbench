@@ -62,7 +62,16 @@ Sys.chmod(wrapper, mode = "0755")
 writeLines("normal", mode_file)
 Sys.setenv(SCWB_FAULT_REAL_PYTHON = real_python, SCWB_FAULT_MODE_FILE = mode_file)
 
-invisible(wb_operation_pack_activate(manifest, python = wrapper, timeout_seconds = 2))
+# Discovery and ordinary execution share this deadline. Installed scientific
+# environments can take longer than two seconds even for genuine discovery;
+# permit a bounded test-only calibration while the injected hang stays 60s.
+fault_timeout <- suppressWarnings(as.numeric(Sys.getenv(
+  "SCWORKBENCH_TEST_PYTHON_FAULT_TIMEOUT_SECONDS", unset = "2")))
+stopifnot(length(fault_timeout) == 1L, is.finite(fault_timeout),
+  fault_timeout >= 2, fault_timeout <= 10)
+cat("PYTHON_FAULT_TEST_TIMEOUT seconds=", fault_timeout, " injected_hang_seconds=60\n", sep = "")
+invisible(wb_operation_pack_activate(manifest, python = wrapper,
+  timeout_seconds = fault_timeout))
 root <- tempfile("operation_pack_fault_bundle_")
 workspace <- tempfile("operation_pack_fault_workspace_")
 on.exit(unlink(c(root, workspace), recursive = TRUE, force = TRUE), add = TRUE)

@@ -12,9 +12,29 @@ test_payload_content_identity_contract <- function() {
     "4b41b284b7e8ce919f64a0ed31852f481d868792280af36539261d316a277a56"
   ))
 
+  # Keep both synthetic production and strict replay on the literal legacy
+  # contract. Restore the ordinary typed constructor when this case returns.
+  namespace <- asNamespace("scworkbench")
+  obs_constructor <- get("wb_prim_obs_table", namespace)
+  on.exit({
+    unlockBinding("wb_prim_obs_table", namespace)
+    assign("wb_prim_obs_table", obs_constructor, namespace)
+    lockBinding("wb_prim_obs_table", namespace)
+  }, add = TRUE)
+  unlockBinding("wb_prim_obs_table", namespace)
+  assign("wb_prim_obs_table", function(...) {
+    primitive <- obs_constructor(...)
+    primitive$table_storage <- NULL
+    primitive
+  }, namespace)
+  lockBinding("wb_prim_obs_table", namespace)
+
   left <- wb_prim_feature_table(data.frame(feature_id = c("g1", "g2"), score = c(1, 2), stringsAsFactors = FALSE), table_type = "de")
   changed <- wb_prim_feature_table(data.frame(feature_id = c("g1", "g2"), score = c(9, 2), stringsAsFactors = FALSE), table_type = "de")
   reordered <- wb_prim_feature_table(data.frame(feature_id = c("g2", "g1"), score = c(2, 1), stringsAsFactors = FALSE), table_type = "de")
+  # This contract retains the legacy v1 table identity and replay oracle.
+  # Current typed table publication is covered by the fidelity contracts.
+  left$table_storage <- changed$table_storage <- reordered$table_storage <- NULL
   left_id <- scworkbench:::.wb_prov_payload_identity(NULL, left)
   changed_id <- scworkbench:::.wb_prov_payload_identity(NULL, changed)
   reordered_id <- scworkbench:::.wb_prov_payload_identity(NULL, reordered)

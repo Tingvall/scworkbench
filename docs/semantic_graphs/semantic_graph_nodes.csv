@@ -81,7 +81,7 @@
 "getter:wb_art_dependencies","getter","wb_art_dependencies","Artifact Dependencies","Get dependency relationships for an artifact."
 "getter:wb_art_graph_info","getter","wb_art_graph_info","Retained Graph Identity and Counts","Independently verify retained graph content, bindings, descriptor and promotion evidence using bounded reads; report available source authority separately. No durable writes or migrations."
 "getter:wb_art_graph_slice","getter","wb_art_graph_slice","Ordered Graph Component Partition","Read one row/byte-bounded ordered graph component without whole-graph materialization. No durable writes or lifecycle changes."
-"getter:wb_art_list","getter","wb_art_list","Artifacts","List current promoted artifacts by default, optionally filtered by type or expanded to retained history."
+"getter:wb_art_list","getter","wb_art_list","Artifacts","List current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance."
 "getter:wb_art_load","getter","wb_art_load","Load Artifact","Load a promoted artifact as a primitive."
 "getter:wb_art_table_distinct","getter","wb_art_table_distinct","Table Artifact Distinct Values","List distinct values from one promoted table artifact column."
 "getter:wb_art_table_info","getter","wb_art_table_info","Table Artifact Info","Read metadata for a promoted table artifact."

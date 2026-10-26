@@ -8,7 +8,7 @@
     "slingshot_adopt"
   ],
   "packed_operation_count": 57,
-  "pybench_source_commit": "f815def0127b7a63a5e81455c270cff6572dc8ea",
+  "pybench_source_commit": "608066e77583a37d9187a7bb5c8a5c49c082b17d",
   "core_start_commit": "0aaa68893e595993c2664e104f7e0dc20702f960",
   "packs": [
     {
@@ -42,9 +42,9 @@
       "package": "scwbRepresentation",
       "namespace": "scwbrepresentation",
       "version": "0.1.0",
-      "source_commit": "be51127ca0d7c11a0667be826c24449a5c7e8912",
-      "manifest_source_sha256": "e0a35cf2f2dc2f4321c412d0c170f7cdfefe4e28ac7e52f480dc946ed754f1ba",
-      "manifest_sha256": "dfa5772ae8addd96468ce530a4d69eb1b2105d99f6ab1b0ebc28f430f1a1314a",
+      "source_commit": "fa577d916c4c13dbf2283c48d5c602aa4888620c",
+      "manifest_source_sha256": "5903ad2c0f26c745688d8203da85e0c2478afa8b9c5818e1033d0db944355988",
+      "manifest_sha256": "c9166e200b64fa3a8ca368956c8e365c537bb094a560695815a35cdb79165181",
       "operation_count": 6
     },
     {
@@ -60,7 +60,7 @@
       "package": "scwbLatent",
       "namespace": "scwblatent",
       "version": "0.1.2",
-      "source_commit": "5d0f705b95b2fcf3a6a82d3e5ccc852c6dde0cdd",
+      "source_commit": "003dcd3530e0b5e5aec631eda99071ca0e3876d4",
       "manifest_source_sha256": "4167237205a554490c895bce659f3c3cf128f89bc89b141270059304ebe25b9b",
       "manifest_sha256": "803664b67cd59e083d2737816de9e9596bb2ebe5dfe2cf0d67b3922fe6d0ac3d",
       "operation_count": 4

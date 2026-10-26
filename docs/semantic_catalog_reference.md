@@ -706,7 +706,7 @@ Description: Get absolute path to a stored model file for a space.
 
 Title: Artifacts
 
-Description: List current promoted artifacts by default, optionally filtered by type or expanded to retained history.
+Description: List current promoted artifact metadata without large provenance descriptors by default; optionally filter by type, include history, or explicitly include full provenance.
 
 ### `getter:wb_entity_lifecycle`
 

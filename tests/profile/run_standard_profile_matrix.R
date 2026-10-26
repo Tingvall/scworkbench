@@ -34,9 +34,9 @@ expected <- c(
   scwbStatistics = "00d1ba6a63d853b146916243bb8035d32528d575",
   scwbGenePrograms = "1bc3ad43c920622ab1e45df4bd8bd968335e912b",
   scwbRNA = "151dd29211b219343dce6247c5e48fc932b4c83d",
-  scwbRepresentation = "be51127ca0d7c11a0667be826c24449a5c7e8912",
+  scwbRepresentation = "fa577d916c4c13dbf2283c48d5c602aa4888620c",
   scwbTrajectory = "de6e0810578e918cf9425858eddd0549e41195be",
-  scwbLatent = "5d0f705b95b2fcf3a6a82d3e5ccc852c6dde0cdd",
+  scwbLatent = "003dcd3530e0b5e5aec631eda99071ca0e3876d4",
   scwbATAC = "0d0b2c0728e0db543442c1783fdc9398ee309eb5")
 for (package in names(expected)) {
   path <- file.path(pack_root, package)
