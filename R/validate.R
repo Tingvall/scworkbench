@@ -1021,8 +1021,15 @@ wb_bundle_validation_report <- function(bundle_dir,
       if (nrow(runs)) for (i in seq_len(nrow(runs))) {
         sid <- as.character(runs$snapshot_id[i]); rid <- as.character(runs$run_id[i]); run_entity <- paste(sid,rid,sep="/")
         schema_version <- if (nrow(head_schemas) && any(head_schemas$snapshot_id==sid)) as.character(head_schemas$schema_version[match(sid,head_schemas$snapshot_id)]) else NA_character_
-        current_contract <- identical(schema_version,.wb_prov_schema_version())
-        typed_contract <- schema_version %in% c("1.7","1.8","1.9","1.10")
+        current_contract <- schema_version %in% c("1.10", .wb_prov_schema_version())
+        # Preserve historical verification preimages; precision-aware new
+        # records compare their full JSON values without a lossy object digest.
+        settings_equal <- function(a, b) {
+          if (identical(schema_version, "1.11")) {
+            identical(.wb_execution_settings_json(a), .wb_execution_settings_json(b))
+          } else identical(.wb_prov_sha256_object(a), .wb_prov_sha256_object(b))
+        }
+        typed_contract <- schema_version %in% c("1.7","1.8","1.9","1.10","1.11")
         parsed <- list(); malformed <- character()
         for (field in names(json_fields)) {
           txt <- if (field %in% names(runs)) as.character(runs[[field]][i] %||% "")[1] else ""
@@ -1070,8 +1077,8 @@ wb_bundle_validation_report <- function(bundle_dir,
           contract_op <- as.character(contract$interface$op_name %||% "")[1]
           contract_version <- as.character(contract$version %||% "")[1]
           if (!is.null(contract) && (!identical(contract_op,op_name) || !identical(contract_version,op_version))) add("RUN_CONTRACT_IDENTITY_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=paste(op_name,op_version,sep="@"),observed=paste(contract_op,contract_version,sep="@"),message="Recorded contract operation identity/version contradicts the run row.")
-          if (current_contract && !is.null(contract) && !is.null(parsed$params_json) && !identical(.wb_prov_sha256_object(contract$parameters %||% list()),.wb_prov_sha256_object(parsed$params_json))) add("RUN_CONTRACT_PARAMETERS_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",message="Recorded contract parameters contradict params_json.")
-          if (current_contract && !is.null(contract) && !is.null(parsed$execution_inputs_json) && !identical(.wb_prov_sha256_object(contract$resolved_inputs %||% list()),.wb_prov_sha256_object(parsed$execution_inputs_json))) add("RUN_CONTRACT_EXECUTION_INPUTS_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",message="Recorded contract resolved inputs contradict execution_inputs_json.")
+          if (current_contract && !is.null(contract) && !is.null(parsed$params_json) && !settings_equal(contract$parameters %||% list(),parsed$params_json)) add("RUN_CONTRACT_PARAMETERS_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",message="Recorded contract parameters contradict params_json.")
+          if (current_contract && !is.null(contract) && !is.null(parsed$execution_inputs_json) && !settings_equal(contract$resolved_inputs %||% list(),parsed$execution_inputs_json)) add("RUN_CONTRACT_EXECUTION_INPUTS_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",message="Recorded contract resolved inputs contradict execution_inputs_json.")
         } else if ("contract_json" %in% names(runs)) add("RUN_CONTRACT_MISSING",severity="warning",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",observed="missing",message="Legacy run has no recorded operation contract.")
 
         expected_bindings <- c(
@@ -1085,7 +1092,7 @@ wb_bundle_validation_report <- function(bundle_dir,
             else add("RUN_TYPED_INPUT_BINDING_LEGACY_UNVERIFIABLE",severity="warning",check_class="provenance",entity_kind=binding$entity_kind,entity_id=binding$entity_id,table="prov_run_entity_bindings",expected=binding$binding_name,observed=run_entity,message="Legacy run predates exact typed input bindings and remains ancestry-unverifiable.")
           }
         }
-        if (identical(schema_version, "1.10")) {
+        if (schema_version %in% c("1.10", "1.11")) {
           resolutions <- .wb_cell_set_resolution_records(
             parsed$inputs_json$cell_set_resolutions %||% list()
           )

@@ -170,7 +170,7 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.10"
+.wb_prov_schema_version <- function() "1.11"
 
 .wb_replay_equivalence_policies <- function() {
   c(
@@ -1519,19 +1519,19 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
       run <- runs[[rid]]
       if (is.null(run) || !wb_is_run(run)) next
 
-      params_json <- jsonlite::toJSON(.wb_json_sanitize(run$params %||% list()), auto_unbox = TRUE, null = "null")
-      inputs_json <- jsonlite::toJSON(.wb_json_sanitize(run$inputs %||% list()), auto_unbox = TRUE, null = "null")
+      params_json <- .wb_execution_settings_json(.wb_json_sanitize(run$params %||% list()))
+      inputs_json <- .wb_execution_settings_json(.wb_json_sanitize(run$inputs %||% list()))
       symbolic_inputs <- run$inputs$symbolic_inputs %||% run$inputs$user_inputs %||% list()
       execution_inputs <- run$inputs$execution_inputs %||% list(
         effective_n = run$inputs$effective_n %||% NA_integer_,
         resolved = list()
       )
-      symbolic_inputs_json <- jsonlite::toJSON(.wb_json_sanitize(symbolic_inputs), auto_unbox = TRUE, null = "null")
-      execution_inputs_json <- jsonlite::toJSON(.wb_json_sanitize(execution_inputs), auto_unbox = TRUE, null = "null")
+      symbolic_inputs_json <- .wb_execution_settings_json(.wb_json_sanitize(symbolic_inputs))
+      execution_inputs_json <- .wb_execution_settings_json(.wb_json_sanitize(execution_inputs))
       run_hash <- .wb_prov_run_hash(run$op_name, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json)
       contract_run <- run
       contract_run$inputs$execution_inputs <- execution_inputs
-      contract_json <- jsonlite::toJSON(.wb_json_sanitize(.wb_prov_contract_snapshot(contract_run)), auto_unbox = TRUE, null = "null")
+      contract_json <- .wb_execution_settings_json(.wb_json_sanitize(.wb_prov_contract_snapshot(contract_run)))
 
       DBI::dbExecute(
         con,
@@ -2329,7 +2329,7 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
 }
 
 .wb_emit_r_object_assign <- function(var_name, obj) {
-  txt <- utils::capture.output(base::dput(obj))
+  txt <- utils::capture.output(base::dput(obj, control = c("keepNA", "keepInteger", "niceNames", "showAttributes", "digits17")))
   if (!length(txt)) return(paste0(var_name, " <- list()"))
   if (length(txt) == 1L) return(paste0(var_name, " <- ", txt[[1]]))
   c(paste0(var_name, " <- ", txt[[1]]), txt[-1])
@@ -2676,8 +2676,8 @@ wb_prov_emit_r_script <- function(bundle,
         ""
       )
     } else {
-      params_json <- jsonlite::toJSON(payload[[rid]]$params %||% list(), auto_unbox = TRUE, null = "null")
-      inputs_json <- jsonlite::toJSON(payload[[rid]]$inputs %||% list(), auto_unbox = TRUE, null = "null")
+      params_json <- .wb_execution_settings_json(payload[[rid]]$params %||% list())
+      inputs_json <- .wb_execution_settings_json(payload[[rid]]$inputs %||% list())
       lines <- c(
         lines,
         paste0("# run_id: ", rid, " op: ", op_name),

@@ -120,7 +120,17 @@
   as.character(x)
 }
 
-# ---- REPLACEMENT ----
+# New execution-setting records use ordinary JSON numbers with enough digits
+# for IEEE-754 round-trip. Keep double tokens decimal so 1.0 and signed zero
+# retain their numeric type in standard R/Python readers. Identity helpers and
+# historical stored JSON are deliberately not re-encoded by this writer.
+.wb_execution_settings_encoding <- function() "scworkbench.execution-settings.json.v1"
+
+.wb_execution_settings_json <- function(x) {
+  jsonlite::toJSON(x, auto_unbox = TRUE, null = "null",
+    digits = 17, always_decimal = TRUE)
+}
+
 .wb_prov_json <- function(run, parent_artifacts, primitive_payload = NULL) {
   .wb_require_pkg("jsonlite", "provenance json")
 
@@ -128,6 +138,7 @@
     run_id = run$run_id,
     op_name = run$op_name,
     created_at = run$created_at %||% NA_character_,
+    execution_settings_encoding = .wb_execution_settings_encoding(),
 
     # key point: sanitize these
     inputs = run$inputs %||% list(),
@@ -138,7 +149,7 @@
   )
   if (!is.null(primitive_payload)) prov$primitive_payload <- primitive_payload
 
-  jsonlite::toJSON(.wb_json_sanitize(prov), auto_unbox = TRUE, null = "null")
+  .wb_execution_settings_json(.wb_json_sanitize(prov))
 }
 
 .wb_object_primitive_kinds <- function() {

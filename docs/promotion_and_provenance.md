@@ -58,3 +58,24 @@ cannot acquire native fit ownership. Retained-model transform/reuse continues
 through the model artifact; it does not refit or reassign the native producer.
 Historical native model rows without a recorded creation owner are not
 backfilled or relabeled during inspection.
+
+## Execution-setting precision
+
+New provenance snapshots at semantic version 1.11 store supported finite double
+execution settings as 17-digit JSON numbers. Decimal tokens preserve double
+values such as `1.0` and signed zero for ordinary R and Python readers. This
+applies to parameters, recorded/symbolic/resolved inputs, contract snapshots,
+artifact provenance, and emitted replay scripts. Artifact provenance identifies
+these new records with `execution_settings_encoding` set to
+`scworkbench.execution-settings.json.v1`. Ordinary durable RDS checkpoints keep
+their existing representation. Parameter types and non-finite-value admission
+remain the operation interface's responsibility; this is not arbitrary R-object
+serialization.
+
+Run and contract integrity schemes still authenticate their exact stored UTF-8
+JSON bytes. Existing content, manifest, and legacy table identity algorithms
+have not changed. Earlier records are read and verified using their recorded
+bytes and settings; they are never rewritten at higher precision. If an earlier
+writer rounded a scientific threshold, the lost precision cannot be recovered
+by reopening or replaying that record. Reconstruct the invocation explicitly
+from an independent source if the original setting is needed.

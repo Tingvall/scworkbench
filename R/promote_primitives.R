@@ -1434,7 +1434,7 @@ wb_promote_analysis <- function(bundle,
   if (!is.null(storage)) {
     provenance <- jsonlite::fromJSON(prov_json, simplifyVector = FALSE)
     provenance$table_storage <- prim$table_storage$format
-    prov_json <- as.character(jsonlite::toJSON(provenance, auto_unbox = TRUE, null = "null"))
+    prov_json <- as.character(.wb_execution_settings_json(provenance))
   }
 
   DBI::dbExecute(con, "

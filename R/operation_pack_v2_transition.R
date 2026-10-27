@@ -1136,7 +1136,7 @@
   # file-backed matrix differ from the descriptor identity computed before
   # serialization.
   jsonlite::write_json(value, tmp, auto_unbox = TRUE, pretty = TRUE,
-    null = "null", na = "null", digits = NA)
+    null = "null", na = "null", digits = 17, always_decimal = TRUE)
   .wb_operation_pack_assert(file.rename(tmp, path), "PYBENCH_PUBLICATION_FAILED",
     paste0("Could not publish ", basename(path), "."), class = "wb_operation_pack_v2_error")
   invisible(TRUE)

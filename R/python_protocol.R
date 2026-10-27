@@ -230,7 +230,8 @@
 
 .wb_pyproto_write_request_json <- function(path, request) {
   .wb_pyproto_validate_request(request)
-  jsonlite::write_json(request, path, auto_unbox = TRUE, pretty = TRUE, null = "null")
+  jsonlite::write_json(request, path, auto_unbox = TRUE, pretty = TRUE, null = "null",
+    digits = 17, always_decimal = TRUE)
   invisible(normalizePath(path, winslash = "/", mustWork = TRUE))
 }
 
