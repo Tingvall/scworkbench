@@ -670,8 +670,8 @@ wb_search_features <- function(bundle,
 #'
 #' @param bundle Bundle handle from `wb_bundle_open()`.
 #' @param matrix_id Matrix identifier (exact match).
-#' @param features Optional character vector of feature_ids to subset rows (order preserved).
-#' @param cells Optional character vector of cell_ids to subset columns (order preserved).
+#' @param features Optional character vector of feature_ids to subset rows (order and repeats preserved).
+#' @param cells Optional character vector of cell_ids to subset columns (order and repeats preserved).
 #'
 #' @return A sparse Matrix (dgCMatrix).
 #' @export
@@ -740,7 +740,8 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   }
 
   frags <- tryCatch(wb_matrix_fragments(bundle, matrix_id), error = function(e) data.frame())
-  if (nrow(frags) > 1L) {
+  if (nrow(frags) > 1L || anyDuplicated(feat_out) || anyDuplicated(cell_out) ||
+      !length(feat_out) || !length(cell_out)) {
     return(wb_matrix_read_features(
       bundle = bundle,
       matrix_id = matrix_id,

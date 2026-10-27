@@ -43,17 +43,12 @@ test_public_sparse_matrix_complete_and_overlap_contract <- function() {
     stopifnot(inherits(result, "sparseMatrix"),
       identical(as.matrix(result), expected[f, c, drop = FALSE]))
   }
-  # Duplicate selections deliberately preserve historical named-map behavior,
-  # rather than silently replacing it with conventional matrix subsetting.
+  # Intentional scientific bug fix: the former named-map oracle left repeated
+  # positions as fabricated zeros. Ordinary indexing repeats numerical values.
+  # The original expectation remains in parent commit c6c5f7ce3030392fb47930988fc5caa76e16e3a8.
   dup_f <- c("g1", "g1", "g2"); dup_c <- c("c1", "c1")
-  legacy <- Matrix::Matrix(0, nrow = 3, ncol = 2, sparse = TRUE)
-  dimnames(legacy) <- list(dup_f, dup_c)
-  for (value in list(first, partial)) {
-    ff <- intersect(dup_f, rownames(value)); cc <- intersect(dup_c, colnames(value))
-    legacy[unname(setNames(seq_along(dup_f), dup_f)[ff]),
-      unname(setNames(seq_along(dup_c), dup_c)[cc])] <- value[ff, cc, drop = FALSE]
-  }
-  stopifnot(identical(as.matrix(read(dup_f, dup_c)), as.matrix(legacy)))
+  stopifnot(identical(as.matrix(read(dup_f, dup_c)), expected[dup_f, dup_c, drop=FALSE]),
+    identical(read(dup_f, dup_c, "NA"), expected[dup_f, dup_c, drop=FALSE]))
   absent <- read(c("absent", "g1"), c("absent", "c1"))
   stopifnot(identical(as.numeric(absent[1, ]), c(0, 0)),
     identical(as.numeric(absent[, 1]), c(0, 0)))

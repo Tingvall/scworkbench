@@ -18,11 +18,13 @@ wb_matrix_read_features(
 
 \item{matrix_id}{Matrix id.}
 
-\item{feature_ids}{Requested feature ids.}
+\item{feature_ids}{Requested feature ids, preserving order and repeats.}
 
-\item{cell_ids}{Requested cell ids.}
+\item{cell_ids}{Requested cell ids, preserving order and repeats.}
 
-\item{missing}{How to represent missing entries: \code{"zero"} or \code{"NA"}.}
+\item{missing}{How to represent missing entries: \code{"zero"} or \code{"NA"}.
+The dense NA result and its dense fragment temporaries are admitted against
+\code{scworkbench.max_dense_materialize_mb} before allocation.}
 
 \item{prefer_newest}{If \code{TRUE}, newer fragments overwrite older values when
 overlaps exist.}

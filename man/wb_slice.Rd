@@ -11,9 +11,9 @@ wb_slice(bundle, matrix_id, features = NULL, cells = NULL)
 
 \item{matrix_id}{Matrix identifier (exact match).}
 
-\item{features}{Optional character vector of feature_ids to subset rows (order preserved).}
+\item{features}{Optional character vector of feature_ids to subset rows (order and repeats preserved).}
 
-\item{cells}{Optional character vector of cell_ids to subset columns (order preserved).}
+\item{cells}{Optional character vector of cell_ids to subset columns (order and repeats preserved).}
 }
 \value{
 A sparse Matrix (dgCMatrix).

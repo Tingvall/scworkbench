@@ -49,6 +49,23 @@ wb_matrices <- function(bundle, include_history = FALSE) {
 }
 
 
+.wb_matrix_read_dense_guard <- function(n_features, n_cells) {
+  limit <- getOption("scworkbench.max_dense_materialize_mb", 256)
+  .wb_assert(is.numeric(limit) && length(limit) == 1L &&
+    is.finite(limit) && limit > 0,
+    "scworkbench.max_dense_materialize_mb must be a positive finite number")
+  # Divide before multiplying; never use integer dimension products. Inf is
+  # refusal, not an escape from the guard. This bounds each dense allocation,
+  # not the sum of simultaneously live objects or total process RSS.
+  est_mb <- (as.double(n_features) / 1024) * (as.double(n_cells) / 1024) * 8
+  if (!is.finite(est_mb) || est_mb > limit) stop(paste0(
+    "Refusing dense materialization of ~", round(est_mb, 1),
+    " MB (limit=", limit, " MB) for missing='NA'. ",
+    "Reduce features/cells or increase scworkbench.max_dense_materialize_mb."),
+    call. = FALSE)
+  invisible(est_mb)
+}
+
 #' Read Multiple Features Across Cells
 #'
 #' Read a feature-by-cell block from a virtual matrix assembled from registered
@@ -56,9 +73,11 @@ wb_matrices <- function(bundle, include_history = FALSE) {
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param matrix_id Matrix id.
-#' @param feature_ids Requested feature ids.
-#' @param cell_ids Requested cell ids.
+#' @param feature_ids Requested feature ids, preserving order and repeats.
+#' @param cell_ids Requested cell ids, preserving order and repeats.
 #' @param missing How to represent missing entries: `"zero"` or `"NA"`.
+#'   The dense NA result and its dense fragment temporaries are admitted against
+#'   `scworkbench.max_dense_materialize_mb` before allocation.
 #' @param prefer_newest If `TRUE`, newer fragments overwrite older values when
 #'   overlaps exist.
 #'
@@ -74,8 +93,8 @@ wb_matrix_read_features <- function(bundle,
                                     prefer_newest = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(matrix_id) && nzchar(matrix_id), "matrix_id invalid")
-  .wb_assert(is.character(feature_ids) && length(feature_ids) > 0, "feature_ids invalid")
-  .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids invalid")
+  .wb_assert(is.character(feature_ids), "feature_ids invalid")
+  .wb_assert(is.character(cell_ids), "cell_ids invalid")
 
   missing <- match.arg(missing)
   feature_ids <- as.character(feature_ids)
@@ -91,13 +110,15 @@ wb_matrix_read_features <- function(bundle,
   if (missing == "zero") {
     out <- Matrix::Matrix(0, nrow = nF, ncol = nC, sparse = TRUE)
   } else {
-    # NA-mode: start dense NA then convert to sparse only if you want later.
-    # v1: keep dense for correctness; you can optimize later.
+    # Every selected fragment block is a subrectangle of this output, so this
+    # admission also bounds its later dense conversion (including repeats).
+    .wb_matrix_read_dense_guard(nF, nC)
     out <- matrix(NA_real_, nrow = nF, ncol = nC)
   }
   rownames(out) <- feature_ids
   colnames(out) <- cell_ids
 
+  if (!nF || !nC) return(out)
   frags <- wb_matrix_fragments(bundle, matrix_id)
   if (nrow(frags) == 0) return(out)
 
@@ -111,6 +132,8 @@ wb_matrix_read_features <- function(bundle,
   # precompute position maps in output
   feat_pos <- setNames(seq_along(feature_ids), feature_ids)
   cell_pos <- setNames(seq_along(cell_ids), cell_ids)
+  repeat_features <- anyDuplicated(feature_ids) > 0L
+  repeat_cells <- anyDuplicated(cell_ids) > 0L
 
   for (i in seq_len(nrow(frags))) {
     row <- frags[i, , drop = FALSE]
@@ -143,7 +166,7 @@ wb_matrix_read_features <- function(bundle,
     # zero sparse skeleton through a dense intermediate. Do not return here:
     # later overlapping fragments (including explicit zeros) still win.
     complete <- missing == "zero" && !anyNA(feature_ids) && !anyNA(cell_ids) &&
-      !anyDuplicated(feature_ids) && !anyDuplicated(cell_ids) &&
+      !repeat_features && !repeat_cells &&
       identical(feats_keep, feature_ids) && identical(cells_keep, cell_ids)
     if (complete) {
       block <- .wb_as_sparse(block)
@@ -162,11 +185,19 @@ wb_matrix_read_features <- function(bundle,
     }
 
     # Map into output positions
-    rr <- unname(feat_pos[feats_keep])
-    cc <- unname(cell_pos[cells_keep])
+    rr <- if (repeat_features) which(feature_ids %in% feats_keep) else
+      unname(feat_pos[feats_keep])
+    cc <- if (repeat_cells) which(cell_ids %in% cells_keep) else
+      unname(cell_pos[cells_keep])
+    if (repeat_features || repeat_cells) {
+      # BPCells rejects repeated numerical indices. Expand only after bounded
+      # materialization, where ordinary Matrix/base indexing preserves repeats.
+      block <- block[match(feature_ids[rr], feats_keep),
+        match(cell_ids[cc], cells_keep), drop = FALSE]
+    }
 
     if (missing == "zero") {
-      # Partial/duplicate selections retain the existing replacement semantics.
+      # Partial selections retain the existing fragment overwrite order.
       out[rr, cc] <- block
     } else {
       # NA-mode: overwrite with values, leaving NA where still missing
