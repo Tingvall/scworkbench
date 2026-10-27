@@ -46,33 +46,62 @@ wb_art_list <- function(bundle, type = NULL, include_history = FALSE,
   if (length(params)) DBI::dbGetQuery(con, sql, params = params) else DBI::dbGetQuery(con, sql)
 }
 
+# JSON string escaping handles member names; SQL binding is a separate boundary.
 .wb_art_table_json_path <- function(column) {
-  col <- as.character(column %||% "")[1]
-  .wb_assert(grepl("^[A-Za-z][A-Za-z0-9_]*$", col),
-             paste0("Invalid JSON column for artifact table query: ", col))
-  paste0("$.", col)
+  .wb_assert(is.character(column) && length(column) == 1L &&
+    !is.na(column) && nzchar(column), "column must be one non-empty column name")
+  paste0("$.", jsonlite::toJSON(column, auto_unbox = TRUE))
+}
+
+.wb_art_table_query_storage <- function(bundle, info) {
+  text <- as.character(info$meta_json[[1L]])
+  meta <- if (is.na(text) || !nzchar(text)) list() else
+    jsonlite::fromJSON(text, simplifyVector = TRUE)
+  .wb_table_decode_meta(meta,
+    .wb_table_artifact_is_typed(bundle$con, info$artifact_id[[1L]]))$storage
+}
+
+.wb_art_table_query_columns <- function(bundle, info, storage) {
+  if (!is.null(storage)) return(storage$names)
+  # Legacy tables have no column declaration. Inspect only their first row,
+  # never materialize the payload to validate a query.
+  rows <- DBI::dbGetQuery(bundle$con,
+    "SELECT key FROM json_each((SELECT row_json FROM artifact_table_rows
+      WHERE artifact_id=? ORDER BY row_idx LIMIT 1));",
+    params = list(info$artifact_id[[1L]]))
+  as.character(rows$key)
+}
+
+.wb_art_table_assert_columns <- function(columns, available) {
+  unknown <- setdiff(columns, available)
+  .wb_assert(!length(unknown), paste0("Unknown artifact table column(s): ",
+    paste(unknown, collapse = ", ")))
 }
 
 .wb_art_table_filters_sql <- function(filters) {
   ff <- filters %||% list()
-  if (!is.list(ff) || !length(ff)) {
-    return(list(sql = character(0), params = list()))
-  }
-
+  .wb_assert(is.list(ff) && !is.data.frame(ff),
+    "filters must be a named list of selection vectors")
+  if (!length(ff)) return(list(sql = character(0), params = list()))
+  nms <- names(ff)
+  .wb_assert(length(nms) == length(ff) && !anyNA(nms) &&
+    all(nzchar(nms)) && !anyDuplicated(nms),
+    "filters must have unique, non-empty column names")
   clauses <- character(0)
   params <- list()
-  for (nm in names(ff)) {
+  for (nm in nms) {
     vals <- ff[[nm]]
-    if (is.null(vals)) next
+    .wb_assert(is.null(vals) || (is.atomic(vals) && is.null(dim(vals))),
+      paste0("Filter selection for '", nm, "' must be a vector"))
     vals <- as.vector(vals)
     vals <- vals[!is.na(vals)]
-    if (!length(vals)) next
+    if (!length(vals)) {
+      clauses <- c(clauses, "0")
+      next
+    }
     qmarks <- paste(rep("?", length(vals)), collapse = ", ")
-    clauses <- c(
-      clauses,
-      paste0("json_extract(row_json, '", .wb_art_table_json_path(nm), "') IN (", qmarks, ")")
-    )
-    params <- c(params, as.list(vals))
+    clauses <- c(clauses, paste0("json_extract(row_json, ?) IN (", qmarks, ")"))
+    params <- c(params, list(.wb_art_table_json_path(nm)), as.list(vals))
   }
   list(sql = clauses, params = params)
 }
@@ -229,7 +258,9 @@ wb_art_table_info <- function(bundle, artifact_id) {
 #' @param artifact_id Artifact id for a promoted `feature_table` or `obs_table`.
 #' @param column Column name to extract from `row_json`.
 #' @param filters Optional named list of equality filters applied before taking
-#'   distinct values.
+#'   distinct values. NULL or an empty list leaves the query unrestricted; a named
+#'   empty or all-NA selection matches no rows. NA values in mixed selections
+#'   are ignored. Names must be unique, non-empty existing columns.
 #' @param limit Optional limit on the number of returned values.
 #'
 #' @return Character vector of distinct non-empty values.
@@ -243,16 +274,21 @@ wb_art_table_distinct <- function(bundle, artifact_id, column, filters = NULL, l
   aid <- as.character(artifact_id)[1]
   lim <- suppressWarnings(as.integer(limit %||% NA_integer_))
   filt <- .wb_art_table_filters_sql(filters)
+  storage <- .wb_art_table_query_storage(bundle, info)
+  if (length(filters)) .wb_art_table_assert_columns(names(filters),
+    .wb_art_table_query_columns(bundle, info, storage))
   where_bits <- c("artifact_id = ?", filt$sql)
+  path <- .wb_art_table_json_path(column)
+  .wb_art_table_assert_columns(column, .wb_art_table_query_columns(bundle, info, storage))
   sql <- paste0(
-    "SELECT DISTINCT json_extract(row_json, '", .wb_art_table_json_path(column), "') AS value
+    "SELECT DISTINCT json_extract(row_json, ?) AS value
      FROM artifact_table_rows
      WHERE ", paste(where_bits, collapse = " AND "),
     " ORDER BY value",
     if (is.finite(lim) && lim > 0L) paste0(" LIMIT ", lim) else "",
     ";"
   )
-  vals <- DBI::dbGetQuery(bundle$con, sql, params = c(list(aid), filt$params))
+  vals <- DBI::dbGetQuery(bundle$con, sql, params = c(list(path, aid), filt$params))
   if (!is.data.frame(vals) || !nrow(vals) || !("value" %in% names(vals))) return(character(0))
   out <- as.character(vals$value)
   out <- out[!is.na(out) & nzchar(out)]
@@ -267,6 +303,9 @@ wb_art_table_distinct <- function(bundle, artifact_id, column, filters = NULL, l
 #' @param bundle Open `scworkbench_bundle`.
 #' @param artifact_id Artifact id for a promoted `feature_table` or `obs_table`.
 #' @param filters Optional named list of equality filters applied to row JSON.
+#'   NULL or an empty list leaves the query unrestricted; a named empty or
+#'   all-NA selection matches no rows. NA values in mixed selections are ignored.
+#'   Names must be unique, non-empty existing columns.
 #' @param limit Optional limit on the number of rows returned.
 #'
 #' @return A data frame reconstructed from the matching `artifact_table_rows`.
@@ -280,6 +319,9 @@ wb_art_table_slice <- function(bundle, artifact_id, filters = NULL, limit = NULL
   aid <- as.character(artifact_id)[1]
   lim <- suppressWarnings(as.integer(limit %||% NA_integer_))
   filt <- .wb_art_table_filters_sql(filters)
+  storage <- .wb_art_table_query_storage(bundle, info)
+  if (length(filters)) .wb_art_table_assert_columns(names(filters),
+    .wb_art_table_query_columns(bundle, info, storage))
   where_bits <- c("artifact_id = ?", filt$sql)
   sql <- paste0(
     "SELECT row_json
@@ -290,10 +332,6 @@ wb_art_table_slice <- function(bundle, artifact_id, filters = NULL, limit = NULL
     ";"
   )
   rows <- DBI::dbGetQuery(bundle$con, sql, params = c(list(aid), filt$params))
-  text <- as.character(info$meta_json[[1L]])
-  meta <- if (is.na(text) || !nzchar(text)) list() else
-    jsonlite::fromJSON(text, simplifyVector = TRUE)
-  storage <- .wb_table_decode_meta(meta, .wb_table_artifact_is_typed(bundle$con, aid))$storage
   if (is.null(storage)) .wb_art_table_rows_to_df(rows) else
     .wb_art_table_rows_to_df(rows, storage)
 }

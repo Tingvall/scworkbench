@@ -197,3 +197,18 @@ names/descriptions can still be large; this API change does not bound retained
 storage, explicit detailed inspection, or arbitrary user metadata. Python's
 listing still returns full registry rows by default; R/Python default parity
 is not claimed.
+
+Public table queries (`wb_art_table_slice()` and `wb_art_table_distinct()`) accept
+stored column names unchanged, including punctuation and Unicode. Member paths
+use JSON string escaping and SQL parameter binding; selection values are also
+bound parameters. Unknown columns are errors. Typed tables validate names against
+their column declaration, including empty tables; legacy tables use the first
+stored row's keys (an empty legacy table has no declared queryable columns).
+
+Omitting `filters` (NULL or `list()`) leaves a query unrestricted. Each named
+selection is an IN condition, combined with AND. An empty selection, including
+NULL or a selection containing only NA, matches no rows. Mixed NA/value
+selections ignore NA and retain the other values; this does not introduce SQL
+NULL matching. Filter containers must be lists with unique, non-empty column
+names. Empty selections use a constant-false SQL predicate without loading table
+payloads.

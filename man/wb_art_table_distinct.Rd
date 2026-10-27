@@ -19,8 +19,10 @@ wb_art_table_distinct(
 
 \item{column}{Column name to extract from \code{row_json}.}
 
-\item{filters}{Optional named list of equality filters applied before taking
-distinct values.}
+\item{filters}{Optional named list of equality selections. NULL or an empty
+list leaves the query unrestricted; a named empty or all-NA selection matches
+no rows. NA values in mixed selections are ignored. Names must be unique,
+non-empty existing columns.}
 
 \item{limit}{Optional limit on the number of returned values.}
 }

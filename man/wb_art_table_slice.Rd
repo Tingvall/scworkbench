@@ -11,7 +11,10 @@ wb_art_table_slice(bundle, artifact_id, filters = NULL, limit = NULL)
 
 \item{artifact_id}{Artifact id for a promoted \code{feature_table} or \code{obs_table}.}
 
-\item{filters}{Optional named list of equality filters applied to row JSON.}
+\item{filters}{Optional named list of equality selections. NULL or an empty
+list leaves the query unrestricted; a named empty or all-NA selection matches
+no rows. NA values in mixed selections are ignored. Names must be unique,
+non-empty existing columns.}
 
 \item{limit}{Optional limit on the number of rows returned.}
 }
