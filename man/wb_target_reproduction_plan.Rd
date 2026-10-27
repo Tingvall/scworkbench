@@ -12,10 +12,19 @@ wb_target_reproduction_plan(bundle, target)
 \item{target}{Stable target node id.}
 }
 \value{
-A \code{wb_target_reproduction_plan} list.
+A \code{wb_target_reproduction_plan} list. For compatibility,
+\code{status="ok"} and \code{reproducible=TRUE} mean a resolved, acyclic run
+closure only. They do not establish execution eligibility or successful replay.
+Inspect diagnostics such as \code{legacy_not_comparable} and
+\code{no_promotable_terminal}. Script emission checks static execution
+requirements; execution also checks the destination, immutable prerequisites
+and actual results. Only a successful \code{wb_target_execute_plan()} result
+with \code{status="promoted_and_verified"} and passing verification receipts
+records demonstrated equivalence under the declared policies.
 }
 \description{
 \code{target} is a stable composed-DAG node id: \verb{artifact:}, \verb{matrix:},
 \verb{space:}, \verb{model:}, or \verb{run:}.  The result deliberately distinguishes a
-durable imported/source entity from a replayable engine result.
+durable imported/source entity from an engine-produced result with a resolved
+dependency closure. Planning performs no replay or scientific computation.
 }

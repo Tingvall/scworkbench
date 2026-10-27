@@ -2,7 +2,7 @@
 % Please edit documentation in R/target_reproduction.R
 \name{wb_target_emit_r_script}
 \alias{wb_target_emit_r_script}
-\title{Emit an executable target-reproduction script}
+\title{Emit a target-reproduction execution script}
 \usage{
 wb_target_emit_r_script(
   plan,
@@ -10,7 +10,8 @@ wb_target_emit_r_script(
 )
 }
 \arguments{
-\item{plan}{A successful target reproduction plan.}
+\item{plan}{A structurally resolved target reproduction plan. Static eligibility is
+checked here; emission is not evidence of executed replay.}
 
 \item{execution_bundle_dir}{Literal path placeholder for a writable clone.}
 }

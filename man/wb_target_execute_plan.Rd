@@ -7,7 +7,8 @@
 wb_target_execute_plan(plan, execution_bundle_dir)
 }
 \arguments{
-\item{plan}{A successful \code{wb_target_reproduction_plan}.}
+\item{plan}{A structurally resolved \code{wb_target_reproduction_plan}. Its
+\code{reproducible} field alone does not establish eligibility or equivalence.}
 
 \item{execution_bundle_dir}{Existing writable ingestion-ready source clone.}
 }
@@ -21,7 +22,7 @@ failure.
 }
 \description{
 This is the sole public mutation boundary used by target-reproduction
-scripts. It accepts a successful plan and one existing source-only writable
+scripts. It accepts a structurally resolved plan and one existing source-only writable
 clone. Before analytical execution it rejects the inspected source path,
 filesystem-read-only recipient bundles, missing or changed immutable
 boundaries, pre-existing analytical runs, ambiguous plans, and durable

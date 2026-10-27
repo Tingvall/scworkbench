@@ -4,7 +4,7 @@
   .wb_assert(inherits(plan, "wb_target_reproduction_plan"),
              "plan must be a wb_target_reproduction_plan")
   .wb_assert(isTRUE(plan$reproducible) && identical(as.character(plan$status), "ok"),
-             "plan is not executable: status must be ok and reproducible")
+             "plan lacks a resolved acyclic closure: status must be ok and reproducible TRUE")
   .wb_assert(is.data.frame(plan$runs) && nrow(plan$runs) > 0L,
              "plan$runs must be a non-empty data frame")
   required_run_fields <- c(
@@ -291,7 +291,7 @@
 #' Execute and verify a target reproduction plan
 #'
 #' This is the sole public mutation boundary used by target-reproduction
-#' scripts. It accepts a successful plan and one existing source-only writable
+#' scripts. It accepts a structurally resolved plan and one existing source-only writable
 #' clone. Before analytical execution it rejects the inspected source path,
 #' filesystem-read-only recipient bundles, missing or changed immutable
 #' boundaries, pre-existing analytical runs, ambiguous plans, and durable
@@ -301,7 +301,8 @@
 #' promotion transaction and payload workspace as every output, artifact,
 #' snapshot, binding, and materialization, so none can become visible alone.
 #'
-#' @param plan A successful `wb_target_reproduction_plan`.
+#' @param plan A structurally resolved `wb_target_reproduction_plan`. Its
+#'   `reproducible` field alone does not establish eligibility or equivalence.
 #' @param execution_bundle_dir Existing writable ingestion-ready source clone.
 #' @return A `wb_target_reproduction_result` list with `schema_version`,
 #'   `status`, `execution_bundle_dir`, `original_run_order`, `run_map`,

@@ -46,11 +46,20 @@
 #'
 #' `target` is a stable composed-DAG node id: `artifact:`, `matrix:`,
 #' `space:`, `model:`, or `run:`.  The result deliberately distinguishes a
-#' durable imported/source entity from a replayable engine result.
+#' durable imported/source entity from an engine-produced result with a resolved
+#' dependency closure. Planning performs no replay or scientific computation.
 #'
 #' @param bundle Open scworkbench bundle.
 #' @param target Stable target node id.
-#' @return A `wb_target_reproduction_plan` list.
+#' @return A `wb_target_reproduction_plan` list. For compatibility, `status="ok"`
+#'   and `reproducible=TRUE` mean a resolved, acyclic run closure only. These
+#'   fields do not establish execution eligibility or successful replay. Inspect
+#'   `diagnostics`, including `legacy_not_comparable` and `no_promotable_terminal`.
+#'   Script emission checks static execution requirements; execution additionally
+#'   checks the destination, immutable prerequisites and actual operation results.
+#'   Only a successful [wb_target_execute_plan()] result with
+#'   `status="promoted_and_verified"` and passing `verification` receipts records
+#'   demonstrated equivalence under the declared policies.
 #' @export
 wb_target_reproduction_plan <- function(bundle, target) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -139,6 +148,9 @@ wb_target_reproduction_plan <- function(bundle, target) {
   topo <- .wb_target_toposort(closure, closure_edges)
   rr <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json FROM prov_runs ORDER BY created_at, snapshot_id, run_id;")
   rr <- rr[as.character(rr$run_id) %in% closure, , drop=FALSE]; rr <- rr[!duplicated(as.character(rr$run_id)),,drop=FALSE]
+  # A cyclic target is absent from topo$order; retain its operation metadata
+  # before ordering so the intended cyclic plan can still be returned.
+  target_op <- as.character(rr$op_name[match(target_run, rr$run_id)])
   rr <- rr[match(topo$order, rr$run_id),,drop=FALSE]
   terminal <- out[as.character(out$run_id) == target_run, , drop=FALSE]
   # A fitted UMAP is a map plus its model reference: include both outputs.
@@ -168,7 +180,7 @@ wb_target_reproduction_plan <- function(bundle, target) {
   run_nodes <- graph$nodes[as.character(graph$nodes$id) %in% focus_ids,,drop=FALSE]
   sg_edges <- graph$edges[keep_edge & as.character(graph$edges$from) %in% focus_ids & as.character(graph$edges$to) %in% focus_ids,,drop=FALSE]
   sib <- edges[edges$parent_run_id %in% closure & !(edges$child_run_id %in% closure),,drop=FALSE]
-  promotable <- as.character(.wb_get_op(as.character(rr$op_name[match(target_run, rr$run_id)]))$promotable %||% character())
+  promotable <- as.character(.wb_get_op(target_op)$promotable %||% character())
   promotion_outputs <- terminal[as.character(terminal$output_name) %in% promotable, , drop=FALSE]
   durable_outputs <- bind_all[as.character(bind_all$direction) == "output" & as.character(bind_all$run_id) %in% closure & as.character(bind_all$entity_kind) %in% c("matrix","space","model_ref"),,drop=FALSE]
   artifact_sources <- out[as.character(out$run_id) %in% closure & !is.na(out$artifact_id) & nzchar(as.character(out$artifact_id)), c("artifact_id","run_id","output_name"), drop=FALSE]
@@ -177,14 +189,15 @@ wb_target_reproduction_plan <- function(bundle, target) {
   structure(list(status=if(length(topo$cyclic)) "cyclic" else "ok", reproducible=!length(topo$cyclic), target=c(x,list(producing_run_id=target_run,output_name=target_out)), run_order=topo$order, runs=rr, subgraph=list(nodes=run_nodes,edges=sg_edges), boundary_prerequisites=prereq, terminal_outputs=terminal, promotion_outputs=promotion_outputs, durable_outputs=durable_outputs, artifact_sources=artifact_sources, registry_requests=registry_requests, source_bundle_dir=normalizePath(bundle$dir,winslash="/",mustWork=FALSE), excluded_siblings=sib, diagnostics=c(if(!nrow(promotion_outputs)) list(list(code="no_promotable_terminal",message="The producing run has no promotable terminal output.")) else list(), if(length(topo$cyclic)) list(list(code="cyclic",message="Run closure contains a cycle.")) else list(), if(any(terminal$replay_equivalence_policy == "not_comparable")) list(list(code="legacy_not_comparable",message="One or more terminal outputs predate replay-equivalence declarations and will be reported as unsupported.")) else list())), class="wb_target_reproduction_plan")
 }
 
-#' Emit an executable target-reproduction script
+#' Emit a target-reproduction execution script
 #'
 #' The emitted text contains a self-contained plan and calls only the exported
 #' [wb_target_execute_plan()] boundary. The plan's inspected-source path is
 #' retained solely for the executor's explicit non-mutation identity check;
 #' all scientific execution is relative to `execution_bundle_dir`.
 #'
-#' @param plan A successful target reproduction plan.
+#' @param plan A structurally resolved target reproduction plan. Static
+#'   eligibility is checked here; emission is not evidence of executed replay.
 #' @param execution_bundle_dir Literal path placeholder for a writable clone.
 #' @return Length-one R script string using only public scworkbench APIs.
 #' @export
