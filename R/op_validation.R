@@ -114,6 +114,7 @@
   nm <- as.character(param$name)[1]
   type <- as.character(param$type %||% "")[1]
   label <- paste0("inputs$", nm)
+  apply_numeric_bounds <- TRUE
   .wb_assert(nzchar(type), paste0("Operation '", op_name, "' parameter '", nm, "' has no type."))
 
   if (is.null(value)) {
@@ -132,6 +133,18 @@
   } else if (type %in% c("bool", "logical")) {
     .wb_assert(is.logical(value) && length(value) == 1L && !is.na(value), paste0(label, " must be one non-NA logical value."))
     value <- as.logical(value)
+  } else if (identical(type, "bool_or_dbl")) {
+    is_logical <- is.logical(value) && length(value) == 1L && !is.na(value)
+    is_numeric <- (is.integer(value) || is.double(value)) &&
+      length(value) == 1L && !is.na(value) && is.finite(value)
+    .wb_assert(is_logical || is_numeric,
+      paste0(label, " must be one non-NA logical or finite numeric value."))
+    if (is_logical) {
+      value <- as.logical(value)
+      apply_numeric_bounds <- FALSE
+    } else {
+      value <- as.numeric(value)
+    }
   } else if (type %in% c("string", "path", "cell_set", "choice")) {
     value <- .wb_assert_nonempty_character(value, label, scalar = TRUE)
   } else if (type %in% c("string_vec", "string_array", "cell_ids")) {
@@ -181,8 +194,8 @@
     .wb_assert(length(value) == 1L && value %in% param$choices,
                paste0(label, " must be one of: ", paste(param$choices, collapse = ", "), "."))
   }
-  if (!is.null(param$min)) .wb_assert(all(value >= param$min), paste0(label, " must be >= ", param$min, "."))
-  if (!is.null(param$max)) .wb_assert(all(value <= param$max), paste0(label, " must be <= ", param$max, "."))
+  if (isTRUE(apply_numeric_bounds) && !is.null(param$min)) .wb_assert(all(value >= param$min), paste0(label, " must be >= ", param$min, "."))
+  if (isTRUE(apply_numeric_bounds) && !is.null(param$max)) .wb_assert(all(value <= param$max), paste0(label, " must be <= ", param$max, "."))
   value
 }
 

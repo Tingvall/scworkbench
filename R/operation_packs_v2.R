@@ -401,6 +401,9 @@
 
 .wb_operation_pack_v2_catalog_param_type <- function(schema) {
   types <- as.character(unlist(schema$type %||% "list", use.names = FALSE))
+  concrete_types <- unique(setdiff(types, "null"))
+  if (length(concrete_types) == 2L &&
+      setequal(concrete_types, c("boolean", "number"))) return("bool_or_dbl")
   if ("integer" %in% types) return("int")
   if ("number" %in% types) return("dbl")
   if ("boolean" %in% types) return("bool")
