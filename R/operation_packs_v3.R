@@ -66,6 +66,10 @@
     out$compatibility$process_protocol$maximum <- "pybench-op-v3"
   }
   out$operations <- lapply(out$operations, function(op) {
+    op$inputs <- lapply(op$inputs, function(input) {
+      input$effective_cell_coverage <- NULL
+      input
+    })
     g3_inputs <- vapply(Filter(function(x) identical(
       as.character(x$kind %||% "")[1], "external_state_candidate"),
       op$inputs), function(x) as.character(x$name)[1], character(1))
@@ -146,6 +150,32 @@
   type %in% types && (!nullable || "null" %in% types)
 }
 
+.wb_operation_pack_v3_reference_coverage_inputs <- function(operation,
+                                                              opname) {
+  declared <- Filter(function(input) identical(as.character(
+    input$effective_cell_coverage %||% "")[1L], "reference_only"),
+    operation$inputs)
+  self_linked_inputs <- vapply(operation$self_linked_contained_model_reads %||%
+    list(), function(read) as.character(read$input)[1L], character(1))
+  if (length(declared) && any(!vapply(declared,
+      function(input) {
+        kind <- as.character(input$kind)[1L]
+        alignment <- as.character(input$alignment)[1L]
+        name <- as.character(input$name)[1L]
+        isTRUE(input$required) && ((identical(kind, "obs_table") &&
+          identical(alignment, "none")) || (identical(kind, "model_ref") &&
+          identical(alignment, "model_linked") &&
+          name %in% self_linked_inputs))
+      },
+      logical(1)))) .wb_operation_pack_v3_error(
+    "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+    paste0("Operation '", opname, "' may declare reference-only effective-cell ",
+      "coverage only for required, alignment-none obs_table inputs or ",
+      "required self-linked model_ref inputs."),
+    "semantic_admission")
+  vapply(declared, function(input) as.character(input$name)[1L], character(1))
+}
+
 .wb_operation_pack_v3_semantic_validate <- function(manifest, validated_successor = FALSE) {
   # Reuse the accepted v2 admission rules for unchanged fields, after removing
   # only the explicit v3 additions. This does not reinterpret a v2 document.
@@ -158,6 +188,7 @@
     opname <- as.character(operation$qualified_name)[1]
     inputs <- stats::setNames(operation$inputs,
       vapply(operation$inputs, `[[`, character(1), "name"))
+    .wb_operation_pack_v3_reference_coverage_inputs(operation, opname)
     outputs <- stats::setNames(operation$outputs,
       vapply(operation$outputs, `[[`, character(1), "name"))
     properties <- operation$params_schema$properties %||% list()
@@ -901,6 +932,10 @@
 
 .wb_operation_pack_v3_catalog_definition <- function(op) {
   projected <- op
+  projected$inputs <- lapply(projected$inputs, function(input) {
+    input$effective_cell_coverage <- NULL
+    input
+  })
   selector_parameters <- vapply(projected$cell_selector_axes %||% list(),
     function(x) as.character(x$parameter)[1], character(1))
   for (parameter in selector_parameters) {
@@ -964,6 +999,10 @@
   definition$pack_abi_version <- "3"
   definition$v2_definition <- NULL
   definition$v3_definition <- op
+  reference_inputs <- .wb_operation_pack_v3_reference_coverage_inputs(op,
+    as.character(op$qualified_name)[1L])
+  if (length(reference_inputs)) definition$coverage[reference_inputs] <-
+    rep("reference_only", length(reference_inputs))
   if (length(op$typed_slice_reads %||% list()))
     definition$typed_slice_reads <- op$typed_slice_reads
   if (length(op$typed_space_reads %||% list()))

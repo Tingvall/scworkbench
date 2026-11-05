@@ -727,6 +727,9 @@
             },
             "alignment": {
               "const": "model_linked"
+            },
+            "effective_cell_coverage": {
+              "const": "reference_only"
             }
           }
         },
@@ -852,6 +855,9 @@
             },
             "alignment": {
               "const": "none"
+            },
+            "effective_cell_coverage": {
+              "const": "reference_only"
             }
           }
         },

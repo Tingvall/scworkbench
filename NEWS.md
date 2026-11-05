@@ -2,6 +2,10 @@
 
 ## Operation Pack SDK
 
+- Adds an ABI-v3 `effective_cell_coverage: "reference_only"` declaration for
+  required, alignment-none observation tables and required, independently
+  authenticated self-linked models. Supporting reference data remains fully
+  authenticated while no longer filtering a disjoint query-cell axis.
 - Adds an installed ABI-v3 R scaffold, explicit static/trusted check tiers,
   reader-only partition mapping, core-owned contract-test helpers and an
   executable scaffold-to-relocated-recipient tutorial.

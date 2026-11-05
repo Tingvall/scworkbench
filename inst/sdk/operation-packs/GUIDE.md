@@ -74,6 +74,16 @@ from admitted params. `wb_operation_pack_map_partitions` only delegates
 `wb_partition_axis` and the issued reader; it supplies no new reader authority.
 Never reslice storage using SQL or paths; never construct receipt hashes.
 
+A required `obs_table` input with `alignment: "none"` may declare
+`effective_cell_coverage: "reference_only"` when it is authenticated supporting
+data rather than a query-cell filter. A required `model_ref` may use the same
+declaration only when a `self_linked_contained_model_reads` declaration
+independently authenticates its durable source and fitted-cell linkage. Core
+still authenticates and supplies the complete value, but excludes its cell IDs
+from effective-cell intersection. This is appropriate for query-to-reference
+ledgers and frozen reference calibrations; it does not weaken reader, identity,
+provenance, or reopen validation. Optional inputs cannot use this declaration.
+
 ### Trusted in-process R matrix streaming
 
 Matrix callbacks retain bounded selections and exact partition/coverage checks.

@@ -494,7 +494,7 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "fixtures/operation-pack-v3/phase6-ordered-cell-metadata-identities.json",
     "fixtures/operation-pack-v3/phase7-genomic-runtime-family-identities.json")
   expected <- c(
-    "bc8d65528c01f370379bd90985fa98ea2e4e056959844687de2d7628da80174c",
+    "0f34262b7d7d6cbc1586ccf4587b20f8d62069b8457829f4aba874c5221e3323",
     "81f5ef42a3cf35bd8ce92e410d65c4ed3193413d82ad0305fd2f3a2c678d3169",
     "492ee6fbdd5ef75f6d00130e0c54ff945b7da8ee1160f11d6234a30f905ceae5",
     "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793",
