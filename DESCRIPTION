@@ -1,7 +1,7 @@
 Package: scworkbench
 Type: Package
 Title: A Typed, Disk-Backed Substrate for Single-Cell Analysis
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(
       given = "Hendrik",

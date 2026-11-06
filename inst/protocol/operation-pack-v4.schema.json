@@ -3251,6 +3251,33 @@
                   "additionalProperties": false,
                   "required": [
                     "source",
+                    "keys_parameter",
+                    "prefix_parameter",
+                    "separator"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "parameter_keys_with_optional_prefix_v1"
+                    },
+                    "keys_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "prefix_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "separator": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
                     "input",
                     "no_selector_order",
                     "selector_order",
@@ -5315,6 +5342,33 @@
                                 "prefix_parameter": {
                                   "type": "string",
                                   "pattern": "^[a-z][a-z0-9_]*$"
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "source",
+                                "keys_parameter",
+                                "prefix_parameter",
+                                "separator"
+                              ],
+                              "properties": {
+                                "source": {
+                                  "const": "parameter_keys_with_optional_prefix_v1"
+                                },
+                                "keys_parameter": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                },
+                                "prefix_parameter": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                },
+                                "separator": {
+                                  "type": "string",
+                                  "minLength": 1
                                 }
                               }
                             },

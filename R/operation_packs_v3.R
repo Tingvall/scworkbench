@@ -300,6 +300,29 @@
             !anyDuplicated(keys) && !is.null(properties[[prefix]]) &&
             .wb_operation_pack_v3_param_is(properties, prefix, "string",
               nullable = TRUE)
+        } else if (identical(source,
+            "parameter_keys_with_optional_prefix_v1")) {
+          keys_parameter <- as.character(key_axis$keys_parameter)[1]
+          prefix_parameter <- as.character(key_axis$prefix_parameter)[1]
+          separator <- as.character(key_axis$separator)[1]
+          keys_schema <- properties[[keys_parameter]]
+          key_types <- as.character(unlist(keys_schema$type %||% character(),
+            use.names = FALSE))
+          item_types <- as.character(unlist(keys_schema$items$type %||%
+            character(), use.names = FALSE))
+          required <- as.character(unlist(
+            operation$params_schema$required %||% character(),
+            use.names = FALSE))
+          valid <- !is.null(keys_schema) && identical(key_types, "array") &&
+            identical(item_types, "string") &&
+            isTRUE(keys_schema$uniqueItems) &&
+            as.integer(keys_schema$minItems %||% 0L) >= 1L &&
+            as.integer(keys_schema$items$minLength %||% 0L) >= 1L &&
+            keys_parameter %in% required &&
+            .wb_operation_pack_v3_param_is(properties, prefix_parameter,
+              "string") &&
+            length(separator) == 1L && !is.na(separator) &&
+            nzchar(separator)
         } else if (identical(source, "declared_bounded_key_groups_v1")) {
           required <- as.character(unlist(key_axis$required_keys,
             use.names = FALSE))

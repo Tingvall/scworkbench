@@ -21,13 +21,13 @@
   # unchanged protocol bytes must still match below. Never infer expected HEAD.
   env <- new.env(parent = baseenv())
   sys.source("tests/helpers/operation_pack_test_peer_pin.R", env)
-  env$.operation_pack_test_peer_pin("0ef3c56f9d300e7813ac5a555e6d2ac7cb64a57e")
+  env$.operation_pack_test_peer_pin("3412d37fe7154f6eeaa05f91eca783afe1f24d5c")
 })
 
 .wb_phase3b_shared_sha256 <- c(
-  "bc8d65528c01f370379bd90985fa98ea2e4e056959844687de2d7628da80174c",
-  "81f5ef42a3cf35bd8ce92e410d65c4ed3193413d82ad0305fd2f3a2c678d3169",
-  "492ee6fbdd5ef75f6d00130e0c54ff945b7da8ee1160f11d6234a30f905ceae5",
+  "df0e897f938669b5b8da1ca4f8d9e5fccb359ec6424fe04d21a563228a7463bc",
+  "6e94c129d5199acd3e366ae92581ba4245caa7222757d8d5a694d4068d10660d",
+  "770ed429cc3cbe6df896db62fabb8837c836e5cce07e45e7cbe5423e5acfdf7c",
   "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793")
 
 .wb_phase3b_registry_guard <- function() {

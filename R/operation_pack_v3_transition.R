@@ -203,6 +203,38 @@
   list(keys = keys, resolution = resolution)
 }
 
+.wb_operation_pack_v3_parameter_prefix_key_axis <- function(spec, params) {
+  keys_parameter <- as.character(spec$keys_parameter)[1]
+  prefix_parameter <- as.character(spec$prefix_parameter)[1]
+  separator <- as.character(spec$separator)[1]
+  base_keys <- .wb_operation_pack_v3_string_vector(
+    params[[keys_parameter]], keys_parameter)
+  if (!length(base_keys) || any(!nzchar(base_keys)) ||
+      anyDuplicated(base_keys))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Parameter '", keys_parameter,
+        "' must contain ordered, unique, nonempty strings."), "resolution")
+  prefix_value <- params[[prefix_parameter]] %||% NULL
+  if (!is.null(prefix_value) && (!is.character(prefix_value) ||
+      length(prefix_value) != 1L || is.na(prefix_value) ||
+      !nzchar(prefix_value)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Prefix parameter '", prefix_parameter,
+        "' must be a nonempty scalar string or null."), "resolution")
+  keys <- if (is.null(prefix_value)) base_keys else
+    paste0(prefix_value, separator, base_keys)
+  resolution <- list(
+    source = "parameter_keys_with_optional_prefix_v1",
+    keys_parameter = keys_parameter,
+    keys_parameter_value = unname(as.list(base_keys)),
+    prefix_parameter = prefix_parameter,
+    prefix_value = prefix_value,
+    separator = separator,
+    order = "parameter_order_v1",
+    keys = unname(as.list(keys)))
+  list(keys = keys, resolution = resolution)
+}
+
 .wb_operation_pack_v3_cardinality_grant <- function(policy, output,
                                                       inputs, params,
                                                       input_records,
@@ -248,8 +280,11 @@
         input_records) else if (identical(as.character(spec$source)[1],
           "declared_keys_with_optional_prefix_v1"))
         .wb_operation_pack_v3_declared_prefix_key_axis(spec, params) else
-        .wb_operation_pack_v3_input_key_axis(spec, inputs, params,
-          input_records)
+        if (identical(as.character(spec$source)[1],
+            "parameter_keys_with_optional_prefix_v1"))
+          .wb_operation_pack_v3_parameter_prefix_key_axis(spec, params) else
+          .wb_operation_pack_v3_input_key_axis(spec, inputs, params,
+            input_records)
     keys <- key_state$keys
     if (length(keys) && length(cell_axis$cells) >
         floor(.Machine$integer.max / length(keys)))

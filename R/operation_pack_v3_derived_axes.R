@@ -460,6 +460,8 @@
       input_records) else if (identical(source,
       "declared_keys_with_optional_prefix_v1"))
         .wb_operation_pack_v3_declared_prefix_key_axis(spec, params) else if (
+          identical(source, "parameter_keys_with_optional_prefix_v1"))
+        .wb_operation_pack_v3_parameter_prefix_key_axis(spec, params) else if (
           identical(source, "input_keys_with_optional_selector_v1"))
         .wb_operation_pack_v3_input_key_axis(spec, inputs, params,
           input_records) else if (identical(source,

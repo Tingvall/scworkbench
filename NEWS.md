@@ -1,3 +1,12 @@
+# scworkbench 0.1.1
+
+## Operation Pack SDK
+
+- Adds the generic ABI-v3 `parameter_keys_with_optional_prefix_v1` key-axis
+  resolver for authenticated cell-vector families whose ordered keys derive
+  from an explicit string-vector parameter, optional scalar prefix, and fixed
+  separator.
+
 # scworkbench 0.1.0
 
 ## Operation Pack SDK
