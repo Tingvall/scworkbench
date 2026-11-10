@@ -1295,7 +1295,9 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
         input_name <- as.character(reference$input_name)[1]
         read_name <- as.character(reference$typed_space_read_name)[1]
         current <- .wb_operation_pack_v2_input_descriptor(input_name,
-          inputs[[input_name]], definitions[[input_name]])$descriptor
+          inputs[[input_name]], definitions[[input_name]], space_plan =
+            (attr(inputs, "operation_pack_v3_space_plans") %||%
+              list())[[input_name]])$descriptor
         cells <- .wb_operation_pack_v3_g7_project_cells(
           inputs[[input_name]], "space_cell_axis_v1")
         if (!identical(.wb_operation_pack_v3_unscoped_identity(

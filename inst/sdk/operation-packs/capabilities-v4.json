@@ -1,7 +1,7 @@
 {
   "sdk_version": "1.1.0",
   "pack_abi_version": "4",
-  "schema_sha256": "3f295fcf05dd817e654157016bae74961faa62302d44d64da3355b3b203d1101",
+  "schema_sha256": "d82ea3656dcc93c1f17cbd662bdae089274a47a7e954f941cf5834a871ed61f9",
   "primitive_kinds": [
     "matrix",
     "space",
@@ -2726,41 +2726,9 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/schema",
-      "values": [
-        "scworkbench.operation_pack.sealed_relation_family_policy.v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
       "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/policy",
       "values": [
-        "sealed_relation_family_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/axis_source/oneOf/0/properties/source",
-      "values": [
-        "typed_input_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/axis_source/oneOf/1/properties/source",
-      "values": [
-        "g2_derived_fitted_axis_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/key_order",
-      "values": [
-        "first_occurrence_v1"
+        "authenticated_model_linked_space_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2768,47 +2736,15 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/row_order",
       "values": [
-        "declared_exact_v1"
+        "query_typed_slice_cell_axis_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/pair_multiplicity",
+      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/dimension_source",
       "values": [
-        "unique_key_cell_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/numeric_fields",
-      "values": [
-        "declare_presence_finite_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/declaration_discipline",
-      "values": [
-        "exactly_once_before_write"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/policy_identity/properties/scheme",
-      "values": [
-        "scworkbench.operation_pack.sealed_relation_family_policy.v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/0/properties/policy_identity/properties/scope",
-      "values": [
-        "policy excluding policy_identity"
+        "authenticated_model_linkage_latent_dimension_count_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2816,7 +2752,7 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/schema",
       "values": [
-        "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1"
+        "scworkbench.operation_pack.sealed_relation_family_policy.v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2824,7 +2760,7 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/policy",
       "values": [
-        "standalone_sparse_cell_family_v1"
+        "sealed_relation_family_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2832,7 +2768,7 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/axis_source/oneOf/0/properties/source",
       "values": [
-        "typed_space_input_v1"
+        "typed_input_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2840,7 +2776,7 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/axis_source/oneOf/1/properties/source",
       "values": [
-        "verified_g1_model_fitted_axis_v1"
+        "g2_derived_fitted_axis_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2848,7 +2784,7 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/key_order",
       "values": [
-        "declared_verbatim_v1"
+        "first_occurrence_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2856,23 +2792,23 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/row_order",
       "values": [
-        "key_major_then_source_relative_cell_v1"
+        "declared_exact_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/per_key_coverage",
+      "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/pair_multiplicity",
       "values": [
-        "per_key_source_relative_subset_v1"
+        "unique_key_cell_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/missing_values",
+      "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/numeric_fields",
       "values": [
-        "forbidden"
+        "declare_presence_finite_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2888,7 +2824,7 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/1/properties/policy_identity/properties/scheme",
       "values": [
-        "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1"
+        "scworkbench.operation_pack.sealed_relation_family_policy.v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2902,9 +2838,41 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/schema",
+      "values": [
+        "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
       "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/policy",
       "values": [
-        "runtime_ordered_cell_family_v1"
+        "standalone_sparse_cell_family_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/axis_source/oneOf/0/properties/source",
+      "values": [
+        "typed_space_input_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/axis_source/oneOf/1/properties/source",
+      "values": [
+        "verified_g1_model_fitted_axis_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/key_order",
+      "values": [
+        "declared_verbatim_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2912,7 +2880,15 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/row_order",
       "values": [
-        "cell_major_then_declared_key_v1"
+        "key_major_then_source_relative_cell_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/per_key_coverage",
+      "values": [
+        "per_key_source_relative_subset_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2920,7 +2896,31 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/missing_values",
       "values": [
-        "allowed"
+        "forbidden"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/declaration_discipline",
+      "values": [
+        "exactly_once_before_write"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/policy_identity/properties/scheme",
+      "values": [
+        "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/2/properties/policy_identity/properties/scope",
+      "values": [
+        "policy excluding policy_identity"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2928,7 +2928,23 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/3/properties/policy",
       "values": [
-        "data_dependent_table_v1"
+        "runtime_ordered_cell_family_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/3/properties/row_order",
+      "values": [
+        "cell_major_then_declared_key_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/3/properties/missing_values",
+      "values": [
+        "allowed"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2936,7 +2952,7 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/4/properties/policy",
       "values": [
-        "data_dependent_family_v1"
+        "data_dependent_table_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -2944,13 +2960,21 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/policy",
       "values": [
+        "data_dependent_family_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/policy",
+      "values": [
         "authenticated_output_axes_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/shape",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/shape",
       "values": [
         "cell_key_cartesian",
         "bounded_grouped_cell_key_cartesian",
@@ -2960,7 +2984,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/cell_axis/oneOf/0/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/cell_axis/oneOf/0/properties/source",
       "values": [
         "effective_cells_v1",
         "distinct_input_cells_first_occurrence_v1"
@@ -2969,7 +2993,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/cell_axis/oneOf/1/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/cell_axis/oneOf/1/properties/source",
       "values": [
         "session_cell_axis_read_v1"
       ],
@@ -2977,7 +3001,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/source",
       "values": [
         "resolved_parameter_feature_groups_v1"
       ],
@@ -2985,7 +3009,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/matching",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/matching",
       "values": [
         "exact_feature_id_v1"
       ],
@@ -2993,7 +3017,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/normalization",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/normalization",
       "values": [
         "ordered_unique_features_v1"
       ],
@@ -3001,7 +3025,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/generated_names",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/generated_names",
       "values": [
         "legacy_module_group_names_v1"
       ],
@@ -3009,7 +3033,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/missing_feature_policy/oneOf/0/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/missing_feature_policy/oneOf/0/properties/source",
       "values": [
         "fixed_drop_v1"
       ],
@@ -3017,7 +3041,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/missing_feature_policy/oneOf/1/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/missing_feature_policy/oneOf/1/properties/source",
       "values": [
         "parameter_v1"
       ],
@@ -3025,7 +3049,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/empty_group_policy",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/empty_group_policy",
       "values": [
         "drop",
         "error"
@@ -3034,7 +3058,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/0/properties/zero_key_policy",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/0/properties/zero_key_policy",
       "values": [
         "allow",
         "error"
@@ -3043,7 +3067,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/1/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/1/properties/source",
       "values": [
         "declared_keys_with_optional_prefix_v1"
       ],
@@ -3051,7 +3075,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/2/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/2/properties/source",
       "values": [
         "parameter_keys_with_optional_prefix_v1"
       ],
@@ -3059,7 +3083,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/3/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/3/properties/source",
       "values": [
         "input_keys_with_optional_selector_v1"
       ],
@@ -3067,7 +3091,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/3/properties/no_selector_order",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/3/properties/no_selector_order",
       "values": [
         "first_occurrence_v1"
       ],
@@ -3075,7 +3099,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/3/properties/selector_order",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/3/properties/selector_order",
       "values": [
         "normalized_parameter_order_v1"
       ],
@@ -3083,7 +3107,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/3/properties/unknown_key_policy",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/3/properties/unknown_key_policy",
       "values": [
         "error"
       ],
@@ -3091,7 +3115,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/3/properties/zero_key_policy",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/3/properties/zero_key_policy",
       "values": [
         "allow",
         "error"
@@ -3100,7 +3124,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/4/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/4/properties/source",
       "values": [
         "declared_bounded_key_groups_v1"
       ],
@@ -3108,7 +3132,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/4/properties/selection_owner",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/4/properties/selection_owner",
       "values": [
         "operation_pack_v1"
       ],
@@ -3116,7 +3140,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/key_axis/oneOf/4/properties/group_order",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/key_axis/oneOf/4/properties/group_order",
       "values": [
         "manifest_order_v1"
       ],
@@ -3124,7 +3148,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/row_order",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/row_order",
       "values": [
         "key_major_then_cell_v1",
         "input_cell_order_v1",
@@ -3134,7 +3158,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/5/properties/missing_values",
+      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/missing_values",
       "values": [
         "forbidden",
         "canonical_null_allowed"
@@ -3143,7 +3167,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/policy",
+      "schema_path": "#/$defs/dimension_policy/oneOf/7/properties/policy",
       "values": [
         "cell_by_parameter_axis_v1"
       ],
@@ -3151,39 +3175,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/cell_axis/properties/source",
-      "values": [
-        "typed_slice_read_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/row_order",
-      "values": [
-        "typed_slice_cell_order_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/6/properties/column_order",
-      "values": [
-        "parameter_axis_order_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/7/properties/policy",
-      "values": [
-        "feature_parameter_axis_cartesian_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/7/properties/feature_axis/properties/source",
+      "schema_path": "#/$defs/dimension_policy/oneOf/7/properties/cell_axis/properties/source",
       "values": [
         "typed_slice_read_v1"
       ],
@@ -3193,21 +3185,13 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/7/properties/row_order",
       "values": [
-        "parameter_axis_then_feature_v1"
+        "typed_slice_cell_order_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/8/properties/policy",
-      "values": [
-        "one_per_parameter_axis_v1"
-      ],
-      "capability_id": "output_axes",
-      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
-    },
-    {
-      "schema_path": "#/$defs/dimension_policy/oneOf/8/properties/row_order",
+      "schema_path": "#/$defs/dimension_policy/oneOf/7/properties/column_order",
       "values": [
         "parameter_axis_order_v1"
       ],
@@ -3215,9 +3199,41 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
+      "schema_path": "#/$defs/dimension_policy/oneOf/8/properties/policy",
+      "values": [
+        "feature_parameter_axis_cartesian_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/8/properties/feature_axis/properties/source",
+      "values": [
+        "typed_slice_read_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/8/properties/row_order",
+      "values": [
+        "parameter_axis_then_feature_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
       "schema_path": "#/$defs/dimension_policy/oneOf/9/properties/policy",
       "values": [
-        "singleton_parameter_echo_v1"
+        "one_per_parameter_axis_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/9/properties/row_order",
+      "values": [
+        "parameter_axis_order_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
@@ -3225,13 +3241,21 @@
     {
       "schema_path": "#/$defs/dimension_policy/oneOf/10/properties/policy",
       "values": [
+        "singleton_parameter_echo_v1"
+      ],
+      "capability_id": "output_axes",
+      "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
+    },
+    {
+      "schema_path": "#/$defs/dimension_policy/oneOf/11/properties/policy",
+      "values": [
         "authenticated_sparse_membership_v1"
       ],
       "capability_id": "output_axes",
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/10/properties/representation",
+      "schema_path": "#/$defs/dimension_policy/oneOf/11/properties/representation",
       "values": [
         "obs_table",
         "cell_vector_family"
@@ -3240,7 +3264,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/11/properties/policy",
+      "schema_path": "#/$defs/dimension_policy/oneOf/12/properties/policy",
       "values": [
         "authenticated_pseudobulk_v1"
       ],
@@ -3248,7 +3272,7 @@
       "classification": "exact accepted ABI spelling; use owning capability recipe and backend policy"
     },
     {
-      "schema_path": "#/$defs/dimension_policy/oneOf/11/properties/zero_neighbor_policy",
+      "schema_path": "#/$defs/dimension_policy/oneOf/12/properties/zero_neighbor_policy",
       "values": [
         "zero_rows_forbidden_v1"
       ],

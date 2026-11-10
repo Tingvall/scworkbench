@@ -998,6 +998,20 @@
     "audit", output = grant$name, expected = descriptor$expected_dimensions, observed = dimensions)
   cells <- if (identical(kind, "cell_set_admission")) value$cells else .wb_operation_pack_v2_primitive_cells(value)
   features <- if (.wb_is_primitive(value)) .wb_operation_pack_v2_primitive_features(value) else character()
+  if (kind %in% c("matrix", "space", "space_2d", "cell_vector",
+      "cell_vector_family", "relation_family"))
+    observed_cell_order <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", cells)
+  if (kind %in% c("space", "space_2d")) {
+    if (!identical(observed_cell_order,
+        descriptor$expected_cell_order_identity))
+      .wb_operation_pack_v2_error("PYBENCH_OUTPUT_INVALID",
+        paste0("Output '", grant$name,
+          "' cell order does not match its grant."), "audit",
+        output = grant$name,
+        expected = descriptor$expected_cell_order_identity,
+        observed = observed_cell_order)
+  }
   if (identical(kind, "cell_set_admission")) {
     observed <- list(
       category = descriptor$category, kind = kind, storage_profile = descriptor$storage_profile,
@@ -1069,7 +1083,7 @@
     semantic_validation = list(constraints_identity = .wb_operation_pack_v2_identity_plain(
       "scworkbench.operation_pack.semantic_constraints.v2", descriptor$semantic_constraints), status = "passed"))
   if (kind %in% c("matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "relation_family")) {
-    observed$cell_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1", cells)
+    observed$cell_order_identity <- observed_cell_order
   }
   if (kind %in% c("matrix", "feature_table")) observed$feature_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.feature_order.v1", features)
   if (kind %in% c("path_2d_family", "space_path_family")) {

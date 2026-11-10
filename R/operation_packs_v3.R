@@ -125,6 +125,7 @@
     if (!length(op$registry_reads)) op$registry_reads <- NULL
     op$dimension_policies <- Filter(function(x) !as.character(
       x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+        "authenticated_model_linked_space_v1",
         "data_dependent_family_v1",
         "runtime_ordered_cell_family_v1",
         "standalone_sparse_cell_family_v1",
@@ -203,6 +204,48 @@
       paste0("Operation '", opname, "' repeats a dimension-policy output."),
       "semantic_admission")
     for (policy in policies) {
+      if (identical(as.character(policy$policy)[1],
+          "authenticated_model_linked_space_v1")) {
+        output <- outputs[[as.character(policy$output)[1]]]
+        model_reads <- stats::setNames(
+          operation$self_linked_contained_model_reads %||% list(),
+          vapply(operation$self_linked_contained_model_reads %||% list(),
+            function(x) as.character(x$name)[1], character(1)))
+        slice_reads <- stats::setNames(operation$typed_slice_reads %||%
+          list(), vapply(operation$typed_slice_reads %||% list(),
+            function(x) as.character(x$name)[1], character(1)))
+        publications <- stats::setNames(operation$publication_policies %||%
+          list(), vapply(operation$publication_policies %||% list(),
+            function(x) as.character(x$output)[1], character(1)))
+        model_read <- model_reads[[as.character(policy$model_read)[1]]]
+        query_read <- slice_reads[[as.character(
+          policy$query_typed_slice_read)[1]]]
+        model_input <- inputs[[as.character(model_read$input %||% "")[1]]]
+        query_input <- inputs[[as.character(query_read$input %||% "")[1]]]
+        publication <- publications[[as.character(policy$output)[1]]]
+        valid <- !is.null(output) && isTRUE(output$required) &&
+          identical(as.character(output$kind)[1], "space") &&
+          identical(as.character(output$category)[1], "materialization") &&
+          !is.null(model_read) && !is.null(query_read) &&
+          !is.null(model_input) && isTRUE(model_input$required) &&
+          identical(as.character(model_input$kind)[1], "model_ref") &&
+          identical(as.character(model_input$alignment)[1], "model_linked") &&
+          !is.null(query_input) && isTRUE(query_input$required) &&
+          identical(as.character(query_input$kind)[1], "matrix") &&
+          identical(as.character(query_read$selection$cells$policy)[1],
+            "effective_input_axis_v1") &&
+          "cells" %in% as.character(unlist(query_read$supported_axes,
+            use.names = FALSE)) && !is.null(publication) &&
+          identical(as.character(publication$policy)[1],
+            "authenticated_add_or_replace_v1") &&
+          identical(as.character(publication$target_kind)[1], "space")
+        if (!valid) .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid authenticated model-linked space policy."),
+          "semantic_admission")
+        next
+      }
       if (identical(as.character(policy$policy)[1],
           "data_dependent_family_v1")) {
         output <- outputs[[as.character(policy$output)[1]]]
@@ -993,6 +1036,7 @@
   })
   projected$dimension_policies <- Filter(function(x) !as.character(
     x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+      "authenticated_model_linked_space_v1",
       "data_dependent_family_v1",
       "standalone_sparse_cell_family_v1",
       "sealed_relation_family_v1",

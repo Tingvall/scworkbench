@@ -2434,6 +2434,41 @@
     "dimension_policy": {
       "oneOf": [
         {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
+            "policy",
+            "model_read",
+            "query_typed_slice_read",
+            "row_order",
+            "dimension_source"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "authenticated_model_linked_space_v1"
+            },
+            "model_read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "query_typed_slice_read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "row_order": {
+              "const": "query_typed_slice_cell_axis_v1"
+            },
+            "dimension_source": {
+              "const": "authenticated_model_linkage_latent_dimension_count_v1"
+            }
+          }
+        },
+        {
           "type": "object", "additionalProperties": false,
           "required": ["schema", "output", "policy", "axis_source",
             "key_order", "row_order", "pair_multiplicity",

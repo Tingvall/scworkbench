@@ -11,6 +11,84 @@
     as.character(x$name)[1], character(1)))
 }
 
+.wb_operation_pack_v3_model_linked_space_binding <- function(policy,
+    typed_slice_grants, self_model_grants, publication_grant,
+    code = "PYBENCH_CAPABILITY_MISMATCH", phase = "resolution") {
+  slices <- stats::setNames(typed_slice_grants %||% list(), vapply(
+    typed_slice_grants %||% list(), function(x) as.character(x$name)[1],
+    character(1)))
+  models <- stats::setNames(self_model_grants %||% list(), vapply(
+    self_model_grants %||% list(), function(x) as.character(x$name)[1],
+    character(1)))
+  model <- models[[as.character(policy$model_read)[1]]]
+  query <- slices[[as.character(policy$query_typed_slice_read)[1]]]
+  if (is.null(model) || is.null(query) || is.null(publication_grant))
+    .wb_operation_pack_v3_error(code,
+      "Authenticated model-linked space sources are incomplete.", phase)
+  linkage <- model$model_source_linkage %||% list()
+  .wb_operation_pack_v3_assert_matrix_model_linkage(linkage, code, phase)
+  row_count <- as.integer(query$cells_axis$count)[1]
+  latent_count <- as.integer(linkage$latent_dimension_count)[1]
+  if (is.na(row_count) || row_count < 1L || is.na(latent_count) ||
+      latent_count < 1L)
+    .wb_operation_pack_v3_error(code,
+      "Authenticated model-linked space axes are invalid.", phase)
+  publication_identity <- publication_grant$publication_grant_identity
+  if (is.null(publication_identity)) .wb_operation_pack_v3_error(code,
+    "Authenticated model-linked space publication is unsealed.", phase)
+  ancestry <- .wb_operation_pack_v2_identity_plain(
+    "scworkbench.provenance.ancestry.v1", list(
+      policy = "authenticated_model_linked_space_v1",
+      output = as.character(policy$output)[1],
+      model = list(read = as.character(policy$model_read)[1],
+        input = as.character(model$input_name)[1],
+        input_descriptor_identity = model$input_descriptor_identity,
+        model_content_identity = model$model_content_identity,
+        model_source_linkage_identity = model$model_source_linkage_identity,
+        grant_identity = .wb_operation_pack_v3_unscoped_identity(
+          model$grant_identity)),
+      query = list(read = as.character(
+          policy$query_typed_slice_read)[1],
+        input = as.character(query$input_name)[1],
+        input_descriptor_identity = query$input_descriptor_identity,
+        input_content_identity = query$input_content_identity,
+        cell_order_identity = query$cells_axis$order_identity,
+        grant_identity = .wb_operation_pack_v3_unscoped_identity(
+          query$grant_identity)),
+      publication_grant_identity =
+        .wb_operation_pack_v3_unscoped_identity(publication_identity)))
+  list(expected_dimensions = list(row_count, latent_count),
+    expected_cell_order_identity = query$cells_axis$order_identity,
+    expected_model_linkage = list(mode = "input",
+      reference_name = as.character(model$input_name)[1],
+      reference_identity = model$input_descriptor_identity),
+    expected_ancestry_identity = ancestry)
+}
+
+.wb_operation_pack_v3_model_linked_space_request_audit <- function(request,
+    operation) {
+  policies <- Filter(function(x) identical(as.character(
+    x$policy %||% "")[1], "authenticated_model_linked_space_v1"),
+    operation$dimension_policies %||% list())
+  if (!length(policies)) return(invisible(TRUE))
+  outputs <- stats::setNames(request$outputs, vapply(request$outputs,
+    function(x) as.character(x$name)[1], character(1)))
+  for (policy in policies) {
+    descriptor <- outputs[[as.character(policy$output)[1]]]$descriptor
+    binding <- .wb_operation_pack_v3_model_linked_space_binding(policy,
+      request$typed_slice_grants, request$self_linked_model_payload_grants,
+      descriptor$publication_grant, phase = "staging")
+    fields <- c("expected_dimensions", "expected_cell_order_identity",
+      "expected_model_linkage", "expected_ancestry_identity")
+    if (is.null(descriptor) || !all(vapply(fields, function(field)
+        identical(descriptor[[field]], binding[[field]]), logical(1))))
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Authenticated model-linked space grant differs from its exact model, query, or publication sources.",
+        "staging")
+  }
+  invisible(TRUE)
+}
+
 .wb_operation_pack_v3_unscoped_identity <- function(identity) {
   list(scheme = as.character(identity$scheme)[1],
     sha256 = as.character(identity$sha256)[1])
@@ -1237,6 +1315,18 @@
       descriptor$publication_grant <- publication
       base$outputs[[i]]$allocated_id <- publication$target_id
     }
+    if (!is.null(policy) && identical(as.character(policy$policy)[1],
+        "authenticated_model_linked_space_v1")) {
+      binding <- .wb_operation_pack_v3_model_linked_space_binding(policy,
+        typed_slice_grants, self_model_reads$grants,
+        descriptor$publication_grant)
+      descriptor$expected_dimensions <- binding$expected_dimensions
+      descriptor$expected_cell_order_identity <-
+        binding$expected_cell_order_identity
+      descriptor$expected_model_linkage <- binding$expected_model_linkage
+      descriptor$expected_ancestry_identity <-
+        binding$expected_ancestry_identity
+    }
     if (!is.null(outputs[[name]]$contained_model_policy)) {
       descriptor$contained_model_write_grant <-
         .wb_operation_pack_v3_model_write_grant(outputs[[name]], operation,
@@ -1836,6 +1926,7 @@
     .wb_operation_pack_v3_validate_model_read(
       attr(request, "operation_pack_stage_root"), grant)
   }
+  .wb_operation_pack_v3_model_linked_space_request_audit(request, operation)
   for (grant in c(request$artifact_collection_grants %||% list(),
       request$named_cell_axis_collection_grants %||% list(),
       request$optional_display_axis_group_grants %||% list()))

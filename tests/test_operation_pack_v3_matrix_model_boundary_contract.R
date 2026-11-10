@@ -49,6 +49,124 @@ test_operation_pack_v3_matrix_model_protocol_fixture_contract <- function() {
   TRUE
 }
 
+test_operation_pack_v3_model_linked_space_output_policy_contract <- function() {
+  make_identity <- function(scheme, value = scheme)
+    .wb_operation_pack_v2_identity_plain(scheme, value)
+  policy <- list(output = "space",
+    policy = "authenticated_model_linked_space_v1",
+    model_read = "fitted_model", query_typed_slice_read = "query_chunks",
+    row_order = "query_typed_slice_cell_axis_v1",
+    dimension_source =
+      "authenticated_model_linkage_latent_dimension_count_v1")
+  make_request <- function(width) {
+    linkage <- list(schema =
+        "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+      engine = "generic", model_type = "retained_projection",
+      source_matrix_id = "reference", source_matrix_content_identity =
+        make_identity("test.matrix.content", "reference"),
+      source_matrix_descriptor_identity = make_identity(
+        "scworkbench.operation_pack.input_descriptor.v2", "source"),
+      feature_order_identity = make_identity("scworkbench.feature_order.v1",
+        c("f1", "f2")),
+      fitted_cell_order_identity = make_identity("scworkbench.cell_order.v1",
+        c("r1", "r2")), paired_fitted_space_id = "reference_space",
+      latent_dimension_count = as.integer(width),
+      source_matrix_snapshot_id = strrep("1", 64L),
+      transition_source_state_identity = make_identity(
+        "scworkbench.scientific_state.v1", "state"))
+    linkage$linkage_identity <- .wb_operation_pack_v2_identity_scoped(
+      linkage$schema, "linkage excluding linkage_identity", linkage)
+    model_descriptor <- make_identity(
+      "scworkbench.operation_pack.input_descriptor.v2", "model")
+    query_descriptor <- make_identity(
+      "scworkbench.operation_pack.input_descriptor.v2", "query")
+    model <- list(name = "fitted_model", input_name = "model",
+      input_descriptor_identity = model_descriptor,
+      model_content_identity = make_identity("scworkbench.model_ref.content.v1",
+        "model"), model_source_linkage = linkage,
+      model_source_linkage_identity =
+        .wb_operation_pack_v3_unscoped_identity(linkage$linkage_identity),
+      grant_identity = make_identity(
+        "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+        paste0("model-", width)))
+    query <- list(name = "query_chunks", input_name = "query_matrix",
+      input_descriptor_identity = query_descriptor,
+      input_content_identity = make_identity("scworkbench.matrix.content.v1",
+        "query"), cells_axis = list(count = 3L,
+          order_identity = make_identity("scworkbench.cell_order.v1",
+            c("q2", "q1", "q3"))),
+      grant_identity = make_identity(
+        "scworkbench.operation_pack.typed_slice_grant.v1", "query-grant"))
+    publication <- list(publication_grant_identity = make_identity(
+      "scworkbench.operation_pack.materialization_publication_grant.v1",
+      "publication"))
+    binding <- .wb_operation_pack_v3_model_linked_space_binding(policy,
+      list(query), list(model), publication)
+    descriptor <- c(list(publication_grant = publication), binding)
+    list(operation = list(dimension_policies = list(policy)),
+      request = list(outputs = list(list(name = "space",
+        descriptor = descriptor)), typed_slice_grants = list(query),
+        self_linked_model_payload_grants = list(model)),
+      binding = binding)
+  }
+  for (width in c(2L, 10L, 20L)) {
+    case <- make_request(width)
+    stopifnot(identical(case$binding$expected_dimensions,
+        list(3L, width)), identical(case$binding$expected_cell_order_identity,
+        case$request$typed_slice_grants[[1L]]$cells_axis$order_identity))
+    .wb_operation_pack_v3_model_linked_space_request_audit(case$request,
+      case$operation)
+  }
+  attacks <- list(
+    wrong_width = function(x) {
+      x$request$outputs[[1L]]$descriptor$expected_dimensions[[2L]] <- 7L; x
+    },
+    wrong_cell_order = function(x) {
+      x$request$outputs[[1L]]$descriptor$expected_cell_order_identity$sha256 <-
+        strrep("0", 64L); x
+    },
+    wrong_model_linkage = function(x) {
+      x$request$outputs[[1L]]$descriptor$expected_model_linkage$
+        reference_identity$sha256 <- strrep("0", 64L); x
+    },
+    tampered_query_grant = function(x) {
+      x$request$typed_slice_grants[[1L]]$grant_identity$sha256 <-
+        strrep("0", 64L); x
+    },
+    tampered_publication = function(x) {
+      x$request$outputs[[1L]]$descriptor$publication_grant$
+        publication_grant_identity$sha256 <- strrep("0", 64L); x
+    })
+  for (attack_name in names(attacks)) {
+    attack <- attacks[[attack_name]]
+    case <- attack(make_request(10L))
+    expected <- .wb_operation_pack_v3_model_linked_space_binding(
+      case$operation$dimension_policies[[1L]],
+      case$request$typed_slice_grants,
+      case$request$self_linked_model_payload_grants,
+      case$request$outputs[[1L]]$descriptor$publication_grant)
+    if (identical(attack_name, "wrong_width")) stopifnot(!identical(
+      case$request$outputs[[1L]]$descriptor$expected_dimensions,
+      expected$expected_dimensions))
+    rejected <- tryCatch(
+      .wb_operation_pack_v3_model_linked_space_request_audit(case$request,
+        case$operation), error = identity)
+    if (!inherits(rejected, "error")) stop(
+      "Model-linked policy accepted attack: ", attack_name)
+  }
+  case <- make_request(10L)
+  wrong_order_space <- structure(list(kind = "space", space_id = "query",
+    values = matrix(0, nrow = 3L, ncol = 10L),
+    cell_id = c("q1", "q2", "q3"), dimensions = c(3L, 10L)),
+    class = "wb_primitive")
+  rejected <- tryCatch(.wb_operation_pack_v2_observed_descriptor(
+    list(name = "space", descriptor = c(list(kind = "space"),
+      case$binding)), list(value = wrong_order_space)), error = identity)
+  if (!inherits(rejected, "error"))
+    stop("Model-linked space accepted an output with reordered query cells.")
+  TRUE
+}
+
 .wb_phase6_matrix_cleanup <- function(state) {
   try(wb_close_bundle(state$bundle), silent = TRUE)
   # Executed packs are intentionally not unloadable within one process.

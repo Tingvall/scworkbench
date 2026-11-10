@@ -204,6 +204,15 @@ Runtime family, sparse family, relation layout and derived fitted-axis policies
 require their declaration-before-write methods. No copying/modification of a
 context grant changes authenticated authority.
 
+For a retained matrix-trained model projection, declare the space output with
+`authenticated_model_linked_space_v1`. Its `model_read` must name a
+self-linked contained-model read and its `query_typed_slice_read` must name a
+matrix reader whose cell selection is `effective_input_axis_v1`. Core fixes the
+output rows to that query grant, fixes the width to the authenticated model
+linkage's `latent_dimension_count`, and binds the output ancestry and ordinary
+publication grant to both exact grants. This is method-neutral: packs retain
+responsibility for projection mathematics and must not refit the model.
+
 ## Primitive recipes
 
 Symbolic `wb_prim_matrix('counts')`, `wb_prim_space('pca')` and model refs

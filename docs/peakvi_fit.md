@@ -16,7 +16,10 @@ available.
 
 `scwblatent::peakvi_project` consumes an authenticated promoted model and
 disjoint query-matrix cells, then publishes an immutable query latent space
-and projection summary without refitting. The caller supplies a fresh
+and projection summary without refitting. A generic model-linked output policy
+fixes the published row order to the effective query grant and its width to
+the retained model linkage, so 2D and higher-dimensional models use the same
+authenticated path. The caller supplies a fresh
 `space_id_out`, and collisions reject. Because scvi-tools loads a
 pickle-capable model payload, projection requires
 `pickle_execution_trust = "operator_verified_source_v1"` after independent

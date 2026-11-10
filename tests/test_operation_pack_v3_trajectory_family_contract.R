@@ -5,7 +5,7 @@ test_operation_pack_v3_trajectory_family_policy_contract <- function() {
     "fixtures/operation-pack-v3/identities.json"),
     package = "scworkbench")
   expected <- c(
-    "df0e897f938669b5b8da1ca4f8d9e5fccb359ec6424fe04d21a563228a7463bc",
+    "943172e765d039a154fc428bf0adce16d57517c196b35bc75382cdb989c06dc1",
     "6e94c129d5199acd3e366ae92581ba4245caa7222757d8d5a694d4068d10660d",
     "770ed429cc3cbe6df896db62fabb8837c836e5cce07e45e7cbe5423e5acfdf7c",
     "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793")

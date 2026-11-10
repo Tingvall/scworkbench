@@ -1,3 +1,13 @@
+# scworkbench 0.1.2
+
+## Operation Pack SDK
+
+- Adds a generic authenticated model-linked space-output policy whose row axis
+  comes from the effective query matrix grant and whose width comes from the
+  retained model linkage.
+- Reuses the issued typed-space plan when re-authenticating file-backed sources
+  for exact derived-axis union, preserving strict descriptor and grant checks.
+
 # scworkbench 0.1.1
 
 ## Operation Pack SDK
