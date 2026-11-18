@@ -3962,12 +3962,11 @@
             features = allowed_features, cells = allowed_cells)
           state$matrix_reader_plans[[name]] <- plan
         }
-        value <- as.matrix(plan$read(features, cells))
+        value <- plan$read(features, cells)
         source_check()
         value
       } else input$values[match(features, as.character(input$feature_id)),
         match(cells, as.character(input$cell_id)), drop = FALSE]
-      values <- as.matrix(values)
       if (identical(as.character(grant$value_policy %||% "")[1],
           "nonnegative_integer_v1") &&
           (any(!is.finite(values)) || any(values < 0) ||

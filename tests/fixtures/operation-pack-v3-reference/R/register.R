@@ -34,7 +34,8 @@
   pieces <- lapply(chunks, function(selected) {
     matrix <- readers$matrix_chunks(features = features, cells = selected)
     stopifnot(identical(as.character(matrix$cell_id), selected),
-      identical(as.character(matrix$feature_id), features))
+      identical(as.character(matrix$feature_id), features),
+      inherits(matrix$values, "sparseMatrix"))
     .fixture_scores(groups, selected, all_cells = cells)
   })
   keys <- names(groups)

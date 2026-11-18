@@ -824,6 +824,28 @@ test_operation_pack_v3_chunk_replay_and_rollback_contract <- function() {
   TRUE
 }
 
+test_operation_pack_v3_sparse_typed_slice_preservation_contract <- function() {
+  installed <- .wb_v3_fixture_install()
+  state <- .wb_v3_bundle()
+  on.exit(.wb_v3_fixture_cleanup(installed, state$bundle, state$root),
+    add = TRUE)
+  stopifnot(!inherits(get("as.matrix", baseenv()), "functionWithTrace"))
+  trace("as.matrix", where = baseenv(), print = FALSE, tracer = quote({
+    if (inherits(x, "sparseMatrix"))
+      stop("Authenticated sparse typed slice was coerced to dense")
+  }))
+  on.exit(untrace("as.matrix", where = baseenv()), add = TRUE)
+  result <- wb_session_run_op(wb_session_new(), state$bundle,
+    "scwbv3reference::chunked_family", inputs = c(list(
+      matrix = "RNA", cell_set = "all", min_cells = 1L,
+      chunk_size = 2L), state$params))
+  stopifnot(identical(sort(names(result$run$outputs)),
+      c("scores", "summary")),
+    identical(as.character(result$run$outputs$scores$cell_id),
+      rep(state$cells, 2L)))
+  TRUE
+}
+
 test_operation_pack_v3_session_annotation_and_bounded_axes_contract <- function() {
   fixture <- .wb_v3_bundle()
   on.exit(.wb_v3_fixture_cleanup(bundle = fixture$bundle,
