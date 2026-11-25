@@ -534,7 +534,7 @@
         "cell_order_identity": {"$ref": "#/$defs/identity"},
         "cell_count": {"type": "integer", "minimum": 2, "maximum": 1000000},
         "key_count": {"type": "integer", "minimum": 1, "maximum": 10000},
-        "row_count": {"type": "integer", "minimum": 1, "maximum": 10000000},
+        "row_count": {"type": "integer", "minimum": 1, "maximum": 12000000},
         "row_order": {"const": "cell_major_then_declared_key_v1"},
         "seal_identity": {"$ref": "#/$defs/self_identity"}
       }

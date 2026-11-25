@@ -628,7 +628,7 @@
         "row_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 10000000
+          "maximum": 12000000
         },
         "row_order": {
           "const": "cell_major_then_declared_key_v1"

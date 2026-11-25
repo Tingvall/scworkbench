@@ -3060,7 +3060,7 @@
             "maximum_rows": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 10000000
+              "maximum": 12000000
             }
           }
         },

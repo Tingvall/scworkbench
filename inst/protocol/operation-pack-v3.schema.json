@@ -2582,7 +2582,7 @@
             "row_order": {"const": "cell_major_then_declared_key_v1"},
             "missing_values": {"const": "allowed"},
             "maximum_keys": {"type": "integer", "minimum": 1, "maximum": 10000},
-            "maximum_rows": {"type": "integer", "minimum": 1, "maximum": 10000000}
+            "maximum_rows": {"type": "integer", "minimum": 1, "maximum": 12000000}
           }
         },
         {

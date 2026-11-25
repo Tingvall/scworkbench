@@ -1,7 +1,7 @@
 {
   "sdk_version": "1.0.0",
   "pack_abi_version": "3",
-  "schema_sha256": "943172e765d039a154fc428bf0adce16d57517c196b35bc75382cdb989c06dc1",
+  "schema_sha256": "055d8941c4090d431123470f7c00e60779dff375c586e80f72b24cc88af37c0b",
   "primitive_kinds": [
     "matrix",
     "space",

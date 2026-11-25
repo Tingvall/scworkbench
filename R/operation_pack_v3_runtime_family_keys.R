@@ -108,7 +108,7 @@
       !setequal(closure, outputs) || !all(families %in% closure) ||
       as.integer(grant$maximum_keys) < 1L ||
       as.integer(grant$maximum_keys) > 10000L ||
-      as.integer(grant$maximum_rows) > 10000000L)
+      as.integer(grant$maximum_rows) > 12000000L)
     .wb_operation_pack_v3_error(code,
       "Runtime-family request grant disagrees with its authenticated source or complete output closure.",
       phase)

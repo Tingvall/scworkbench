@@ -969,6 +969,41 @@
     observed_batches = unname(batches))
 }
 
+.wb_operation_pack_v2_output_content_identity <- function(value, kind) {
+  legacy <- tryCatch(.wb_operation_pack_v2_identity_plain(
+    paste0("scworkbench.", kind, ".content.v1"), unclass(value)),
+    error = identity)
+  if (!inherits(legacy, "error")) return(legacy)
+  if (inherits(legacy, "wb_operation_pack_identity_error") &&
+      identical(as.character(legacy$code)[1L],
+        "OPERATION_PACK_CANONICAL_NUMBER_RANGE") &&
+      kind %in% c("feature_table", "obs_table") &&
+      .wb_is_primitive(value) && !is.null(.wb_table_storage(value))) {
+    # Typed table storage preserves every finite IEEE-754 double, including
+    # subnormal statistical values.  Canonical JSON v1 deliberately has a
+    # narrower exponent domain, so authenticate the table's durable typed-row
+    # representation when that legacy preimage cannot represent the payload.
+    return(list(
+      scheme = .wb_table_identity_scheme(.wb_table_storage(value)),
+      sha256 = .wb_prov_table_content_sha256(value)
+    ))
+  }
+  stop(legacy)
+}
+
+.wb_operation_pack_v2_output_content_sha <- function(value, descriptor,
+    python_payload = FALSE) {
+  kind <- as.character(descriptor$kind)[1L]
+  scheme <- as.character(descriptor$content_identity$scheme %||% "")[1L]
+  table_schemes <- unname(.wb_content_identity_schemes()[
+    c("table", "table_typed")])
+  if (!isTRUE(python_payload) && kind %in% c("feature_table", "obs_table") &&
+      scheme %in% table_schemes)
+    return(.wb_prov_table_content_sha256(value))
+  .wb_operation_pack_sha256(if (isTRUE(python_payload)) value else
+    unclass(value))
+}
+
 .wb_operation_pack_v2_observed_descriptor <- function(grant, write) {
   value <- write$value; descriptor <- grant$descriptor
   kind <- descriptor$kind
@@ -1076,7 +1111,8 @@
     dimensions = unname(as.list(as.integer(dimensions))), alignment = descriptor$expected_alignment,
     ancestry_identity = descriptor$expected_ancestry_identity,
     model_linkage = descriptor$expected_model_linkage,
-    content_identity = .wb_operation_pack_v2_identity_plain(paste0("scworkbench.", kind, ".content.v1"), unclass(value)),
+    content_identity = .wb_operation_pack_v2_output_content_identity(
+      value, kind),
     payload_manifest_identity = .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.payload_manifest.v2",
       list(path = paste0("outputs/", grant$name, "/payload.rds"), size = as.numeric(file.info(write$payload)$size), sha256 = .wb_operation_pack_v2_file_sha256(write$payload))),
     semantic_metadata_identity = .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.semantic_metadata.v2", write$semantic_metadata),
@@ -1329,7 +1365,8 @@
       } else if (!python_payload && item$name %in% .retain_payloads &&
           identical(as.character(value$kind)[1],"space")) {
         .wb_operation_pack_v2_retained_space_content_sha(value)
-      } else .wb_operation_pack_sha256(if (python_payload) value else unclass(value))
+      } else .wb_operation_pack_v2_output_content_sha(value,
+        item$descriptor, python_payload = python_payload)
       expected_content <- item$descriptor$content_identity$sha256 %||%
         item$descriptor$family_identity$sha256 %||% NULL
       if (!is.null(expected_content) && !identical(actual, expected_content)) return(list(ok = FALSE, code = "content_identity_mismatch", output = item$name))
@@ -2281,7 +2318,8 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
   } else if (is.null(record$descriptor$content_identity)) {
     .wb_operation_pack_sha256(if (python_payload) raw_value$cells else
       as.character(unlist(raw_value$cells, use.names = FALSE)))
-  } else .wb_operation_pack_sha256(if (python_payload) raw_value else unclass(raw_value))
+  } else .wb_operation_pack_v2_output_content_sha(raw_value,
+    record$descriptor, python_payload = python_payload)
   expected <- record$descriptor$content_identity$sha256 %||%
     record$descriptor$family_identity$sha256 %||%
     record$descriptor$membership_identity$sha256 %||% observed
